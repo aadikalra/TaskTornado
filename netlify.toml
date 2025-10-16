@@ -1,0 +1,20 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_USE_NETLIFY_EDGE = "true"
+
+# Remove the redirect rule - Next.js handles routing internally
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  node_bundler = "esbuild"
+  # Remove Prisma reference since this is a Supabase project
+  # external_node_modules = ["@prisma/client"]
