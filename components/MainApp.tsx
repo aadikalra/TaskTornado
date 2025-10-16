@@ -78,7 +78,6 @@ const MainApp = () => {
   const [newClassName, setNewClassName] = useState('');
   const [newClassIcon, setNewClassIcon] = useState<LucideIconName>('BookOpen');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedClasses, setExpandedClasses] = useState<Record<string, boolean>>({});
 
   // Available icons with their display names
   const availableIcons = [

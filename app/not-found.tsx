@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -23,6 +24,14 @@ export default function NotFound() {
                 <p className="text-gray-600" style={{ fontFamily: '"Arvo", serif', fontWeight: 400 }}>
                   The page you are looking for is not available!
                 </p>
+                <div className="mt-8">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center px-6 py-3 bg-[#0052FF] hover:bg-[#0041CC] text-white font-medium rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Back to Home
+                  </Link>
+                </div>
               </div>
             </div>
 

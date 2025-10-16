@@ -1,46 +1,51 @@
-import React from "react";
+'use client';
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function LandingNavbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50); // Show background after scrolling 50px
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <>
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#005f5a] dark:bg-gray-800 shadow-xl rounded-full px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between w-[90%] sm:w-[85%] max-w-4xl">
-        <div className="flex items-center gap-4 sm:gap-8">
-          {/* Logo */}
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-            <img
-              src="/apple-touch-icon.png"
-              alt="SchoolOrganizer Logo"
-              className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-            />
-          </div>
+    <nav className={`fixed top-0 left-0 right-0 z-50 mx-auto flex items-center justify-between px-4 py-2 transition-all duration-300 rounded-xl ${
+      isScrolled ? 'bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/20 mt-2 w-[90%]' : 'bg-transparent'
+    }`}>
+      {/* Logo */}
+      <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="flex gap-1">
+          <span className="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+          <span className="w-3 h-3 rounded-full bg-black dark:bg-white inline-block"></span>
+          <span className="w-3 h-3 rounded-full bg-black dark:bg-white inline-block"></span>
+        </div>  
+        ChronoTask
+      </Link>
 
-          {/* Navigation Links - Hidden on mobile */}
-          <nav className="hidden sm:flex gap-6 text-white dark:text-gray-200 font-medium">
-            <Link href="/changelog" className="hover:text-gray-300 dark:hover:text-gray-400 transition-colors cursor-pointer">
-              Changelog
-            </Link>
-          </nav>
-        </div>
-
-        <div className="flex items-center">
-          <a
-            href="/signup"
-            className="bg-white dark:bg-gray-700 text-[#005f5a] dark:text-gray-200 font-medium px-4 sm:px-6 py-1.5 sm:py-2 rounded-full rounded-r-none shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
-          >
-            Sign Up
-          </a>
-          <a
-            href="/login"
-            className="bg-white dark:bg-gray-700 text-[#005f5a] dark:text-gray-200 font-medium px-4 sm:px-6 py-1.5 sm:py-2 rounded-full rounded-l-none shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
-          >
-            Login
-          </a>
-        </div>
+      {/* Nav Links */}
+      <div className="hidden md:flex gap-8 text-gray-700 dark:text-gray-300 text-sm">
+        <a href="/#features" className="hover:text-black dark:hover:text-white">Features</a>
+        <Link href="/ai-guidelines" className="hover:text-black dark:hover:text-white">AI Guidelines</Link>
+        <Link href="/changelog" className="hover:text-black dark:hover:text-white">Changelog</Link>
       </div>
 
-      {/* Spacer for fixed navbar */}
-      <div className="h-16 sm:h-20" />
-    </>
+      {/* Buttons */}
+      <div className="flex items-center gap-6 text-sm">
+        <Link href="/login" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+          Sign in
+        </Link>
+        <Link href="/signup" className="border border-gray-300 dark:border-gray-600 rounded-lg px-5 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          Sign Up
+        </Link>
+      </div>
+    </nav>
   );
 }

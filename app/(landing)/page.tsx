@@ -5,102 +5,18 @@ import Link from 'next/link';
 import { ArrowUpRight, Plus, FileText, BarChart2, Signal, Star, Layers, Wrench, Shield, Box, TrendingUp, BookOpen, CalendarDays, ClipboardList, Bell, Check, Factory, BarChart3, MoreVertical, ArrowUp, Sparkles, MessageSquare, CheckCircle, ShieldAlert, CheckCircle2, Users, Clock, Brain, Image as ImageIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import LandingNavbar from '@/components/LandingNavbar';
+import Hero from './Hero';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8FBF9] dark:bg-gray-900 overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#F8FBF9] dark:bg-gray-900 overflow-x-hidden font-sans pt-20">
       {/* Background Gradient */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#E6F5D8] via-[#F8FBF9] to-[#F8FBF9] dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 -z-10" />
 
+      <LandingNavbar/>
+
       {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            {/* Main Heading */}
-            <div className="space-y-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400 mb-6"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Your Academic Success Starts Here
-              </motion.div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                Organize Your
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600"> Academic Journey</span>
-              </h1>
-
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                Track assignments, manage deadlines, and boost your productivity with our intelligent study companion.
-                Never miss a deadline again.
-              </p>
-            </div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <Link
-                href="/signup"
-                className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors flex items-center"
-              >
-                Get Started Free
-                <ArrowUpRight className="w-4 h-4 ml-2" />
-              </Link>
-
-              <Link
-                href="/login"
-                className="px-8 py-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold rounded-lg transition-colors"
-              >
-                Sign In
-              </Link>
-            </motion.div>
-
-            {/* Feature Highlights */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-4xl mx-auto"
-            >
-              <div className="text-center">
-                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <ClipboardList className="w-6 h-6 text-teal-600 dark:text-teal-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Smart Assignment Tracking</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Organize all your assignments with priority levels and smart due date management.</p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-6 h-6 text-teal-600 dark:text-teal-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Study Assistant</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Get instant help with homework and explanations powered by advanced AI.</p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Bell className="w-6 h-6 text-teal-600 dark:text-teal-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Smart Notifications</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Never miss deadlines with intelligent reminders and progress tracking.</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <Hero/>
 
       {/* Services Section */}
       <section id="features" className="min-h-screen flex items-center bg-[#0d363c] dark:bg-gray-800 text-white py-20">
