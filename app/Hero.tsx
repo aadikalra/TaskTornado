@@ -1,7 +1,7 @@
 import React from 'react';
 import { Brain, BookOpen, BarChart3, Clock } from 'lucide-react';
 import { Checkbox } from '@/components/animate-ui/radix/checkbox';
-import { FolderContent } from './folderContent';
+import { FolderContent } from './(landing)/folderContent';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 const colors = {
   background: '#F7F7F9',
