@@ -36,11 +36,30 @@ export default function SignUpPage() {
 
     try {
       await signUp(email, password, name);
+
+      // Check if email confirmation is required
+      // If so, redirect to a confirmation page or show a message
+      setError('');
+      setLoading(false);
+
+      // For now, redirect to dashboard (you might want to handle email confirmation differently)
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to create an account. Please try again.');
       console.error('Signup error:', err);
-    } finally {
+
+      // Handle specific error cases
+      if (err.message?.includes('already exists') || err.message?.includes('already registered')) {
+        setError('An account with this email already exists. Please try signing in instead.');
+      } else if (err.message?.includes('Password should be at least')) {
+        setError('Password must be at least 6 characters long.');
+      } else if (err.message?.includes('Invalid email')) {
+        setError('Please enter a valid email address.');
+      } else if (err.message?.includes('signup is disabled')) {
+        setError('Account registration is currently disabled. Please contact support.');
+      } else {
+        setError(err.message || 'Failed to create an account. Please try again.');
+      }
+
       setLoading(false);
     }
   };

@@ -214,6 +214,13 @@ const MainApp = () => {
     setIsClient(true);
   }, []);
 
+  // Auto-show onboarding modal for users with no classes
+  useEffect(() => {
+    if (isClient && user && classes.length === 0 && !loading) {
+      setShowOnboarding(true);
+    }
+  }, [isClient, user, classes.length, loading]);
+
   // Show toast notifications for overdue assignments
   React.useEffect(() => {
     // Always run this effect to maintain hook order, but check conditions inside

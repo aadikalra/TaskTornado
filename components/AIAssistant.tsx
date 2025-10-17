@@ -45,18 +45,7 @@ import { ResizablePanel } from './ui/resizable-panel';
 import { X } from './animate-ui/icons/x';
 import { Flashcard, FlashcardDeck } from './Flashcard';
 import { Tabs, TabsList, TabsTab, TabsPanels, TabsPanel } from '@/components/animate-ui/components/base/tabs';
-
-interface Class {
-  id: string;
-  name: string;
-}
-interface Homework {
-  id: string;
-  title: string;
-  classId: string;
-  dueDate: string; // ISO string
-  completed: boolean;
-}
+import { Class, Homework } from '@/context/ClassContext';
 interface Message {
   id: number;
   role: 'user' | 'assistant';

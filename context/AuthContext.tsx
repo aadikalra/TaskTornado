@@ -284,17 +284,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name: string): Promise<void> => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
-        },
-      },
-    });
+    try {
+      // First check if a profile already exists for this email
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
 
-    if (error) throw error;
+      if (existingProfile) {
+        // Profile already exists - this usually means an account already exists
+        const customError = new Error('An account with this email already exists. Please try signing in instead, or contact support if you believe this is an error.');
+        throw customError;
+      }
+
+      // No existing profile, proceed with normal signup
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      // Handle the specific case where a profile already exists for this email
+      if (error.message?.includes('duplicate key value violates unique constraint') ||
+          error.message?.includes('profiles_email_unique')) {
+
+        // This usually means a profile exists but the auth user was deleted
+        // Provide a helpful error message to the user
+        const customError = new Error('An account with this email already exists. Please try signing in instead, or contact support if you believe this is an error.');
+        throw customError;
+      }
+
+      // For other errors, just re-throw them
+      throw error;
+    }
   };
 
   const signOut = async () => {

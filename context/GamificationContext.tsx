@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { Homework, Class } from './ClassContext';
 
 export type UserLevel = 'Student' | 'Scholar' | 'Expert' | 'Master';
 
@@ -59,18 +60,8 @@ const XP_REWARDS = {
 
 interface GamificationProviderProps {
   children: React.ReactNode;
-  homeworks?: Array<{
-    id: string;
-    classId: string;
-    completed: boolean;
-    priority?: string;
-    dueDate: string | Date;
-    title: string;
-  }>;
-  classes?: Array<{
-    id: string;
-    name: string;
-  }>;
+  homeworks?: Homework[];
+  classes?: Class[];
 }
 
 export const GamificationProvider = ({ children, homeworks = [], classes = [] }: GamificationProviderProps) => {
@@ -185,7 +176,7 @@ export const GamificationProvider = ({ children, homeworks = [], classes = [] }:
         // Base XP for completion
         let xpReward = 25;
 
-        // Bonus for high priority (check if priority exists)
+        // Bonus for high priority
         if (hw.priority === 'high') {
           xpReward += 10;
         }
