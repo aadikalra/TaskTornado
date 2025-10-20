@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { Analytics } from '@vercel/analytics/next';
 import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 
@@ -34,16 +35,19 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const is404Page = !shouldShowNavbar && !isLandingPage && !isAuthPage && !isAIGuidelinesPage && !isLegalPage;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {shouldShowNavbar && (
-        <>
-          <Navbar />
-          <SearchBar />
-        </>
-      )}
-      <main className={shouldShowNavbar ? 'flex-1 pt-24 md:pt-26 bg-transparent' : 'flex-1'}>
-        {children}
-      </main>
-    </div>
+    <>
+      <Analytics />
+      <div className="min-h-screen flex flex-col">
+        {shouldShowNavbar && (
+          <>
+            <Navbar />
+            <SearchBar />
+          </>
+        )}
+        <main className={shouldShowNavbar ? 'flex-1 pt-24 md:pt-26 bg-transparent' : 'flex-1'}>
+          {children}
+        </main>
+      </div>
+    </>
   );
 }
