@@ -6,7 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, ArrowRight, ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe, FlaskConical, Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe, FlaskConical, Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/animate-ui/components/buttons/button';
+import { X } from '@/components/animate-ui/icons/x';
+import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
+import { AnimateIcon } from './animate-ui/animate-icon';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -646,7 +650,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <X className="w-5 h-5" />
+            <X animateOnHover />
           </button>
         </div>
 
@@ -655,18 +659,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         </div>
 
         <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
-          <button
+          <Button
             onClick={handleBack}
             disabled={currentStep === 'grade'}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               currentStep === 'grade'
-                ? 'opacity-50 cursor-not-allowed'
-                : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+                ? ''
+                : 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
             }`}
+            variant={currentStep === 'grade' ? 'ghost' : 'default'}
           >
             <ArrowLeft className="w-4 h-4" />
             Back
-          </button>
+          </Button>
 
           <div className="flex items-center gap-2">
             {(() => {
@@ -690,7 +695,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           </div>
 
           {currentStep === 'summary' ? (
-            <button
+            <Button
               onClick={handleCreateClasses}
               disabled={isLoading}
               className={`flex items-center gap-2 px-4 py-2 bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -703,20 +708,20 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   Create Classes
                 </>
               )}
-            </button>
+            </Button>
           ) : (
-            <button
-              onClick={handleNext}
-              disabled={!canProceed()}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                canProceed()
-                  ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
-              }`}
-            >
-              Next
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  canProceed()
+                    ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+                }`}
+              >
+                Next
+                <ArrowRight className="w-4 h-4" animateOnHover />
+              </Button>
           )}
         </div>
       </div>

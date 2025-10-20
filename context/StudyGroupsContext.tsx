@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database.types';
+import { checkSchoolTimeWarning } from '@/lib/school-schedule';
 
 type StudyGroup = Database['public']['Tables']['study_groups']['Row'] & {
   member_count?: number;
@@ -32,6 +33,8 @@ interface StudyGroupsContextType {
   links: GroupLink[];
   loading: boolean;
   error: string | null;
+  connectionStatus: 'connected' | 'connecting' | 'disconnected';
+  schoolWarning: { showWarning: boolean; message: string } | null;
   createGroup: (name: string, classId?: string) => Promise<void>;
   joinGroup: (groupId: string) => Promise<void>;
   leaveGroup: (groupId: string) => Promise<void>;
@@ -39,6 +42,7 @@ interface StudyGroupsContextType {
   addLink: (groupId: string, url: string, title?: string) => Promise<void>;
   setCurrentGroup: (group: StudyGroup | null) => void;
   refreshGroups: () => Promise<void>;
+  dismissSchoolWarning: () => void;
 }
 
 const StudyGroupsContext = createContext<StudyGroupsContextType | undefined>(undefined);
@@ -51,6 +55,9 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   const [links, setLinks] = useState<GroupLink[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
+  const [retryCount, setRetryCount] = useState(0);
+  const [schoolWarning, setSchoolWarning] = useState<{ showWarning: boolean; message: string } | null>(null);
 
   // Fetch user's groups
   const fetchGroups = useCallback(async () => {
@@ -386,41 +393,130 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions with retry logic
   useEffect(() => {
-    if (!currentGroup?.id) return;
-    
-    // Subscribe to new messages
-    const messageSubscription = supabase
-      .channel('group_messages')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'group_messages',
-        filter: `group_id=eq.${currentGroup.id}`
-      }, (payload) => {
-        setMessages(prev => [...prev, payload.new as GroupMessage]);
-      })
-      .subscribe();
+    if (!currentGroup?.id || !user) {
+      setConnectionStatus('disconnected');
+      return;
+    }
 
-    // Subscribe to new links
-    const linkSubscription = supabase
-      .channel('group_links')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'group_links',
-        filter: `group_id=eq.${currentGroup.id}`
-      }, (payload) => {
-        setLinks(prev => [payload.new as GroupLink, ...prev]);
-      })
-      .subscribe();
+    let retryTimeout: NodeJS.Timeout;
+    let messageSubscription: any;
+    let linkSubscription: any;
+
+    const setupSubscription = async (attempt: number = 0) => {
+      try {
+        setConnectionStatus('connecting');
+        console.log(`Setting up real-time subscription for group ${currentGroup.id} (user: ${user.id}), attempt ${attempt + 1}`);
+
+        // Create unique channel names to avoid conflicts
+        const messageChannel = `group_messages_${currentGroup.id}_${user.id}_${Date.now()}`;
+        const linkChannel = `group_links_${currentGroup.id}_${user.id}_${Date.now()}`;
+
+        // Subscribe to new messages - filter by group_id only
+        messageSubscription = supabase
+          .channel(messageChannel)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'group_messages',
+            filter: `group_id=eq.${currentGroup.id}`
+          }, (payload) => {
+            console.log('🎉 RECEIVED REAL-TIME MESSAGE:', {
+              messageId: payload.new.id,
+              content: payload.new.content,
+              userId: payload.new.user_id,
+              groupId: payload.new.group_id,
+              currentUserId: user.id,
+              timestamp: new Date().toISOString()
+            });
+
+            setMessages(prev => {
+              // Check if message already exists to prevent duplicates
+              const exists = prev.some(msg => msg.id === payload.new.id);
+              if (exists) {
+                console.log('⚠️ Message already exists, skipping duplicate');
+                return prev;
+              }
+
+              console.log('✅ Adding new message to state');
+              const newMessage = payload.new as GroupMessage;
+
+              // Handle the profile data properly
+              if (payload.new.user_id === user.id) {
+                newMessage.profiles = {
+                  full_name: payload.new.full_name || 'You',
+                  avatar_url: ''
+                };
+              }
+
+              return [...prev, newMessage];
+            });
+          })
+          .subscribe((status, error) => {
+            console.log('📡 Message subscription status:', status, error);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Message subscription successfully established');
+              setConnectionStatus('connected');
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              console.error('❌ Message subscription error:', status, error);
+              setConnectionStatus('disconnected');
+              // Retry with exponential backoff
+              const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+              retryTimeout = setTimeout(() => setupSubscription(attempt + 1), delay);
+            }
+          });
+
+        // Subscribe to new links
+        linkSubscription = supabase
+          .channel(linkChannel)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'group_links',
+            filter: `group_id=eq.${currentGroup.id}`
+          }, (payload) => {
+            console.log('🔗 Received real-time link:', payload.new);
+            setLinks(prev => {
+              // Check if link already exists to prevent duplicates
+              const exists = prev.some(link => link.id === payload.new.id);
+              if (exists) {
+                console.log('⚠️ Link already exists, skipping duplicate');
+                return prev;
+              }
+              return [payload.new as GroupLink, ...prev];
+            });
+          })
+          .subscribe((status, error) => {
+            console.log('🔗 Link subscription status:', status, error);
+          });
+
+      } catch (error) {
+        console.error('💥 Error setting up subscription:', error);
+        setConnectionStatus('disconnected');
+        // Retry with exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        retryTimeout = setTimeout(() => setupSubscription(attempt + 1), delay);
+      }
+    };
+
+    // Start the initial subscription setup
+    setupSubscription();
 
     return () => {
-      messageSubscription.unsubscribe();
-      linkSubscription.unsubscribe();
+      console.log('🧹 Cleaning up real-time subscriptions');
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+      if (messageSubscription) {
+        messageSubscription.unsubscribe();
+      }
+      if (linkSubscription) {
+        linkSubscription.unsubscribe();
+      }
+      setConnectionStatus('disconnected');
     };
-  }, [currentGroup?.id]);
+  }, [currentGroup?.id, user]);
 
   // Load groups when user changes
   useEffect(() => {
@@ -438,6 +534,21 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     }
   }, [currentGroup?.id, fetchMessages, fetchLinks]);
 
+  // Check for school warnings when current group changes
+  useEffect(() => {
+    if (currentGroup?.id) {
+      const warning = checkSchoolTimeWarning();
+      setSchoolWarning(warning);
+    } else {
+      setSchoolWarning(null);
+    }
+  }, [currentGroup?.id]);
+
+  // Dismiss school warning
+  const dismissSchoolWarning = useCallback(() => {
+    setSchoolWarning(null);
+  }, []);
+
   return (
     <StudyGroupsContext.Provider
       value={{
@@ -447,6 +558,8 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         links,
         loading,
         error,
+        connectionStatus,
+        schoolWarning,
         createGroup,
         joinGroup,
         leaveGroup,
@@ -454,6 +567,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         addLink,
         setCurrentGroup,
         refreshGroups: fetchGroups,
+        dismissSchoolWarning,
       }}
     >
       {children}

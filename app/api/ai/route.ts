@@ -4,6 +4,10 @@ import { NextResponse, NextRequest } from 'next/server';
 const GOOGLE_AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
 
+// Ollama Cloud API configuration
+const OLLAMA_CLOUD_API_URL = 'https://ollama.com/api';
+const OLLAMA_CLOUD_API_KEY = process.env.OLLAMA_API_KEY;
+
 // Rate limiting: 60 requests per minute
 const RATE_LIMIT_PER_MINUTE = 60;
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
@@ -81,20 +85,6 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   try {
-    // Check if API key is configured
-    if (!GOOGLE_AI_API_KEY) {
-      return new NextResponse(JSON.stringify({
-        error: 'Google AI Studio API key not configured',
-        details: 'Please set GOOGLE_AI_API_KEY environment variable'
-      }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
-      });
-    }
-
     // Parse the incoming request body
     const body = await req.json();
     const { prompt, messages, model = 'gemma-3-12b-it', action = 'chat' } = body;
@@ -114,6 +104,38 @@ export async function POST(req: NextRequest) {
           ...corsHeaders,
         },
       });
+    }
+
+    // Check if this is a cloud model (ends with -cloud)
+    const isCloudModel = model.endsWith('-cloud');
+
+    // Check if API key is configured for the appropriate service
+    if (isCloudModel) {
+      if (!OLLAMA_CLOUD_API_KEY) {
+        return new NextResponse(JSON.stringify({
+          error: 'Ollama Cloud API key not configured',
+          details: 'Please set OLLAMA_API_KEY environment variable'
+        }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
+    } else {
+      if (!GOOGLE_AI_API_KEY) {
+        return new NextResponse(JSON.stringify({
+          error: 'Google AI Studio API key not configured',
+          details: 'Please set GOOGLE_AI_API_KEY environment variable'
+        }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
     }
 
     // Log the incoming request for debugging
@@ -236,52 +258,31 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    console.log('Sending request to Google AI Studio:', {
-      url: `${GOOGLE_AI_API_URL}/models/${model}:generateContent`,
-      method: 'POST',
-    });
-
-    // Forward the request to Google AI Studio
-    let response;
-    try {
-      response = await fetch(`${GOOGLE_AI_API_URL}/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`, {
+    if (!isCloudModel) {
+      // Handle Google AI Studio models with streaming
+      console.log('Sending streaming request to Google AI Studio:', {
+        url: `${GOOGLE_AI_API_URL}/models/${model}:streamGenerateContent`,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-    } catch (fetchError) {
-      console.error('Failed to connect to Google AI Studio:', fetchError);
-      return new NextResponse(JSON.stringify({
-        error: 'Failed to connect to AI service',
-        details: fetchError instanceof Error ? fetchError.message : 'Connection error',
-        type: 'connection_error'
-      }), {
-        status: 502,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
-      });
-    }
-
-    // Handle non-OK responses
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Google AI Studio API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText,
       });
 
-      // Handle rate limit errors
-      if (response.status === 429) {
+      // Forward the request to Google AI Studio with streaming
+      let response;
+      try {
+        response = await fetch(`${GOOGLE_AI_API_URL}/models/${model}:streamGenerateContent?key=${GOOGLE_AI_API_KEY}&alt=sse`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+      } catch (fetchError) {
+        console.error('Failed to connect to Google AI Studio:', fetchError);
         return new NextResponse(JSON.stringify({
-          error: 'Rate limit exceeded',
-          details: 'Too many requests to Google AI Studio. Please try again later.',
+          error: 'Failed to connect to AI service',
+          details: fetchError instanceof Error ? fetchError.message : 'Connection error',
+          type: 'connection_error'
         }), {
-          status: 429,
+          status: 502,
           headers: {
             'Content-Type': 'application/json',
             ...corsHeaders,
@@ -289,64 +290,247 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      return new NextResponse(JSON.stringify({
-        error: 'Failed to get response from Google AI Studio',
-        details: errorText,
-      }), {
-        status: response.status,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Google AI Studio API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+        });
+
+        // Handle rate limit errors
+        if (response.status === 429) {
+          return new NextResponse(JSON.stringify({
+            error: 'Rate limit exceeded',
+            details: 'Too many requests to Google AI Studio. Please try again later.',
+          }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+
+        return new NextResponse(JSON.stringify({
+          error: 'Failed to get response from Google AI Studio',
+          details: errorText,
+        }), {
+          status: response.status,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
+
+      // Stream the response back to the client
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      return new NextResponse(
+        new ReadableStream({
+          async start(controller) {
+            const reader = response.body?.getReader();
+            if (!reader) {
+              controller.close();
+              return;
+            }
+
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                console.log('Streaming chunk from Google AI Studio:', chunk);
+
+                // Parse SSE format and extract content
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                  if (line.startsWith('data: ')) {
+                    try {
+                      const data = JSON.parse(line.slice(6));
+                      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                      if (content) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: content, done: false })}\n\n`));
+                      }
+                    } catch (parseError) {
+                      console.error('Failed to parse streaming chunk:', parseError);
+                    }
+                  }
+                }
+              }
+
+              // Send final done message
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: '', done: true })}\n\n`));
+              controller.close();
+            } catch (error) {
+              console.error('Error in streaming:', error);
+              controller.error(error);
+            } finally {
+              reader.releaseLock();
+            }
+          }
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            ...corsHeaders,
+          },
+        }
+      );
+    } else {
+      // Handle Ollama Cloud models with streaming
+      console.log('Sending request to Ollama Cloud:', {
+        url: `${OLLAMA_CLOUD_API_URL}/${action}`,
+        method: 'POST',
       });
-    }
 
-    // Get the response text first
-    const responseText = await response.text();
-    console.log('Raw response from Google AI Studio:', responseText);
+      // Convert messages to Ollama format
+      const convertToOllamaMessages = (messages: any[]) => {
+        return messages.map(msg => ({
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: msg.content,
+          images: msg.images || undefined,
+        }));
+      };
 
-    // Try to parse as JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);
-      console.log('Parsed response from Google AI Studio:', JSON.stringify(data, null, 2));
-
-      // Extract the response text from Gemini format
-      const responseContent = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response content';
-
-      // Return the response in the format expected by the frontend
-      return new NextResponse(JSON.stringify({
-        response: responseContent,
+      // Prepare the request body for Ollama Cloud with streaming
+      const ollamaRequestBody = {
         model: model,
-        done: true,
-        created_at: new Date().toISOString(),
-        message: {
-          role: 'model', // Changed from 'assistant' to 'model' for Gemini compatibility
-          content: responseContent,
+        messages: messages ? convertToOllamaMessages(messages) : [{ role: 'user', content: prompt }],
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
         },
-        raw: data // Include the raw response for debugging
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
-      });
-    } catch (parseError) {
-      console.error('Failed to parse Google AI Studio response:', parseError);
-      return new NextResponse(JSON.stringify({
-        error: 'Invalid response from AI service',
-        details: responseText.length > 200 ? responseText.substring(0, 200) + '...' : responseText,
-        type: 'parse_error'
-      }), {
-        status: 502,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
-      });
+        stream: true, // Enable streaming
+      };
+
+      // Forward the streaming request to Ollama Cloud
+      let response;
+      try {
+        response = await fetch(`${OLLAMA_CLOUD_API_URL}/${action}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OLLAMA_CLOUD_API_KEY}`,
+          },
+          body: JSON.stringify(ollamaRequestBody),
+        });
+      } catch (fetchError) {
+        console.error('Failed to connect to Ollama Cloud:', fetchError);
+        return new NextResponse(JSON.stringify({
+          error: 'Failed to connect to Ollama Cloud',
+          details: fetchError instanceof Error ? fetchError.message : 'Connection error',
+          type: 'connection_error'
+        }), {
+          status: 502,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ollama Cloud API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+        });
+
+        // Handle rate limit errors
+        if (response.status === 429) {
+          return new NextResponse(JSON.stringify({
+            error: 'Rate limit exceeded',
+            details: 'Too many requests to Ollama Cloud. Please try again later.',
+          }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+
+        return new NextResponse(JSON.stringify({
+          error: 'Failed to get response from Ollama Cloud',
+          details: errorText,
+        }), {
+          status: response.status,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
+
+      // Stream the response back to the client
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      return new NextResponse(
+        new ReadableStream({
+          async start(controller) {
+            const reader = response.body?.getReader();
+            if (!reader) {
+              controller.close();
+              return;
+            }
+
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                console.log('Streaming chunk from Ollama Cloud:', chunk);
+
+                // Parse Ollama streaming format
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                  if (line.trim() && !line.startsWith('data: ')) {
+                    try {
+                      const data = JSON.parse(line);
+                      const content = data.response || data.message?.content || data.delta?.content;
+                      if (content) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: content, done: false })}\n\n`));
+                      }
+                    } catch (parseError) {
+                      console.error('Failed to parse Ollama streaming chunk:', parseError);
+                    }
+                  }
+                }
+              }
+
+              // Send final done message
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: '', done: true })}\n\n`));
+              controller.close();
+            } catch (error) {
+              console.error('Error in Ollama streaming:', error);
+              controller.error(error);
+            } finally {
+              reader.releaseLock();
+            }
+          }
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            ...corsHeaders,
+          },
+        }
+      );
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in AI API route:', error);
     return new NextResponse(JSON.stringify({
       error: 'Internal server error',

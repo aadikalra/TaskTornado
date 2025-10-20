@@ -122,36 +122,108 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     };
 
     try {
-      const data = await makeRequest('chat', { 
-        model, 
-        messages,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
+      // For streaming responses, we need to handle the response differently
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          model,
+          messages,
+          action: 'chat',
+          options: {
+            temperature: 0.7,
+            top_p: 0.9,
+          },
+        }),
       });
-      
-      // Create a base response with all required fields
-      const response: AIResponse = {
-        response: '',
-        done: data.done ?? true,
-        model: data.model ?? model,
-        created_at: data.created_at ?? new Date().toISOString(),
-        message: data.message,
-        raw: data // Include raw data for debugging
-      };
 
-      // Set the response content based on the available data
-      if (data.message?.content) {
-        response.response = data.message.content;
-      } else if (typeof data.response === 'string') {
-        response.response = data.response;
-      } else {
-        console.warn('Unexpected response format from AI service:', data);
-        response.response = 'I received an unexpected response format. Please try again.';
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData?.error || 'Failed to get response from AI service';
+        const errorDetails = errorData?.details || 'No additional details available';
+        throw new Error(`${errorMessage}: ${errorDetails}`);
       }
-      
-      return response;
+
+      // Handle streaming response
+      if (response.headers.get('content-type')?.includes('text/plain')) {
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedResponse = '';
+        let finalModel = model;
+        let createdAt = new Date().toISOString();
+
+        if (!reader) {
+          throw new Error('No response body reader available');
+        }
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.response) {
+                    accumulatedResponse += data.response;
+                  }
+                  if (data.done) {
+                    return {
+                      response: accumulatedResponse,
+                      done: true,
+                      model: finalModel,
+                      created_at: createdAt,
+                    };
+                  }
+                } catch (parseError) {
+                  console.error('Failed to parse streaming data:', parseError);
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        // If we get here, the stream ended without a done message
+        return {
+          response: accumulatedResponse,
+          done: true,
+          model: finalModel,
+          created_at: createdAt,
+        };
+      } else {
+        // Handle non-streaming response (fallback)
+        const responseData = await response.json();
+
+        // Create a base response with all required fields
+        const aiResponse: AIResponse = {
+          response: '',
+          done: responseData.done ?? true,
+          model: responseData.model ?? model,
+          created_at: responseData.created_at ?? new Date().toISOString(),
+          message: responseData.message,
+          raw: responseData // Include raw data for debugging
+        };
+
+        // Set the response content based on the available data
+        if (responseData.message?.content) {
+          aiResponse.response = responseData.message.content;
+        } else if (typeof responseData.response === 'string') {
+          aiResponse.response = responseData.response;
+        } else {
+          console.warn('Unexpected response format from AI service:', responseData);
+          aiResponse.response = 'I received an unexpected response format. Please try again.';
+        }
+
+        return aiResponse;
+      }
     } catch (err) {
       console.error('Error in chat:', err);
       return {
@@ -160,7 +232,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         raw: err instanceof Error ? err.message : String(err)
       };
     }
-  }, [makeRequest]);
+  }, []);
 
   const clearError = useCallback(() => {
     setError(null);

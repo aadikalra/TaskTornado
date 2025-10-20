@@ -87,6 +87,54 @@ FOR DELETE USING (
   )
 );
 
--- Enable RLS on both tables
-ALTER TABLE public.study_groups ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.study_group_members ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on group_messages and group_links tables
+ALTER TABLE public.group_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_links ENABLE ROW LEVEL SECURITY;
+
+-- Group Messages RLS Policies
+-- Users can view messages in groups they are members of
+CREATE POLICY "Users can view group messages"
+ON public.group_messages
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.study_group_members
+    WHERE study_group_members.group_id = group_messages.group_id
+    AND study_group_members.user_id = auth.uid()
+  )
+);
+
+-- Users can insert messages in groups they are members of
+CREATE POLICY "Users can insert group messages"
+ON public.group_messages
+FOR INSERT WITH CHECK (
+  auth.uid() = user_id AND
+  EXISTS (
+    SELECT 1 FROM public.study_group_members
+    WHERE study_group_members.group_id = group_messages.group_id
+    AND study_group_members.user_id = auth.uid()
+  )
+);
+
+-- Group Links RLS Policies
+-- Users can view links in groups they are members of
+CREATE POLICY "Users can view group links"
+ON public.group_links
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.study_group_members
+    WHERE study_group_members.group_id = group_links.group_id
+    AND study_group_members.user_id = auth.uid()
+  )
+);
+
+-- Users can insert links in groups they are members of
+CREATE POLICY "Users can insert group links"
+ON public.group_links
+FOR INSERT WITH CHECK (
+  auth.uid() = user_id AND
+  EXISTS (
+    SELECT 1 FROM public.study_group_members
+    WHERE study_group_members.group_id = group_links.group_id
+    AND study_group_members.user_id = auth.uid()
+  )
+);

@@ -30,6 +30,9 @@ import {
   BookType,
   Zap,
   Brain,
+  Calculator,
+  Bookmark,
+  Cloud,
 } from 'lucide-react';
 
 import { Bot } from '@/components/animate-ui/icons/bot';
@@ -78,7 +81,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
   const setIsOpen = onClose || setInternalIsOpen;
-  
+
   // State management
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -92,9 +95,19 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   // Message counters for tracking AI usage by model
   const [quickMessageCounter, setQuickMessageCounter] = useState(0);
   const [deeperMessageCounter, setDeeperMessageCounter] = useState(0);
+  const [cloudMessageCounter, setCloudMessageCounter] = useState(0);
+
+  // Command menu state
+  const [showCommandMenu, setShowCommandMenu] = useState(false);
+  const [commandMenuPosition, setCommandMenuPosition] = useState({ top: 0, left: 0 });
 
   // Model selection state
-  const [selectedModel, setSelectedModel] = useState<'gemma-3-12b-it' | 'gemini-2.5-flash-lite'>('gemma-3-12b-it');
+  const [selectedModel, setSelectedModel] = useState<'gemma-3-12b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud'>('gemma-3-12b-it');
+
+  // Resize state and refs
+  const [panelSize, setPanelSize] = useState({ width: 500, height: 600 });
+  const resizeRef = useRef<HTMLDivElement>(null);
+  const isResizingRef = useRef(false);
 
   // Context hooks – must be called unconditionally
   const aiContext = useAI();
@@ -106,7 +119,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Safeguard destructuring
-  const { chat, error: aiError, setError: setAIError = () => {} } = aiContext || {};
+  const { chat, error: aiError, setError: setAIError = () => { } } = aiContext || {};
 
   const {
     homeworks = [],
@@ -117,8 +130,20 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
   // Track active @‑command
   const [activeCommand, setActiveCommand] = useState<
-    'homework' | 'control' | 'resources' | 'flashcards' | 'therapist' | null
+    'homework' | 'control' | 'resources' | 'flashcards' | 'therapist' | 'grade' | null
   >(null);
+
+  /* ---------------------------------------------------------------------- */
+  /*                              Command Definitions                        */
+  /* ---------------------------------------------------------------------- */
+  const commands = [
+    { id: 'homework', label: 'Homework', icon: BookOpen, color: 'yellow', description: 'View upcoming homework' },
+    { id: 'control', label: 'Control', icon: PlusCircle, color: 'blue', description: 'Create or manage homework' },
+    { id: 'resources', label: 'Resources', icon: Search, color: 'purple', description: 'Find study resources' },
+    { id: 'flashcards', label: 'Flashcards', icon: Bookmark, color: 'pink', description: 'Generate flashcards' },
+    { id: 'therapist', label: 'Therapist', icon: MessageSquare, color: 'cyan', description: 'Mental health support' },
+    { id: 'grade', label: 'Grade', icon: Calculator, color: 'green', description: 'Grade assignments' },
+  ];
 
   /* ---------------------------------------------------------------------- */
   /*                              Effects                                    */
@@ -141,6 +166,9 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       setShowHomeworkEffect(false);
     } else if (inputLower.includes('@therapist')) {
       setActiveCommand('therapist');
+      setShowHomeworkEffect(false);
+    } else if (inputLower.includes('@grade')) {
+      setActiveCommand('grade');
       setShowHomeworkEffect(false);
     } else {
       setActiveCommand(null);
@@ -188,12 +216,21 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
         .find(row => row.startsWith('aiDeeperMessageCounter='))
         ?.split('=')[1];
 
+      const savedCloudCounter = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('aiCloudMessageCounter='))
+        ?.split('=')[1];
+
       if (savedQuickCounter) {
         setQuickMessageCounter(parseInt(savedQuickCounter, 10) || 0);
       }
 
       if (savedDeeperCounter) {
         setDeeperMessageCounter(parseInt(savedDeeperCounter, 10) || 0);
+      }
+
+      if (savedCloudCounter) {
+        setCloudMessageCounter(parseInt(savedCloudCounter, 10) || 0);
       }
     }
   }, []);
@@ -212,8 +249,26 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
         expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
         document.cookie = `aiDeeperMessageCounter=${deeperMessageCounter};expires=${expiryDate.toUTCString()};path=/`;
       }
+
+      if (cloudMessageCounter > 0) {
+        const expiryDate = new Date();
+        expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
+        document.cookie = `aiCloudMessageCounter=${cloudMessageCounter};expires=${expiryDate.toUTCString()};path=/`;
+      }
     }
-  }, [quickMessageCounter, deeperMessageCounter]);
+  }, [quickMessageCounter, deeperMessageCounter, cloudMessageCounter]);
+
+  // Close command menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showCommandMenu && !(e.target as Element).closest('.command-menu-container')) {
+        setShowCommandMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCommandMenu]);
 
   /* ---------------------------------------------------------------------- */
   /*                         Helper & Parsing Functions                      */
@@ -575,7 +630,7 @@ Return ONLY a JSON object with fields: title, className, dueDate, priority.`;
   /* ---------------------------------------------------------------------- */
   const handleFlashcardsCommand = async (userInput: string) => {
     const topic = userInput.split('@flashcards')[1]?.trim() || 'general knowledge';
-    
+
     if (!topic) {
       return `# Flashcard Generator
 
@@ -612,19 +667,19 @@ For example:
       Format the response as a JSON array of objects with 'question' and 'answer' properties.`;
 
       const response = await chat([
-        { 
-          role: 'system', 
+        {
+          role: 'system',
           content: 'You are a helpful study assistant that creates educational flashcards. Return ONLY a valid JSON array of objects with question and answer properties.'
         },
-        { 
-          role: 'user', 
-          content: prompt 
+        {
+          role: 'user',
+          content: prompt
         }
       ]);
 
       // Parse the response
       let jsonString = response.response.trim();
-      
+
       // Remove markdown code block syntax if present
       if (jsonString.startsWith('```json')) {
         jsonString = jsonString.replace(/^```json\n?|\n?```$/g, '').trim();
@@ -643,7 +698,7 @@ For example:
         question?: string;
         answer?: string;
       }
-      
+
       const formattedCards = parsedCards.map((card: FlashcardData, index: number) => ({
         id: `card-${Date.now()}-${index}`,
         question: card.question || `Question ${index + 1}`,
@@ -656,10 +711,10 @@ For example:
       if (typeof window !== 'undefined') {
         localStorage.setItem('currentFlashcards', JSON.stringify(formattedCards));
       }
-      
+
       // Remove the loading message
       setMessages(prev => prev.filter(msg => !msg.isLoading));
-      
+
       // Return a success message with a link to the flashcards page
       return `# 🗂️ Flashcard Set: ${topic}
 
@@ -676,8 +731,6 @@ I've created ${formattedCards.length} flashcards for you to study.
       return `❌ I couldn't generate flashcards right now. Please try again with a different topic.`;
     }
   };
-
-  /* ---------------------------------------------------------------------- */
   /*                     Homework context for AI prompts                     */
   /* ---------------------------------------------------------------------- */
   const getHomeworkContext = (): string => {
@@ -700,17 +753,17 @@ I've created ${formattedCards.length} flashcards for you to study.
     const context = `UPCOMING HOMEWORK ASSIGNMENTS (${upcoming.length} items):
 
 ${upcoming
-  .map((hw, i) => {
-    const cls = getClassById(hw.classId);
-    const due = new Date(hw.dueDate);
-    const diff = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    const when = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : `in ${diff} days`;
-    return `${i + 1}. ${hw.title}
+        .map((hw, i) => {
+          const cls = getClassById(hw.classId);
+          const due = new Date(hw.dueDate);
+          const diff = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          const when = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : `in ${diff} days`;
+          return `${i + 1}. ${hw.title}
 - Class: ${cls?.name ?? 'Unknown'}
 - Due: ${due.toLocaleDateString()} (${when})
 - Status: ${hw.completed ? 'Completed' : 'Incomplete'}`;
-  })
-  .join('\n\n')}
+        })
+        .join('\n\n')}
 
 Use this homework context to provide relevant help and reminders.`;
 
@@ -741,6 +794,46 @@ Use this homework context to provide relevant help and reminders.`;
   /* ---------------------------------------------------------------------- */
   /*                           Submit handling                               */
   /* ---------------------------------------------------------------------- */
+  const handleMouseDown = (e: React.MouseEvent, direction: string) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = panelSize.width;
+    const startHeight = panelSize.height;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+
+      if (direction.includes('left')) {
+        const newWidth = startWidth - (e.clientX - startX);
+        setPanelSize(prev => ({ ...prev, width: Math.max(300, Math.min(800, newWidth)) }));
+      }
+      if (direction.includes('right')) {
+        const newWidth = startWidth + (e.clientX - startX);
+        setPanelSize(prev => ({ ...prev, width: Math.max(300, Math.min(800, newWidth)) }));
+      }
+      if (direction.includes('top')) {
+        const newHeight = startHeight - (e.clientY - startY);
+        setPanelSize(prev => ({ ...prev, height: Math.max(400, Math.min(900, newHeight)) }));
+      }
+      if (direction.includes('bottom')) {
+        const newHeight = startHeight + (e.clientY - startY);
+        setPanelSize(prev => ({ ...prev, height: Math.max(400, Math.min(900, newHeight)) }));
+      }
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -749,15 +842,20 @@ Use this homework context to provide relevant help and reminders.`;
     const isControlCommand = userInput.toLowerCase().startsWith('@control');
     const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
+    const isGradeCommand = userInput.toLowerCase().includes('@grade');
 
     if ((!userInput && selectedImages.length === 0) || isAILoading) return;
 
     // Check daily message limit based on selected model
-    const currentCounter = selectedModel === 'gemma-3-12b-it' ? quickMessageCounter : deeperMessageCounter;
-    const maxLimit = selectedModel === 'gemma-3-12b-it' ? 100 : 10;
+    const currentCounter = selectedModel === 'gemma-3-12b-it' ? quickMessageCounter :
+      selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
+        cloudMessageCounter;
+    const maxLimit = selectedModel === 'gemma-3-12b-it' ? 100 :
+      selectedModel === 'gemini-2.5-flash-lite' ? 10 :
+        20;
 
     if (currentCounter >= maxLimit) {
-      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : 'Deeper'} mode). Please try again tomorrow.`);
+      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deeper' : 'Cloud'} mode). Please try again tomorrow.`);
       return;
     }
 
@@ -876,11 +974,11 @@ Use this homework context to provide relevant help and reminders.`;
     if (isTherapistCommand) {
       const newTherapistMode = !isTherapistMode;
       setIsTherapistMode(newTherapistMode);
-      
-      const response = newTherapistMode 
+
+      const response = newTherapistMode
         ? "I'm now in therapist mode. I'm here to listen and provide support. What's on your mind?"
         : "I've switched back to regular mode. How can I assist you with your studies today?";
-      
+
       setMessages(prev => [...prev, {
         id: Date.now(),
         role: 'assistant',
@@ -891,60 +989,28 @@ Use this homework context to provide relevant help and reminders.`;
     }
 
     // --------------------------------------------------------------
-    // Simple conversational responses (avoid full AI calls)
+    // @grade command
     // --------------------------------------------------------------
-    const simpleResponses: { [key: string]: string } = {
-      'hi': 'Hello! How can I help you with your studies today?',
-      'hello': 'Hi there! What would you like to learn about?',
-      'hey': 'Hey! Ready to tackle some schoolwork?',
-      'hey! how is it going?': 'I\'m doing great! Ready to help you with your studies. What can I assist you with today?',
-      'how is it going?': 'I\'m doing great! Ready to help you with your studies. What can I assist you with today?',
-      'how are you?': 'I\'m doing great! Ready to help you with your studies. What can I assist you with today?',
-      'thanks': 'You\'re welcome! Let me know if you need help with anything else.',
-      'thank you': 'Happy to help! Is there anything else I can assist you with?',
-      'goodbye': 'Goodbye! Come back anytime you need study help.',
-      'bye': 'See you later! Don\'t forget to study!',
-      'ok': 'Got it! Let me know if you need anything else.',
-      'okay': 'Alright! What else can I help you with?',
-    };
-
-    const isSimpleConversation = (input: string): string | null => {
-      const lowerInput = input.toLowerCase().trim();
-      return simpleResponses[lowerInput] || null;
-    };
-
-    if (isSimpleConversation(userInput)) {
-      setMessages(prev => [...prev, {
-        id: Date.now(),
-        role: 'assistant',
-        content: isSimpleConversation(userInput)!,
-        timestamp: new Date()
-      }]);
-      return;
+    if (isGradeCommand) {
+      // Don't return early - let it go through AI for grading assignments
     }
 
     // --------------------------------------------------------------
     // Regular AI chat
     setIsAILoading(true);
 
-    // Increment the appropriate counter and print it
+    // Increment the appropriate message counter
     if (selectedModel === 'gemma-3-12b-it') {
-      setQuickMessageCounter(prev => {
-        const newCount = prev + 1;
-        console.log(`Quick Mode Messages: ${newCount}`);
-        return newCount;
-      });
-    } else {
-      setDeeperMessageCounter(prev => {
-        const newCount = prev + 1;
-        console.log(`Deeper Mode Messages: ${newCount}`);
-        return newCount;
-      });
+      setQuickMessageCounter(prev => prev + 1);
+    } else if (selectedModel === 'gemini-2.5-flash-lite') {
+      setDeeperMessageCounter(prev => prev + 1);
+    } else if (selectedModel === 'kimi-k2:1t-cloud') {
+      setCloudMessageCounter(prev => prev + 1);
     }
 
     try {
       // Build the system prompt
-      let systemPrompt = isTherapistMode 
+      let systemPrompt = isTherapistMode
         ? `You are a compassionate and supportive mental health assistant. Your role is to provide a safe, non-judgmental space for users to express their feelings and thoughts.
 
 Guidelines (therapist mode):
@@ -977,6 +1043,38 @@ Guidelines (system prompt):
         console.log('Added homework context to system prompt. Context length:', homeworkContext.length);
       }
 
+      if (isGradeCommand) {
+        systemPrompt = `You are an expert teacher and grader. Your role is to evaluate student work and provide constructive feedback across different subjects and assignment types.
+
+Guidelines for grading:
+1. **Identify the assignment type** (essay, math problem, grammar check, code, etc.) and grade accordingly
+2. **Provide appropriate scoring** based on the assignment type:
+   - Essays/Writing: 1-100 points based on content, structure, grammar, and analysis
+   - Math Problems: 1-100 points based on correctness, work shown, and explanation
+   - Grammar/Spelling: 1-100 points based on accuracy and clarity
+   - Code/Programming: 1-100 points based on functionality, efficiency, and style
+   - Other assignments: Use appropriate criteria for that subject
+
+3. **Structure your response** with:
+   **Score: X/100**
+   **Assignment Type:** [What type of work this is]
+   **Feedback:** [Your detailed evaluation]
+   **Strengths:** [2-3 things done well]
+   **Areas for Improvement:** [2-3 specific suggestions]
+
+4. **Be constructive and encouraging** - focus on learning and improvement
+5. **Ask for clarification** if the assignment is unclear or incomplete
+6. **Maintain a supportive, educational tone**
+
+Examples of how to handle different types:
+- Essay: Evaluate thesis, evidence, organization, grammar, and analysis
+- Math: Check solution accuracy, work shown, and problem understanding
+- Grammar: Focus on language mechanics, clarity, and communication
+- Code: Test functionality, check for errors, evaluate efficiency`;
+
+        console.log('Using enhanced grading mode system prompt');
+      }
+
       const chatMessages = [
         { role: 'assistant' as const, content: systemPrompt },
         ...messages.map((m) => ({
@@ -1000,21 +1098,139 @@ Guidelines (system prompt):
       };
       setMessages((prev) => [...prev, loadingMsg]);
 
-      const response = await chat(chatMessages, selectedModel);
+      // Handle streaming response
+      try {
+        const response = await fetch('/api/ai', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: chatMessages,
+            action: 'chat',
+            options: {
+              temperature: 0.7,
+              top_p: 0.9,
+            },
+          }),
+        });
 
-      setMessages((prev) => {
-        const copy = [...prev];
-        const idx = copy.findIndex((m) => m.isLoading);
-        const newMsg: Message = {
-          id: messages.length,
-          role: 'assistant',
-          content: response.response ?? 'I could not generate a response.',
-          timestamp: new Date(),
-        };
-        if (idx !== -1) copy[idx] = newMsg;
-        else copy.push(newMsg);
-        return copy;
-      });
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage = errorData?.error || 'Failed to get response from AI service';
+          const errorDetails = errorData?.details || 'No additional details available';
+          throw new Error(`${errorMessage}: ${errorDetails}`);
+        }
+
+        // Handle streaming response
+        if (response.headers.get('content-type')?.includes('text/plain')) {
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
+          let accumulatedResponse = '';
+
+          if (!reader) {
+            throw new Error('No response body reader available');
+          }
+
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+
+              for (const line of lines) {
+                // We are ONLY interested in Server-Sent Event (SSE) 'data:' lines
+                if (line.startsWith('data: ')) {
+                  try {
+                    // Get the JSON part by removing 'data: ' prefix
+                    const data = JSON.parse(line.slice(6));
+
+                    // data.response comes from our backend wrapper
+                    // data.message.content comes from Ollama (as seen in your logs)
+                    // data.delta.content is another possible format
+                    const content = data.response || data.message?.content || data.delta?.content || '';
+
+                    if (content) {
+                      accumulatedResponse += content;
+
+                      // Update the message content progressively
+                      setMessages((prev) => {
+                        const copy = [...prev];
+                        const idx = copy.findIndex((m) => m.isLoading);
+                        if (idx !== -1) {
+                          copy[idx] = {
+                            ...copy[idx],
+                            content: accumulatedResponse,
+                            isLoading: true, // Keep loading until done
+                          };
+                        }
+                        return copy;
+                      });
+                    }
+
+                    if (data.done) {
+                      // Final update - remove loading state
+                      setMessages((prev) => {
+                        const copy = [...prev];
+                        const idx = copy.findIndex((m) => m.isLoading);
+                        if (idx !== -1) {
+                          copy[idx] = {
+                            ...copy[idx],
+                            content: accumulatedResponse || copy[idx].content,
+                            isLoading: false,
+                            timestamp: new Date(),
+                          };
+                        }
+                        return copy;
+                      });
+                      return; // Exit the loop
+                    }
+                  } catch (parseError) {
+                    console.error('Failed to parse streaming data:', parseError, 'Line:', line);
+                  }
+                }
+              }
+            }
+          } finally {
+            reader.releaseLock();
+          }
+        } else {
+          // Handle non-streaming response (fallback)
+          const data = await response.json();
+
+          setMessages((prev) => {
+            const copy = [...prev];
+            const idx = copy.findIndex((m) => m.isLoading);
+            const newMsg: Message = {
+              id: messages.length,
+              role: 'assistant',
+              content: data.response || 'I could not generate a response.',
+              timestamp: new Date(),
+            };
+            if (idx !== -1) copy[idx] = newMsg;
+            else copy.push(newMsg);
+            return copy;
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setMessages((prev) => prev.filter((m) => !m.isLoading));
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: messages.length,
+            role: 'assistant',
+            content: 'Sorry, I encountered an error. Please try again.',
+            timestamp: new Date(),
+            isError: true,
+          },
+        ]);
+      } finally {
+        setIsAILoading(false);
+      }
     } catch (err) {
       console.error(err);
       setMessages((prev) => prev.filter((m) => !m.isLoading));
@@ -1165,22 +1381,66 @@ Guidelines (system prompt):
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
+            style={{
+              width: window.innerWidth < 768 ? '100vw' : `${panelSize.width}px`,
+              height: window.innerWidth < 768 ? '100vh' : `${panelSize.height}px`,
+            }}
             className={cn(
               'fixed z-50 flex flex-col overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl',
-              // Mobile (full‑screen)
-              'inset-0 h-screen w-screen rounded-none',
-              // Desktop (fixed panel)
-              'md:inset-auto md:w-[500px] md:h-[60vh] md:right-6 md:bottom-6 md:rounded-xl',
+              // Mobile (full-screen)
+              'inset-0 rounded-none',
+              // Desktop (fixed panel - only use right and bottom, not inset-auto)
+              'md:right-6 md:bottom-6 md:rounded-xl md:left-auto md:top-auto',
               'transition-all duration-200 ease-in-out'
             )}
           >
+            {/* Resize handles - only on desktop */}
+            <div className="hidden md:block">
+              {/* Top edge */}
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'top')}
+                className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary/20 transition-colors"
+              />
+              {/* Bottom edge */}
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'bottom')}
+                className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary/20 transition-colors"
+              />
+              {/* Left edge */}
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'left')}
+                className="absolute top-0 bottom-0 left-0 w-1 cursor-ew-resize hover:bg-primary/20 transition-colors"
+              />
+              {/* Right edge */}
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'right')}
+                className="absolute top-0 bottom-0 right-0 w-1 cursor-ew-resize hover:bg-primary/20 transition-colors"
+              />
+              {/* Corner handles */}
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'top-left')}
+                className="absolute top-0 left-0 w-3 h-3 cursor-nwse-resize hover:bg-primary/30 transition-colors"
+              />
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'top-right')}
+                className="absolute top-0 right-0 w-3 h-3 cursor-nesw-resize hover:bg-primary/30 transition-colors"
+              />
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'bottom-left')}
+                className="absolute bottom-0 left-0 w-3 h-3 cursor-nesw-resize hover:bg-primary/30 transition-colors"
+              />
+              <div
+                onMouseDown={(e) => handleMouseDown(e, 'bottom-right')}
+                className="absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize hover:bg-primary/30 transition-colors"
+              />
+            </div>
             {/* Header */}
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-4 flex justify-between items-center border-b border-gray-200/50 dark:border-gray-800/50">
               <div className="flex items-center space-x-3">
                 <div className="p-1.5 rounded-lg bg-slate-600 dark:bg-slate-700">
-                  <Bot 
-                    animation="path-loop" 
-                    className="h-5 w-5 text-white" 
+                  <Bot
+                    animation="path-loop"
+                    className="h-5 w-5 text-white"
                     animateOnHover
                     loop
                     loopDelay={1.5}
@@ -1193,14 +1453,16 @@ Guidelines (system prompt):
                   <p className="text-xs text-muted-foreground">
                     {selectedModel === 'gemma-3-12b-it'
                       ? `Quick Messages: ${quickMessageCounter} / 100`
-                      : `Deeper Messages: ${deeperMessageCounter} / 10`
+                      : selectedModel === 'gemini-2.5-flash-lite'
+                        ? `Deeper Messages: ${deeperMessageCounter} / 10`
+                        : `Cloud Messages: ${cloudMessageCounter} / 20`
                     }
                   </p>
                 </div>
               </div>
 
               {/* Model Selection */}
-              <Tabs value={selectedModel} onValueChange={(value) => setSelectedModel(value as 'gemma-3-12b-it' | 'gemini-2.5-flash-lite')}>
+              <Tabs value={selectedModel} onValueChange={(value) => setSelectedModel(value as 'gemma-3-12b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud')}>
                 <TabsList className="bg-gray-100 dark:bg-gray-800">
                   <TabsTab value="gemma-3-12b-it" className="flex items-center gap-1">
                     <Zap className="h-3.5 w-3.5" />
@@ -1210,10 +1472,14 @@ Guidelines (system prompt):
                     <Brain className="h-3.5 w-3.5" />
                     <span>Deeper</span>
                   </TabsTab>
+                  <TabsTab value="kimi-k2:1t-cloud" className="flex items-center gap-1">
+                    <Cloud className="h-3.5 w-3.5" />
+                    <span>Cloud</span>
+                  </TabsTab>
                 </TabsList>
               </Tabs>
 
-              <div 
+              <div
                 onClick={onClose || (() => setInternalIsOpen(false))}
                 className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
                 role="button"
@@ -1225,7 +1491,7 @@ Guidelines (system prompt):
                   }
                 }}
               >
-                <X size={20} animateOnHover animation='default'/>
+                <X size={20} animateOnHover animation='default' />
               </div>
             </div>
 
@@ -1236,21 +1502,21 @@ Guidelines (system prompt):
                 <div className="mb-6 p-4 bg-muted/20 rounded-lg">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-semibold text-lg">📚 Flashcard Set</h3>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setShowFlashcards(false)}
                       className="text-muted-foreground hover:text-foreground"
                     >
                       <XIcon className="h-4 w-4 mr-1" /> Close
                     </Button>
                   </div>
-                  <FlashcardDeck 
-                    cards={flashcards} 
+                  <FlashcardDeck
+                    cards={flashcards}
                     onSave={(updatedCards) => {
                       // Optional: Save the updated cards (e.g., mark as studied)
                       console.log('Updated cards:', updatedCards);
-                    }} 
+                    }}
                   />
                 </div>
               )}
@@ -1265,7 +1531,7 @@ Guidelines (system prompt):
                   <p className="text-sm text-muted-foreground max-w-xs mb-6">
                     Ask me anything about your school work, or try one of these:
                   </p>
-                  <div className="grid grid-cols-5 gap-2 w-full max-w-2xl mx-auto">
+                  <div className="grid grid-cols-3 gap-2 w-full max-w-2xl mx-auto">
                     <button
                       onClick={() => setInput('@homework')}
                       className="p-2.5 bg-white dark:bg-gray-800/90 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700/50 flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center backdrop-blur-sm"
@@ -1291,6 +1557,14 @@ Guidelines (system prompt):
                     </button>
 
                     <button
+                      onClick={() => setInput('@flashcards')}
+                      className="p-2.5 bg-white dark:bg-gray-800/90 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700/50 flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center backdrop-blur-sm"
+                    >
+                      <Bookmark className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                      <span className="text-xs font-medium leading-tight">Cards</span>
+                    </button>
+
+                    <button
                       onClick={() => setInput('@therapist')}
                       className="p-2.5 bg-white dark:bg-gray-800/90 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700/50 flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center backdrop-blur-sm"
                     >
@@ -1301,11 +1575,11 @@ Guidelines (system prompt):
                     </button>
 
                     <button
-                      onClick={() => setInput('@flashcards create flashcards for "World War II"')}
+                      onClick={() => setInput('@grade Please grade this essay: In today\'s digital age, social media has transformed how we communicate. Discuss the positive and negative impacts of social media on society.')}
                       className="p-2.5 bg-white dark:bg-gray-800/90 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700/50 flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center backdrop-blur-sm"
                     >
-                      <BookType className="w-4 h-4 text-pink-500 flex-shrink-0" />
-                      <span className="text-xs font-medium leading-tight">Cards</span>
+                      <Calculator className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span className="text-xs font-medium leading-tight">Grade</span>
                     </button>
                   </div>
                 </div>
@@ -1333,42 +1607,27 @@ Guidelines (system prompt):
                             ? 'bg-slate-600 dark:bg-slate-700 text-white rounded-tr-sm shadow-sm'
                             : 'bg-gray-50 dark:bg-gray-800/70 text-gray-900 dark:text-gray-100 rounded-tl-sm shadow-sm border border-gray-100 dark:border-gray-700/50',
                           msg.isError &&
-                            'bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20',
+                          'bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20',
                           !msg.isError && 'shadow-sm'
                         )}
                       >
-                        {msg.isLoading ? (
-                          <div className="flex items-center space-x-1.5 py-1">
-                            <div
-                              className="h-1.5 w-1.5 rounded-full bg-white dark:bg-white/90 animate-bounce"
-                              style={{ animationDelay: '0ms' }}
-                            />
-                            <div
-                              className="h-1.5 w-1.5 rounded-full bg-white dark:bg-white/90 animate-bounce"
-                              style={{ animationDelay: '150ms' }}
-                            />
-                            <div
-                              className="h-1.5 w-1.5 rounded-full bg-white dark:bg-white/90 animate-bounce"
-                              style={{ animationDelay: '300ms' }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex-1 min-w-0">
-                            {msg.images && msg.images.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-2">
-                                {msg.images.map((img, i) => (
-                                  <img
-                                    key={i}
-                                    src={img}
-                                    alt={`Uploaded ${i}`}
-                                    className="max-w-full max-h-48 rounded-md border"
-                                  />
-                                ))}
-                              </div>
-                            )}
-                            <Markdown>{msg.content}</Markdown>
-                          </div>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          {msg.images && msg.images.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {msg.images.map((img, i) => (
+                                <img
+                                  key={i}
+                                  src={img}
+                                  alt={`Uploaded ${i}`}
+                                  className="max-w-full max-h-48 rounded-md border"
+                                />
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Always render the content, even if it's just "Thinking..." */}
+                          <Markdown>{msg.content}</Markdown>
+                        </div>
                       </div>
                       {msg.role === 'user' && (
                         <AnimateIcon>
@@ -1445,6 +1704,12 @@ Guidelines (system prompt):
                         <span>Therapist mode enabled</span>
                       </div>
                     )}
+                    {activeCommand === 'grade' && (
+                      <div className="absolute -top-8 left-0 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-md flex items-center">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        <span>AI will evaluate and grade your assignment (essays, math, grammar, etc.)</span>
+                      </div>
+                    )}
 
                     {/* Textarea + dynamic border/ring */}
                     <div
@@ -1458,9 +1723,11 @@ Guidelines (system prompt):
                               ? 'border-purple-400 ring-2 ring-purple-400/30'
                               : activeCommand === 'flashcards'
                                 ? 'border-pink-400 ring-2 ring-pink-400/30'
-                              : activeCommand === 'therapist'
-                                ? 'border-cyan-400 ring-2 ring-cyan-400/30'
-                                : 'border-gray-100 dark:border-gray-800/50',
+                                : activeCommand === 'therapist'
+                                  ? 'border-cyan-400 ring-2 ring-cyan-400/30'
+                                  : activeCommand === 'grade'
+                                    ? 'border-green-400 ring-2 ring-green-400/30'
+                                    : 'border-gray-100 dark:border-gray-800/50',
                         input.length > 0
                           ? 'focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50'
                           : ''
@@ -1469,21 +1736,60 @@ Guidelines (system prompt):
                       <Textarea
                         ref={inputRef}
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setInput(value);
+
+                          // Check if @ was just typed
+                          const cursorPosition = e.target.selectionStart || 0;
+                          const textBeforeCursor = value.slice(0, cursorPosition);
+                          const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+                          console.log('Input changed:', { value, cursorPosition, lastAtIndex, textBeforeCursor });
+
+                          // Show menu if @ is the last character or if we're right after @
+                          if (lastAtIndex !== -1 && (cursorPosition === lastAtIndex + 1)) {
+                            console.log('Should show command menu');
+                            const rect = e.target.getBoundingClientRect();
+
+                            // Calculate position relative to viewport
+                            const menuHeight = 250; // Approximate menu height
+                            const menuWidth = 256; // w-64 = 256px
+
+                            // Position above the textarea if there's space, otherwise below
+                            const spaceAbove = rect.top;
+                            const spaceBelow = window.innerHeight - rect.bottom;
+
+                            const menuPosition = {
+                              top: spaceAbove > menuHeight ? rect.top - menuHeight - 10 : rect.bottom + 10,
+                              left: Math.min(rect.left, window.innerWidth - menuWidth - 20),
+                            };
+
+                            console.log('Menu position:', menuPosition, 'Window height:', window.innerHeight, 'Rect:', rect);
+                            setCommandMenuPosition(menuPosition);
+                            setShowCommandMenu(true);
+                          } else if (!value.includes('@')) {
+                            console.log('Hiding command menu - no @ in value');
+                            setShowCommandMenu(false);
+                          }
+                        }}
                         placeholder={
                           (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
-                          (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)
-                            ? `Daily limit reached for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : 'Deeper'} mode - try again tomorrow`
+                            (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
+                            (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
+                            ? `Daily limit reached for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deeper' : 'Cloud'} mode - try again tomorrow`
                             : "Ask me anything..."
                         }
                         disabled={
                           (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
-                          (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)
+                          (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
+                          (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
                         }
                         className={cn(
                           `min-h-[60px] w-full resize-none border-0 bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0`,
                           ((selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
-                           (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)) &&
+                            (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
+                            (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)) &&
                           'opacity-50 cursor-not-allowed',
                           activeCommand === 'homework'
                             ? 'text-yellow-700 dark:text-yellow-200'
@@ -1493,14 +1799,64 @@ Guidelines (system prompt):
                                 ? 'text-purple-700 dark:text-purple-200'
                                 : activeCommand === 'flashcards'
                                   ? 'text-pink-700 dark:text-pink-200'
-                                : activeCommand === 'therapist'
-                                  ? 'text-cyan-700 dark:text-cyan-200'
-                                  : 'text-foreground'
+                                  : activeCommand === 'therapist'
+                                    ? 'text-cyan-700 dark:text-cyan-200'
+                                    : activeCommand === 'grade'
+                                      ? 'text-green-700 dark:text-green-200'
+                                      : 'text-foreground'
                         )}
                         rows={1}
                         onKeyDown={handleKeyDown}
                       />
                     </div>
+
+                    {/* Command Menu */}
+                    {showCommandMenu && (
+                      <div
+                        className="fixed z-[60] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-2 w-64 command-menu-container"
+                        style={{
+                          top: `${commandMenuPosition.top}px`,
+                          left: `${commandMenuPosition.left}px`,
+                          zIndex: 9999,
+                        }}
+                      >
+                        <div className="text-xs text-muted-foreground px-2 py-1 font-medium">Commands</div>
+                        {commands.map((cmd) => {
+                          const Icon = cmd.icon;
+
+                          // Color mappings for Tailwind
+                          const colorClasses = {
+                            yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
+                            blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+                            purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+                            pink: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400',
+                            cyan: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400',
+                            green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+                          };
+
+                          return (
+                            <button
+                              key={cmd.id}
+                              type="button"
+                              onClick={() => {
+                                setInput(prev => prev.replace(/@$/, `@${cmd.id} `));
+                                setShowCommandMenu(false);
+                                inputRef.current?.focus();
+                              }}
+                              className="w-full flex items-center gap-3 px-2 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+                            >
+                              <div className={cn('p-1.5 rounded-md', colorClasses[cmd.color as keyof typeof colorClasses])}>
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-foreground">@{cmd.id}</div>
+                                <div className="text-xs text-muted-foreground truncate">{cmd.description}</div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     {/* Action buttons */}
                     <div className="absolute right-2 bottom-2 flex items-center gap-1">
@@ -1526,7 +1882,8 @@ Guidelines (system prompt):
                         disabled={
                           (!input.trim() && selectedImages.length === 0) ||
                           (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
-                          (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)
+                          (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
+                          (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
                         }
                         className={cn(
                           `p-1.5 rounded-full transition-colors duration-200`,
@@ -1538,12 +1895,14 @@ Guidelines (system prompt):
                                 ? 'bg-purple-500 hover:bg-purple-600 text-white'
                                 : activeCommand === 'flashcards'
                                   ? 'bg-pink-500 hover:bg-pink-600 text-white'
-                                : activeCommand === 'therapist'
-                                  ? 'bg-cyan-500 hover:bg-cyan-600 text-white'
-                                  : 'bg-primary hover:bg-primary/90 text-primary-foreground',
+                                  : activeCommand === 'therapist'
+                                    ? 'bg-cyan-500 hover:bg-cyan-600 text-white'
+                                    : activeCommand === 'grade'
+                                      ? 'bg-green-500 hover:bg-green-600 text-white'
+                                      : 'bg-primary hover:bg-primary/90 text-primary-foreground',
                           ((!input.trim() && selectedImages.length === 0) ||
-                           (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
-                           (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)) &&
+                            (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
+                            (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)) &&
                           'opacity-50 pointer-events-none'
                         )}
                       >
