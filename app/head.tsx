@@ -30,6 +30,7 @@ export default function Head() {
       <title>TaskTornado</title>
       <meta charSet="utf-8" />
       <meta name="description" content="Organize your school work and homework" />
+      <meta name="google-site-verification" content="RQ2LeZnxopSlLZ35_t6-vuT76arWUbFWHnssIpq_FIA" />
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
       <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
