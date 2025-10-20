@@ -167,7 +167,7 @@ export default function LandingPage() {
                 <Brain className="w-6 h-6 text-teal-700 dark:text-teal-600" />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Smart AI Models</h3>
-              <p className="text-gray-600 dark:text-gray-300">Choose between Quick mode (Gemma) for fast responses or Deeper mode (Gemini) for more thoughtful analysis.</p>
+              <p className="text-gray-600 dark:text-gray-300">Choose between Quick mode (Gemma) for fast responses or Deep mode (Gemini) for more thoughtful analysis.</p>
             </div>
 
             {/* AI Feature 3 */}
@@ -194,7 +194,7 @@ export default function LandingPage() {
                 <CheckCircle className="w-6 h-6 text-teal-700 dark:text-teal-600" />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Rate Limits</h3>
-              <p className="text-gray-600 dark:text-gray-300">Daily usage limits ensure fair access - 30 messages in Quick mode, 10 in Deeper mode per day.</p>
+              <p className="text-gray-600 dark:text-gray-300">Daily usage limits ensure fair access - 30 messages in Quick mode, 10 in Deep mode per day.</p>
             </div>
 
             {/* AI Feature 6 */}

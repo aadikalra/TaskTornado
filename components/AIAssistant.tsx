@@ -855,7 +855,7 @@ Use this homework context to provide relevant help and reminders.`;
         20;
 
     if (currentCounter >= maxLimit) {
-      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deeper' : 'Cloud'} mode). Please try again tomorrow.`);
+      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode). Please try again tomorrow.`);
       return;
     }
 
@@ -1439,7 +1439,7 @@ Examples of how to handle different types:
               <div className="flex items-center space-x-3">
                 <div className="p-1.5 rounded-lg bg-slate-600 dark:bg-slate-700">
                   <Bot
-                    animation="path-loop"
+                    animation="default"
                     className="h-5 w-5 text-white"
                     animateOnHover
                     loop
@@ -1454,7 +1454,7 @@ Examples of how to handle different types:
                     {selectedModel === 'gemma-3-12b-it'
                       ? `Quick Messages: ${quickMessageCounter} / 100`
                       : selectedModel === 'gemini-2.5-flash-lite'
-                        ? `Deeper Messages: ${deeperMessageCounter} / 10`
+                        ? `Deep Messages: ${deeperMessageCounter} / 10`
                         : `Cloud Messages: ${cloudMessageCounter} / 20`
                     }
                   </p>
@@ -1470,7 +1470,7 @@ Examples of how to handle different types:
                   </TabsTab>
                   <TabsTab value="gemini-2.5-flash-lite" className="flex items-center gap-1">
                     <Brain className="h-3.5 w-3.5" />
-                    <span>Deeper</span>
+                    <span>Deep</span>
                   </TabsTab>
                   <TabsTab value="kimi-k2:1t-cloud" className="flex items-center gap-1">
                     <Cloud className="h-3.5 w-3.5" />
@@ -1596,7 +1596,7 @@ Examples of how to handle different types:
                       {msg.role === 'assistant' && (
                         <AnimateIcon>
                           <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
-                            <Bot className="h-4 w-4 text-primary" animateOnHover animation="path-loop" loopDelay={1.5} />
+                            <Bot className="h-4 w-4 text-primary" animateOnHover animation="default" loopDelay={1.5} />
                           </div>
                         </AnimateIcon>
                       )}
@@ -1777,7 +1777,7 @@ Examples of how to handle different types:
                           (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
                             (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
-                            ? `Daily limit reached for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deeper' : 'Cloud'} mode - try again tomorrow`
+                            ? `Daily limit reached for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode - try again tomorrow`
                             : "Ask me anything..."
                         }
                         disabled={

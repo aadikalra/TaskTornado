@@ -68,7 +68,7 @@ const guidelines = [
     icon: 'help',
     title: 'Getting Better Help',
     description:
-      'If you\'re not getting the help you need, try switching between Quick mode (Gemma) and Deeper mode (Gemini), or rephrase your question to be more specific.',
+      'If you\'re not getting the help you need, try switching between Quick mode (Gemma) and Deep mode (Gemini), or rephrase your question to be more specific.',
   },
   {
     icon: 'shield',
@@ -143,16 +143,21 @@ export default function AIGuidelinesPage() {
               <Bot className="w-6 h-6 text-[#005f5a]" />
               AI Model Options
             </h2>
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
               <div className="bg-teal-50 dark:bg-teal-900/20 p-6 rounded-lg border border-teal-100 dark:border-teal-800">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Quick Mode (Gemma)</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Fast responses for simple questions and quick help</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">30 messages per day</p>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 p-6 rounded-lg border border-purple-100 dark:border-purple-800">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Deeper Mode (Gemini)</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Deep Mode (Gemini)</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">More thoughtful analysis for complex topics</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">10 messages per day</p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border border-blue-100 dark:border-blue-800">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Cloud Mode (Kimi-k2)</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Most advanced AI model for comprehensive and scalable assistance</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">20 messages per day</p>
               </div>
             </div>
 

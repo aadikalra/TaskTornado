@@ -1,15 +1,18 @@
+'use client';
+
 import React from 'react';
 import { Brain, BookOpen, BarChart3, Clock } from 'lucide-react';
 import { Checkbox } from '@/components/animate-ui/radix/checkbox';
 import { FolderContent } from './(landing)/folderContent';
 import { Button } from '@/components/animate-ui/components/buttons/button';
+import DotGrid from './DotGrid';
 const colors = {
   background: '#F7F7F9',
   primaryBlue: '#0052FF',
   darkText: '#1D1D1F',
   grayText: '#86868B',
   stickyNoteYellow: '#fff088',
-  white: '#FFFFFF',
+  white: '#ffffff',
   borderGray: '#E0E0E0',
 };
 
@@ -184,6 +187,7 @@ const Hero: React.FC = () => {
   const [isTiny, setIsTiny] = React.useState(true);
   const [isMicro, setIsMicro] = React.useState(true);
   const [isMinimal, setIsMinimal] = React.useState(true);
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
 
   React.useEffect(() => {
     const checkDimensions = () => {
@@ -200,7 +204,20 @@ const Hero: React.FC = () => {
 
     checkDimensions();
     window.addEventListener('resize', checkDimensions);
-    return () => window.removeEventListener('resize', checkDimensions);
+
+    // Check for dark mode
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => {
+      window.removeEventListener('resize', checkDimensions);
+      observer.disconnect();
+    };
   }, []);
 
   const handleFloatingCheckboxChange = (checked: boolean | "indeterminate") => {
@@ -208,7 +225,7 @@ const Hero: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: isDarkMode ? '#111828' : '#ffffff', minHeight: '100vh' }}>
       {/* Google Fonts */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -216,6 +233,19 @@ const Hero: React.FC = () => {
       <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
 
       <div className="dark:bg-neutral-900" style={styles.page}>
+        <DotGrid
+          dotSize={4}
+          gap={15}
+          baseColor="#0000001A"
+          activeColor={isDarkMode ? "#87ceeb" : "#3166aa"}
+          proximity={120}
+          shockRadius={250}
+          shockStrength={5}
+          resistance={750}
+          returnDuration={1.5}
+          darkMode={isDarkMode}
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
+        />
         {/* Main Content Area */}
         <main style={styles.mainContent}>
 
@@ -363,11 +393,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: colors.darkText,
     position: 'relative',
     padding: '40px',
-    backgroundImage: `
-      radial-gradient(circle 2px at 25% 25%, #0000001A 1px, transparent 2px),
-      radial-gradient(circle 2px at 75% 75%, #0000001A 1px, transparent 2px)
-    `,
-    backgroundSize: '15px 15px',
     borderRadius: '32px 32px 24px 24px',
     border: `2px solid ${colors.borderGray}`,
     margin: '8px',

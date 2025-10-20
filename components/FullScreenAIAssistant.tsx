@@ -384,7 +384,7 @@ export function FullScreenAIAssistant() {
                         {msg.role === 'assistant' && (
                           <AnimateIcon animateOnHover>
                             <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
-                              <Bot className="h-4 w-4 text-primary" />
+                              <Bot className="h-4 w-4 text-primary" animateOnTap animation="default" />
                             </div>
                           </AnimateIcon>
                         )}

@@ -1,10 +1,38 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, CheckCircle, Calculator, Globe, CheckCircle2, Sparkles, Zap, Brain, Cookie, Shield, Bot, BookOpen, Users, Moon, Smartphone, Palette, Gauge, HardDrive, FileText, AlertTriangle, Construction, TestTube, LogIn, Eye } from 'lucide-react';
+import { Calendar, CheckCircle, Calculator, Globe, CheckCircle2, Sparkles, Zap, Brain, Cookie, Shield, Bot, BookOpen, Users, Moon, Smartphone, Palette, Gauge, HardDrive, FileText, AlertTriangle, Construction, TestTube, LogIn, Eye, Cloud, BarChart3, Bell } from 'lucide-react';
 
 export default function ChangelogPage() {
   const features = [
+    {
+      version: '0.9.9',
+      date: '2025-10-20',
+      title: 'Almost Public Release - October Feature Release & Infrastructure Updates',
+      features: [
+        { icon: <Bot className="h-4 w-4" />, text: 'Integrated AI assistant command menu with @ detection for seamless feature access' },
+        { icon: <BarChart3 className="h-4 w-4" />, text: 'Added Vercel Analytics for page view and visitor tracking' },
+        { icon: <FileText className="h-4 w-4" />, text: 'Complete navbar overhaul with sticky design, dark mode support, and functional links' },
+        { icon: <Sparkles className="h-4 w-4" />, text: 'Optimized navbar spacing, imports, and responsive design for better UX' },
+        { icon: <Moon className="h-4 w-4" />, text: 'Enhanced dark mode implementation across all pages and components' },
+        { icon: <Gauge className="h-4 w-4" />, text: 'Fixed build issues, duplicate variables, and improved component performance' },
+        { icon: <Eye className="h-4 w-4" />, text: 'Added Back to Home button and improved 404 page navigation' },
+        { icon: <BookOpen className="h-4 w-4" />, text: 'Created Hero.tsx with interactive DotGrid background and floating cards' },
+        { icon: <HardDrive className="h-4 w-4" />, text: 'Deployed to Render, Vercel, and Netlify for backups and redundancy' },
+        { icon: <Users className="h-4 w-4" />, text: 'Pushed all updates to GitHub repository for version control' },
+        { icon: <Shield className="h-4 w-4" />, text: 'Updated AI guidelines with new Cloud Mode (Kimi-k2) and refined model options' },
+        { icon: <Palette className="h-4 w-4" />, text: 'Refined color schemes, animations, and visual consistency' },
+        { icon: <Zap className="h-4 w-4" />, text: 'Redesigned Hero section in landing page with optimized structure and animations' },
+        { icon: <Gauge className="h-4 w-4" />, text: 'Optimized overall app structure for better performance and maintainability' },
+        { icon: <Sparkles className="h-4 w-4" />, text: 'Achieved 90+ scores in Google Lighthouse across all pages (Performance, Accessibility, SEO)' },
+        { icon: <Bot className="h-4 w-4" />, text: 'Converted numerous icons to animate-ui for enhanced animations and interactions' },
+        { icon: <Users className="h-4 w-4" />, text: 'Implemented OAuth authentication and account linking with Google Classroom for secure access' },
+        { icon: <BookOpen className="h-4 w-4" />, text: 'Added fetching and displaying of Google Classroom courses and coursework with real-time updates' },
+        { icon: <HardDrive className="h-4 w-4" />, text: 'Integrated data syncing to save assignments and grades to local database for seamless management' },
+        { icon: <Bell className="h-4 w-4" />, text: 'Added toast notifications for due soon alerts and completed homework celebrations' },
+        { icon: <CheckCircle className="h-4 w-4" />, text: 'Integrated confetti animations for homework completion with class-specific colors' },
+      ],
+    },
     {
       version: '0.9.3',
       date: '2025-10-1',
@@ -56,7 +84,7 @@ export default function ChangelogPage() {
         { icon: <Moon className="h-4 w-4" />, text: 'Complete dark mode implementation across entire application' },
         { icon: <Bot className="h-4 w-4" />, text: 'Professional AI Assistant with Animate UI tabs interface' },
         { icon: <Zap className="h-4 w-4" />, text: 'Quick Mode: Gemma 3 12B model with 30 messages/day limit' },
-        { icon: <Brain className="h-4 w-4" />, text: 'Deeper Mode: Gemini 2.5 Flash-Lite with 10 messages/day limit' },
+        { icon: <Brain className="h-4 w-4" />, text: 'Deep Mode: Gemini 2.5 Flash-Lite with 10 messages/day limit' },
         { icon: <Cookie className="h-4 w-4" />, text: 'Persistent message counters with browser cookie storage' },
         { icon: <Shield className="h-4 w-4" />, text: 'Hard limit enforcement preventing overuse with visual feedback' },
         { icon: <Gauge className="h-4 w-4" />, text: 'Real-time usage tracking displayed in AI Assistant header' },
@@ -127,9 +155,9 @@ export default function ChangelogPage() {
             </motion.p>
 
             {/* Beta Status Notice */}
-            <div className="inline-flex items-center gap-2 bg-orange-100 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 rounded-full px-4 py-2">
-              <TestTube className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-              <span className="text-orange-800 dark:text-orange-200 font-medium text-sm">BETA VERSION</span>
+            <div className="inline-flex items-center gap-2 bg-sky-100 dark:bg-sky-900/20 border border-sky-300 dark:border-sky-700 rounded-full px-4 py-2">
+              <TestTube className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <span className="text-sky-800 dark:text-sky-200 font-medium text-sm">ALMOST PUBLIC RELEASE</span>
             </div>
           </div>
 
@@ -144,32 +172,52 @@ export default function ChangelogPage() {
                 className="relative"
               >
                 {/* Version Card */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl p-6 border-2 border-orange-200 dark:border-orange-800 relative overflow-hidden">
+                <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl p-6 border-2 ${
+                  version.version === '0.9.9' 
+                    ? 'border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/20' 
+                    : 'border-orange-200 dark:border-orange-800'
+                } relative overflow-hidden`}>
                   {/* Beta Badge */}
                   <div className="absolute top-3 right-3">
-                    <span className="bg-orange-500 dark:bg-orange-400 text-white dark:text-gray-900 text-xs font-medium px-2 py-1 rounded-full">
-                      BETA
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      version.version === '0.9.9' 
+                        ? 'bg-sky-500 text-white' 
+                        : 'bg-orange-500 dark:bg-orange-400 text-white dark:text-gray-900'
+                    }`}>
+                      {version.version === '0.9.9' ? 'ALMOST RELEASE' : 'BETA'}
                     </span>
                   </div>
 
                   {/* Version Header */}
                   <div className="flex items-center gap-4 mb-4 pr-20">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-700 text-white rounded-full font-bold text-lg shadow-lg">
+                    <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg shadow-lg ${
+                      version.version === '0.9.9' 
+                        ? 'bg-gradient-to-br from-sky-400 to-sky-600 text-white' 
+                        : 'bg-gradient-to-br from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-700 text-white'
+                    }`}>
                       {version.version.split('.')[0]}
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                         v{version.version}
                       </h2>
-                      <p className="text-sm text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
+                      <p className={`text-sm font-medium flex items-center gap-1 ${
+                        version.version === '0.9.9' 
+                          ? 'text-sky-600 dark:text-sky-400' 
+                          : 'text-orange-600 dark:text-orange-400'
+                      }`}>
                         <Calendar className="h-3 w-3" />
                         {new Date(version.date).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
                         })}
-                        <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
-                          Development Build
+                        <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                          version.version === '0.9.9' 
+                            ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' 
+                            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                        }`}>
+                          {version.version === '0.9.9' ? 'Almost Public Release' : 'Development Build'}
                         </span>
                       </p>
                     </div>
@@ -199,7 +247,11 @@ export default function ChangelogPage() {
                   </div>
 
                   {/* Decorative Beta Elements */}
-                  <div className="absolute -bottom-1 -right-1 w-16 h-16 bg-gradient-to-br from-orange-100 dark:from-orange-900/20 to-transparent rounded-full opacity-30"></div>
+                  <div className={`absolute -bottom-1 -right-1 w-16 h-16 rounded-full opacity-30 ${
+                    version.version === '0.9.9' 
+                      ? 'bg-gradient-to-br from-sky-100 dark:from-sky-900/20 to-transparent' 
+                      : 'bg-gradient-to-br from-orange-100 dark:from-orange-900/20 to-transparent'
+                  }`}></div>
                 </div>
               </motion.div>
             ))}
@@ -254,7 +306,7 @@ export default function ChangelogPage() {
               🚀 Stay tuned for version 1.0 - The complete study companion!
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Built with ❤️ for students everywhere • <span className="text-orange-600 dark:text-orange-400">Beta v0.9.1</span>
+              Built with ❤️ for students everywhere • <span className="text-sky-600 dark:text-sky-400">Almost Release v0.9.9</span>
             </p>
           </motion.div>
         </motion.div>
