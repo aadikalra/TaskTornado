@@ -3,17 +3,66 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowUpRight, Plus, FileText, BarChart2, Signal, Star, Layers, Wrench, Shield, Box, TrendingUp, BookOpen, CalendarDays, ClipboardList, Bell, Check, Factory, BarChart3, MoreVertical, ArrowUp, Sparkles, MessageSquare, CheckCircle, ShieldAlert, CheckCircle2, Users, Clock, Brain, Image as ImageIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LandingNavbar from '@/components/LandingNavbar';
 import Hero from './Hero';
+import confetti from 'canvas-confetti';
 
 export default function LandingPage() {
+  useEffect(() => {
+    // Confetti effect on page load
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min: number, max: number) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval: any = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+
+      // since particles fall down, start a bit higher than random
+      confetti(Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+      }));
+      confetti(Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+      }));
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F8FBF9] dark:bg-gray-900 overflow-x-hidden font-sans pt-12">
       {/* Background Gradient */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#E6F5D8] via-[#F8FBF9] to-[#F8FBF9] dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 -z-10" />
 
       <LandingNavbar/>
+
+      {/* Beta Banner */}
+      <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-3 px-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 text-sm font-medium">
+          <Sparkles className="w-4 h-4" />
+          <span>Almost in public beta</span>
+          <Link
+            href="/changelog"
+            className="underline hover:no-underline flex items-center gap-1 ml-2"
+          >
+            see more
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
 
       {/* Hero Section */}
       <Hero/>
