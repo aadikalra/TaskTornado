@@ -47,7 +47,7 @@ import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import { HomeworkPinList } from '@/components/HomeworkPinList';
 import { RecurringOptions } from './RecurringOptions';
-import { RecurringHomework, RecurringFrequency, Class, Homework } from '@/context/ClassContext';
+import { RecurringHomework, RecurringFrequency, Class, Homework, Test } from '@/context/ClassContext';
 import { iconMap } from '@/lib/icon-map';
 
 type LucideIconName = keyof typeof import('lucide-react');
@@ -57,18 +57,19 @@ const MainApp = () => {
   const { user, full_name } = useAuth();
   const { success, error: toastError, warning, info } = useToast();
   const { data: gamificationData } = useGamification();
-  const { 
-    classes, 
-    homeworks, 
-    loading, 
-    error, 
-    addClass, 
+  const {
+    classes,
+    homeworks,
+    tests,
+    loading,
+    error,
+    addClass,
     addHomework,
     addRecurringHomework,
-    toggleHomework, 
+    toggleHomework,
     togglePinHomework,
     deleteHomework,
-    deleteClass 
+    deleteClass
   } = useClassContext();
   const [isClient, setIsClient] = useState(false);
   const [showAddClass, setShowAddClass] = useState(false);
@@ -474,6 +475,20 @@ const MainApp = () => {
     ? Math.ceil((new Date(nextDueHomework.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
+  // Calculate next upcoming test and days until test
+  const nextUpcomingTest = tests.length > 0
+    ? tests
+        .filter((test: Test) => test.status === 'upcoming')
+        .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0]
+    : null;
+
+  const daysUntilNextTest = nextUpcomingTest
+    ? Math.ceil((new Date(nextUpcomingTest.testDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  // Calculate upcoming tests for display
+  const upcomingTests = tests.filter((test: Test) => test.status === 'upcoming');
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -522,20 +537,46 @@ const MainApp = () => {
               </div>
             </div>
 
+            {/* Test Stats */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Upcoming Tests</p>
+              </div>
+            </div>
+
             {/* Next Deadline */}
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="p-1.5 sm:p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20">
                 <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="min-w-0">
-                {nextDueHomework ? (
-                  <>
-                    <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {daysUntilNextDue}
-                      <span className="text-sm hidden sm:inline"> days</span>
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Next Due</p>
-                  </>
+                {nextDueHomework || nextUpcomingTest ? (
+                  (() => {
+                    const nextItem = nextDueHomework && nextUpcomingTest
+                      ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                      : (nextDueHomework || nextUpcomingTest);
+
+                    const isTest = nextItem === nextUpcomingTest;
+                    const daysUntil = isTest ? daysUntilNextTest : daysUntilNextDue;
+
+                    return (
+                      <>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                          {daysUntil}
+                          <span className="text-sm hidden sm:inline"> days</span>
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {isTest ? 'Next Test' : 'Next Due'}
+                        </p>
+                      </>
+                    );
+                  })()
                 ) : (
                   <>
                     <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">-</p>
@@ -754,7 +795,114 @@ const MainApp = () => {
           )}
         </div>
 
-        {/* Add Class Modal */}
+        {/* Tests Section */}
+        <div className="mb-12">
+          <div className="mb-6">
+            <div className="mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1">Upcoming Tests</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Stay on top of your exam schedule</p>
+            </div>
+            <div className="flex space-x-2">
+              <Link href="/tests">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-full h-9 px-4 text-sm font-medium"
+                >
+                  <GraduationCap className="mr-1.5 h-4 w-4" />
+                  View All Tests
+                </Button>
+              </Link>
+              <Link href="/tests/new">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-full h-9 px-4 text-sm font-medium"
+                >
+                  <Plus className="mr-1.5 h-4 w-4" /> Add Test
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {nextUpcomingTest ? (
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                    <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      {nextUpcomingTest.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {classes.find(cls => cls.id === nextUpcomingTest.classId)?.name || 'Unknown Class'} • {nextUpcomingTest.testType}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    {daysUntilNextTest}
+                    <span className="text-sm text-gray-500 dark:text-gray-400"> days</span>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(nextUpcomingTest.testDate).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              {nextUpcomingTest.studyMaterials && nextUpcomingTest.studyMaterials.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Study topics:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {nextUpcomingTest.studyMaterials.slice(0, 3).map((material, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full"
+                      >
+                        {material}
+                      </span>
+                    ))}
+                    {nextUpcomingTest.studyMaterials.length > 3 && (
+                      <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                        +{nextUpcomingTest.studyMaterials.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+                <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No upcoming tests</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Add your first test to start tracking your exam schedule
+              </p>
+              <Link href="/tests/new">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Plus className="mr-1.5 h-4 w-4" /> Add Your First Test
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {upcomingTests.length > 1 && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                {upcomingTests.length - 1} more upcoming test{upcomingTests.length - 1 !== 1 ? 's' : ''}
+              </p>
+              <Link href="/tests">
+                <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                  View All Tests
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
         <AnimatePresence>
           {showAddClass && (
             <div className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

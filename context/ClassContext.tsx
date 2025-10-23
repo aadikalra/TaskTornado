@@ -42,9 +42,24 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
   recurring?: RecurringHomework; // Optional recurring configuration
 };
 
+// Test types
+export type TestType = 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
+export type TestStatus = 'upcoming' | 'completed' | 'missed';
+
+export type Test = Omit<Database['public']['Tables']['tests']['Row'], 'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' | 'max_score' | 'completed_at'> & {
+  classId: string;
+  testDate: string; // ISO date string
+  testTime: string | null; // ISO time string
+  testType: TestType;
+  maxScore: number | null;
+  studyMaterials: string[];
+  completedAt: string | null;
+};
+
 interface ClassContextType {
   classes: Class[];
   homeworks: Homework[];
+  tests: Test[];
   loading: boolean;
   error: string | null;
   addClass: (name: string, icon: LucideIconName) => Promise<void>;
@@ -58,6 +73,23 @@ interface ClassContextType {
   updateHomework: (id: string, updates: Partial<Homework>) => Promise<void>;
   clearAllClasses: () => Promise<void>;
   clearAllHomeworks: () => Promise<void>;
+
+  // Test management methods
+  addTest: (classId: string, title: string, testDate: Date, testType: TestType, options?: {
+    testTime?: Date;
+    weight?: number;
+    location?: string;
+    duration?: number;
+    priority?: Priority;
+    description?: string;
+    studyMaterials?: string[];
+    notes?: string;
+  }) => Promise<void>;
+  updateTest: (id: string, updates: Partial<Test>) => Promise<void>;
+  deleteTest: (id: string) => Promise<void>;
+  markTestComplete: (id: string, score?: number, maxScore?: number, grade?: string) => Promise<void>;
+  getUpcomingTests: (daysAhead?: number) => Test[];
+  getTestsByClass: (classId: string) => Test[];
 }
 
 const ClassContext = createContext<ClassContextType | undefined>(undefined);
@@ -66,6 +98,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, isGoogleUser } = useAuth();
   const [classes, setClasses] = useState<Class[]>([]);
   const [homeworks, setHomeworks] = useState<Homework[]>([]);
+  const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,13 +205,15 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         // Use Supabase API for regular users
         console.log('Fetching Supabase data...');
-        const [classesData, homeworksData] = await Promise.all([
+        const [classesData, homeworksData, testsData] = await Promise.all([
           db.getClasses(user.id),
-          db.getHomework(user.id) // Get all homework
+          db.getHomework(user.id), // Get all homework
+          db.getTests(user.id) // Get all tests
         ]);
 
         console.log('Fetched classes:', classesData);
         console.log('Fetched homeworks:', homeworksData);
+        console.log('Fetched tests:', testsData);
 
         // Only update state if the data has actually changed
         setClasses(prevClasses => {
@@ -213,12 +248,31 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           };
         });
 
+        // Transform tests data to ensure consistent types
+        const transformedTests = testsData.map(test => ({
+          ...test,
+          classId: test.class_id,
+          testDate: test.test_date,
+          testTime: test.test_time,
+          testType: test.test_type as TestType,
+          maxScore: test.max_score,
+          studyMaterials: test.study_materials || [],
+          completedAt: test.completed_at
+        }));
+
         // Only update state if the data has actually changed
         setHomeworks(prevHomeworks => {
           if (JSON.stringify(prevHomeworks) === JSON.stringify(transformedHomeworks)) {
             return prevHomeworks;
           }
           return transformedHomeworks;
+        });
+
+        setTests(prevTests => {
+          if (JSON.stringify(prevTests) === JSON.stringify(transformedTests)) {
+            return prevTests;
+          }
+          return transformedTests;
         });
       }
 
@@ -237,6 +291,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
 
     let classesSubscription: any;
     let homeworkSubscription: any;
+    let testsSubscription: any;
     let isMounted = true;
 
     const setupSubscriptions = async () => {
@@ -363,6 +418,79 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
             console.log('Homework subscription status:', status);
           });
 
+        // Subscribe to tests changes
+        testsSubscription = supabase
+          .channel('tests_changes')
+          .on('postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'tests',
+              filter: `user_id=eq.${user.id}`
+            },
+            (payload: any) => {
+              if (!isMounted) return;
+              console.log('Test change:', payload);
+              const eventType = payload.eventType.toLowerCase();
+
+              if (eventType === 'insert') {
+                const newTest = payload.new as any;
+                console.log('New test received:', newTest);
+
+                setTests(prev => {
+                  // Check if test with this ID already exists to avoid duplicates
+                  if (prev.some(test => test.id === newTest.id)) {
+                    console.log('Test already exists, skipping duplicate');
+                    return prev;
+                  }
+
+                  // Transform the new test to match our expected format
+                  const newT = {
+                    ...newTest,
+                    classId: newTest.class_id,
+                    testDate: newTest.test_date,
+                    testTime: newTest.test_time,
+                    testType: newTest.test_type as TestType,
+                    maxScore: newTest.max_score,
+                    studyMaterials: newTest.study_materials || [],
+                    completedAt: newTest.completed_at
+                  };
+
+                  console.log('Adding new test:', newT);
+                  return [...prev, newT];
+                });
+
+              } else if (eventType === 'update') {
+                const updated = payload.new as any;
+                console.log('Updating test:', updated);
+
+                setTests(prev =>
+                  prev.map(test => test.id === updated.id
+                    ? {
+                        ...test,
+                        ...updated,
+                        classId: updated.class_id || test.classId,
+                        testDate: updated.test_date || test.testDate,
+                        testTime: updated.test_time !== undefined ? updated.test_time : test.testTime,
+                        testType: updated.test_type ? updated.test_type as TestType : test.testType,
+                        maxScore: updated.max_score !== undefined ? updated.max_score : test.maxScore,
+                        studyMaterials: updated.study_materials !== undefined ? updated.study_materials : test.studyMaterials,
+                        completedAt: updated.completed_at !== undefined ? updated.completed_at : test.completedAt
+                      }
+                    : test
+                  )
+                );
+
+              } else if (eventType === 'delete') {
+                console.log('Deleting test:', payload.old?.id);
+                setTests(prev => prev.filter(test => test.id !== (payload.old as any).id));
+              }
+            }
+          )
+          .subscribe(status => {
+            console.log('Tests subscription status:', status);
+          });
+
       } catch (err) {
         console.error('Error setting up subscriptions:', err);
       }
@@ -403,6 +531,9 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       }
       if (homeworkSubscription) {
         homeworkSubscription.unsubscribe().catch(console.error);
+      }
+      if (testsSubscription) {
+        testsSubscription.unsubscribe().catch(console.error);
       }
     };
   }, [user?.id, needsClassData]); // Only depend on user.id and needsClassData to prevent unnecessary re-renders
@@ -836,9 +967,231 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Test management methods
+  const addTest = async (classId: string, title: string, testDate: Date, testType: TestType, options: {
+    testTime?: Date;
+    weight?: number;
+    location?: string;
+    duration?: number;
+    priority?: Priority;
+    description?: string;
+    studyMaterials?: string[];
+    notes?: string;
+  } = {}) => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Generate a temporary ID for the optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create the optimistic test object
+    const optimisticTest: Test = {
+      id: tempId,
+      user_id: user.id,
+      classId,
+      title,
+      description: options.description || '',
+      testDate: testDate.toISOString().split('T')[0],
+      testTime: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : null,
+      testType,
+      weight: options.weight || null,
+      location: options.location || null,
+      duration: options.duration || null,
+      priority: options.priority || 'medium',
+      status: 'upcoming',
+      score: null,
+      maxScore: null,
+      grade: null,
+      studyMaterials: options.studyMaterials || [],
+      notes: options.notes || null,
+      completedAt: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      // Optimistically update the UI immediately
+      setTests(prev => [...prev, optimisticTest]);
+
+      // Create the test in the database
+      const testData = {
+        title,
+        description: options.description || '',
+        test_date: testDate.toISOString().split('T')[0],
+        test_time: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : undefined,
+        test_type: testType,
+        weight: options.weight,
+        location: options.location,
+        duration: options.duration,
+        priority: options.priority || 'medium',
+        class_id: classId,
+        user_id: user.id,
+        study_materials: options.studyMaterials || [],
+        notes: options.notes
+      };
+
+      const createdTest = await db.createTest(testData);
+
+      // Replace the temporary test with the real one from the database
+      setTests(prev =>
+        prev.map(test =>
+          test.id === tempId
+            ? {
+                ...createdTest,
+                classId: createdTest.class_id,
+                testDate: createdTest.test_date,
+                testTime: createdTest.test_time || undefined,
+                studyMaterials: createdTest.study_materials || []
+              }
+            : test
+        )
+      );
+
+      // The subscription will also handle this, but we want to ensure consistency
+    } catch (err) {
+      console.error('Error adding test:', err);
+
+      // Revert optimistic update on error
+      setTests(prev => prev.filter(test => test.id !== tempId));
+
+      throw err;
+    }
+  };
+
+  const updateTest = async (id: string, updates: Partial<Test>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Map the fields to match the database schema
+      const dbUpdates: Record<string, any> = {
+        title: updates.title,
+        description: updates.description,
+        test_date: updates.testDate ? new Date(updates.testDate).toISOString().split('T')[0] : undefined,
+        test_time: updates.testTime || undefined,
+        test_type: updates.testType,
+        weight: updates.weight,
+        location: updates.location,
+        duration: updates.duration,
+        priority: updates.priority,
+        status: updates.status,
+        score: updates.score,
+        max_score: updates.maxScore,
+        grade: updates.grade,
+        study_materials: updates.studyMaterials,
+        notes: updates.notes,
+        updated_at: new Date().toISOString()
+      };
+
+      // Remove undefined values
+      Object.keys(dbUpdates).forEach((key: string) => {
+        if (dbUpdates[key] === undefined) {
+          delete dbUpdates[key];
+        }
+      });
+
+      const updated = await db.updateTest(id, dbUpdates);
+
+      // Update local state
+      setTests(prev =>
+        prev.map(test =>
+          test.id === id
+            ? { ...test, ...updates }
+            : test
+        )
+      );
+
+      return updated;
+    } catch (err) {
+      console.error('Error updating test:', err);
+      throw err;
+    }
+  };
+
+  const deleteTest = async (id: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Get the current test before deletion for potential revert
+    const testToDelete = tests.find(test => test.id === id);
+    if (!testToDelete) return;
+
+    try {
+      // Optimistically update the UI immediately
+      setTests(prev => prev.filter(test => test.id !== id));
+
+      // Delete from database
+      await db.deleteTest(id, user.id);
+      // The subscription will handle the state update
+    } catch (err) {
+      console.error('Error deleting test:', err);
+
+      // Revert optimistic update on error
+      setTests(prev => {
+        // Check if test was already removed by subscription
+        if (!prev.some(test => test.id === id)) {
+          return [...prev, testToDelete];
+        }
+        return prev;
+      });
+
+      throw err;
+    }
+  };
+
+  const markTestComplete = async (id: string, score?: number, maxScore?: number, grade?: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Update the database
+      await db.updateTest(id, {
+        status: 'completed',
+        score,
+        max_score: maxScore,
+        grade,
+        completed_at: new Date().toISOString()
+      });
+
+      // Update local state - convert database nulls to proper types
+      setTests(prev =>
+        prev.map(test =>
+          test.id === id
+            ? {
+                ...test,
+                status: 'completed' as TestStatus,
+                score: score || null,
+                maxScore: maxScore || null,
+                grade: grade || null,
+                completedAt: new Date().toISOString()
+              }
+            : test
+        )
+      );
+
+      // The subscription will handle any necessary state updates
+    } catch (err) {
+      console.error('Error marking test complete:', err);
+      throw err;
+    }
+  };
+
+  const getUpcomingTests = (daysAhead: number = 30): Test[] => {
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(today.getDate() + daysAhead);
+
+    return tests.filter(test => {
+      const testDate = new Date(test.testDate);
+      return testDate >= today && testDate <= futureDate && test.status === 'upcoming';
+    }).sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
+  };
+
+  const getTestsByClass = (classId: string): Test[] => {
+    return tests.filter(test => test.classId === classId)
+      .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
+  };
+
   const value = {
     classes,
     homeworks,
+    tests,
     loading,
     error,
     addClass,
@@ -852,6 +1205,14 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
     updateHomework,
     clearAllClasses,
     clearAllHomeworks,
+
+    // Test management methods
+    addTest,
+    updateTest,
+    deleteTest,
+    markTestComplete,
+    getUpcomingTests,
+    getTestsByClass,
   };
 
   return (

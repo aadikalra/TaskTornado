@@ -6,6 +6,8 @@ type ClassInsert = Tables['classes']['Insert'];
 type ClassUpdate = Tables['classes']['Update'];
 type HomeworkInsert = Tables['homework']['Insert'];
 type HomeworkUpdate = Tables['homework']['Update'];
+type TestInsert = Tables['tests']['Insert'];
+type TestUpdate = Tables['tests']['Update'];
 
 export const db = {
   // Class operations
@@ -191,6 +193,87 @@ export const db = {
     
     if (error) throw error;
     return data;
+  },
+
+  // Test operations
+  getTests: async (userId: string, filters: {
+    classId?: string;
+    status?: string;
+    testDateAfter?: Date;
+    testDateBefore?: Date;
+  } = {}) => {
+    let query = supabase
+      .from('tests')
+      .select('*, classes(*)')
+      .eq('user_id', userId);
+
+    if (filters.classId) {
+      query = query.eq('class_id', filters.classId);
+    }
+
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+
+    if (filters.testDateAfter) {
+      query = query.gte('test_date', filters.testDateAfter.toISOString().split('T')[0]);
+    }
+
+    if (filters.testDateBefore) {
+      query = query.lte('test_date', filters.testDateBefore.toISOString().split('T')[0]);
+    }
+
+    query = query.order('test_date', { ascending: true });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return (data || []) as Database['public']['Tables']['tests']['Row'][]
+  },
+
+  getUpcomingTests: async (userId: string, daysAhead = 30) => {
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(today.getDate() + daysAhead);
+
+    return db.getTests(userId, {
+      status: 'upcoming',
+      testDateAfter: today,
+      testDateBefore: futureDate
+    });
+  },
+
+  createTest: async (testData: TestInsert) => {
+    const { data, error } = await supabase
+      .from('tests')
+      .insert([{ ...testData }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  updateTest: async (id: string, updates: TestUpdate) => {
+    const { data, error } = await supabase
+      .from('tests')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  deleteTest: async (id: string, userId: string) => {
+    const { error } = await supabase
+      .from('tests')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw error;
   },
 
   // Profile operations

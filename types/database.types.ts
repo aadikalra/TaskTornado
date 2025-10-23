@@ -332,6 +332,77 @@ export interface Database {
           is_recurring_instance?: boolean
         }
       }
+      tests: {
+        Row: {
+          id: string
+          user_id: string
+          class_id: string
+          title: string
+          description: string | null
+          test_date: string
+          test_time: string | null
+          test_type: string
+          weight: number | null
+          location: string | null
+          duration: number | null
+          priority: string
+          status: string
+          score: number | null
+          max_score: number | null
+          grade: string | null
+          study_materials: string[] | null
+          notes: string | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          class_id: string
+          title: string
+          description?: string | null
+          test_date: string
+          test_time?: string | null
+          test_type?: string
+          weight?: number | null
+          location?: string | null
+          duration?: number | null
+          priority?: string
+          status?: string
+          score?: number | null
+          max_score?: number | null
+          grade?: string | null
+          study_materials?: string[] | null
+          notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          class_id?: string
+          title?: string
+          description?: string | null
+          test_date?: string
+          test_time?: string | null
+          test_type?: string
+          weight?: number | null
+          location?: string | null
+          duration?: number | null
+          priority?: string
+          status?: string
+          score?: number | null
+          max_score?: number | null
+          grade?: string | null
+          study_materials?: string[] | null
+          notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -362,4 +433,13 @@ export type HomeworkWithClass = Database['public']['Tables']['homework']['Row'] 
 export type ClassWithHomeworkCount = Database['public']['Tables']['classes']['Row'] & {
   homework_count: number;
   upcoming_due_date: string | null;
+};
+
+export type ClassWithTestCount = Database['public']['Tables']['classes']['Row'] & {
+  test_count: number;
+  upcoming_test_date: string | null;
+};
+
+export type TestWithClass = Database['public']['Tables']['tests']['Row'] & {
+  classes: Database['public']['Tables']['classes']['Row'] | null;
 };
