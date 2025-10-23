@@ -803,16 +803,6 @@ const MainApp = () => {
               <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Stay on top of your exam schedule</p>
             </div>
             <div className="flex space-x-2">
-              <Link href="/tests">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-full h-9 px-4 text-sm font-medium"
-                >
-                  <GraduationCap className="mr-1.5 h-4 w-4" />
-                  View All Tests
-                </Button>
-              </Link>
               <Link href="/tests/new">
                 <Button
                   variant="outline"
@@ -822,6 +812,18 @@ const MainApp = () => {
                   <Plus className="mr-1.5 h-4 w-4" /> Add Test
                 </Button>
               </Link>
+              {upcomingTests.length > 0 && (
+                <Link href="/tests">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 rounded-full h-9 px-4 text-sm font-medium"
+                  >
+                    <GraduationCap className="mr-1.5 h-4 w-4" />
+                    View All Tests
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -885,19 +887,6 @@ const MainApp = () => {
               <Link href="/tests/new">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="mr-1.5 h-4 w-4" /> Add Your First Test
-                </Button>
-              </Link>
-            </div>
-          )}
-
-          {upcomingTests.length > 1 && (
-            <div className="mt-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                {upcomingTests.length - 1} more upcoming test{upcomingTests.length - 1 !== 1 ? 's' : ''}
-              </p>
-              <Link href="/tests">
-                <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                  View All Tests
                 </Button>
               </Link>
             </div>
