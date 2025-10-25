@@ -43,7 +43,7 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
 };
 
 // Test types
-export type TestType = 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
+export type TestType = 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
 export type TestStatus = 'upcoming' | 'completed' | 'missed';
 
 export type Test = Omit<Database['public']['Tables']['tests']['Row'], 'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' | 'max_score' | 'completed_at'> & {
@@ -114,6 +114,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       '/homework',
       '/classes',
       '/dashboard',
+      '/calendar',
       '/settings'
     ];
 
@@ -916,14 +917,39 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
 
   const togglePinHomework = async (id: string, pinned: boolean) => {
     if (!user) throw new Error('User not authenticated');
-    
+
+    // Get the current homework state before any updates
+    const currentHomework = homeworks.find(hw => hw.id === id);
+    if (!currentHomework) return;
+
     try {
+      // Optimistically update the UI immediately
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === id
+            ? { ...hw, pinned: pinned }
+            : hw
+        )
+      );
+
+      // Update the database
       await db.updateHomework(id, {
         pinned: pinned
       });
-      // The subscription will handle the state update
+
+      // The subscription will handle any necessary state updates
     } catch (err) {
       console.error('Error toggling homework pin status:', err);
+
+      // Revert optimistic update on error
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === id
+            ? { ...hw, pinned: currentHomework.pinned }
+            : hw
+        )
+      );
+
       throw err;
     }
   };
@@ -1017,7 +1043,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         title,
         description: options.description || '',
         test_date: testDate.toISOString().split('T')[0],
-        test_time: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : undefined,
+        test_time: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : null,
         test_type: testType,
         weight: options.weight,
         location: options.location,
@@ -1029,6 +1055,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         notes: options.notes
       };
 
+      console.log('About to create test with data:', testData);
       const createdTest = await db.createTest(testData);
 
       // Replace the temporary test with the real one from the database
@@ -1049,6 +1076,19 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       // The subscription will also handle this, but we want to ensure consistency
     } catch (err) {
       console.error('Error adding test:', err);
+      console.error('Test data that failed:', {
+        title,
+        classId,
+        userId: user.id,
+        testType,
+        studyMaterials: options.studyMaterials
+      });
+      console.error('Error details:', {
+        message: (err as any)?.message,
+        code: (err as any)?.code,
+        details: (err as any)?.details,
+        hint: (err as any)?.hint
+      });
 
       // Revert optimistic update on error
       setTests(prev => prev.filter(test => test.id !== tempId));

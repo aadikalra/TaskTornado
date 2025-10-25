@@ -104,8 +104,8 @@ const PriorityTestCard = () => {
         const prompt = `Given the following list of upcoming tests, please determine which one should be studied for first based on test date, test type, and importance.
 
         Consider the following factors:
-        1. Proximity to test date (sooner is higher priority, overdue is highest)
-        2. Test type (finals and midterms are typically more important than quizzes)
+        1. Proximity to test date (sooner is higher priority)
+        2. Test type (BETA tests and ALPHA quizzes are typically more important than regular quizzes)
         3. Class importance (prioritize core subjects)
         4. Study materials available (tests with more study materials might need more time)
         5. Any other relevant factors
@@ -119,7 +119,7 @@ const PriorityTestCard = () => {
           "title": "Test Title",
           "className": "Class Name",
           "testDate": "ISO date string",
-          "testType": "exam|quiz|midterm|final|project|presentation",
+          "testType": "ALPHA|BETA|Quiz|Other|exam|quiz|midterm|final|project|presentation",
           "reason": "Brief explanation of why this should be studied first",
           "priority": "high|medium|low"
         }`;
@@ -134,13 +134,11 @@ const PriorityTestCard = () => {
 
 Given the following list of upcoming tests, please determine which one should be studied for first based on test date, test type, and importance.
 Consider the following factors:
-1. Proximity to test date (sooner is higher priority, overdue is highest)
-2. Test type (finals and midterms are typically more important than quizzes)
+1. Proximity to test date (sooner is higher priority)
+2. Test type (BETA tests and ALPHA quizzes are typically more important than regular quizzes)
 3. Class importance (prioritize core subjects)
 4. Study materials available (tests with more study materials might need more time)
 5. Any other relevant factors
-
-If a test is overdue, please mark it as 'overdue' or 'most overdue' in the reason field.
 
 Here's the test data in JSON format:
 ${JSON.stringify(upcomingTests, null, 2)}
@@ -151,8 +149,8 @@ Please respond with a JSON object in this exact format:
   "title": "Test Title",
   "className": "Class Name",
   "testDate": "ISO date string",
-  "testType": "exam|quiz|midterm|final|project|presentation",
-  "reason": "Brief explanation of why this should be studied first (include 'overdue' or 'most overdue' if applicable)",
+  "testType": "ALPHA|BETA|Quiz|Other|exam|quiz|midterm|final|project|presentation",
+  "reason": "Brief explanation of why this should be studied first",
   "priority": "high|medium|low"
 }`
         }], 'gemma3n:latest');
@@ -312,8 +310,10 @@ Please respond with a JSON object in this exact format:
       case 'exam':
       case 'final':
       case 'midterm':
+      case 'beta':
         return GraduationCap;
       case 'quiz':
+      case 'alpha':
         return BookOpen;
       case 'project':
         return Calendar;

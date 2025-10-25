@@ -65,7 +65,7 @@ type TestItem = {
   text: string;
   completed: boolean;
   subtext: string;
-  testType: string;
+  testType?: string;
   testDate: string;
   priority: string;
   status: TestStatus;
@@ -144,15 +144,22 @@ const ClassTestListComponent = ({
   }, [localTests]);
 
   // Get icon for test type
-  const getTestTypeIcon = useCallback((testType: string) => {
+  const getTestTypeIcon = useCallback((testType?: string) => {
+    // Handle undefined or null testType
+    if (!testType) {
+      return BookOpen;
+    }
+
     switch (testType.toLowerCase()) {
       case 'exam':
         return GraduationCap;
       case 'quiz':
+      case 'alpha':
         return FileText;
       case 'midterm':
         return BookMarkedIcon;
       case 'final':
+      case 'beta':
         return GraduationCap;
       case 'project':
         return FileText;
@@ -216,8 +223,8 @@ const ClassTestListComponent = ({
       id: test.id,
       text: test.title,
       completed: test.status === 'completed',
-      subtext: `${getDueDateLabel(testDate)} • ${test.testType}`,
-      testType: test.testType,
+      subtext: `${getDueDateLabel(testDate)} • ${test.testType || 'Test'}`,
+      testType: test.testType || 'Test',
       testDate: test.testDate,
       priority: test.priority || 'medium',
       status: test.status as TestStatus,
@@ -255,7 +262,7 @@ const ClassTestListComponent = ({
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
@@ -277,8 +284,8 @@ const ClassTestListComponent = ({
               />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{classItem.name}</h3>
-              <p className="text-sm text-gray-500">{allTests.length} {allTests.length === 1 ? 'test' : 'tests'}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white">{classItem.name}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{allTests.length} {allTests.length === 1 ? 'test' : 'tests'}</p>
             </div>
           </div>
           <AlertDialog>
@@ -286,25 +293,25 @@ const ClassTestListComponent = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-red-500 hover:bg-red-50"
+                className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Delete class</span>
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
                   This will permanently delete the class &quot;{classItem.name}&quot; and all its tests.
                   This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                   onClick={handleDeleteClass}
                 >
                   Delete Class
@@ -320,8 +327,8 @@ const ClassTestListComponent = ({
               <TestCard key={testItem.id} testItem={testItem} />
             ))
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
               <p>No tests scheduled for this class</p>
             </div>
           )}
@@ -410,7 +417,7 @@ const TestCard = ({ testItem }: { testItem: TestItem }) => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-gray-400 hover:text-red-500 hover:bg-red-50 h-8 w-8"
+            className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 h-8 w-8"
             onClick={(e) => {
               e.stopPropagation();
               testItem.onDelete?.();

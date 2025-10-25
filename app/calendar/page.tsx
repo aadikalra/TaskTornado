@@ -13,7 +13,7 @@ import {
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical, School, Sun, Flag, Snowflake, FlagTriangleRight, Bird, CalendarDays, Clock, AlertTriangle, AlertCircle, Menu, Home, GraduationCap, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useClassContext, type Homework } from '@/context/ClassContext';
+import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
@@ -132,7 +132,7 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
   }, [onSwipeLeft, onSwipeRight, onTouchStart, onTouchMove, onTouchEnd]);
 };
 export default function CalendarPage() {
-  const { homeworks, classes, updateHomeworkDueDate } = useClassContext();
+  const { homeworks, classes, tests, updateHomeworkDueDate } = useClassContext();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -184,16 +184,24 @@ export default function CalendarPage() {
     day: number;
     date: Date;
     homeworks: Homework[];
+    tests: Test[];
     events: SchoolEvent[];
     isCurrentMonth: boolean;
     isToday: boolean;
   }
+
   const daysInMonth = eachDayOfInterval({
     start: monthStart,
     end: monthEnd,
   });
- 
-  // Get the first day of the month to calculate offset
+
+  // Debug: Log all tests and their dates
+  console.log('All tests:', tests.map(test => ({
+    id: test.id,
+    title: test.title,
+    testDate: test.testDate,
+    parsedDate: new Date(test.testDate).toISOString()
+  })));
   const firstDayOfMonth = monthStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
  
   // Generate calendar days with empty slots for the start of the month
@@ -217,10 +225,26 @@ export default function CalendarPage() {
        
         return normalizedHwDate.getTime() === normalizedPrevDate.getTime();
       });
+      const prevDayTests = tests.filter(test => {
+        try {
+          const testDate = new Date(test.testDate);
+          if (isNaN(testDate.getTime())) {
+            return false;
+          }
+
+          const normalizedTestDate = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate());
+          const normalizedPrevDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
+
+          return normalizedTestDate.getTime() === normalizedPrevDate.getTime();
+        } catch (error) {
+          return false;
+        }
+      });
       days.push({
         day: prevDate.getDate(),
         date: prevDate,
         homeworks: prevDayHomeworks,
+        tests: prevDayTests,
         events: getEventsForDate(prevDate, schoolYear2025_2026),
         isCurrentMonth: false,
         isToday: isDateToday(prevDate),
@@ -239,10 +263,42 @@ export default function CalendarPage() {
       return normalizedHwDate.getTime() === normalizedDay.getTime();
     });
    
+    const dayTests = tests.filter(test => {
+      try {
+        const testDate = new Date(test.testDate);
+        // Check if the date is valid
+        if (isNaN(testDate.getTime())) {
+          console.log('Invalid test date:', test.testDate, 'for test:', test.title);
+          return false;
+        }
+
+        // Normalize both dates to start of day for comparison
+        const normalizedTestDate = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate());
+        const normalizedDay = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+
+        const matches = normalizedTestDate.getTime() === normalizedDay.getTime();
+
+        console.log('Test filtering:', {
+          testId: test.id,
+          testTitle: test.title,
+          testDate: test.testDate,
+          normalizedTestDate: normalizedTestDate.toISOString().split('T')[0],
+          normalizedDay: normalizedDay.toISOString().split('T')[0],
+          match: matches
+        });
+
+        return matches;
+      } catch (error) {
+        console.error('Error parsing test date:', test.testDate, 'for test:', test.title, error);
+        return false;
+      }
+    });
+
     days.push({
       day: day.getDate(),
       date: day,
       homeworks: dayHomeworks,
+      tests: dayTests,
       events: getEventsForDate(day, schoolYear2025_2026),
       isCurrentMonth: true,
       isToday: isDateToday(day),
@@ -268,10 +324,27 @@ export default function CalendarPage() {
       return normalizedHwDate.getTime() === normalizedNextDate.getTime();
     });
    
+    const nextDayTests = tests.filter(test => {
+      try {
+        const testDate = new Date(test.testDate);
+        if (isNaN(testDate.getTime())) {
+          return false;
+        }
+
+        const normalizedTestDate = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate());
+        const normalizedNextDate = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
+
+        return normalizedTestDate.getTime() === normalizedNextDate.getTime();
+      } catch (error) {
+        return false;
+      }
+    });
+
     days.push({
       day: nextDate.getDate(),
       date: nextDate,
       homeworks: nextDayHomeworks,
+      tests: nextDayTests,
       events: getEventsForDate(nextDate, schoolYear2025_2026),
       isCurrentMonth: false,
       isToday: isDateToday(nextDate),
@@ -441,7 +514,7 @@ export default function CalendarPage() {
                 </div>
               ))}
              
-              {days.map(({ day, date, homeworks, events, isCurrentMonth, isToday }) => (
+              {days.map(({ day, date, homeworks, tests, events, isCurrentMonth, isToday }) => (
                 <div
                   key={date.toString()}
                   className={`relative min-h-16 sm:min-h-24 p-1 sm:p-2 border transition-colors ${
@@ -539,14 +612,6 @@ export default function CalendarPage() {
                         </div>
                       )}
                       {homeworks
-                        .filter(hw => {
-                          const hwDate = new Date(hw.dueDate);
-                          // Normalize both dates to start of day for comparison
-                          const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
-                          const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                         
-                          return normalizedHwDate.getTime() === normalizedDate.getTime();
-                        })
                         .slice(0, 3)
                         .map((hw) => {
                         const classItem = classes.find(c => c.id === hw.classId);
@@ -554,7 +619,7 @@ export default function CalendarPage() {
                         const isDueToday = isDateToday(new Date(hw.dueDate));
                         const status = getDueDateStatus(new Date(hw.dueDate));
                         const statusIcon = getDueDateIcon(status);
-                       
+
                         return (
                           <Tooltip key={hw.id}>
                             <TooltipTrigger asChild>
@@ -598,6 +663,121 @@ export default function CalendarPage() {
                                         className="border-0 px-0 py-0 hover:bg-transparent"
                                       />
                                     ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+
+                      {/* Tests Display */}
+                      {tests
+                        .slice(0, 3)
+                        .map((test) => {
+                        const classItem = classes.find(c => c.id === test.classId);
+                        const isCompleted = test.status === 'completed';
+                        const isPastDue = !isCompleted && new Date(test.testDate) < new Date();
+
+                        return (
+                          <Tooltip key={test.id}>
+                            <TooltipTrigger asChild>
+                              <div
+                                className={`text-xs p-1 mb-1 rounded truncate ${isCompleted ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300' : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300'}`}
+                              >
+                                <div className="flex items-center">
+                                  <GraduationCap className="w-3 h-3 mr-1 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {classItem?.name ? `${classItem.name}: ` : ''}{test.title}
+                                  </span>
+                                  {test.testTime && (
+                                    <span className="ml-1 text-[10px] opacity-70">
+                                      {(() => {
+                                        try {
+                                          // Parse time in HH:MM:SS or HH:MM format
+                                          const timeParts = test.testTime.split(':');
+                                          const hours = parseInt(timeParts[0], 10);
+                                          const minutes = parseInt(timeParts[1], 10);
+                                          const date = new Date();
+                                          date.setHours(hours, minutes, 0, 0);
+                                          return format(date, 'h:mm a');
+                                        } catch (e) {
+                                          return test.testTime; // Fallback to original time string
+                                        }
+                                      })()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-64 p-2">
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-medium">{test.title}</h4>
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    isCompleted
+                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                      : isPastDue
+                                        ? 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                                        : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                                  }`}>
+                                    {isCompleted ? 'completed' : isPastDue ? 'past' : 'upcoming'}
+                                  </span>
+                                </div>
+                                {classItem && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <BookOpen className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                                    <span className="truncate">{classItem.name}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                                  <span>{format(new Date(test.testDate), 'EEEE, MMMM d, yyyy')}</span>
+                                  {test.testTime && (
+                                    <span className="ml-2">
+                                      at {(() => {
+                                        try {
+                                          // Parse time in HH:MM:SS or HH:MM format
+                                          const timeParts = test.testTime.split(':');
+                                          const hours = parseInt(timeParts[0], 10);
+                                          const minutes = parseInt(timeParts[1], 10);
+                                          const date = new Date();
+                                          date.setHours(hours, minutes, 0, 0);
+                                          return format(date, 'h:mm a');
+                                        } catch (e) {
+                                          return test.testTime; // Fallback to original time string
+                                        }
+                                      })()}
+                                    </span>
+                                  )}
+                                </div>
+                                {test.testType && (
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    Type: {test.testType}
+                                  </div>
+                                )}
+                                {test.maxScore && (
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    Max Score: {test.maxScore}
+                                  </div>
+                                )}
+                                {test.location && (
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    Location: {test.location}
+                                  </div>
+                                )}
+                                {test.description && (
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{test.description}</p>
+                                )}
+                                {test.studyMaterials && test.studyMaterials.length > 0 && (
+                                  <div className="mt-2">
+                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                      Study Materials:
+                                    </div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                      {test.studyMaterials.slice(0, 3).join(', ')}
+                                      {test.studyMaterials.length > 3 && ` +${test.studyMaterials.length - 3} more`}
+                                    </div>
                                   </div>
                                 )}
                               </div>

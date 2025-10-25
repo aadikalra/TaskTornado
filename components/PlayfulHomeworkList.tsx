@@ -232,7 +232,7 @@ const PlayfulHomeworkListComponent = ({
                       {item.text}
                       {isGoogleClassroomAssignment(item) && (
                         <span title="From Google Classroom" className="ml-1">
-                          <School className="inline h-3 w-3 text-gray-400" />
+                          <School className="inline h-3 w-3 text-gray-400 dark:text-gray-500" />
                         </span>
                       )}
                     </label>
@@ -260,22 +260,22 @@ const PlayfulHomeworkListComponent = ({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete this homework?</AlertDialogTitle>
-                          <AlertDialogDescription>
+                          <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete this homework?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
                             This will permanently delete the homework &quot;{item.text}&quot;.
                             This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
+                          <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
+                          <AlertDialogAction
                             onClick={(e) => {
                               e.stopPropagation();
                               item.onDelete?.();
                             }}
-                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                            className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
                           >
                             Delete Homework
                           </AlertDialogAction>

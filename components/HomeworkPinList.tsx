@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
+import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { PinList } from './animate-ui/components/pin-list';
 import { BookOpen, Pin, PinOff, AlertCircle, AlertTriangle, Clock, Calendar, CheckCircle2, X, Plus } from 'lucide-react';
-import { useClassContext } from '@/context/ClassContext';
+import { useClassContext, type Homework } from '@/context/ClassContext';
 import { format } from 'date-fns';
 import dynamic from 'next/dynamic';
 import { iconMap } from '@/lib/icon-map';
@@ -54,13 +54,6 @@ const getStringId = (numericId: number): string | undefined => {
 export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectModal?: boolean }) => {
   const { homeworks, classes, togglePinHomework } = useClassContext();
 
-  // Use local state to manage the optimistic UI
-  const [optimisticHomeworks, setOptimisticHomeworks] = React.useState(homeworks);
-
-  // Sync local state when the homeworks from context change
-  React.useEffect(() => {
-    setOptimisticHomeworks(homeworks);
-  }, [homeworks]);
   // Modal state
   const [showSelectModal, setShowSelectModal] = React.useState(false);
 
@@ -87,35 +80,16 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
     const stringId = getStringId(item.id);
     if (!stringId) return;
 
-    // 1. Optimistically update the UI by changing the local state
-    setOptimisticHomeworks(prevHomeworks =>
-      prevHomeworks.map(h =>
-        h.id === stringId
-          ? { ...h, pinned: !h.pinned }
-          : h
-      )
-    );
-
-    // 2. Perform the async database update in the background
-    togglePinHomework(stringId, !item.pinned).catch(err => {
-      // Revert the UI state if the API call fails
-      console.error('Failed to update homework pin status:', err);
-      setOptimisticHomeworks(prevHomeworks =>
-        prevHomeworks.map(h =>
-          h.id === stringId
-            ? { ...h, pinned: !h.pinned }
-            : h
-        )
-      );
-    });
+    // The context now handles optimistic updates, so we just call the API
+    togglePinHomework(stringId, !item.pinned);
   };
 
   // Format homework items from the optimistic state for the PinList
   const getFormattedHomeworkItems = () => {
     // Filter out completed homework items
-    return optimisticHomeworks
-      .filter(homework => !homework.completed)
-      .map(homework => {
+    return homeworks
+      .filter((homework: Homework) => !homework.completed)
+      .map((homework: Homework) => {
       const dueDate = new Date(homework.dueDate);
 
       // Calculate days until due
@@ -192,8 +166,8 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
   const homeworkItems = getFormattedHomeworkItems();
 
   // Separate pinned and unpinned items
-  const pinnedItems = homeworkItems.filter(item => item.pinned);
-  const unpinnedItems = homeworkItems.filter(item => !item.pinned);
+  const pinnedItems = homeworkItems.filter((item: { pinned: boolean }) => item.pinned);
+  const unpinnedItems = homeworkItems.filter((item: { pinned: boolean }) => !item.pinned);
 
   return (
     <div className="space-y-4">
@@ -243,7 +217,7 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
             <div className="p-6 max-h-96 overflow-y-auto">
               {unpinnedItems.length > 0 ? (
                 <div className="space-y-3">
-                  {unpinnedItems.map((item) => (
+                  {unpinnedItems.map((item: { id: number; name: string; info: string; icon: any; pinned: boolean; urgencyIndicator: React.ReactNode; classColor: string }) => (
                     <div
                       key={item.id}
                       className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
@@ -258,7 +232,7 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
                         <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                           <item.icon
                             className="w-5 h-5 hover:scale-110 transition-transform"
-                            style={{ color: (item as any).classColor || undefined }}
+                            style={{ color: item.classColor || undefined }}
                           />
                         </div>
                         <div>

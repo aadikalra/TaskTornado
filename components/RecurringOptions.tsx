@@ -46,12 +46,16 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
           Recurring Frequency
         </Label>
         <Select value={recurring.frequency} onValueChange={handleFrequencyChange}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" position="popper" sideOffset={4}>
             {frequencyOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100"
+              >
                 {option.label}
               </SelectItem>
             ))}
@@ -69,7 +73,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
             type="date"
             value={recurring.endDate ? recurring.endDate.toISOString().split('T')[0] : ''}
             onChange={(e) => handleEndDateChange(e.target.value)}
-            className="w-full"
+            className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
           />
         </div>
 
@@ -84,7 +88,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
             value={recurring.maxOccurrences || ''}
             onChange={(e) => handleMaxOccurrencesChange(e.target.value)}
             placeholder="No limit"
-            className="w-full"
+            className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
           />
         </div>
       </div>

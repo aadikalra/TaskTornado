@@ -1,10 +1,32 @@
-'use client';
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
+import { AddTestModal } from './AddTestModal';
 import { Button } from '@/components/ui/button';
 import { TypingText } from './animate-ui/text/typing';
+
+// Cookie utilities for persisting UI state
+const setCookie = (name: string, value: string, days: number = 365) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+};
+
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+};
+
+const deleteCookie = (name: string) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};
 
 type HomeworkLink = {
   id: string;
@@ -13,20 +35,120 @@ type HomeworkLink = {
 };
 
 import {
-  BookOpen, Plus, X, Calendar as CalendarIcon, ClipboardList, Check, CheckCircle, Clock,
-  ChevronRight, Link, Trash2, Book, Calculator, Code, FlaskConical as Flask, Globe, GraduationCap,
-  Layers, Library, PenTool, Ruler, School, Atom, Award, Brain, Briefcase, Compass,
-  Cpu, Database, FileText, Film, Gamepad2, GitBranch, Globe2, History,
-  Image, Laptop, Lightbulb, Map, Mic2, Music, Palette, Pen, PieChart, Presentation,
-  Rocket, Search, Settings, Shield, Smartphone, Speaker, Target, Terminal, TestTube,
-  TrendingUp, Type, Video, Wifi, Zap, BookKey, BookLock, BookPlus, BookType, BookUp2,
-  BookUser, BookX, BrainCircuit, BrainCog, CalendarCheck, CalendarDays, CalendarHeart,
-  CalendarPlus, Camera, Cast, CheckSquare, Cloud, Code2, CreditCard, Crop, Crosshair,
-  DollarSign, Download, Edit, FileArchive, FileAudio, FileCode, FileJson, FileVideo,
-  FileVolume2, FileWarning, Filter, Flag, Folder, FolderOpen, Gift, GitCommit, Github,
-  Gitlab, GitPullRequest, GitCompare, GitFork, GitMerge, GitPullRequestClosed, Gavel,
-  GitGraph, GitCommitVertical, GitCompareArrows, GitBranchPlus
-} from 'lucide-react';
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  Calendar as CalendarIcon,
+  Trash2,
+  BookOpen,
+  Calculator,
+  Code,
+  Globe,
+  GraduationCap,
+  Layers,
+  Library,
+  PenTool,
+  Ruler,
+  School,
+  Atom,
+  Award,
+  Brain,
+  Briefcase,
+  Compass,
+  Cpu,
+  Database,
+  FileText,
+  Film,
+  Gamepad2,
+  GitBranch,
+  Globe2,
+  History,
+  Image,
+  Laptop,
+  Lightbulb,
+  Map,
+  Mic2,
+  Music,
+  Palette,
+  Pen,
+  PieChart,
+  Presentation,
+  Rocket,
+  Search,
+  Settings,
+  Shield,
+  Smartphone,
+  Speaker,
+  Target,
+  Terminal,
+  TestTube,
+  TrendingUp,
+  Type,
+  Video,
+  Wifi,
+  Zap,
+  BookKey,
+  BookLock,
+  BookPlus,
+  BookType,
+  BookUp2,
+  BookUser,
+  BookX,
+  BrainCircuit,
+  BrainCog,
+  CalendarCheck,
+  CalendarDays,
+  CalendarHeart,
+  CalendarPlus,
+  Camera,
+  Cast,
+  CheckSquare,
+  Cloud,
+  Code2,
+  CreditCard,
+  Crop,
+  Crosshair,
+  DollarSign,
+  Download,
+  Edit,
+  FileArchive,
+  FileAudio,
+  FileCode,
+  FileJson,
+  FileVideo,
+  FileVolume2,
+  FileWarning,
+  Filter,
+  Flag,
+  Folder,
+  FolderOpen,
+  Gift,
+  GitCommit,
+  Github,
+  Gitlab,
+  GitPullRequest,
+  GitCompare,
+  GitFork,
+  GitMerge,
+  GitPullRequestClosed,
+  Gavel,
+  GitGraph,
+  GitCommitVertical,
+  GitCompareArrows,
+  GitBranchPlus,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  X,
+  CheckCircle,
+  Loader2,
+  Sparkles,
+  Book,
+  MapPin,
+  Pin,
+  PinOff
+} from "lucide-react";
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { HomeworkLinkInput } from './HomeworkLinkInput';
@@ -35,20 +157,29 @@ import { Input } from '@/components/ui/input';
 import { LevelDisplay } from './LevelDisplay';
 import { SubjectMastery } from './SubjectMastery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { IconSelector } from '@/components/IconSelector';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from '@/components/ui/checkbox';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
+import { HomeworkPinList } from '@/components/HomeworkPinList';
+import { RecurringOptions } from './RecurringOptions';
+import { iconMap } from '@/lib/icon-map';
+import { RecurringHomework, RecurringFrequency, Class, Homework, Test } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useGamification } from '@/context/GamificationContext';
 import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
-import { HomeworkPinList } from '@/components/HomeworkPinList';
-import { RecurringOptions } from './RecurringOptions';
-import { RecurringHomework, RecurringFrequency, Class, Homework, Test } from '@/context/ClassContext';
-import { iconMap } from '@/lib/icon-map';
+import { ClassTestList } from '@/components/ClassTestList';
+import PriorityTestCard from '@/components/PriorityTestCard';
 
 type LucideIconName = keyof typeof import('lucide-react');
 type Priority = 'low' | 'medium' | 'high';
@@ -65,11 +196,15 @@ const MainApp = () => {
     error,
     addClass,
     addHomework,
+    addTest,
     addRecurringHomework,
     toggleHomework,
     togglePinHomework,
     deleteHomework,
-    deleteClass
+    deleteClass,
+    deleteTest,
+    updateTest,
+    markTestComplete
   } = useClassContext();
   const [isClient, setIsClient] = useState(false);
   const [showAddClass, setShowAddClass] = useState(false);
@@ -79,6 +214,104 @@ const MainApp = () => {
   const [newClassName, setNewClassName] = useState('');
   const [newClassIcon, setNewClassIcon] = useState<LucideIconName>('BookOpen');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddTest, setShowAddTest] = useState(false);
+
+  // Initialize section visibility states from cookies with defaults
+  const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showPinnedHomeworks');
+      return saved !== null ? saved === 'true' : true; // default to true
+    }
+    return true;
+  });
+
+  const [showClasses, setShowClasses] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showClasses');
+      return saved !== null ? saved === 'true' : true; // default to true
+    }
+    return true;
+  });
+
+  const [showTests, setShowTests] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showTests');
+      return saved !== null ? saved === 'true' : true; // default to true
+    }
+    return true;
+  });
+
+  const [showGamification, setShowGamification] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showGamification');
+      return saved !== null ? saved === 'true' : true; // default to true
+    }
+    return true;
+  });
+
+  const [expandedClasses, setExpandedClasses] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('expandedClasses');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
+
+  const [hasShownInitialNotifications, setHasShownInitialNotifications] = useState(false);
+
+  // Test filtering state
+  const [testFilter, setTestFilter] = useState<'all' | 'upcoming' | 'completed'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('testFilter');
+      return (saved as 'all' | 'upcoming' | 'completed') || 'all';
+    }
+    return 'all';
+  });
+
+  const [testSortBy, setTestSortBy] = useState<'date' | 'class' | 'type'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('testSortBy');
+      return (saved as 'date' | 'class' | 'type') || 'date';
+    }
+    return 'date';
+  });
+
+  // Wrapper functions that save to cookies when state changes
+  const handleTogglePinnedHomeworks = (newState: boolean) => {
+    setShowPinnedHomeworks(newState);
+    setCookie('showPinnedHomeworks', newState.toString());
+  };
+
+  const handleToggleClasses = (newState: boolean) => {
+    setShowClasses(newState);
+    setCookie('showClasses', newState.toString());
+  };
+
+  const handleToggleTests = (newState: boolean) => {
+    setShowTests(newState);
+    setCookie('showTests', newState.toString());
+  };
+
+  const handleToggleGamification = (newState: boolean) => {
+    setShowGamification(newState);
+    setCookie('showGamification', newState.toString());
+  };
+
+  // Wrapper functions for test filters that save to cookies
+  const handleTestFilterChange = (value: 'all' | 'upcoming' | 'completed') => {
+    setTestFilter(value);
+    setCookie('testFilter', value);
+  };
+
+  const handleTestSortChange = (value: 'date' | 'class' | 'type') => {
+    setTestSortBy(value);
+    setCookie('testSortBy', value);
+  };
+
+  const handleExpandedClassesChange = (newState: Record<string, boolean>) => {
+    setExpandedClasses(newState);
+    setCookie('expandedClasses', JSON.stringify(newState));
+  };
 
   // Available icons with their display names
   const availableIcons = [
@@ -86,8 +319,6 @@ const MainApp = () => {
     { name: 'Book', component: Book, category: 'General' },
     { name: 'Calculator', component: Calculator, category: 'Math & Science' },
     { name: 'Code', component: Code, category: 'Computer Science' },
-    { name: 'Flask', component: Flask, category: 'Science' },
-    { name: 'Globe', component: Globe, category: 'Geography' },
     { name: 'GraduationCap', component: GraduationCap, category: 'General' },
     { name: 'Layers', component: Layers, category: 'General' },
     { name: 'Library', component: Library, category: 'General' },
@@ -125,7 +356,6 @@ const MainApp = () => {
     { name: 'Speaker', component: Speaker, category: 'Languages' },
     { name: 'Target', component: Target, category: 'General' },
     { name: 'Terminal', component: Terminal, category: 'Computer Science' },
-    { name: 'TestTube', component: TestTube, category: 'Science' },
     { name: 'TrendingUp', component: TrendingUp, category: 'Business' },
     { name: 'Type', component: Type, category: 'Languages' },
     { name: 'Video', component: Video, category: 'Media' },
@@ -197,7 +427,6 @@ const MainApp = () => {
     return acc;
   }, {} as Record<string, typeof availableIcons>);
 
-  const [expandedClasses, setExpandedClasses] = useState<Record<string, boolean>>({});
   const [newHomework, setNewHomework] = useState({
     title: '',
     description: '',
@@ -222,47 +451,50 @@ const MainApp = () => {
     }
   }, [isClient, user, classes.length, loading]);
 
-  // Show toast notifications for overdue assignments
+  // Show toast notifications for overdue assignments - ONLY ON FIRST LOAD
   React.useEffect(() => {
-    // Always run this effect to maintain hook order, but check conditions inside
-    if (!isClient || loading || homeworks.length === 0) return;
+    // Only run this effect once on initial load, not every time homeworks changes
+    if (!isClient || loading || homeworks.length === 0 || hasShownInitialNotifications) return;
 
-  const overdueAssignments = homeworks.filter((hw: Homework) => {
-    const dueDate = new Date(hw.dueDate);
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0); // Start of today (midnight)
-    return !hw.completed && dueDate < todayStart;
-  });
-
-  if (overdueAssignments.length > 0) {
-    // Group by class for better messaging
-    const overdueByClass = overdueAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
-      const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
-      if (!acc[className]) acc[className] = [];
-      acc[className].push(hw);
-      return acc;
-    }, {} as Record<string, any[]>);
-
-    Object.entries(overdueByClass).forEach(([className, assignments]: [string, any]) => {
-      if (assignments.length === 1) {
-        warning(
-          `${assignments[0].title} is overdue!`,
-          `Due date was ${new Date(assignments[0].dueDate).toLocaleDateString()}`
-        );
-      } else {
-        warning(
-          `${assignments.length} assignments overdue in ${className}`,
-          `Check your ${className} assignments`
-        );
-      }
+    const overdueAssignments = homeworks.filter((hw: Homework) => {
+      const dueDate = new Date(hw.dueDate);
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0); // Start of today (midnight)
+      return !hw.completed && dueDate < todayStart;
     });
-  }
-  }, [isClient, loading, homeworks, classes, warning]);
 
-  // Show toast notifications for assignments due soon
+    if (overdueAssignments.length > 0) {
+      // Group by class for better messaging
+      const overdueByClass = overdueAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
+        const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
+        if (!acc[className]) acc[className] = [];
+        acc[className].push(hw);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      Object.entries(overdueByClass).forEach(([className, assignments]: [string, any]) => {
+        if (assignments.length === 1) {
+          warning(
+            `${assignments[0].title} is overdue!`,
+            `Due date was ${new Date(assignments[0].dueDate).toLocaleDateString()}`
+          );
+        } else {
+          warning(
+            `${assignments.length} assignments overdue in ${className}`,
+            `Check your ${className} assignments`
+          );
+        }
+      });
+
+      // Mark that we've shown initial notifications
+      setHasShownInitialNotifications(true);
+    }
+  }, [isClient, loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
+
+  // Show toast notifications for assignments due soon - ONLY ON FIRST LOAD
   React.useEffect(() => {
-    // Always run this effect to maintain hook order, but check conditions inside
-    if (!isClient || loading || homeworks.length === 0) return;
+    // Only run this effect once on initial load, not every time homeworks changes
+    if (!isClient || loading || homeworks.length === 0 || hasShownInitialNotifications) return;
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -318,8 +550,11 @@ const MainApp = () => {
           );
         }
       });
+
+      // Mark that we've shown initial notifications
+      setHasShownInitialNotifications(true);
     }
-  }, [isClient, loading, homeworks, classes, warning]);
+  }, [isClient, loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
 
   // Show success toast when completing homework
   const handleHomeworkToggle = useCallback(async (homeworkId: string) => {
@@ -467,8 +702,8 @@ const MainApp = () => {
   // Calculate next due homework and days until due (no useMemo to avoid hook ordering issues)
   const nextDueHomework = homeworks.length > 0
     ? homeworks
-        .filter((hw: any) => !hw.completed && new Date(hw.dueDate) > new Date())
-        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0]
+      .filter((hw: any) => !hw.completed && new Date(hw.dueDate) > new Date())
+      .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0]
     : null;
 
   const daysUntilNextDue = nextDueHomework
@@ -478,16 +713,58 @@ const MainApp = () => {
   // Calculate next upcoming test and days until test
   const nextUpcomingTest = tests.length > 0
     ? tests
-        .filter((test: Test) => test.status === 'upcoming')
-        .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0]
+      .filter((test: Test) => test.status === 'upcoming')
+      .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0]
     : null;
 
   const daysUntilNextTest = nextUpcomingTest
     ? Math.ceil((new Date(nextUpcomingTest.testDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
-  // Calculate upcoming tests for display
-  const upcomingTests = tests.filter((test: Test) => test.status === 'upcoming');
+  // Test filtering and sorting logic
+  const filteredTests = tests.filter(test => {
+    switch (testFilter) {
+      case 'upcoming':
+        return test.status === 'upcoming';
+      case 'completed':
+        return test.status === 'completed';
+      default:
+        return true;
+    }
+  });
+
+  const sortedTests = [...filteredTests].sort((a, b) => {
+    switch (testSortBy) {
+      case 'date':
+        return new Date(a.testDate).getTime() - new Date(b.testDate).getTime();
+      case 'class':
+        const classA = classes.find(c => c.id === a.classId)?.name || '';
+        const classB = classes.find(c => c.id === b.classId)?.name || '';
+        return classA.localeCompare(classB);
+      case 'type':
+        return a.testType.localeCompare(b.testType);
+      default:
+        return 0;
+    }
+  });
+
+  // Group tests by class
+  const testsByClass = sortedTests.reduce((acc, test) => {
+    const classId = test.classId;
+    if (!acc[classId]) {
+      acc[classId] = [];
+    }
+    acc[classId].push(test);
+    return acc;
+  }, {} as Record<string, typeof tests>);
+
+  // Get class info for each class
+  const classesWithTests = classes.filter(cls => testsByClass[cls.id]);
+
+  // Test statistics
+  const totalTests = tests.length;
+  const upcomingTestsCount = tests.filter(test => test.status === 'upcoming');
+  const completedTests = tests.filter(test => test.status === 'completed');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
@@ -587,310 +864,383 @@ const MainApp = () => {
             </div>
           </div>
         </div>
-
-        {/* Gamification Section */}
+        {/* Gamification Section - Always Visible */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           <LevelDisplay />
           <SubjectMastery />
         </div>
-
         {/* Pinned Homeworks */}
         <div className="mb-10">
-          <div className="flex justify-between items-center mb-4">
+          <div
+            className="flex justify-between items-center mb-4 cursor-pointer group"
+            onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
+          >
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1">Pinned Homeworks</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                Pinned Homeworks
+              </h2>
               <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPinHomeworkModal(true)}
-              className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium"
-              title="Select homework to pin"
-            >
-              <Plus className="mr-1.5 h-4 w-4" />
-              Pin Homework
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPinHomeworkModal(true);
+                }}
+                className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                title="Select homework to pin"
+              >
+                <Plus className="mr-1.5 h-4 w-4" />
+                Pin Homework
+              </Button>
+              <div className={`transition-transform duration-700 ${showPinnedHomeworks ? 'rotate-90' : 'rotate-0'}`}>
+                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors" />
+              </div>
+            </div>
           </div>
-          <HomeworkPinList triggerSelectModal={showPinHomeworkModal} />
+
+          <div
+            className={`overflow-hidden transition-all duration-700 ease-in-out ${
+              showPinnedHomeworks
+                ? 'max-h-[2000px] opacity-100'
+                : 'max-h-0 opacity-0'
+            }`}
+          >
+            <HomeworkPinList triggerSelectModal={showPinHomeworkModal} />
+          </div>
         </div>
 
         {/* Classes Section */}
         <div className="mb-12">
           <div className="mb-6">
-            <div className="mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1">My Classes</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAddClass(true)}
-                className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium"
-              >
-                <Plus className="mr-1.5 h-4 w-4" /> Add Class
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAddHomework(true)}
-                className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium"
-              >
-                <Plus className="mr-1.5 h-4 w-4" /> Add Homework
-              </Button>
-            </div>
-          </div>
-
-          {classes.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[#264f84] bg-opacity-10 dark:bg-opacity-20 mb-4">
-                <BookOpen className="h-6 w-6 text-[#264f84]" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No classes yet</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                Get started by adding your first class to organize your schoolwork
-              </p>
-              <Button
-                onClick={() => setShowAddClass(true)}
-                className="w-full bg-[#264f84] hover:bg-[#1f3f6b] text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors"
-              >
-                <Plus className="mr-1.5 h-4 w-4" /> Add Class
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {classes.map((cls: any, index: number) => (
-                <motion.div
-                  key={cls.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.05 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center space-x-3 w-full">
-                      <div
-                        className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white"
-                        style={{ backgroundColor: getClassColor(index) }}
-                      >
-                        {(() => {
-                          const IconComponent = iconMap[cls.icon as keyof typeof iconMap];
-                          console.log('Rendering icon:', {
-                            className: cls.name,
-                            icon: cls.icon,
-                            exists: !!IconComponent,
-                            availableIcons: Object.keys(iconMap)
-                          });
-                          return IconComponent 
-                            ? React.createElement(IconComponent, { className: 'h-5 w-5' })
-                            : React.createElement(Book, { className: 'h-5 w-5' });
-                        })()}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                          {cls.name}
-                        </h3>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteClass(cls.id);
-                        }}
-                        className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 -mr-1 -mt-1 transition-colors"
-                        aria-label="Delete class"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mt-2">
-                    <PlayfulHomeworkList
-                      items={(() => {
-                        const classHomeworks = homeworks
-                          .filter((hw: any) => hw.classId === cls.id)
-                          .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null) // Show recurring instances and regular homework
-                          .map((hw: any) => {
-                            console.log('Homework item for class', cls.name, ':', {
-                              id: hw.id,
-                              classId: hw.classId,
-                              className: cls.name,
-                              title: hw.title,
-                              completed: hw.completed,
-                              dueDate: hw.dueDate
-                            });
-                            return {
-                              id: hw.id,
-                              text: hw.title,
-                              completed: hw.completed,
-                              subtext: new Date(hw.dueDate),
-                              priority: hw.priority || 'medium',
-                              classId: cls.id,
-                              classColor: getClassColor(index),
-                              dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400" />,
-                              links: hw.links,
-                              onDelete: () => deleteHomework(hw.id),
-                              className: cls.name,
-                              pinned: hw.pinned || false,
-                              // Add recurring homework information
-                              recurring: hw.recurring_frequency ? {
-                                frequency: hw.recurring_frequency as RecurringFrequency,
-                                endDate: hw.recurring_end_date ? new Date(hw.recurring_end_date) : undefined,
-                                maxOccurrences: hw.recurring_max_occurrences || undefined,
-                                parentRecurringId: hw.recurring_id || undefined,
-                              } : undefined,
-                              isRecurringInstance: hw.is_recurring_instance || false,
-                              parentRecurringId: hw.parent_recurring_id || undefined,
-                              recurringFrequency: hw.recurring_frequency || undefined,
-                            };
-                          });
-
-                        // Show all items if expanded, otherwise show only first 3
-                        return expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
-                      })()}
-                      onItemToggle={handleHomeworkToggle}
-                      onPinToggle={togglePinHomework}
-                      className="space-y-2"
-                    />
-
-                    {(() => {
-                      const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
-                      const totalCount = classHomeworks.length;
-
-                      if (totalCount > 3) {
-                        return (
-                          <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
-                            {expandedClasses[cls.id] ? (
-                              <button
-                                onClick={() => setExpandedClasses(prev => ({ ...prev, [cls.id]: false }))}
-                                className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                              >
-                                Hide
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => setExpandedClasses(prev => ({ ...prev, [cls.id]: true }))}
-                                className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                              >
-                                +{totalCount - 3} more assignments
-                              </button>
-                            )}
-                          </div>
-                        );
-                      }
-
-                      return null;
-                    })()}
-
-                    {homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null)).length === 0 && (
-                      <div className="text-center py-2">
-                        <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Tests Section */}
-        <div className="mb-12">
-          <div className="mb-6">
-            <div className="mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1">Upcoming Tests</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Stay on top of your exam schedule</p>
-            </div>
-            <div className="flex space-x-2">
-              <Link href="/tests/new">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-full h-9 px-4 text-sm font-medium"
-                >
-                  <Plus className="mr-1.5 h-4 w-4" /> Add Test
-                </Button>
-              </Link>
-              {upcomingTests.length > 0 && (
-                <Link href="/tests">
+            <div
+              className="mb-4 cursor-pointer group"
+              onClick={() => handleToggleClasses(!showClasses)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                    My Classes
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
+                </div>
+                <div className="flex items-center space-x-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 rounded-full h-9 px-4 text-sm font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddClass(true);
+                    }}
+                    className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
                   >
-                    <GraduationCap className="mr-1.5 h-4 w-4" />
-                    View All Tests
+                    <Plus className="mr-1.5 h-4 w-4" /> Add Class
                   </Button>
-                </Link>
-              )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddHomework(true);
+                    }}
+                    className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                  >
+                    <Plus className="mr-1.5 h-4 w-4" /> Add Homework
+                  </Button>
+                  <div className={`transition-transform duration-700 ${showClasses ? 'rotate-90' : 'rotate-0'}`}>
+                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                showClasses
+                  ? 'max-h-[1000px] opacity-100'
+                  : 'max-h-0 opacity-0'
+              }`}
+            >
             </div>
           </div>
 
-          {nextUpcomingTest ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mb-4">
-              <div className="flex items-center justify-between">
+          <div
+            className={`overflow-hidden transition-all duration-700 ease-in-out ${
+              showClasses
+                ? 'max-h-[5000px] opacity-100'
+                : 'max-h-0 opacity-0'
+            }`}
+          >
+            {classes.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[#264f84] bg-opacity-10 dark:bg-opacity-20 mb-4">
+                  <BookOpen className="h-6 w-6 text-[#264f84]" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No classes yet</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                  Get started by adding your first class to organize your schoolwork
+                </p>
+                <Button
+                  onClick={() => setShowAddClass(true)}
+                  className="w-full bg-[#264f84] hover:bg-[#1f3f6b] text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
+                >
+                  <Plus className="mr-1.5 h-4 w-4" /> Add Class
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {classes.map((cls: any, index: number) => (
+                  <motion.div
+                    key={cls.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center space-x-3 w-full">
+                        <div
+                          className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white"
+                          style={{ backgroundColor: getClassColor(index) }}
+                        >
+                          {(() => {
+                            const IconComponent = iconMap[cls.icon as keyof typeof iconMap];
+                            console.log('Rendering icon:', {
+                              className: cls.name,
+                              icon: cls.icon,
+                              exists: !!IconComponent,
+                              availableIcons: Object.keys(iconMap)
+                            });
+                            return IconComponent
+                              ? React.createElement(IconComponent, { className: 'h-5 w-5' })
+                              : React.createElement(Book, { className: 'h-5 w-5' });
+                          })()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            {cls.name}
+                          </h3>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteClass(cls.id);
+                          }}
+                          className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 -mr-1 -mt-1 transition-colors"
+                          aria-label="Delete class"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mt-2">
+                      <PlayfulHomeworkList
+                        items={(() => {
+                          const classHomeworks = homeworks
+                            .filter((hw: any) => hw.classId === cls.id)
+                            .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null) // Show recurring instances and regular homework
+                            .map((hw: any) => {
+                              console.log('Homework item for class', cls.name, ':', {
+                                id: hw.id,
+                                classId: hw.classId,
+                                className: cls.name,
+                                title: hw.title,
+                                completed: hw.completed,
+                                dueDate: hw.dueDate
+                              });
+                              return {
+                                id: hw.id,
+                                text: hw.title,
+                                completed: hw.completed,
+                                subtext: new Date(hw.dueDate),
+                                priority: hw.priority || 'medium',
+                                classId: cls.id,
+                                classColor: getClassColor(index),
+                                dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
+                                links: hw.links,
+                                onDelete: () => deleteHomework(hw.id),
+                                className: cls.name,
+                                pinned: hw.pinned || false,
+                                // Add recurring homework information
+                                recurring: hw.recurring_frequency ? {
+                                  frequency: hw.recurring_frequency as RecurringFrequency,
+                                  endDate: hw.recurring_end_date ? new Date(hw.recurring_end_date) : undefined,
+                                  maxOccurrences: hw.recurring_max_occurrences || undefined,
+                                  parentRecurringId: hw.recurring_id || undefined,
+                                } : undefined,
+                                isRecurringInstance: hw.is_recurring_instance || false,
+                                parentRecurringId: hw.parent_recurring_id || undefined,
+                                recurringFrequency: hw.recurring_frequency || undefined,
+                              };
+                            });
+
+                          // Show all items if expanded, otherwise show only first 3
+                          return expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
+                        })()}
+                        onItemToggle={handleHomeworkToggle}
+                        onPinToggle={togglePinHomework}
+                        className="space-y-2"
+                      />
+
+                      {(() => {
+                        const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
+                        const totalCount = classHomeworks.length;
+
+                        if (totalCount > 3) {
+                          return (
+                            <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
+                              {expandedClasses[cls.id] ? (
+                                <button
+                                  onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
+                                  className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                >
+                                  Hide
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
+                                  className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                >
+                                  +{totalCount - 3} more assignments
+                                </button>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return null;
+                      })()}
+
+                      {homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null)).length === 0 && (
+                        <div className="text-center py-2">
+                          <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tests Section - Comprehensive Management */}
+        <div className="mb-12">
+          <div className="mb-6">
+            <div
+              className="mb-4 cursor-pointer group"
+              onClick={() => handleToggleTests(!showTests)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                    Tests & Exams
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
+                </div>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                    <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                      {nextUpcomingTest.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {classes.find(cls => cls.id === nextUpcomingTest.classId)?.name || 'Unknown Class'} • {nextUpcomingTest.testType}
-                    </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddTest(true);
+                    }}
+                    className="border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-full h-9 px-4 text-sm font-medium dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                  >
+                    <Plus className="mr-1.5 h-4 w-4" /> Add Test
+                  </Button>
+                  <div className={`transition-transform duration-700 ${showTests ? 'rotate-90' : 'rotate-0'}`}>
+                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors" />
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {daysUntilNextTest}
-                    <span className="text-sm text-gray-500 dark:text-gray-400"> days</span>
+              </div>
+            </div>
+
+            <div
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                showTests
+                  ? 'max-h-[5000px] opacity-100'
+                  : 'max-h-0 opacity-0'
+              }`}
+            >
+              {/* Priority Test Card - AI Powered (Temporarily disabled) */}
+              {/* <PriorityTestCard /> */}
+
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 relative">
+                <div className="flex flex-col sm:flex-row gap-3 relative">
+                  {/* Filter */}
+                  <div className="relative">
+                    <Select value={testFilter} onValueChange={handleTestFilterChange}>
+                      <SelectTrigger className="w-[140px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 min-w-[140px]" position="popper" sideOffset={4}>
+                        <SelectItem value="all" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">All Tests</SelectItem>
+                        <SelectItem value="upcoming" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Upcoming</SelectItem>
+                        <SelectItem value="completed" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(nextUpcomingTest.testDate).toLocaleDateString()}
+
+                  {/* Sort */}
+                  <div className="relative">
+                    <Select value={testSortBy} onValueChange={handleTestSortChange}>
+                      <SelectTrigger className="w-[120px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 min-w-[120px]" position="popper" sideOffset={4}>
+                        <SelectItem value="date" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">By Date</SelectItem>
+                        <SelectItem value="class" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">By Class</SelectItem>
+                        <SelectItem value="type" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">By Type</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
 
-              {nextUpcomingTest.studyMaterials && nextUpcomingTest.studyMaterials.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Study topics:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {nextUpcomingTest.studyMaterials.slice(0, 3).map((material, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full"
-                      >
-                        {material}
-                      </span>
-                    ))}
-                    {nextUpcomingTest.studyMaterials.length > 3 && (
-                      <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
-                        +{nextUpcomingTest.studyMaterials.length - 3} more
-                      </span>
-                    )}
+              {/* Tests by Class */}
+              {classesWithTests.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+                    <CalendarIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No tests scheduled</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    Start by adding your first test to keep track of your exam schedule
+                  </p>
+                  <Button
+                    onClick={() => setShowAddTest(true)}
+                    className="bg-[#264f84] hover:bg-[#1f3f6b] text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
+                  >
+                    <Plus className="mr-1.5 h-4 w-4" /> Add Your First Test
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {classesWithTests.map((cls) => (
+                    <ClassTestList
+                      key={cls.id}
+                      classItem={cls}
+                      tests={testsByClass[cls.id] || []}
+                      onToggle={async (id: string) => {
+                        const test = tests.find(t => t.id === id);
+                        if (test && test.status !== 'completed') {
+                          await markTestComplete(id);
+                        }
+                      }}
+                      onDeleteTest={deleteTest}
+                      onDeleteClass={deleteClass}
+                    />
+                  ))}
                 </div>
               )}
             </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
-                <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No upcoming tests</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                Add your first test to start tracking your exam schedule
-              </p>
-              <Link href="/tests/new">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="mr-1.5 h-4 w-4" /> Add Your First Test
-                </Button>
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
         <AnimatePresence>
           {showAddClass && (
@@ -921,7 +1271,7 @@ const MainApp = () => {
                       value={newClassName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewClassName(e.target.value)}
                       placeholder="e.g., Math 101"
-                      className="w-full"
+                      className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleAddClass()}
                     />
                   </div>
@@ -938,12 +1288,12 @@ const MainApp = () => {
                           placeholder="Search icons..."
                           value={searchQuery}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                          className="pl-10 w-full mb-3"
+                          className="pl-10 w-full mb-3 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
                           autoComplete="off"
                         />
                       </div>
 
-                      <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                      <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         {Object.entries(groupedIcons).map(([category, icons]) => (
                           <div key={category} className="border-b last:border-b-0">
                             <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -959,8 +1309,8 @@ const MainApp = () => {
                                     setSearchQuery('');
                                   }}
                                   className={`p-2 rounded-md flex items-center justify-center ${newClassIcon === name
-                                    ? 'bg-[#264f84] text-white'
-                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+                                      ? 'bg-[#264f84] text-white'
+                                      : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
                                     }`}
                                   title={name}
                                 >
@@ -989,14 +1339,14 @@ const MainApp = () => {
                     <Button
                       variant="outline"
                       onClick={() => setShowAddClass(false)}
-                      className="px-4 h-9 text-sm"
+                      className="px-4 h-9 text-sm border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleAddClass}
                       disabled={!newClassName.trim()}
-                      className="bg-[#264f84] hover:bg-[#1f3f6b] text-white px-4 h-9 text-sm"
+                      className="bg-[#264f84] hover:bg-[#1f3f6b] text-white px-4 h-9 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Add Class
                     </Button>
@@ -1098,7 +1448,7 @@ const MainApp = () => {
                         <SelectTrigger className="w-full h-9 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm hover:border-[#264f84]">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" position="popper" sideOffset={4}>
                           <SelectItem value="low" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Low</SelectItem>
                           <SelectItem value="medium" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Medium</SelectItem>
                           <SelectItem value="high" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">High</SelectItem>
@@ -1118,7 +1468,7 @@ const MainApp = () => {
                       <SelectTrigger className="h-9 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm hover:border-[#264f84]">
                         <SelectValue placeholder="Select a class" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" position="popper" sideOffset={4}>
                         {classes.map((cls: any) => (
                           <SelectItem
                             key={cls.id}
@@ -1179,7 +1529,7 @@ const MainApp = () => {
                       type="button"
                       onClick={handleAddHomework}
                       disabled={!newHomework.title.trim() || !newHomework.classId}
-                      className="bg-[#264f84] hover:bg-[#1f3f6b] text-white px-4 h-9 text-sm"
+                      className="bg-[#264f84] hover:bg-[#1f3f6b] text-white px-4 h-9 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Add Homework
                     </Button>
@@ -1189,15 +1539,26 @@ const MainApp = () => {
             </div>
           )}
         </AnimatePresence>
-      </main>
 
-      {/* Onboarding Modal for First-Time Users */}
-      <OnboardingModal
-        isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-      />
+        {/* Add Test Modal */}
+        <AnimatePresence>
+          {showAddTest && (
+            <AddTestModal isOpen={showAddTest} onClose={() => setShowAddTest(false)} />
+          )}
+        </AnimatePresence>
+
+        {/* Onboarding Modal for First-Time Users */}
+        <AnimatePresence>
+          {showOnboarding && (
+            <OnboardingModal
+              isOpen={showOnboarding}
+              onClose={() => setShowOnboarding(false)}
+            />
+          )}
+        </AnimatePresence>
+      </main>
     </div>
-    );
-  }
+  );
+}
 
 export default MainApp;
