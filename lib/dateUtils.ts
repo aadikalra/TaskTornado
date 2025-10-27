@@ -1,29 +1,35 @@
 import { format, isPast, isToday, isTomorrow, differenceInDays } from 'date-fns';
+import {
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  Calendar,
+} from 'lucide-react';
 
 export type DueDateStatus = 'overdue' | 'today' | 'tomorrow' | 'upcoming' | 'no-date';
 
 export const getDueDateStatus = (dueDate: Date): DueDateStatus => {
   if (!dueDate) return 'no-date';
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const due = new Date(dueDate);
   due.setHours(23, 59, 59, 999);
-  
+
   if (isPast(due) && !isToday(due)) return 'overdue';
   if (isToday(due)) return 'today';
   if (isTomorrow(due)) return 'tomorrow';
-  
+
   return 'upcoming';
 };
 
 export const getDueDateLabel = (dueDate: Date): string => {
   if (!dueDate) return 'No due date';
-  
+
   const status = getDueDateStatus(dueDate);
   const formattedDate = format(dueDate, 'MMM d');
-  
+
   switch (status) {
     case 'today':
       return `Today, ${formattedDate}`;
@@ -41,17 +47,17 @@ export const getDueDateLabel = (dueDate: Date): string => {
 
 export const getDueDateIcon = (dueDate: Date) => {
   const status = getDueDateStatus(dueDate);
-  
+
   switch (status) {
     case 'overdue':
-      return { icon: 'AlertCircle', color: 'text-red-500' };
+      return AlertCircle;
     case 'today':
-      return { icon: 'AlertTriangle', color: 'text-amber-500' };
+      return AlertTriangle;
     case 'tomorrow':
-      return { icon: 'Clock', color: 'text-blue-500' };
+      return Clock;
     case 'upcoming':
-      return { icon: 'Calendar', color: 'text-green-500' };
+      return Calendar;
     default:
-      return { icon: 'Calendar', color: 'text-gray-400' };
+      return Calendar;
   }
 };

@@ -164,6 +164,7 @@ import {
 
 // Add missing Pen icon import
 import { Pen } from 'lucide-react';
+import React from 'react';
 
 // Map of icon names to their corresponding Lucide icon components
 export const iconMap = {
@@ -305,3 +306,24 @@ export const iconMap = {
 } as const;
 
 export type IconName = keyof typeof iconMap;
+
+// Helper function to get a class icon component by name
+export const getClassIcon = (iconName?: string): React.ComponentType<any> => {
+  if (!iconName) return BookOpen;
+
+  // First try exact match
+  if (iconMap[iconName as IconName]) {
+    return iconMap[iconName as IconName];
+  }
+
+  // Fallback to case-insensitive search
+  const lowerIconName = iconName.toLowerCase();
+  for (const [key, iconComponent] of Object.entries(iconMap)) {
+    if (key.toLowerCase() === lowerIconName) {
+      return iconComponent;
+    }
+  }
+
+  // Final fallback
+  return BookOpen;
+};

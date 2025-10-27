@@ -34,7 +34,7 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
   const [title, setTitle] = useState('');
   const [classId, setClassId] = useState('');
   const [testDate, setTestDate] = useState<Date | undefined>(new Date());
-  const [testType, setTestType] = useState('Test');
+  const [testType, setTestType] = useState('Quiz');
   const [studyMaterials, setStudyMaterials] = useState('');
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
   const resetForm = () => {
     setTitle('');
     setStudyMaterials('');
-    setTestType('Test');
+    setTestType('Quiz'); // Default to Quiz instead of 'Test'
     setTestDate(new Date());
     setClassId(classes[0]?.id || '');
   };
@@ -67,10 +67,13 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
       .filter((s) => s.trim() !== '');
 
     // Map UI strings to TestType values
-    let mappedTestType: 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
+    let mappedTestType: 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
     switch (testType) {
-      case 'Test':
-        mappedTestType = 'exam';
+      case 'ALPHA':
+        mappedTestType = 'ALPHA';
+        break;
+      case 'BETA':
+        mappedTestType = 'BETA';
         break;
       case 'Quiz':
         mappedTestType = 'quiz';
@@ -213,6 +216,8 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
                       <SelectItem value="ALPHA" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">ALPHA</SelectItem>
                       <SelectItem value="BETA" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">BETA</SelectItem>
                       <SelectItem value="Quiz" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Quiz</SelectItem>
+                      <SelectItem value="Midterm" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Midterm</SelectItem>
+                      <SelectItem value="Final" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Final</SelectItem>
                       <SelectItem value="Other" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Other</SelectItem>
                     </SelectContent>
                   </Select>

@@ -17,6 +17,8 @@ import { useClassContext, type Homework, type Test } from '@/context/ClassContex
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
+import CalendarTestItem from '@/components/CalendarTestItem';
+import { getClassIcon } from '@/lib/icon-map';
 // Touch device detection
 const isTouchDevice = () => {
   if (typeof window === 'undefined') return false;
@@ -24,63 +26,107 @@ const isTouchDevice = () => {
 };
 type DragState = {
   isDragging: boolean;
-  homeworkId: string | null;
+  itemId: string | null;
+  itemType: 'homework' | 'test' | null;
   sourceDate: Date | null;
   currentHoverDate: Date | null;
 };
 // Custom hook for drag and drop
-function useDragAndDrop(updateDueDate: (homeworkId: string, newDueDate: Date) => void) {
+function useDragAndDrop(
+  updateHomeworkDueDate: (homeworkId: string, newDueDate: Date) => void,
+  updateTestDueDate: (testId: string, newDueDate: Date) => void
+) {
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
-    homeworkId: null,
+    itemId: null,
+    itemType: null,
     sourceDate: null,
     currentHoverDate: null
   });
-  const handleDragStart = useCallback((e: React.DragEvent | React.TouchEvent, homeworkId: string, sourceDate: Date) => {
+
+  const handleDragStart = useCallback((e: React.DragEvent | React.TouchEvent, itemId: string, itemType: 'homework' | 'test', sourceDate: Date) => {
     // For mouse drag events
     if ('dataTransfer' in e) {
       e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', homeworkId);
+      e.dataTransfer.setData('text/plain', itemId);
     }
-   
+
     setDragState({
       isDragging: true,
-      homeworkId,
+      itemId,
+      itemType,
       sourceDate,
       currentHoverDate: null
     });
   }, []);
+
   const handleDragOver = useCallback((e: React.DragEvent, date: Date) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-   
+
     setDragState(prev => ({
       ...prev,
       currentHoverDate: date
     }));
   }, []);
+
   const handleDrop = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault();
-   
-    if (dragState.homeworkId) {
-      updateDueDate(dragState.homeworkId, targetDate);
+
+    console.log('🎯 DROP EVENT:', {
+      targetDate: targetDate.toISOString(),
+      targetDateDay: targetDate.getDate(),
+      targetDateLocal: targetDate.toLocaleDateString(),
+      dragState: dragState
+    });
+
+    if (dragState.itemId && dragState.itemType) {
+      // Normalize the target date to start of day
+      const normalizedDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+
+      console.log('📅 NORMALIZED DATE:', {
+        normalizedDate: normalizedDate.toISOString(),
+        normalizedDay: normalizedDate.getDate(),
+        itemType: dragState.itemType
+      });
+
+      // Both homework and tests are 1 day behind - add 1 day consistently
+      normalizedDate.setDate(normalizedDate.getDate());
+
+      console.log('📅 FINAL DATE (after +1):', {
+        finalDate: normalizedDate.toISOString(),
+        finalDay: normalizedDate.getDate(),
+        itemType: dragState.itemType
+      });
+
+      if (dragState.itemType === 'homework') {
+        console.log('📚 HOMEWORK: using date +1:', normalizedDate.toISOString());
+        updateHomeworkDueDate(dragState.itemId, normalizedDate);
+      } else if (dragState.itemType === 'test') {
+        console.log('📝 TEST: using date +1:', normalizedDate.toISOString());
+        updateTestDueDate(dragState.itemId, normalizedDate);
+      }
     }
-   
+
     setDragState({
       isDragging: false,
-      homeworkId: null,
+      itemId: null,
+      itemType: null,
       sourceDate: null,
       currentHoverDate: null
     });
-  }, [dragState.homeworkId, updateDueDate]);
+  }, [dragState.itemId, dragState.itemType, updateHomeworkDueDate, updateTestDueDate]);
+
   const handleDragEnd = useCallback(() => {
     setDragState({
       isDragging: false,
-      homeworkId: null,
+      itemId: null,
+      itemType: null,
       sourceDate: null,
       currentHoverDate: null
     });
   }, []);
+
   return {
     dragState,
     handleDragStart,
@@ -132,7 +178,7 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
   }, [onSwipeLeft, onSwipeRight, onTouchStart, onTouchMove, onTouchEnd]);
 };
 export default function CalendarPage() {
-  const { homeworks, classes, tests, updateHomeworkDueDate } = useClassContext();
+  const { homeworks, classes, tests, updateHomeworkDueDate, updateTestDueDate, deleteTest } = useClassContext();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -173,7 +219,7 @@ export default function CalendarPage() {
     handleDragOver,
     handleDrop,
     handleDragEnd
-  } = useDragAndDrop(updateHomeworkDueDate);
+  } = useDragAndDrop(updateHomeworkDueDate, updateTestDueDate);
   // Get the start and end of the current month view
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -259,7 +305,22 @@ export default function CalendarPage() {
       // Normalize both dates to start of day for comparison
       const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
       const normalizedDay = new Date(day.getFullYear(), day.getMonth(), day.getDate());
-     
+
+      const matches = normalizedHwDate.getTime() === normalizedDay.getTime();
+
+      console.log('🎯 HOMEWORK FILTERING:', {
+        day: day.getDate(),
+        hwId: hw.id,
+        hwTitle: hw.title,
+        hwDueDate: hw.dueDate,
+        hwDateParsed: hwDate.toISOString(),
+        normalizedHwDate: normalizedHwDate.toISOString().split('T')[0],
+        normalizedDay: normalizedDay.toISOString().split('T')[0],
+        normalizedHwDay: normalizedHwDate.getDate(),
+        normalizedDayValue: normalizedDay.getDate(),
+        matches: matches
+      });
+
       return normalizedHwDate.getTime() === normalizedDay.getTime();
     });
    
@@ -268,7 +329,7 @@ export default function CalendarPage() {
         const testDate = new Date(test.testDate);
         // Check if the date is valid
         if (isNaN(testDate.getTime())) {
-          console.log('Invalid test date:', test.testDate, 'for test:', test.title);
+          console.log('❌ Invalid test date:', test.testDate, 'for test:', test.title);
           return false;
         }
 
@@ -278,18 +339,22 @@ export default function CalendarPage() {
 
         const matches = normalizedTestDate.getTime() === normalizedDay.getTime();
 
-        console.log('Test filtering:', {
+        console.log('🎯 TEST FILTERING:', {
+          day: day.getDate(),
           testId: test.id,
           testTitle: test.title,
           testDate: test.testDate,
+          testDateParsed: testDate.toISOString(),
           normalizedTestDate: normalizedTestDate.toISOString().split('T')[0],
           normalizedDay: normalizedDay.toISOString().split('T')[0],
-          match: matches
+          normalizedTestDay: normalizedTestDate.getDate(),
+          normalizedDayValue: normalizedDay.getDate(),
+          matches: matches
         });
 
         return matches;
       } catch (error) {
-        console.error('Error parsing test date:', test.testDate, 'for test:', test.title, error);
+        console.error('❌ Error parsing test date:', test.testDate, 'for test:', test.title, error);
         return false;
       }
     });
@@ -531,11 +596,35 @@ export default function CalendarPage() {
                   onTouchStart={isTouchDevice() ? (e: React.TouchEvent) => {
                     // Prevent default to avoid scrolling while dragging
                     if (e.cancelable) e.preventDefault();
-                    handleDragStart(e, '', date);
+                    handleDragStart(e, '', 'homework', date);
                   } : undefined}
                   onTouchEnd={isTouchDevice() ? () => {
-                    if (dragState.isDragging && dragState.homeworkId && dragState.currentHoverDate) {
-                      updateHomeworkDueDate(dragState.homeworkId, dragState.currentHoverDate);
+                    if (dragState.isDragging && dragState.itemId && dragState.currentHoverDate) {
+                      // Normalize the target date to start of day
+                      const normalizedDate = new Date(dragState.currentHoverDate.getFullYear(), dragState.currentHoverDate.getMonth(), dragState.currentHoverDate.getDate());
+
+                      console.log('📅 TOUCH NORMALIZED DATE:', {
+                        normalizedDate: normalizedDate.toISOString(),
+                        normalizedDay: normalizedDate.getDate(),
+                        itemType: dragState.itemType
+                      });
+
+                      // Both homework and tests are 1 day behind - add 1 day consistently
+                      normalizedDate.setDate(normalizedDate.getDate());
+
+                      console.log('📅 TOUCH FINAL DATE (after +1):', {
+                        finalDate: normalizedDate.toISOString(),
+                        finalDay: normalizedDate.getDate(),
+                        itemType: dragState.itemType
+                      });
+
+                      if (dragState.itemType === 'homework') {
+                        console.log('📚 TOUCH HOMEWORK: using date +1:', normalizedDate.toISOString());
+                        updateHomeworkDueDate(dragState.itemId, normalizedDate);
+                      } else if (dragState.itemType === 'test') {
+                        console.log('📝 TOUCH TEST: using date +1:', normalizedDate.toISOString());
+                        updateTestDueDate(dragState.itemId, normalizedDate);
+                      }
                     }
                     handleDragEnd();
                   } : undefined}
@@ -626,7 +715,11 @@ export default function CalendarPage() {
                               <div
                                 className={`text-xs p-1 mb-1 rounded truncate cursor-move ${hw.completed ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 line-through' : isOverdue ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300' : isDueToday ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'}`}
                                 draggable
-                                onDragStart={(e) => handleDragStart(e, hw.id, new Date(hw.dueDate))}
+                                onDragStart={(e) => {
+                                  // Normalize the source date to start of day
+                                  const normalizedSourceDate = new Date(new Date(hw.dueDate).getFullYear(), new Date(hw.dueDate).getMonth(), new Date(hw.dueDate).getDate());
+                                  handleDragStart(e, hw.id, 'homework', normalizedSourceDate);
+                                }}
                                 onDragEnd={handleDragEnd}
                               >
                                 <div className="flex items-center">
@@ -676,113 +769,18 @@ export default function CalendarPage() {
                         .slice(0, 3)
                         .map((test) => {
                         const classItem = classes.find(c => c.id === test.classId);
-                        const isCompleted = test.status === 'completed';
-                        const isPastDue = !isCompleted && new Date(test.testDate) < new Date();
+                        // Use BookOpen as a fallback icon
+                        const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
 
                         return (
-                          <Tooltip key={test.id}>
-                            <TooltipTrigger asChild>
-                              <div
-                                className={`text-xs p-1 mb-1 rounded truncate ${isCompleted ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300' : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300'}`}
-                              >
-                                <div className="flex items-center">
-                                  <GraduationCap className="w-3 h-3 mr-1 flex-shrink-0" />
-                                  <span className="truncate">
-                                    {classItem?.name ? `${classItem.name}: ` : ''}{test.title}
-                                  </span>
-                                  {test.testTime && (
-                                    <span className="ml-1 text-[10px] opacity-70">
-                                      {(() => {
-                                        try {
-                                          // Parse time in HH:MM:SS or HH:MM format
-                                          const timeParts = test.testTime.split(':');
-                                          const hours = parseInt(timeParts[0], 10);
-                                          const minutes = parseInt(timeParts[1], 10);
-                                          const date = new Date();
-                                          date.setHours(hours, minutes, 0, 0);
-                                          return format(date, 'h:mm a');
-                                        } catch (e) {
-                                          return test.testTime; // Fallback to original time string
-                                        }
-                                      })()}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="w-64 p-2">
-                              <div className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="font-medium">{test.title}</h4>
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                    isCompleted
-                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                      : isPastDue
-                                        ? 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                                        : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                                  }`}>
-                                    {isCompleted ? 'completed' : isPastDue ? 'past' : 'upcoming'}
-                                  </span>
-                                </div>
-                                {classItem && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <BookOpen className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
-                                    <span className="truncate">{classItem.name}</span>
-                                  </div>
-                                )}
-                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
-                                  <span>{format(new Date(test.testDate), 'EEEE, MMMM d, yyyy')}</span>
-                                  {test.testTime && (
-                                    <span className="ml-2">
-                                      at {(() => {
-                                        try {
-                                          // Parse time in HH:MM:SS or HH:MM format
-                                          const timeParts = test.testTime.split(':');
-                                          const hours = parseInt(timeParts[0], 10);
-                                          const minutes = parseInt(timeParts[1], 10);
-                                          const date = new Date();
-                                          date.setHours(hours, minutes, 0, 0);
-                                          return format(date, 'h:mm a');
-                                        } catch (e) {
-                                          return test.testTime; // Fallback to original time string
-                                        }
-                                      })()}
-                                    </span>
-                                  )}
-                                </div>
-                                {test.testType && (
-                                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                                    Type: {test.testType}
-                                  </div>
-                                )}
-                                {test.maxScore && (
-                                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                                    Max Score: {test.maxScore}
-                                  </div>
-                                )}
-                                {test.location && (
-                                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                                    Location: {test.location}
-                                  </div>
-                                )}
-                                {test.description && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{test.description}</p>
-                                )}
-                                {test.studyMaterials && test.studyMaterials.length > 0 && (
-                                  <div className="mt-2">
-                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                      Study Materials:
-                                    </div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                                      {test.studyMaterials.slice(0, 3).join(', ')}
-                                      {test.studyMaterials.length > 3 && ` +${test.studyMaterials.length - 3} more`}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
+                          <CalendarTestItem
+                            key={test.id}
+                            test={test}
+                            classInfo={classItem}
+                            classIcon={ClassIcon}
+                            handleDragStart={handleDragStart}
+                            handleDragEnd={handleDragEnd}
+                          />
                         );
                       })}
                     </TooltipProvider>

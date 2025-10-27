@@ -153,12 +153,9 @@ const ClassHomeworkListComponent = ({
   // Memoize the homework to TodoItem conversion
   const homeworkToTodoItem = useCallback((hw: HomeworkType): TodoItem => {
     const dueDate = typeof hw.dueDate === 'string' ? new Date(hw.dueDate) : hw.dueDate;
-    const { icon: iconName, color: dueDateColor } = getDueDateIcon(dueDate);
+    const IconComponent = getDueDateIcon(dueDate);
     const status = getDueDateStatus(dueDate);
-    const statusText = status.charAt(0).toUpperCase() + status.slice(1);
-    
-    const IconComponent = iconMap[iconName as keyof typeof iconMap] || iconMap.Calendar;
-    
+
     let links = hw.links;
     if (typeof links === 'string') {
       try {
@@ -168,7 +165,7 @@ const ClassHomeworkListComponent = ({
         links = [];
       }
     }
-    
+
     return {
       id: hw.id,
       text: hw.title,
@@ -177,9 +174,9 @@ const ClassHomeworkListComponent = ({
       priority: (hw.priority || 'medium') as Priority,
       links: links || [],
       dueDateIcon: (
-        <IconComponent 
-          className={`w-4 h-4 ${dueDateColor} flex-shrink-0`}
-          aria-label={statusText}
+        <IconComponent
+          className="w-4 h-4 text-gray-500 flex-shrink-0"
+          aria-label={status.charAt(0).toUpperCase() + status.slice(1)}
         />
       ),
       onDelete: () => onDeleteHomeworkLocal(hw.id),

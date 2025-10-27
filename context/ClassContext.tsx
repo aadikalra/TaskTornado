@@ -44,7 +44,7 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
 
 // Test types
 export type TestType = 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
-export type TestStatus = 'upcoming' | 'completed' | 'missed';
+export type TestStatus = 'upcoming' | 'taken';
 
 export type Test = Omit<Database['public']['Tables']['tests']['Row'], 'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' | 'max_score' | 'completed_at'> & {
   classId: string;
@@ -53,7 +53,6 @@ export type Test = Omit<Database['public']['Tables']['tests']['Row'], 'test_date
   testType: TestType;
   maxScore: number | null;
   studyMaterials: string[];
-  completedAt: string | null;
 };
 
 interface ClassContextType {
@@ -87,9 +86,11 @@ interface ClassContextType {
   }) => Promise<void>;
   updateTest: (id: string, updates: Partial<Test>) => Promise<void>;
   deleteTest: (id: string) => Promise<void>;
+  updateTestDueDate: (testId: string, newDueDate: Date) => Promise<void>;
   markTestComplete: (id: string, score?: number, maxScore?: number, grade?: string) => Promise<void>;
   getUpcomingTests: (daysAhead?: number) => Test[];
   getTestsByClass: (classId: string) => Test[];
+  updateTestStatus: (id: string, status: TestStatus) => Promise<void>;
 }
 
 const ClassContext = createContext<ClassContextType | undefined>(undefined);
@@ -258,7 +259,13 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           testType: test.test_type as TestType,
           maxScore: test.max_score,
           studyMaterials: test.study_materials || [],
-          completedAt: test.completed_at
+          weight: test.weight,
+          location: test.location,
+          duration: test.duration,
+          status: test.status as TestStatus,
+          score: test.score,
+          grade: test.grade,
+          notes: test.notes
         }));
 
         // Only update state if the data has actually changed
@@ -454,7 +461,14 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
                     testType: newTest.test_type as TestType,
                     maxScore: newTest.max_score,
                     studyMaterials: newTest.study_materials || [],
-                    completedAt: newTest.completed_at
+                    weight: newTest.weight,
+                    location: newTest.location,
+                    duration: newTest.duration,
+                    priority: (newTest.priority as Priority) || 'medium',
+                    status: newTest.status as TestStatus,
+                    score: newTest.score,
+                    grade: newTest.grade,
+                    notes: newTest.notes
                   };
 
                   console.log('Adding new test:', newT);
@@ -476,7 +490,14 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
                         testType: updated.test_type ? updated.test_type as TestType : test.testType,
                         maxScore: updated.max_score !== undefined ? updated.max_score : test.maxScore,
                         studyMaterials: updated.study_materials !== undefined ? updated.study_materials : test.studyMaterials,
-                        completedAt: updated.completed_at !== undefined ? updated.completed_at : test.completedAt
+                        weight: updated.weight !== undefined ? updated.weight : test.weight,
+                        location: updated.location !== undefined ? updated.location : test.location,
+                        duration: updated.duration !== undefined ? updated.duration : test.duration,
+                        priority: updated.priority !== undefined ? updated.priority : test.priority,
+                        status: updated.status ? updated.status as TestStatus : test.status,
+                        score: updated.score !== undefined ? updated.score : test.score,
+                        grade: updated.grade !== undefined ? updated.grade : test.grade,
+                        notes: updated.notes !== undefined ? updated.notes : test.notes
                       }
                     : test
                   )
@@ -903,14 +924,58 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateHomeworkDueDate = async (homeworkId: string, newDueDate: Date) => {
     if (!user) throw new Error('User not authenticated');
-    
+
+    // Get the current homework before updating for potential revert
+    const currentHomework = homeworks.find(hw => hw.id === homeworkId);
+    if (!currentHomework) return;
+
+    console.log('🔄 UPDATE HOMEWORK DATE:', {
+      homeworkId,
+      currentDueDate: currentHomework.dueDate,
+      newDueDate: newDueDate.toISOString(),
+      newDueDateDay: newDueDate.getDate()
+    });
+
     try {
-      await db.updateHomework(homeworkId, {
-        due_date: newDueDate.toISOString()
+      // Normalize the date to start of day to match calendar filtering logic
+      const normalizedDate = new Date(newDueDate.getFullYear(), newDueDate.getMonth(), newDueDate.getDate());
+
+      console.log('📅 NORMALIZED FOR DB:', {
+        normalizedDate: normalizedDate.toISOString(),
+        normalizedDay: normalizedDate.getDate()
       });
-      // The subscription will handle the state update
+
+      // Optimistically update the UI immediately
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === homeworkId
+            ? { ...hw, dueDate: normalizedDate.toISOString() }
+            : hw
+        )
+      );
+
+      // Update the database
+      await db.updateHomework(homeworkId, {
+        due_date: normalizedDate.toISOString()
+      });
+
+      console.log('💾 HOMEWORK SAVED TO DB:', {
+        homeworkId,
+        savedDate: normalizedDate.toISOString(),
+        savedDay: normalizedDate.getDate()
+      });
     } catch (err) {
       console.error('Error updating homework due date:', err);
+
+      // Revert optimistic update on error
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === homeworkId
+            ? currentHomework
+            : hw
+        )
+      );
+
       throw err;
     }
   };
@@ -1029,7 +1094,6 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       grade: null,
       studyMaterials: options.studyMaterials || [],
       notes: options.notes || null,
-      completedAt: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -1176,17 +1240,74 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateTestDueDate = async (testId: string, newDueDate: Date) => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Get the current test before updating for potential revert
+    const currentTest = tests.find(test => test.id === testId);
+    if (!currentTest) return;
+
+    console.log('🔄 UPDATE TEST DATE:', {
+      testId,
+      currentTestDate: currentTest.testDate,
+      newDueDate: newDueDate.toISOString(),
+      newDueDateDay: newDueDate.getDate()
+    });
+
+    try {
+      // Normalize the date to start of day to match calendar filtering logic
+      const normalizedDate = new Date(newDueDate.getFullYear(), newDueDate.getMonth(), newDueDate.getDate());
+
+      console.log('📅 NORMALIZED FOR DB:', {
+        normalizedDate: normalizedDate.toISOString(),
+        normalizedDay: normalizedDate.getDate()
+      });
+
+      // Optimistically update the UI immediately
+      setTests(prev =>
+        prev.map(test =>
+          test.id === testId
+            ? { ...test, testDate: normalizedDate.toISOString().split('T')[0] }
+            : test
+        )
+      );
+
+      // Format date to match database schema (full ISO string like homework)
+      await db.updateTest(testId, {
+        test_date: normalizedDate.toISOString().split('T')[0]
+      });
+
+      console.log('💾 TEST SAVED TO DB:', {
+        testId,
+        savedDate: normalizedDate.toISOString().split('T')[0],
+        savedDay: normalizedDate.getDate()
+      });
+    } catch (err) {
+      console.error('Error updating test due date:', err);
+
+      // Revert optimistic update on error
+      setTests(prev =>
+        prev.map(test =>
+          test.id === testId
+            ? currentTest
+            : test
+        )
+      );
+
+      throw err;
+    }
+  };
+
   const markTestComplete = async (id: string, score?: number, maxScore?: number, grade?: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
       // Update the database
       await db.updateTest(id, {
-        status: 'completed',
+        status: 'taken',
         score,
         max_score: maxScore,
-        grade,
-        completed_at: new Date().toISOString()
+        grade
       });
 
       // Update local state - convert database nulls to proper types
@@ -1195,11 +1316,10 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           test.id === id
             ? {
                 ...test,
-                status: 'completed' as TestStatus,
+                status: 'taken' as TestStatus,
                 score: score || null,
                 maxScore: maxScore || null,
-                grade: grade || null,
-                completedAt: new Date().toISOString()
+                grade: grade || null
               }
             : test
         )
@@ -1228,6 +1348,31 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
   };
 
+  const updateTestStatus = async (id: string, status: TestStatus) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Update the database
+      await db.updateTest(id, {
+        status: status
+      });
+
+      // Update local state
+      setTests(prev =>
+        prev.map(test =>
+          test.id === id
+            ? { ...test, status: status }
+            : test
+        )
+      );
+
+      // The subscription will handle any necessary state updates
+    } catch (err) {
+      console.error('Error updating test status:', err);
+      throw err;
+    }
+  };
+
   const value = {
     classes,
     homeworks,
@@ -1250,9 +1395,11 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
     addTest,
     updateTest,
     deleteTest,
+    updateTestDueDate,
     markTestComplete,
     getUpcomingTests,
     getTestsByClass,
+    updateTestStatus,
   };
 
   return (

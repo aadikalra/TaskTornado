@@ -178,8 +178,8 @@ import { useToast } from '@/context/ToastContext';
 import { useGamification } from '@/context/GamificationContext';
 import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
-import { ClassTestList } from '@/components/ClassTestList';
-import PriorityTestCard from '@/components/PriorityTestCard';
+import StatusGroupedTestList from '@/components/StatusGroupedTestList';
+import { MarkTestAsTakenModal } from '@/components/MarkTestAsTakenModal';
 
 type LucideIconName = keyof typeof import('lucide-react');
 type Priority = 'low' | 'medium' | 'high';
@@ -215,6 +215,8 @@ const MainApp = () => {
   const [newClassIcon, setNewClassIcon] = useState<LucideIconName>('BookOpen');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddTest, setShowAddTest] = useState(false);
+  const [showMarkTestAsTakenModal, setShowMarkTestAsTakenModal] = useState(false);
+  const [testToMark, setTestToMark] = useState<{ id: string; title: string } | null>(null);
 
   // Initialize section visibility states from cookies with defaults
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
@@ -260,20 +262,12 @@ const MainApp = () => {
   const [hasShownInitialNotifications, setHasShownInitialNotifications] = useState(false);
 
   // Test filtering state
-  const [testFilter, setTestFilter] = useState<'all' | 'upcoming' | 'completed'>(() => {
+  const [testFilter, setTestFilter] = useState<'all' | 'upcoming' | 'taken'>(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('testFilter');
-      return (saved as 'all' | 'upcoming' | 'completed') || 'all';
+      return (saved as 'all' | 'upcoming' | 'taken') || 'all';
     }
     return 'all';
-  });
-
-  const [testSortBy, setTestSortBy] = useState<'date' | 'class' | 'type'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('testSortBy');
-      return (saved as 'date' | 'class' | 'type') || 'date';
-    }
-    return 'date';
   });
 
   // Wrapper functions that save to cookies when state changes
@@ -298,14 +292,9 @@ const MainApp = () => {
   };
 
   // Wrapper functions for test filters that save to cookies
-  const handleTestFilterChange = (value: 'all' | 'upcoming' | 'completed') => {
+  const handleTestFilterChange = (value: 'all' | 'upcoming' | 'taken') => {
     setTestFilter(value);
     setCookie('testFilter', value);
-  };
-
-  const handleTestSortChange = (value: 'date' | 'class' | 'type') => {
-    setTestSortBy(value);
-    setCookie('testSortBy', value);
   };
 
   const handleExpandedClassesChange = (newState: Record<string, boolean>) => {
@@ -671,6 +660,23 @@ const MainApp = () => {
     }
   };
 
+  const handleMarkTestAsTaken = async (score: number, maxScore: number, grade?: string) => {
+    if (!testToMark) return;
+
+    try {
+      await markTestComplete(testToMark.id, score, maxScore, grade);
+      success(
+        `✅ ${testToMark.title} marked as taken!`,
+        `Score: ${score}/${maxScore}${grade ? ` (${grade})` : ''}`
+      );
+      setShowMarkTestAsTakenModal(false);
+      setTestToMark(null);
+    } catch (error) {
+      toastError('Failed to mark test as taken', 'Please try again');
+      console.error('Error marking test as taken:', error);
+    }
+  };
+
   // Color mapping for class icons
   const classColors = {
     red: '#E53E3E',
@@ -721,35 +727,20 @@ const MainApp = () => {
     ? Math.ceil((new Date(nextUpcomingTest.testDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
-  // Test filtering and sorting logic
+  // Test filtering logic
   const filteredTests = tests.filter(test => {
     switch (testFilter) {
       case 'upcoming':
         return test.status === 'upcoming';
-      case 'completed':
-        return test.status === 'completed';
+      case 'taken':
+        return test.status === 'taken';
       default:
         return true;
     }
   });
 
-  const sortedTests = [...filteredTests].sort((a, b) => {
-    switch (testSortBy) {
-      case 'date':
-        return new Date(a.testDate).getTime() - new Date(b.testDate).getTime();
-      case 'class':
-        const classA = classes.find(c => c.id === a.classId)?.name || '';
-        const classB = classes.find(c => c.id === b.classId)?.name || '';
-        return classA.localeCompare(classB);
-      case 'type':
-        return a.testType.localeCompare(b.testType);
-      default:
-        return 0;
-    }
-  });
-
   // Group tests by class
-  const testsByClass = sortedTests.reduce((acc, test) => {
+  const testsByClass = filteredTests.reduce((acc, test) => {
     const classId = test.classId;
     if (!acc[classId]) {
       acc[classId] = [];
@@ -764,7 +755,7 @@ const MainApp = () => {
   // Test statistics
   const totalTests = tests.length;
   const upcomingTestsCount = tests.filter(test => test.status === 'upcoming');
-  const completedTests = tests.filter(test => test.status === 'completed');
+  const takenTests = tests.filter(test => test.status === 'taken');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
@@ -1167,9 +1158,6 @@ const MainApp = () => {
                   : 'max-h-0 opacity-0'
               }`}
             >
-              {/* Priority Test Card - AI Powered (Temporarily disabled) */}
-              {/* <PriorityTestCard /> */}
-
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 relative">
                 <div className="flex flex-col sm:flex-row gap-3 relative">
                   {/* Filter */}
@@ -1182,21 +1170,7 @@ const MainApp = () => {
                       <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 min-w-[140px]" position="popper" sideOffset={4}>
                         <SelectItem value="all" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">All Tests</SelectItem>
                         <SelectItem value="upcoming" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Upcoming</SelectItem>
-                        <SelectItem value="completed" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Sort */}
-                  <div className="relative">
-                    <Select value={testSortBy} onValueChange={handleTestSortChange}>
-                      <SelectTrigger className="w-[120px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 min-w-[120px]" position="popper" sideOffset={4}>
-                        <SelectItem value="date" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">By Date</SelectItem>
-                        <SelectItem value="class" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">By Class</SelectItem>
-                        <SelectItem value="type" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">By Type</SelectItem>
+                        <SelectItem value="taken" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Taken</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1217,27 +1191,15 @@ const MainApp = () => {
                     onClick={() => setShowAddTest(true)}
                     className="bg-[#264f84] hover:bg-[#1f3f6b] text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
                   >
-                    <Plus className="mr-1.5 h-4 w-4" /> Add Your First Test
+                    <Plus className="mr-1.5 h-4 w-4" /> Add Test
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {classesWithTests.map((cls) => (
-                    <ClassTestList
-                      key={cls.id}
-                      classItem={cls}
-                      tests={testsByClass[cls.id] || []}
-                      onToggle={async (id: string) => {
-                        const test = tests.find(t => t.id === id);
-                        if (test && test.status !== 'completed') {
-                          await markTestComplete(id);
-                        }
-                      }}
-                      onDeleteTest={deleteTest}
-                      onDeleteClass={deleteClass}
-                    />
-                  ))}
-                </div>
+                <StatusGroupedTestList
+                  tests={filteredTests}
+                  classes={classes}
+                  onDeleteTest={deleteTest}
+                />
               )}
             </div>
           </div>
@@ -1547,12 +1509,17 @@ const MainApp = () => {
           )}
         </AnimatePresence>
 
-        {/* Onboarding Modal for First-Time Users */}
+        {/* Mark Test as Taken Modal */}
         <AnimatePresence>
-          {showOnboarding && (
-            <OnboardingModal
-              isOpen={showOnboarding}
-              onClose={() => setShowOnboarding(false)}
+          {showMarkTestAsTakenModal && testToMark && (
+            <MarkTestAsTakenModal
+              isOpen={showMarkTestAsTakenModal}
+              onClose={() => {
+                setShowMarkTestAsTakenModal(false);
+                setTestToMark(null);
+              }}
+              onSubmit={handleMarkTestAsTaken}
+              testTitle={testToMark.title}
             />
           )}
         </AnimatePresence>

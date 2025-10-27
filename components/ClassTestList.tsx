@@ -173,21 +173,13 @@ const ClassTestListComponent = ({
   // Get color for test status
   const getStatusConfig = useCallback((status: TestStatus) => {
     switch (status) {
-      case 'completed':
+      case 'taken':
         return {
           icon: Clock,
           color: 'text-green-500',
           bgColor: 'bg-green-100 dark:bg-green-900/20',
           borderColor: 'border-green-200 dark:border-green-800/50',
           textColor: 'text-green-900 dark:text-green-100',
-        };
-      case 'missed':
-        return {
-          icon: AlertTriangle,
-          color: 'text-red-500',
-          bgColor: 'bg-red-100 dark:bg-red-900/20',
-          borderColor: 'border-red-200 dark:border-red-800/50',
-          textColor: 'text-red-900 dark:text-red-100',
         };
       default: // upcoming
         return {
@@ -212,17 +204,16 @@ const ClassTestListComponent = ({
   // Convert test to TestItem format
   const testToTestItem = useCallback((test: TestType): TestItem => {
     const testDate = new Date(test.testDate);
-    const { icon: iconName, color: testDateColor } = getDueDateIcon(testDate);
+    const IconComponent = getDueDateIcon(testDate);
     const statusConfig = getStatusConfig(test.status as TestStatus);
 
-    const IconComponent = iconMap[iconName as keyof typeof iconMap] || iconMap.Calendar;
     const TestTypeIcon = getTestTypeIcon(test.testType);
     const StatusIcon = statusConfig.icon;
 
     return {
       id: test.id,
       text: test.title,
-      completed: test.status === 'completed',
+      completed: test.status === 'taken',
       subtext: `${getDueDateLabel(testDate)} • ${test.testType || 'Test'}`,
       testType: test.testType || 'Test',
       testDate: test.testDate,
@@ -234,7 +225,7 @@ const ClassTestListComponent = ({
       studyMaterials: test.studyMaterials,
       testDateIcon: (
         <IconComponent
-          className={`w-4 h-4 ${testDateColor} flex-shrink-0`}
+          className="w-4 h-4 text-gray-500 flex-shrink-0"
           aria-label={test.status}
         />
       ),
@@ -356,8 +347,6 @@ const TestCard = ({ testItem }: { testItem: TestItem }) => {
       className={`p-4 rounded-lg border transition-all duration-200 ${
         testItem.completed
           ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800/50'
-          : testItem.status === 'missed'
-          ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800/50'
           : 'bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700/50'
       }`}
       whileHover={{ scale: 1.01 }}

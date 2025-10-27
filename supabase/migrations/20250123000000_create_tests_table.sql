@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS tests (
   description TEXT,
   test_date DATE NOT NULL,
   test_time TIME,
-  test_type TEXT CHECK (test_type IN ('exam', 'quiz', 'midterm', 'final', 'project', 'presentation')) DEFAULT 'exam',
+  test_type TEXT CHECK (test_type IN ('ALPHA', 'BETA', 'exam', 'quiz', 'midterm', 'final', 'project', 'presentation')) DEFAULT 'exam',
   weight DECIMAL(5,2), -- percentage weight towards final grade (0-100)
   location TEXT, -- classroom, online, etc.
   duration INTEGER, -- in minutes
