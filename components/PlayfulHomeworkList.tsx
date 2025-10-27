@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { memo, useCallback } from 'react';
 import { motion, type Transition } from 'framer-motion';
-import { Check, Trash2, Link as LinkIcon, School, Flame, AlertTriangle, Minus } from 'lucide-react';
+import Link from 'next/link';
+import { Check, Trash2, Edit, Link as LinkIcon, School, Flame, AlertTriangle, Minus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
   AlertDialog,
@@ -249,39 +250,51 @@ const PlayfulHomeworkListComponent = ({
                   </div>
                 </div>
                 {!item.completed && item.onDelete && !isGoogleClassroomAssignment(item) && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <Link href={`/homework/edit/${item.id}`}>
                         <Button
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-                          title="Delete homework"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400"
+                          title="Edit homework"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete this homework?</AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                            This will permanently delete the homework &quot;{item.text}&quot;.
-                            This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              item.onDelete?.();
-                            }}
-                            className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                            title="Delete homework"
                           >
-                            Delete Homework
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete this homework?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                              This will permanently delete the homework &quot;{item.text}&quot;.
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                item.onDelete?.();
+                              }}
+                              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
+                            >
+                              Delete Homework
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   )}
               </div>
               <motion.svg
