@@ -19,6 +19,7 @@ import {
   Circle,
   Zap,
   Brain,
+  Scale,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -47,7 +48,9 @@ const EnhancedTestCard = ({
     });
   };
 
-  const DueIcon = getDueDateIcon(new Date(test.testDate));
+  const dueDateLabel = getDueDateLabel(new Date(test.testDate), true); // true indicates this is a test
+
+  const DueIcon = getDueDateIcon(new Date(test.testDate), true); // true indicates this is a test
 
   // Enhanced test type configuration with ALPHA/BETA support
   const testTypeConfig = useMemo(() => {
@@ -72,8 +75,16 @@ const EnhancedTestCard = ({
           borderColor: 'border-orange-200 dark:border-orange-800/50',
           pillColor: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
         };
-      case 'exam':
       case 'final':
+        return {
+          icon: GraduationCap,
+          label: 'FINAL',
+          color: 'text-red-600 dark:text-red-400',
+          bgColor: 'bg-red-50 dark:bg-red-900/20',
+          borderColor: 'border-red-200 dark:border-red-800/50',
+          pillColor: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        };
+      case 'exam':
       case 'midterm':
         return {
           icon: GraduationCap,
@@ -123,6 +134,9 @@ const EnhancedTestCard = ({
     };
   }, []);
 
+  // For each test, print out grade in console
+  console.log(`Test: ${test.title} is at a grade of ${test.grade}`);
+
   const TestTypeIcon = testTypeConfig.icon;
 
   if (variant === 'compact') {
@@ -142,13 +156,9 @@ const EnhancedTestCard = ({
           {/* Content */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <TestTypeIcon className={`h-4 w-4 ${testTypeConfig.color}`} />
               <h4 className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
                 {test.title}
               </h4>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${testTypeConfig.pillColor}`}>
-                {test.testType}
-              </span>
             </div>
 
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
@@ -156,14 +166,7 @@ const EnhancedTestCard = ({
                 <DueIcon className="h-3 w-3" />
                 {getDueDateLabel(new Date(test.testDate))}
               </span>
-
-              {test.testTime && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatTime(test.testTime)}
-                </span>
-              )}
-
+              
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${testTypeConfig.pillColor}`}>
                 {test.testType}
               </span>
@@ -249,10 +252,18 @@ const EnhancedTestCard = ({
                   </span>
                 )}
 
-                {typeof test.weight !== 'undefined' && test.weight !== null && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-gray-200/60 dark:border-gray-700/60 bg-white/60 dark:bg-gray-800/50 px-3 py-1 text-gray-700 dark:text-gray-300">
-                    <Brain className="h-4 w-4" />
+                {test.weight && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-gray-200/60 dark:border-gray-700/60 bg-white/60 dark:bg-gray-800/50 px-3 py-1 font-medium text-gray-700 dark:text-gray-300">
+                    <Scale className="h-4 w-4" />
                     {test.weight}% weight
+                  </span>
+                )}
+
+                {(test.grade || test.score) && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-gray-200/60 dark:border-gray-700/60 bg-white/60 dark:bg-gray-800/50 px-3 py-1 font-medium text-gray-700 dark:text-gray-300">
+                    <Target className="h-4 w-4" />
+                    {test.grade ? `Grade: ${test.grade}` : `Score: ${test.score}/${test.maxScore}`}
+                    {test.grade && test.score && ` (${test.score}/${test.maxScore})`}
                   </span>
                 )}
 

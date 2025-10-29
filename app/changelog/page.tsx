@@ -8,7 +8,7 @@ export default function ChangelogPage() {
     {
       version: '0.9.9',
       date: '2025-10-20',
-      title: 'Almost Public Release - October Feature Release & Infrastructure Updates',
+      title: 'Public Beta - October Feature Release & Infrastructure Updates',
       features: [
         { icon: <Bot className="h-4 w-4" />, text: 'Integrated AI assistant command menu with @ detection for seamless feature access' },
         { icon: <BarChart3 className="h-4 w-4" />, text: 'Added Vercel Analytics for page view and visitor tracking' },
@@ -157,7 +157,7 @@ export default function ChangelogPage() {
             {/* Beta Status Notice */}
             <div className="inline-flex items-center gap-2 bg-sky-100 dark:bg-sky-900/20 border border-sky-300 dark:border-sky-700 rounded-full px-4 py-2">
               <TestTube className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-              <span className="text-sky-800 dark:text-sky-200 font-medium text-sm">ALMOST PUBLIC RELEASE</span>
+              <span className="text-sky-800 dark:text-sky-200 font-medium text-sm">PUBLIC BETA</span>
             </div>
           </div>
 
@@ -184,7 +184,7 @@ export default function ChangelogPage() {
                         ? 'bg-sky-500 text-white' 
                         : 'bg-orange-500 dark:bg-orange-400 text-white dark:text-gray-900'
                     }`}>
-                      {version.version === '0.9.9' ? 'ALMOST RELEASE' : 'BETA'}
+                      {version.version === '0.9.9' ? 'PUBLIC BETA' : 'ALPHA'}
                     </span>
                   </div>
 
@@ -217,7 +217,7 @@ export default function ChangelogPage() {
                             ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' 
                             : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
                         }`}>
-                          {version.version === '0.9.9' ? 'Almost Public Release' : 'Development Build'}
+                          {version.version === '0.9.9' ? 'Public Beta' : 'Alpha'}
                         </span>
                       </p>
                     </div>
@@ -306,7 +306,7 @@ export default function ChangelogPage() {
               🚀 Stay tuned for version 1.0 - The complete study companion!
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Built with ❤️ for students everywhere • <span className="text-sky-600 dark:text-sky-400">Almost Release v0.9.9</span>
+              Built with ❤️ for students everywhere • <span className="text-sky-600 dark:text-sky-400">Public Beta v0.9.9</span>
             </p>
           </motion.div>
         </motion.div>

@@ -53,7 +53,7 @@ export default function LandingPage() {
       <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-3 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 text-sm font-medium">
           <Sparkles className="w-4 h-4" />
-          <span>Almost in public beta</span>
+          <span>v.1 Just Released. In public beta!!</span>
           <Link
             href="/changelog"
             className="underline hover:no-underline flex items-center gap-1 ml-2"

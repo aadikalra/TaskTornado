@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Clock,
   Calendar,
+  CheckCircle2,
 } from 'lucide-react';
 
 export type DueDateStatus = 'overdue' | 'today' | 'tomorrow' | 'upcoming' | 'no-date';
@@ -24,7 +25,7 @@ export const getDueDateStatus = (dueDate: Date): DueDateStatus => {
   return 'upcoming';
 };
 
-export const getDueDateLabel = (dueDate: Date): string => {
+export const getDueDateLabel = (dueDate: Date, isTest: boolean = false): string => {
   if (!dueDate) return 'No due date';
 
   const status = getDueDateStatus(dueDate);
@@ -36,7 +37,7 @@ export const getDueDateLabel = (dueDate: Date): string => {
     case 'tomorrow':
       return `Tomorrow, ${formattedDate}`;
     case 'overdue':
-      return `Overdue: ${formattedDate}`;
+      return `Completed: ${formattedDate}`;
     case 'upcoming':
       const daysUntil = differenceInDays(dueDate, new Date());
       return `${daysUntil} ${daysUntil === 1 ? 'day' : 'days'}, ${formattedDate}`;
@@ -45,12 +46,12 @@ export const getDueDateLabel = (dueDate: Date): string => {
   }
 };
 
-export const getDueDateIcon = (dueDate: Date) => {
+export const getDueDateIcon = (dueDate: Date, isTest: boolean = false) => {
   const status = getDueDateStatus(dueDate);
 
   switch (status) {
     case 'overdue':
-      return AlertCircle;
+      return CheckCircle2;
     case 'today':
       return AlertTriangle;
     case 'tomorrow':

@@ -149,7 +149,7 @@ const CalendarTestItem = ({
             )}
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
               <Calendar className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
-              <span>{getDueDateLabel(new Date(test.testDate))}</span>
+              <span>{getDueDateLabel(new Date(test.testDate), true)}</span>
             </div>
             {test.testTime && (
               <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">

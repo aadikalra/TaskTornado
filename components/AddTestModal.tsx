@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClassContext } from '../context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { X, Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 
 type AddTestModalProps = {
   isOpen: boolean;
@@ -35,7 +35,10 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
   const [classId, setClassId] = useState('');
   const [testDate, setTestDate] = useState<Date | undefined>(new Date());
   const [testType, setTestType] = useState('Quiz');
+  const [testTime, setTestTime] = useState('');
+  const [description, setDescription] = useState('');
   const [studyMaterials, setStudyMaterials] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (isOpen && !classId && classes.length > 0) {
@@ -45,10 +48,13 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
 
   const resetForm = () => {
     setTitle('');
+    setDescription('');
     setStudyMaterials('');
-    setTestType('Quiz'); // Default to Quiz instead of 'Test'
+    setTestType('Quiz');
+    setTestTime('');
     setTestDate(new Date());
     setClassId(classes[0]?.id || '');
+    setShowAdvanced(false);
   };
 
   const handleClose = () => {
@@ -65,6 +71,13 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
     const materialsList = studyMaterials
       .split('\n')
       .filter((s) => s.trim() !== '');
+
+    // Format the date with time if provided
+    let testDateTime = new Date(testDate);
+    if (testTime) {
+      const [hours, minutes] = testTime.split(':').map(Number);
+      testDateTime.setHours(hours, minutes);
+    }
 
     // Map UI strings to TestType values
     let mappedTestType: 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
@@ -85,15 +98,16 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
         mappedTestType = 'final';
         break;
       case 'Other':
-        mappedTestType = 'project'; // Default to project for "Other"
+        mappedTestType = 'project';
         break;
       default:
-        mappedTestType = 'exam'; // Default fallback
+        mappedTestType = 'exam';
     }
 
     try {
-      await addTest(classId, title, testDate, mappedTestType, {
-        studyMaterials: materialsList
+      await addTest(classId, title, testDateTime, mappedTestType, {
+        description: description.trim() || undefined,
+        studyMaterials: materialsList.length > 0 ? materialsList : undefined
       });
 
       success('✅ Test Added!', `Good luck studying for your ${title}.`);
@@ -224,22 +238,99 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
                 </div>
               </div>
 
-              <div>
-                <Label
-                  htmlFor="studyMaterials"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="text-sm text-[#264f84] hover:text-[#1f3f6b] dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
                 >
-                  Study Materials / Topics (Optional)
-                </Label>
-                <Textarea
-                  id="studyMaterials"
-                  value={studyMaterials}
-                  onChange={(e) => setStudyMaterials(e.target.value)}
-                  placeholder="Enter topics, one per line..."
-                  rows={4}
-                  className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
-                />
+                  {showAdvanced ? 'Hide' : 'Show'} Advanced
+                  <svg
+                    className={`ml-1 h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               </div>
+
+              <AnimatePresence>
+                {showAdvanced && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4 pt-2 border-t border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="testTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                          Test Time (Optional)
+                        </Label>
+                        <Input
+                          id="testTime"
+                          type="time"
+                          value={testTime}
+                          onChange={(e) => setTestTime(e.target.value)}
+                          className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setTestTime('')}
+                          className="text-xs h-8 w-full"
+                          disabled={!testTime}
+                        >
+                          Clear Time
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                      >
+                        Description (Optional)
+                      </Label>
+                      <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Enter a brief description..."
+                        rows={3}
+                        className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="studyMaterials"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                      >
+                        Study Materials / Topics (Optional)
+                      </Label>
+                      <Textarea
+                        id="studyMaterials"
+                        value={studyMaterials}
+                        onChange={(e) => setStudyMaterials(e.target.value)}
+                        placeholder="Enter topics or paste links, one per line..."
+                        rows={3}
+                        className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                      />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Add links or topics, one per line. Links will be clickable in the test view.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="pt-6 flex justify-end space-x-3">

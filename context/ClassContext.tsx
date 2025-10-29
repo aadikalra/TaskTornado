@@ -1,12 +1,40 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
 import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { getGoogleClassroomCourses, getAllGoogleClassroomCourseWork } from '@/lib/services/GoogleClassroomService';
+import Cookies from 'js-cookie';
+
+// Predefined color palette for consistent class colors
+const classColorPalette = [
+  '#E53E3E', // red
+  '#3182CE', // blue
+  '#D69E2E', // yellow
+  '#38A169', // green
+  '#805AD5', // purple
+  '#D53F8C', // pink
+  '#2C7A7B', // teal
+  '#DD6B20', // orange
+  '#00B5D8', // cyan
+  '#5A67D8', // indigo
+];
+
+// Function to generate a consistent color from a string (e.g., class ID)
+const generateConsistentColor = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    const char = id.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  const index = Math.abs(hash) % classColorPalette.length;
+  return classColorPalette[index];
+};
+
 
 // Type for Lucide icon names
 type LucideIconName = keyof typeof import('lucide-react');
@@ -46,13 +74,26 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
 export type TestType = 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
 export type TestStatus = 'upcoming' | 'taken';
 
-export type Test = Omit<Database['public']['Tables']['tests']['Row'], 'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' | 'max_score' | 'completed_at'> & {
+export type Test = Omit<Database['public']['Tables']['tests']['Row'], 
+  'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' | 
+  'max_score' | 'completed_at' | 'created_at' | 'updated_at'
+> & {
   classId: string;
   testDate: string; // ISO date string
   testTime: string | null; // ISO time string
   testType: TestType;
   maxScore: number | null;
   studyMaterials: string[];
+  weight: number | null;
+  location: string | null;
+  duration: number | null;
+  priority: Priority;
+  status: TestStatus;
+  score: number | null;
+  grade: string | null;
+  notes: string | null;
+  completed_at: string | null;
+  created_at: string;
 };
 
 interface ClassContextType {
@@ -152,7 +193,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           id: course.id || `gc-${index}`,
           name: course.name || 'Unknown Course',
           icon: 'BookOpen' as LucideIconName, // Default icon for Google Classroom courses
-          color: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Random color
+          color: generateConsistentColor(course.id || `gc-${index}`),
           user_id: user.id,
           created_at: course.creationTime || new Date().toISOString(),
           updated_at: course.updateTime || new Date().toISOString()
@@ -204,6 +245,15 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
 
         setClasses(transformedClasses);
         setHomeworks(transformedHomeworks);
+
+        // Store class colors in a cookie
+        const colorMap = transformedClasses.reduce((acc, cls) => {
+          if (cls.id && cls.color) {
+            acc[cls.id] = cls.color;
+          }
+          return acc;
+        }, {} as { [key: string]: string });
+        Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
       } else {
         // Use Supabase API for regular users
         console.log('Fetching Supabase data...');
@@ -262,6 +312,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           weight: test.weight,
           location: test.location,
           duration: test.duration,
+          priority: test.priority as Priority,
           status: test.status as TestStatus,
           score: test.score,
           grade: test.grade,
@@ -282,6 +333,15 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           }
           return transformedTests;
         });
+
+        // Store class colors in a cookie
+        const colorMap = classesData.reduce((acc, cls) => {
+          if (cls.id && cls.color) {
+            acc[cls.id] = cls.color;
+          }
+          return acc;
+        }, {} as { [key: string]: string });
+        Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
       }
 
       hasLoaded.current = true;
@@ -1081,21 +1141,21 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       classId,
       title,
       description: options.description || '',
-      testDate: testDate.toISOString().split('T')[0],
+      testDate: format(testDate, 'yyyy-MM-dd'),
       testTime: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : null,
       testType,
+      maxScore: null,
+      studyMaterials: options.studyMaterials || [],
       weight: options.weight || null,
       location: options.location || null,
       duration: options.duration || null,
       priority: options.priority || 'medium',
       status: 'upcoming',
       score: null,
-      maxScore: null,
       grade: null,
-      studyMaterials: options.studyMaterials || [],
       notes: options.notes || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      completed_at: null,
+      created_at: new Date().toISOString()
     };
 
     try {
@@ -1106,7 +1166,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
       const testData = {
         title,
         description: options.description || '',
-        test_date: testDate.toISOString().split('T')[0],
+        test_date: format(addDays(testDate, 1), 'yyyy-MM-dd'),
         test_time: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : null,
         test_type: testType,
         weight: options.weight,
@@ -1165,23 +1225,43 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      // Create a copy of updates to avoid mutating the original
+      const updateData = { ...updates };
+      
+      // Map UI status to database status
+      const statusMapping: Record<string, 'upcoming' | 'taken'> = {
+        'not_started': 'upcoming',
+        'in_progress': 'upcoming',
+        'completed': 'taken',
+        'postponed': 'upcoming',
+        'cancelled': 'upcoming'
+      };
+
+      // If grade is being set, automatically mark as completed
+      if (updateData.grade && updateData.status !== 'taken') {
+        updateData.status = 'taken';
+      }
+
+      // Map the status to database value if it exists, default to 'upcoming' if not set
+      const dbStatus = updateData.status ? statusMapping[updateData.status] : 'upcoming';
+
       // Map the fields to match the database schema
       const dbUpdates: Record<string, any> = {
-        title: updates.title,
-        description: updates.description,
-        test_date: updates.testDate ? new Date(updates.testDate).toISOString().split('T')[0] : undefined,
-        test_time: updates.testTime || undefined,
-        test_type: updates.testType,
-        weight: updates.weight,
-        location: updates.location,
-        duration: updates.duration,
-        priority: updates.priority,
-        status: updates.status,
-        score: updates.score,
-        max_score: updates.maxScore,
-        grade: updates.grade,
-        study_materials: updates.studyMaterials,
-        notes: updates.notes,
+        title: updateData.title,
+        description: updateData.description,
+        test_date: updateData.testDate ? new Date(updateData.testDate).toISOString().split('T')[0] : undefined,
+        test_time: updateData.testTime || undefined,
+        test_type: updateData.testType,
+        weight: updateData.weight,
+        location: updateData.location,
+        duration: updateData.duration,
+        priority: updateData.priority,
+        status: dbStatus,
+        score: updateData.score,
+        max_score: updateData.maxScore,
+        grade: updateData.grade,
+        study_materials: updateData.studyMaterials,
+        notes: updateData.notes,
         updated_at: new Date().toISOString()
       };
 
@@ -1192,13 +1272,19 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
 
+      console.log('Updating test with data:', { id, updates: dbUpdates });
       const updated = await db.updateTest(id, dbUpdates);
 
-      // Update local state
+      // Update local state with the mapped status, ensuring we never have undefined status
+      const mappedUpdates: Partial<Test> = {
+        ...updateData,
+        status: dbStatus as TestStatus || 'upcoming'
+      };
+
       setTests(prev =>
         prev.map(test =>
           test.id === id
-            ? { ...test, ...updates }
+            ? { ...test, ...mappedUpdates }
             : test
         )
       );

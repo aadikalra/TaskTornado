@@ -729,15 +729,32 @@ const MainApp = () => {
 
   // Test filtering logic
   const filteredTests = tests.filter(test => {
+    // Create date objects with consistent timezone (UTC)
+    const testDate = new Date(test.testDate + 'T00:00:00');
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    
+    console.log('Test filtering:', {
+      testTitle: test.title,
+      testDate: test.testDate,
+      testDateObj: testDate,
+      today: today,
+      isBeforeToday: testDate < today,
+      isAfterOrEqualToday: testDate >= today,
+      currentFilter: testFilter
+    });
+    
     switch (testFilter) {
       case 'upcoming':
-        return test.status === 'upcoming';
+        return testDate >= today; // Show tests from today onwards
       case 'taken':
-        return test.status === 'taken';
+        return testDate < today; // Show tests before today
       default:
         return true;
     }
   });
+  
+  console.log('Filtered tests count:', filteredTests.length, 'out of', tests.length);
 
   // Group tests by class
   const testsByClass = filteredTests.reduce((acc, test) => {
@@ -1158,25 +1175,6 @@ const MainApp = () => {
                   : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 relative">
-                <div className="flex flex-col sm:flex-row gap-3 relative">
-                  {/* Filter */}
-                  <div className="relative">
-                    <Select value={testFilter} onValueChange={handleTestFilterChange}>
-                      <SelectTrigger className="w-[140px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
-                        <Filter className="w-4 h-4 mr-2" />
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 min-w-[140px]" position="popper" sideOffset={4}>
-                        <SelectItem value="all" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">All Tests</SelectItem>
-                        <SelectItem value="upcoming" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Upcoming</SelectItem>
-                        <SelectItem value="taken" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm text-gray-900 dark:text-gray-100">Taken</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
               {/* Tests by Class */}
               {classesWithTests.length === 0 ? (
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">

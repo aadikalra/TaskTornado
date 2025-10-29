@@ -447,22 +447,27 @@ export default function CalendarPage() {
     }
   };
   // Format due date for display
-  const formatDueDate = (dueDate: Date) => {
+  const formatDueDate = (dueDate: Date, isTest: boolean = false) => {
     const status = getDueDateStatus(dueDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
    
-    if (isSameDay(dueDate, today)) return 'Due today';
+    if (isSameDay(dueDate, today)) return isTest ? 'Today' : 'Due today';
    
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    if (isSameDay(dueDate, tomorrow)) return 'Due tomorrow';
+    if (isSameDay(dueDate, tomorrow)) return isTest ? 'Tomorrow' : 'Due tomorrow';
    
     if (status === 'overdue') {
+      if (isTest) {
+        return `Completed`;
+      }
       return `Overdue by ${Math.abs(Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))} days`;
     }
    
-    return `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}`;
+    return isTest 
+      ? format(dueDate, 'MMM d') 
+      : `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}`;
   };
   // Toggle sidebar on mobile
   const toggleSidebar = () => {

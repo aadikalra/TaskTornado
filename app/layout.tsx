@@ -8,6 +8,7 @@ import { AIProvider } from '@/context/AIContext';
 import { WebSavesProvider } from '@/context/WebSavesContext';
 import { StudyGroupsProvider } from '@/context/StudyGroupsContext';
 import { DarkModeProvider } from '@/context/DarkModeContext';
+import { ToastProvider } from '@/context/ToastContext';
 import AuthWrapper from '@/components/AuthWrapper';
 import { ClientLayout } from './ClientLayout';
 import React from 'react';
@@ -60,26 +61,28 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-gray-50 dark:bg-gray-900`}>
-        <DarkModeProvider>
-          <AuthProvider>
-            <DataProvider>
-              <ClassProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
+        <AuthProvider>
+          <DarkModeProvider>
+            <ClassProvider>
+              <DataProvider>
                 <SearchProvider>
                   <AIProvider>
                     <WebSavesProvider>
                       <StudyGroupsProvider>
-                        <AuthWrapper>
-                          <ClientLayout>{children}</ClientLayout>
-                        </AuthWrapper>
+                        <ToastProvider>
+                          <AuthWrapper>
+                            <ClientLayout>{children}</ClientLayout>
+                          </AuthWrapper>
+                        </ToastProvider>
                       </StudyGroupsProvider>
                     </WebSavesProvider>
                   </AIProvider>
                 </SearchProvider>
-              </ClassProvider>
-            </DataProvider>
-          </AuthProvider>
-        </DarkModeProvider>
+              </DataProvider>
+            </ClassProvider>
+          </DarkModeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

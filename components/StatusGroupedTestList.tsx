@@ -3,6 +3,12 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Test, Class } from '@/context/ClassContext';
+import { LinkCard } from './LinkCard';
+
+interface StudyMaterial {
+  url: string;
+  title?: string;
+}
 import { getDueDateLabel, getDueDateIcon } from '@/lib/dateUtils';
 import {
   Calendar,
@@ -21,8 +27,12 @@ import {
   Circle,
   AlertTriangle,
   Star,
+  Trash2,
+  Target,
+  Edit2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EnhancedTestCard from './EnhancedTestCard';
@@ -80,12 +90,15 @@ const StatusGroupedTestList = ({
       }
 
       // Status filter
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // Set to beginning of today for accurate comparison
+
       switch (filter) {
         case 'upcoming':
-          if (test.status !== 'upcoming') return false;
+          if (new Date(test.testDate) < now) return false;
           break;
         case 'taken':
-          if (test.status !== 'taken') return false;
+          if (new Date(test.testDate) >= now) return false;
           break;
         case 'alpha':
           if (test.testType?.toLowerCase() !== 'alpha') return false;
@@ -130,9 +143,15 @@ const StatusGroupedTestList = ({
 
   const groupedTests = useMemo(() => {
     const groups: Record<'upcoming' | 'taken', Test[]> = { upcoming: [], taken: [] };
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Set to beginning of today
+
     filteredAndSortedTests.forEach(test => {
-      if (test.status === 'taken') groups.taken.push(test);
-      else groups.upcoming.push(test);
+      if (new Date(test.testDate) < now) {
+        groups.taken.push(test);
+      } else {
+        groups.upcoming.push(test);
+      }
     });
     return groups;
   }, [filteredAndSortedTests]);
@@ -149,9 +168,9 @@ const StatusGroupedTestList = ({
       case 'project':
         return Presentation;
       case 'alpha':
-        return Circle; // Using Circle as placeholder for alpha
+        return Target; // Using Circle as placeholder for alpha
       case 'beta':
-        return AlertTriangle; // Using AlertTriangle as placeholder for beta
+        return AlertTriangle;
       default:
         return BookOpen;
     }
@@ -166,6 +185,18 @@ const StatusGroupedTestList = ({
 
     return { total, upcoming, taken, alpha, beta };
   }, [filteredAndSortedTests, groupedTests]);
+
+  const formatTime = (timeString?: string | null) => {
+    if (!timeString) return '';
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const date = new Date();
+      date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return timeString;
+    }
+  };
 
   const Section = ({
     title,
@@ -186,7 +217,7 @@ const StatusGroupedTestList = ({
     >
       <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${color}`}>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/50">
-          <SectionIcon className="h-4 w-4 text-gray-700" />
+          <SectionIcon className="h-4 w-4 text-gray-700 dark:text-gray-300" />
         </div>
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -198,25 +229,123 @@ const StatusGroupedTestList = ({
         </div>
       </div>
 
-      <div className="space-y-3 pl-4">
+      <div className="space-y-2">
         {items.map((test, index) => {
           const classInfo = classesById.get(test.classId);
           const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
+          const TestTypeIcon = getTestTypeIcon(test.testType);
+          const dueDate = new Date(test.testDate);
+          const formattedDate = dueDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          });
 
           return (
             <motion.div
               key={test.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
+              transition={{ duration: 0.3, delay: index * 0.02 }}
+              className="group relative bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow"
             >
-              <EnhancedTestCard
-                test={test}
-                classInfo={classInfo}
-                classIcon={IconComponent}
-                onDelete={() => onDeleteTest(test.id)}
-                variant="compact"
-              />
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TestTypeIcon className={`h-4 w-4 ${test.testType?.toLowerCase() === 'alpha' ? 'text-purple-600' : test.testType?.toLowerCase() === 'beta' ? 'text-orange-600' : 'text-blue-600'}`} />
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {test.title}
+                    </h3>
+                  </div>
+                  
+                  {test.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                      {test.description}
+                    </p>
+                  )}
+                  
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formattedDate}
+                    </span>
+                    {test.testTime && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatTime(test.testTime)}
+                      </span>
+                    )}
+                    {classInfo && (
+                      <span className="flex items-center gap-1">
+                        <IconComponent className="h-3 w-3" />
+                        {classInfo.name}
+                      </span>
+                    )}
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      test.testType?.toLowerCase() === 'alpha' 
+                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' 
+                        : test.testType?.toLowerCase() === 'beta'
+                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                    }`}>
+                      {test.testType}
+                    </span>
+                    {test.grade && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-gray-200/60 dark:border-gray-700/60 bg-white/60 dark:bg-gray-800/50 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <Target className="h-3 w-3" />
+                        {test.grade}
+                        {test.score && ` (${test.score}${test.maxScore ? `/${test.maxScore}` : ''})`}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {test.studyMaterials && test.studyMaterials.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Study Materials:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {(test.studyMaterials as (string | StudyMaterial)[]).map((material, idx) => {
+                          const url = typeof material === 'string' ? material : material.url;
+                          const title = typeof material === 'string' ? `Link ${idx + 1}` : (material.title || `Link ${idx + 1}`);
+                          return (
+                            <LinkCard 
+                              key={idx}
+                              url={url}
+                              title={title}
+                              className="text-xs"
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="ml-4 flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/tests/edit/${test.id}`} onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      title="Edit test"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteTest(test.id);
+                    }}
+                    title="Delete test"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </motion.div>
           );
         })}
@@ -227,8 +356,8 @@ const StatusGroupedTestList = ({
   return (
     <div className="space-y-6">
       {/* Enhanced Controls */}
-      <div className="bg-white/70 dark:bg-gray-900/40 backdrop-blur rounded-xl border border-gray-200/70 dark:border-gray-800/70 p-4">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <div className="bg-transparent">
+        <div className="flex flex-col lg:flex-row gap-3">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
@@ -276,12 +405,12 @@ const StatusGroupedTestList = ({
             </Select>
 
             {/* View Mode */}
-            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 p-1">
+            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="h-8 w-8 p-0"
+                className="h-9 w-9 p-0 rounded-r-none"
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
@@ -289,7 +418,7 @@ const StatusGroupedTestList = ({
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="h-8 w-8 p-0"
+                className="h-9 w-9 p-0 rounded-l-none"
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -298,7 +427,7 @@ const StatusGroupedTestList = ({
         </div>
 
         {/* Stats */}
-        <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex flex-wrap gap-3 mt-3">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <span className="font-medium">{stats.total}</span>
             <span>total</span>
