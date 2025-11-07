@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { Analytics } from '@vercel/analytics/next';
 import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
+import { CustomContextMenu } from '@/components/CustomContextMenu';
+import * as React from 'react';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,16 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
 
   // Define all valid routes that should show the navbar
   const protectedRoutes = [
@@ -37,7 +49,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <>
       <Analytics />
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col" onContextMenu={handleContextMenu}>
         {shouldShowNavbar && (
           <>
             <Navbar />
@@ -47,6 +59,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         <main className={shouldShowNavbar ? 'flex-1 pt-24 md:pt-26 bg-transparent' : 'flex-1'}>
           {children}
         </main>
+        {contextMenu && <CustomContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu} />}
       </div>
     </>
   );

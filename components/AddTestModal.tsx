@@ -19,8 +19,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useClassContext } from '../context/ClassContext';
 import { useToast } from '@/context/ToastContext';
-import { X, Calendar as CalendarIcon } from 'lucide-react';
-import { format, parse } from 'date-fns';
+import { X, Calendar as CalendarIcon, ChevronDown, Clock } from 'lucide-react';
+import { format } from 'date-fns';
 
 type AddTestModalProps = {
   isOpen: boolean;
@@ -121,59 +121,59 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 relative border border-gray-200 dark:border-gray-700"
+            initial={{ opacity: 0, scale: 0.96, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 20 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md relative border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
           >
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            {/* Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-800 flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 rounded-t-2xl z-10">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Add New Test
+              </h2>
+              <button
+                onClick={handleClose}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-              Add New Test
-            </h2>
-
-            <div className="space-y-4">
+            {/* Content */}
+            <div className="p-6 space-y-5">
+              {/* Title Input */}
               <div>
-                <Label
-                  htmlFor="testTitle"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                >
+                <Label htmlFor="testTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Test Title
                 </Label>
                 <Input
                   id="testTitle"
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
                   placeholder="e.g., Biology Midterm"
-                  className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                  className="w-full h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
                 />
               </div>
 
+              {/* Class Selection */}
               <div>
-                <Label
-                  htmlFor="testClass"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                >
+                <Label htmlFor="testClass" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Class
                 </Label>
                 <Select value={classId} onValueChange={setClassId}>
-                  <SelectTrigger id="testClass" className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
+                  <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
                     <SelectValue placeholder="Select a class" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" position="popper" sideOffset={4}>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
                     {classes.map((cls) => (
                       <SelectItem
                         key={cls.id}
                         value={cls.id}
-                        className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
+                        className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg"
                       >
                         {cls.name}
                       </SelectItem>
@@ -182,149 +182,122 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Date and Type */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label
-                    htmlFor="testDate"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                  >
+                  <Label htmlFor="testDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Test Date
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full justify-start text-left font-normal bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500"
+                        className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-[#264f84] rounded-lg"
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {testDate ? (
-                          format(testDate, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        <CalendarIcon className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        {testDate ? format(testDate, 'PPP') : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
                       <Calendar
                         mode="single"
                         selected={testDate}
                         onSelect={setTestDate}
                         initialFocus
-                        className="text-gray-900 dark:text-gray-100"
+                        className="text-gray-900 dark:text-white rounded-xl"
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
+
                 <div>
-                  <Label
-                    htmlFor="testType"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                  >
+                  <Label htmlFor="testType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Test Type
                   </Label>
                   <Select value={testType} onValueChange={setTestType}>
-                    <SelectTrigger id="testType" className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500">
+                    <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" position="popper" sideOffset={4}>
-                      <SelectItem value="ALPHA" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">ALPHA</SelectItem>
-                      <SelectItem value="BETA" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">BETA</SelectItem>
-                      <SelectItem value="Quiz" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Quiz</SelectItem>
-                      <SelectItem value="Midterm" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Midterm</SelectItem>
-                      <SelectItem value="Final" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Final</SelectItem>
-                      <SelectItem value="Other" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm">Other</SelectItem>
+                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                      <SelectItem value="ALPHA" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">ALPHA</SelectItem>
+                      <SelectItem value="BETA" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">BETA</SelectItem>
+                      <SelectItem value="Quiz" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">Quiz</SelectItem>
+                      <SelectItem value="Midterm" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">Midterm</SelectItem>
+                      <SelectItem value="Final" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">Final</SelectItem>
+                      <SelectItem value="Other" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
+              {/* Advanced Options Toggle */}
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="text-sm text-[#264f84] hover:text-[#1f3f6b] dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
+                  className="flex items-center gap-2 text-sm font-medium text-[#264f84] dark:text-blue-400 hover:text-[#1f3f6b] dark:hover:text-blue-300 transition-colors"
                 >
-                  {showAdvanced ? 'Hide' : 'Show'} Advanced
-                  <svg
-                    className={`ml-1 h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <span>{showAdvanced ? 'Hide' : 'Show'} Advanced Options</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
                 </button>
               </div>
 
+              {/* Advanced Options */}
               <AnimatePresence>
                 {showAdvanced && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                    initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="space-y-4 pt-2 border-t border-gray-200 dark:border-gray-700"
+                    className="space-y-5 overflow-hidden"
                   >
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="testTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                          Test Time (Optional)
-                        </Label>
+                    {/* Test Time */}
+                    <div>
+                      <Label htmlFor="testTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Test Time <span className="text-gray-400 font-normal">(Optional)</span>
+                      </Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <Input
                           id="testTime"
                           type="time"
                           value={testTime}
-                          onChange={(e) => setTestTime(e.target.value)}
-                          className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestTime(e.target.value)}
+                          className="w-full h-11 pl-10 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
                         />
                       </div>
-                      <div className="flex items-end">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setTestTime('')}
-                          className="text-xs h-8 w-full"
-                          disabled={!testTime}
-                        >
-                          Clear Time
-                        </Button>
-                      </div>
                     </div>
 
+                    {/* Description */}
                     <div>
-                      <Label
-                        htmlFor="description"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                      >
-                        Description (Optional)
+                      <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Description <span className="text-gray-400 font-normal">(Optional)</span>
                       </Label>
-                      <Textarea
+                      <textarea
                         id="description"
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
                         placeholder="Enter a brief description..."
                         rows={3}
-                        className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84] text-sm resize-none"
                       />
                     </div>
 
+                    {/* Study Materials */}
                     <div>
-                      <Label
-                        htmlFor="studyMaterials"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
-                      >
-                        Study Materials / Topics (Optional)
+                      <Label htmlFor="studyMaterials" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Study Materials / Topics <span className="text-gray-400 font-normal">(Optional)</span>
                       </Label>
-                      <Textarea
+                      <textarea
                         id="studyMaterials"
                         value={studyMaterials}
-                        onChange={(e) => setStudyMaterials(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setStudyMaterials(e.target.value)}
                         placeholder="Enter topics or paste links, one per line..."
                         rows={3}
-                        className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84] text-sm resize-none"
                       />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                         Add links or topics, one per line. Links will be clickable in the test view.
                       </p>
                     </div>
@@ -333,18 +306,19 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
               </AnimatePresence>
             </div>
 
-            <div className="pt-6 flex justify-end space-x-3">
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white dark:bg-gray-800 flex items-center justify-end gap-3 p-6 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="px-4 h-9 text-sm border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="h-10 px-4 text-sm border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={!title.trim() || !classId || !testDate}
-                className="bg-[#264f84] hover:bg-[#1f3f6b] text-white px-4 h-9 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-10 px-6 text-sm bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Add Test
               </Button>

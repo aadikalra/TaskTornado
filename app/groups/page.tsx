@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, MessageSquare, Users, Link as LinkIcon, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { SplittingText } from '@/components/animate-ui/primitives/texts/splitting';
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -19,15 +20,15 @@ export default function GroupsPage() {
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newGroupName.trim()) {
       setCreateError('Please enter a group name');
       return;
     }
-    
+
     setCreateError(null);
     setIsCreating(true);
-    
+
     try {
       await createGroup(newGroupName);
       setNewGroupName('');
@@ -49,7 +50,7 @@ export default function GroupsPage() {
             New Group
           </Button>
         </div>
-        
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-40 w-full rounded-lg" />
@@ -78,16 +79,40 @@ export default function GroupsPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Study Groups</h1>
+        <div className="relative text-left">
+          <SplittingText
+            text={'Study Groups'}
+            aria-hidden="true"
+            className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
+            style={{ fontFamily: 'var(--font-header)' }}
+            disableAnimation
+          />
+          <SplittingText
+            text={'Study Groups'}
+            className="block text-4xl font-semibold absolute inset-0"
+            style={{ fontFamily: 'var(--font-header)' }}
+            type="chars"
+            alternateColors={['#ef4444', '#10b981']} // Red and Green colors
+            inView
+            initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
+            animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
           <p className="text-muted-foreground">
             Join or create a study group to collaborate with classmates
           </p>
         </div>
-        
-        <Button onClick={showCreateGroupDialog}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Group
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            showCreateGroupDialog();
+          }}
+          className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+        >
+          <Plus className="mr-2 h-4 w-4" /> New Group
         </Button>
       </div>
 
@@ -142,9 +167,16 @@ export default function GroupsPage() {
           <h3 className="mt-2 text-lg font-medium text-gray-900">No study groups yet</h3>
           <p className="mt-1 text-sm text-gray-500">Get started by creating a new study group.</p>
           <div className="mt-6">
-            <Button onClick={showCreateGroupDialog}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Group
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                showCreateGroupDialog();
+              }}
+              className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" /> New Group
             </Button>
           </div>
         </div>
@@ -183,7 +215,7 @@ export default function GroupsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
             <h3 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Create a new study group</h3>
-            
+
             <form onSubmit={handleCreateGroup} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="group-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -202,7 +234,7 @@ export default function GroupsPage() {
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">{createError}</p>
                 )}
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <Button
                   type="button"

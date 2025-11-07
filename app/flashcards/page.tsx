@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { SplittingText } from '@/components/animate-ui/primitives/texts/splitting';
 
 interface FlashcardDeckType {
   id: string;
@@ -136,7 +137,26 @@ export default function FlashcardsPage() {
     return (
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">My Flashcard Decks</h1>
+          <div className="relative text-left">
+            <SplittingText
+              text={`Saved Flashcards`}
+              aria-hidden="true"
+              className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
+              style={{ fontFamily: 'var(--font-header)' }}
+              disableAnimation
+            />
+            <SplittingText
+              text={`Saved Flashcards`}
+              className="block text-4xl font-semibold absolute inset-0"
+              style={{ fontFamily: 'var(--font-header)' }}
+              type="chars"
+              alternateColors={['#ef4444', '#10b981']} // Red and Green colors
+              inView
+              initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
+              animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
+          </div>
           <div className="flex space-x-2">
             <Button variant="outline" onClick={() => setView('current')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -216,7 +236,7 @@ export default function FlashcardsPage() {
             <>
               <Button variant="outline" onClick={() => setView('saved')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to My Decks
+                Back to Saved Flashcards
               </Button>
               <Button asChild>
                 <Link href="/study-assistant">
@@ -243,7 +263,7 @@ export default function FlashcardsPage() {
           onClick={() => view === 'saved' ? setView('saved') : router.back()}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {view === 'saved' ? 'Back to My Decks' : 'Back'}
+          {view === 'saved' ? 'Back to Saved Flashcards' : 'Back'}
         </Button>
         
         <div className="text-center">
@@ -265,7 +285,7 @@ export default function FlashcardsPage() {
               className="hidden sm:flex"
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              My Decks
+              Saved Flashcards
             </Button>
           )}
           <Button asChild>

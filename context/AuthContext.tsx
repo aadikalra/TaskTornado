@@ -18,7 +18,6 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 // Helper function to save courses to database, avoiding duplicates
 async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
   try {
@@ -117,162 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Define public routes that shouldn't trigger redirects
-    const isPublicRoute = (path: string) => {
-      const publicRoutes = [
-        '/',
-        '/ai-guidelines',
-        '/login',
-        '/signup',
-        '/complete-signup', // Add this for Google OAuth completion
-        '/flashcards',
-        '/calendar',
-        '/landing',
-        '/legal',
-        '/homework',
-        '/classes',
-        '/ai',
-        '/settings',
-        '/dashboard',
-        '/groups',
-        '/web-saves',
-        '/study-groups',
-      ];
-      return publicRoutes.some(route => path === route || path.startsWith(`${route}/`));
-    };
-
-    // Check active sessions and set the user
-    const getSession = async () => {
-      // First check for Supabase session
-      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
-
-      if (supabaseSession) {
-        setSession(supabaseSession);
-        setUser(supabaseSession.user);
-        setFullName(supabaseSession.user?.user_metadata?.full_name ?? null);
-
-        // Check if user is from Google and log Google Classroom data
-        await checkGoogleUserAndLogClassroom(supabaseSession.user.id);
-
-        setLoading(false);
-        return;
-      }
-
-      // If no Supabase session, check for Google auth session cookie
-      if (typeof window !== 'undefined') {
-        const cookies = document.cookie.split(';');
-        const googleAuthCookie = cookies.find(cookie => cookie.trim().startsWith('google-auth-session='));
-
-        if (googleAuthCookie) {
-          try {
-            const sessionData = googleAuthCookie.split('=')[1];
-            const decodedSession = JSON.parse(atob(sessionData));
-
-            // Check if session is still valid
-            if (decodedSession.expires_at > Math.floor(Date.now() / 1000)) {
-              // Create a mock Supabase session for Google auth
-              const mockSession = {
-                access_token: 'google-auth',
-                refresh_token: '',
-                expires_in: decodedSession.expires_at - Math.floor(Date.now() / 1000),
-                expires_at: decodedSession.expires_at,
-                token_type: 'bearer',
-                user: {
-                  id: decodedSession.user_id,
-                  email: decodedSession.email,
-                  user_metadata: {
-                    full_name: decodedSession.name,
-                    picture: decodedSession.picture,
-                    provider: 'google',
-                  },
-                  aud: 'authenticated',
-                  role: 'authenticated',
-                  app_metadata: {},
-                  created_at: new Date().toISOString(),
-                } as any,
-              };
-
-              const mockUser = mockSession.user;
-
-              setSession(mockSession as any);
-              setUser(mockUser);
-              setFullName(decodedSession.name);
-
-              // Check if user is from Google and log Google Classroom data
-              await checkGoogleUserAndLogClassroom(mockUser.id);
-
-              setLoading(false);
-              return;
-            }
-          } catch (error) {
-            console.error('Error parsing Google auth session:', error);
-          }
-        }
-      }
-
-      // No valid session found
-      setSession(null);
-      setUser(null);
-      setFullName(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setFullName(session?.user?.user_metadata?.full_name ?? null);
       setLoading(false);
-    };
 
-    getSession();
-
-    // Track the initial session to compare with new sessions
-    let initialSession: Session | null = null;
-
-    // Listen for changes in auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      // Only update state if the session has actually changed
-      if (JSON.stringify(session) !== JSON.stringify(newSession)) {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setFullName(newSession?.user?.user_metadata.full_name ?? null);
-        setLoading(false);
-
-        // Skip redirect logic if we're on a public route
-        const currentPath = window.location.pathname;
-        if (isPublicRoute(currentPath)) {
-          return;
-        }
-
-        // For unknown routes (potential 404s), don't redirect - let 404 page handle it
-        // Only redirect for known protected routes when user is not authenticated
-        const knownProtectedRoutes = ['/homework', '/classes', '/dashboard', '/settings'];
-        const isKnownProtectedRoute = knownProtectedRoutes.some(route =>
-          currentPath.startsWith(route)
-        );
-
-        if (!isKnownProtectedRoute) {
-          return;
-        }
-        
-        // Only redirect for specific auth events, not on initial load or token refresh
-        if (event === 'SIGNED_IN') {
-          // Get the redirectTo parameter if it exists
-          const searchParams = new URLSearchParams(window.location.search);
-          const redirectTo = searchParams.get('redirectTo');
-          
-          // If there's a redirectTo parameter, use it; otherwise go to home
-          router.push(redirectTo || '/');
-        } else if (event === 'SIGNED_OUT') {
-          // When signing out, redirect to login with the current path as redirectTo
-          const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
-          router.push(`/login?redirectTo=${redirectTo}`);
-        }
-      }
-      
-      // Always update the initial session after the first check
-      if (!initialSession) {
-        initialSession = newSession;
+      if (session?.user) {
+        checkGoogleUserAndLogClassroom(session.user.id);
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -329,11 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     // Sign out from Supabase
     await supabase.auth.signOut();
-
-    // Also clear Google auth session cookie
-    if (typeof window !== 'undefined') {
-      document.cookie = "google-auth-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    }
   };
 
   const value = {

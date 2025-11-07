@@ -6,6 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Lock, Mail, Loader2 } from 'lucide-react';
 import { Checkbox } from '@/components/animate-ui/radix/checkbox';
+import { supabase } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,14 +20,13 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      const response = await fetch('/api/auth/google-signin-init');
-      const data = await response.json();
-      
-      if (response.ok) {
-        window.location.href = data.authUrl;
-      } else {
-        throw new Error(data.message || 'Failed to initiate Google sign-in');
-      }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setError('Failed to initiate Google sign-in. Please try again.');

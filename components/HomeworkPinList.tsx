@@ -1,181 +1,321 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  memo,
+} from 'react';
 import { PinList } from './animate-ui/components/pin-list';
-import { BookOpen, Pin, PinOff, AlertCircle, AlertTriangle, Clock, Calendar, CheckCircle2, X, Plus } from 'lucide-react';
+import {
+  BookOpen,
+  Pin,
+  PinOff,
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  X,
+  Plus,
+} from 'lucide-react';
 import { useClassContext, type Homework } from '@/context/ClassContext';
-import { format } from 'date-fns';
-import dynamic from 'next/dynamic';
+import { format, differenceInCalendarDays } from 'date-fns';
 import { iconMap } from '@/lib/icon-map';
 
-// Dynamically import the PriorityHomeworkCard with SSR disabled
-const PriorityHomeworkCard = dynamic(
-  () => import('./PriorityHomeworkCard'),
-  { ssr: false, loading: () => <div className="h-32 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl mb-6 animate-pulse"></div> }
-);
-
-// Create a map to store the mapping between string IDs and numeric IDs
-const idMap = new Map<string, number>();
-let nextNumericId = 1;
-
-// Helper function to get a numeric ID for a string.  ID
-const getNumericId = (stringId: string): number => {
-  if (!idMap.has(stringId)) {
-    idMap.set(stringId, nextNumericId++);
-  }
-  return idMap.get(stringId)!;
+// ------------------------------------
+// Color mapping for class icons
+// ------------------------------------
+const classColors = {
+  red: '#E53E3E',
+  blue: '#3182CE',
+  yellow: '#D69E2E',
+  green: '#38A169',
+  purple: '#805AD5',
+  pink: '#D53F8C',
+  teal: '#264f84',
+  gray: '#4A5568',
 };
 
-// Helper function to get the original string ID from a numeric ID
-const getStringId = (numericId: number): string | undefined => {
-  for (const [stringId, id] of idMap.entries()) {
-    if (id === numericId) return stringId;
-  }
-  return undefined;
+const getClassColor = (index: number) => {
+  const colors = Object.values(classColors);
+  return colors[index % colors.length];
 };
 
-  // Color mapping for class icons (same as MainApp)
-  const classColors = {
-    red: '#E53E3E',
-    blue: '#3182CE',
-    yellow: '#D69E2E',
-    green: '#38A169',
-    purple: '#805AD5',
-    pink: '#D53F8C',
-    teal: '#264f84',
-    gray: '#4A5568'
-  };
+// ------------------------------------
+// Stable ID mapper (string ⇄ number) without global state
+// ------------------------------------
+function useIdMapper(sourceIds: string[]) {
+  const mapRef = useRef<Map<string, number>>(new Map());
+  const reverseRef = useRef<Map<number, string>>(new Map());
+  const nextRef = useRef<number>(1);
 
-  const getClassColor = (index: number) => {
-    const colors = Object.values(classColors);
-    return colors[index % colors.length];
-  };
+  useEffect(() => {
+    // Add new ids
+    for (const sid of sourceIds) {
+      if (!mapRef.current.has(sid)) {
+        const nid = nextRef.current++;
+        mapRef.current.set(sid, nid);
+        reverseRef.current.set(nid, sid);
+      }
+    }
+    // Prune removed ids (prevents leaks across hot reloads / long sessions)
+    const keep = new Set(sourceIds);
+    for (const [sid, nid] of mapRef.current.entries()) {
+      if (!keep.has(sid)) {
+        mapRef.current.delete(sid);
+        reverseRef.current.delete(nid);
+      }
+    }
+  }, [sourceIds]);
 
-export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectModal?: boolean }) => {
+  const getNumericId = useCallback((sid: string) => mapRef.current.get(sid)!, []);
+  const getStringId = useCallback((nid: number) => reverseRef.current.get(nid), []);
+
+  return { getNumericId, getStringId };
+}
+
+// ------------------------------------
+// Types for PinList items (adjust if your PinList expects different props)
+// ------------------------------------
+type PinListItem = {
+  id: number;
+  name: string;
+  info: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  pinned: boolean;
+  className?: string;
+  urgencyIndicator: React.ReactNode;
+  classColor: string;
+  renderPinButton?: (args: { pinned: boolean; onClick: () => void }) => React.ReactNode;
+};
+
+// ------------------------------------
+// Main component
+// ------------------------------------
+export const HomeworkPinList: React.FC<{ triggerSelectModal?: boolean }> = ({
+  triggerSelectModal = false,
+}) => {
   const { homeworks, classes, togglePinHomework } = useClassContext();
 
   // Modal state
-  const [showSelectModal, setShowSelectModal] = React.useState(false);
+  const [showSelectModal, setShowSelectModal] = useState(false);
 
-  // Open modal when parent triggers it
-  React.useEffect(() => {
-    if (triggerSelectModal) {
-      setShowSelectModal(true);
-    }
+  useEffect(() => {
+    if (triggerSelectModal) setShowSelectModal(true);
   }, [triggerSelectModal]);
 
-  // Handle opening the select modal
-  const handleSelectHomework = () => {
-    setShowSelectModal(true);
-  };
+  // Build mapping from string id -> numeric id for only non-completed homework
+  const activeHomeworkIds = useMemo(
+    () => homeworks.filter((h) => !h.completed).map((h) => h.id),
+    [homeworks]
+  );
+  const { getNumericId, getStringId } = useIdMapper(activeHomeworkIds);
 
-  // Handle pinning selected homework
-  const handlePinSelectedHomework = (homeworkId: string) => {
-    togglePinHomework(homeworkId, true);
-    setShowSelectModal(false);
-  };
+  // Urgency helpers
+  const getUrgency = useCallback((dueDate: Date) => {
+    const days = differenceInCalendarDays(dueDate, new Date());
+    const isOverdue = days < 0;
+    const isDueToday = days === 0;
+    const isApproaching = days === 1 || days === 2;
 
-  // Handle pin toggle with an optimistic update
-  const handlePinToggle = (item: { id: number; pinned: boolean }) => {
-    const stringId = getStringId(item.id);
-    if (!stringId) return;
+    let icon: React.ReactNode;
+    let sortBucket: number;
+    if (isOverdue) {
+      icon = <AlertCircle className="w-3 h-3 text-red-500" />;
+      sortBucket = 0;
+    } else if (isDueToday) {
+      icon = <AlertTriangle className="w-3 h-3 text-orange-500" />;
+      sortBucket = 1;
+    } else if (isApproaching) {
+      icon = <Clock className="w-3 h-3 text-yellow-500" />;
+      sortBucket = 2;
+    } else {
+      icon = <CheckCircle2 className="w-3 h-3 text-green-500" />;
+      sortBucket = 3;
+    }
 
-    // The context now handles optimistic updates, so we just call the API
-    togglePinHomework(stringId, !item.pinned);
-  };
+    return { days, icon, sortBucket };
+  }, []);
 
-  // Format homework items from the optimistic state for the PinList
-  const getFormattedHomeworkItems = () => {
-    // Filter out completed homework items
+  // Format items for PinList
+  const homeworkItems: PinListItem[] = useMemo(() => {
     return homeworks
-      .filter((homework: Homework) => !homework.completed)
+      .filter((h: Homework) => !h.completed)
       .map((homework: Homework) => {
-      const dueDate = new Date(homework.dueDate);
+        const dueDate = new Date(homework.dueDate);
+        const { icon: urgencyIcon } = getUrgency(dueDate);
 
-      // Calculate days until due
-      const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-      const isOverdue = daysUntilDue < 0;
-      const isDueToday = daysUntilDue === 0;
-      const isApproaching = daysUntilDue === 1 || daysUntilDue === 2;
-      const isFarAway = daysUntilDue > 2;
+        const classItem = classes.find((c) => c.id === homework.classId);
+        const classIndex = classes.findIndex((c) => c.id === homework.classId);
+        const classColor = getClassColor(Math.max(0, classIndex));
 
-      // Find the class this homework belongs to
-      const classItem = classes.find(c => c.id === homework.classId);
-      const className = classItem?.name || 'No Class';
+        const Icon =
+          (classItem?.icon &&
+            (iconMap[classItem.icon as keyof typeof iconMap] as React.ComponentType<
+              React.SVGProps<SVGSVGElement>
+            >)) ||
+          BookOpen;
 
-      // Use class icon instead of status icon
-      const Icon = classItem?.icon ? iconMap[classItem.icon as keyof typeof iconMap] || BookOpen : BookOpen;
+        const formattedDueDate = format(dueDate, 'MMM d, yyyy');
+        const numericId = getNumericId(homework.id);
 
-      // Format the due date only (remove class name)
-      const formattedDueDate = format(dueDate, 'MMM d, yyyy');
+        return {
+          id: numericId,
+          name: homework.title,
+          info: formattedDueDate,
+          icon: Icon,
+          pinned: Boolean(homework.pinned),
+          className: homework.completed
+            ? 'opacity-70'
+            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800',
+          urgencyIndicator: urgencyIcon,
+          classColor,
+          renderPinButton: ({ pinned, onClick }) => (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+              className={`p-1.5 rounded-full transition-colors ${
+                pinned
+                  ? 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700/50'
+              }`}
+              aria-label={pinned ? 'Unpin' : 'Pin'}
+            >
+              {pinned ? <Pin className="w-4 h-4 fill-current" /> : <PinOff className="w-4 h-4" />}
+            </button>
+          ),
+        } as PinListItem;
+      });
+  }, [homeworks, classes, getUrgency, getNumericId]);
 
-      // Get urgency icon
-      let urgencyIcon = null;
-      if (isOverdue) {
-        urgencyIcon = <AlertCircle className="w-3 h-3 text-red-500" />;
-      } else if (isDueToday) {
-        urgencyIcon = <AlertTriangle className="w-3 h-3 text-orange-500" />;
-      } else if (isApproaching) {
-        urgencyIcon = <Clock className="w-3 h-3 text-yellow-500" />;
-      } else {
-        urgencyIcon = <CheckCircle2 className="w-3 h-3 text-green-500" />;
-      }
+  // Sort by urgency bucket then by due date asc
+  const sortedItems = useMemo(() => {
+    // Build a map of id -> (sortBucket, dueDate) for performance
+    const meta = new Map<
+      number,
+      { sortBucket: number; dueDate: number; pinned: boolean }
+    >();
 
-      // Convert string ID to numeric ID for PinList
-      const numericId = getNumericId(homework.id);
+    for (const hw of homeworks.filter((h) => !h.completed)) {
+      const due = new Date(hw.dueDate);
+      const { sortBucket } = getUrgency(due);
+      meta.set(getNumericId(hw.id), {
+        sortBucket,
+        dueDate: due.getTime(),
+        pinned: Boolean(hw.pinned),
+      });
+    }
 
-      // Get class color for the icon
-      const classIndex = classes.findIndex(c => c.id === homework.classId);
-      const classColor = getClassColor(classIndex);
-
-      return {
-        id: numericId,
-        name: homework.title,
-        info: formattedDueDate, // Just the due date, no class name
-        icon: Icon,
-        pinned: homework.pinned || false,
-        className: homework.completed
-          ? 'opacity-70'
-          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800',
-        // Add urgency indicator to the render
-        urgencyIndicator: urgencyIcon,
-        // Store class color for icon styling
-        classColor: classColor,
-        // Add custom render function for the pin button
-        renderPinButton: ({ pinned, onClick }: { pinned: boolean; onClick: () => void }) => (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
-            className={`p-1.5 rounded-full transition-colors ${
-              pinned
-                ? 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30'
-                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700/50'
-            }`}
-            aria-label={pinned ? 'Unpin' : 'Pin'}
-          >
-            {pinned ? <Pin className="w-4 h-4 fill-current" /> : <PinOff className="w-4 h-4" />}
-          </button>
-        )
-      };
+    return [...homeworkItems].sort((a, b) => {
+      const ma = meta.get(a.id)!;
+      const mb = meta.get(b.id)!;
+      // Keep pinned grouping separated; within each group, sort by urgency then date
+      if (ma.pinned !== mb.pinned) return ma.pinned ? -1 : 1;
+      if (ma.sortBucket !== mb.sortBucket) return ma.sortBucket - mb.sortBucket;
+      return ma.dueDate - mb.dueDate;
     });
-  };
+  }, [homeworkItems, homeworks, getUrgency, getNumericId]);
 
-  // Get the formatted homework items
-  const homeworkItems = getFormattedHomeworkItems();
+  const pinnedItems = useMemo(
+    () => sortedItems.filter((item) => item.pinned),
+    [sortedItems]
+  );
+  const unpinnedItems = useMemo(
+    () => sortedItems.filter((item) => !item.pinned),
+    [sortedItems]
+  );
 
-  // Separate pinned and unpinned items
-  const pinnedItems = homeworkItems.filter((item: { pinned: boolean }) => item.pinned);
-  const unpinnedItems = homeworkItems.filter((item: { pinned: boolean }) => !item.pinned);
+  // Handlers
+  const openSelectModal = useCallback(() => setShowSelectModal(true), []);
+  const closeSelectModal = useCallback(() => setShowSelectModal(false), []);
+
+  const handlePinSelectedHomework = useCallback(
+    (stringId: string) => {
+      togglePinHomework(stringId, true);
+      closeSelectModal();
+    },
+    [togglePinHomework, closeSelectModal]
+  );
+
+  const handlePinToggle = useCallback(
+    (item: { id: number; pinned: boolean }) => {
+      const stringId = getStringId(item.id);
+      if (!stringId) return;
+      togglePinHomework(stringId, !item.pinned);
+    },
+    [getStringId, togglePinHomework]
+  );
+
+  // Modal focus/esc handling
+  const modalRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showSelectModal) return;
+    const prevFocused = document.activeElement as HTMLElement | null;
+
+    const focusFirst = () => {
+      const el = modalRef.current;
+      if (!el) return;
+      const focusable = el.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      (focusable[0] || el).focus();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSelectModal();
+      }
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    focusFirst();
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      prevFocused?.focus();
+    };
+  }, [showSelectModal, closeSelectModal]);
 
   return (
     <div className="space-y-4">
-      {/* Pinned items */}
       {pinnedItems.length > 0 ? (
-        <PinList items={pinnedItems} onPinToggle={handlePinToggle} />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              Pinned Homework ({pinnedItems.length})
+            </h3>
+            <button
+              onClick={openSelectModal}
+              className="inline-flex items-center h-9 px-3 text-sm font-medium bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-full transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Select Homework to Pin
+            </button>
+          </div>
+          <PinList items={pinnedItems} onPinToggle={handlePinToggle} />
+        </div>
       ) : (
-        /* Empty state with Add Homework button */
+        // Empty state
         <div className="bg-white dark:bg-gray-800 rounded-xl p-8 min-h-[160px] flex flex-col items-center justify-center relative border border-gray-200 dark:border-gray-700">
           <div className="text-center">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -188,7 +328,7 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
               Pin important homework assignments to keep them at the top of your dashboard
             </p>
             <button
-              onClick={handleSelectHomework}
+              onClick={openSelectModal}
               className="inline-flex items-center h-9 px-4 text-sm font-medium bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-full transition-colors"
             >
               <Plus className="w-4 h-4 mr-1.5" />
@@ -200,15 +340,39 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
 
       {/* Select Homework Modal */}
       {showSelectModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+        <div
+          className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          onMouseDown={(e) => {
+            // close when clicking on backdrop only
+            if (e.target === e.currentTarget) closeSelectModal();
+          }}
+        >
+          <div
+            ref={modalRef}
+            className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden outline-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="select-homework-title"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.18)',
+            }}
+            tabIndex={-1}
+          >
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2
+                id="select-homework-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
                 Select Homework to Pin
               </h2>
               <button
-                onClick={() => setShowSelectModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                onClick={closeSelectModal}
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-full p-1.5"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -217,15 +381,13 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
             <div className="p-6 max-h-96 overflow-y-auto">
               {unpinnedItems.length > 0 ? (
                 <div className="space-y-3">
-                  {unpinnedItems.map((item: { id: number; name: string; info: string; icon: any; pinned: boolean; urgencyIndicator: React.ReactNode; classColor: string }) => (
+                  {unpinnedItems.map((item) => (
                     <div
                       key={item.id}
                       className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
                       onClick={() => {
                         const stringId = getStringId(item.id);
-                        if (stringId) {
-                          handlePinSelectedHomework(stringId);
-                        }
+                        if (stringId) handlePinSelectedHomework(stringId);
                       }}
                     >
                       <div className="flex items-center gap-3">
@@ -233,10 +395,13 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
                           <item.icon
                             className="w-5 h-5 hover:scale-110 transition-transform"
                             style={{ color: item.classColor || undefined }}
+                            aria-hidden="true"
                           />
                         </div>
                         <div>
-                          <h3 className="font-medium text-gray-900 dark:text-white">{item.name}</h3>
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                            {item.name}
+                          </h3>
                           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             {item.urgencyIndicator}
                             <span>{item.info}</span>
@@ -249,9 +414,7 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
                           onClick={(e) => {
                             e.stopPropagation();
                             const stringId = getStringId(item.id);
-                            if (stringId) {
-                              handlePinSelectedHomework(stringId);
-                            }
+                            if (stringId) handlePinSelectedHomework(stringId);
                           }}
                           aria-label="Pin this homework"
                         >
@@ -264,7 +427,9 @@ export const HomeworkPinList = ({ triggerSelectModal = false }: { triggerSelectM
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <p>No unpinned homework available to select.</p>
-                  <p className="text-sm mt-2">Complete some homework or add new assignments first.</p>
+                  <p className="text-sm mt-2">
+                    Complete some homework or add new assignments first.
+                  </p>
                 </div>
               )}
             </div>

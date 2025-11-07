@@ -32,19 +32,13 @@ export const metadata = {
   authors: [{ name: 'TaskTornado Team' }],
   icons: {
     icon: [
-      { url: '/TaskTornado.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: '/TaskTornadoDark.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/TaskTornadoChristmas.png', type: 'image/png' },
     ],
     apple: [
-      { url: '/TaskTornado.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: '/TaskTornadoDark.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/TaskTornadoChristmas.png', type: 'image/png' },
     ],
     shortcut: [
-      { url: '/TaskTornado.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: '/TaskTornadoDark.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
+      { url: '/TaskTornadoChristmas.png', type: 'image/png' },
     ],
   },
 };
@@ -61,7 +55,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#f9fafb] dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
         <AuthProvider>
           <DarkModeProvider>
             <ClassProvider>

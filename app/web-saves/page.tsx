@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LinkCard } from '@/components/LinkCard';
+import { SplittingText } from '@/components/animate-ui/primitives/texts/splitting';
 
 // Favicon preview component
 const SitePreview = ({ url, title }: { url: string; title?: string | null }) => {
@@ -93,7 +94,7 @@ export default function WebSavesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { saves, loading, error, addSave, deleteSave } = useWebSaves();
-  
+
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,7 +103,7 @@ export default function WebSavesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    
+
     setIsSubmitting(true);
     try {
       await addSave(url, title || undefined);
@@ -146,15 +147,39 @@ export default function WebSavesPage() {
   return (
     <div className="container mx-auto py-6 px-4 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Web Saves</h1>
+        <div className="relative text-left">
+          <SplittingText
+            text={'Web Saves'}
+            aria-hidden="true"
+            className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
+            style={{ fontFamily: 'var(--font-header)' }}
+            disableAnimation
+          />
+          <SplittingText
+            text={'Web Saves'}
+            className="block text-4xl font-semibold absolute inset-0"
+            style={{ fontFamily: 'var(--font-header)' }}
+            type="chars"
+            alternateColors={['#ef4444', '#10b981']} // Red and Green colors
+            inView
+            initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
+            animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
           <p className="text-sm text-muted-foreground mt-1">
             {saves.length} saved link{saves.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Link
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowForm(true);
+          }}
+          className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add Link
         </Button>
       </div>
 

@@ -19,6 +19,7 @@ import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
 import CalendarTestItem from '@/components/CalendarTestItem';
 import { getClassIcon } from '@/lib/icon-map';
+import { SplittingText } from '@/components/animate-ui/primitives/texts/splitting';
 // Touch device detection
 const isTouchDevice = () => {
   if (typeof window === 'undefined') return false;
@@ -147,10 +148,10 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
   };
   const onTouchEnd = () => {
     if (touchStartX.current === null || touchEndX.current === null) return;
-   
+
     const diff = touchStartX.current - touchEndX.current;
     const swipeThreshold = 50; // Minimum swipe distance
-   
+
     if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
         onSwipeLeft();
@@ -158,18 +159,18 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
         onSwipeRight();
       }
     }
-   
+
     touchStartX.current = null;
     touchEndX.current = null;
   };
   useEffect(() => {
     const element = document.getElementById('calendar-grid');
     if (!element) return;
-   
+
     element.addEventListener('touchstart', onTouchStart, { passive: true });
     element.addEventListener('touchmove', onTouchMove, { passive: true });
     element.addEventListener('touchend', onTouchEnd, { passive: true });
-   
+
     return () => {
       element.removeEventListener('touchstart', onTouchStart);
       element.removeEventListener('touchmove', onTouchMove);
@@ -182,23 +183,23 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
- 
+
   // Set up mobile detection
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-   
+
     // Set initial value
     handleResize();
-   
+
     // Add event listener
     window.addEventListener('resize', handleResize);
-   
+
     // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
- 
+
   // Month navigation handlers
   const nextMonth = useCallback(() => {
     setCurrentMonth(addMonths(currentMonth, 1));
@@ -209,10 +210,10 @@ export default function CalendarPage() {
   const resetToToday = useCallback(() => {
     setCurrentMonth(new Date());
   }, []);
- 
+
   // Swipe handlers
   useSwipe(nextMonth, prevMonth);
- 
+
   const {
     dragState,
     handleDragStart,
@@ -223,7 +224,7 @@ export default function CalendarPage() {
   // Get the start and end of the current month view
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
- 
+
   // Get all days in the month
   // Define the type for calendar day items
   interface CalendarDay {
@@ -249,13 +250,13 @@ export default function CalendarPage() {
     parsedDate: new Date(test.testDate).toISOString()
   })));
   const firstDayOfMonth = monthStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
- 
+
   // Generate calendar days with empty slots for the start of the month
   const days: CalendarDay[] = [];
   const firstDayOfWeek = monthStart.getDay();
   // For Monday-first format, adjust the calculation
   const mondayFirstOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
- 
+
   // Add days from previous month to complete the first week
   if (mondayFirstOffset > 0) {
     const prevMonthEnd = new Date(monthStart);
@@ -268,7 +269,7 @@ export default function CalendarPage() {
         // Normalize both dates to start of day for comparison
         const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
         const normalizedPrevDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-       
+
         return normalizedHwDate.getTime() === normalizedPrevDate.getTime();
       });
       const prevDayTests = tests.filter(test => {
@@ -297,7 +298,7 @@ export default function CalendarPage() {
       });
     }
   }
- 
+
   // Add days for the current month
   daysInMonth.forEach(day => {
     const dayHomeworks = homeworks.filter(hw => {
@@ -323,7 +324,7 @@ export default function CalendarPage() {
 
       return normalizedHwDate.getTime() === normalizedDay.getTime();
     });
-   
+
     const dayTests = tests.filter(test => {
       try {
         const testDate = new Date(test.testDate);
@@ -369,14 +370,14 @@ export default function CalendarPage() {
       isToday: isDateToday(day),
     });
   });
- 
+
   // Add days from next month to complete the last week
   const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
   const lastDayOfWeek = lastDayOfMonth.getDay();
   // For Monday-first format, adjust the calculation
   const mondayLastDay = lastDayOfWeek === 0 ? 6 : lastDayOfWeek - 1;
   const daysInLastWeek = mondayLastDay === 6 ? 0 : 6 - mondayLastDay;
- 
+
   for (let i = 1; i <= daysInLastWeek; i++) {
     const nextDate = new Date(monthEnd);
     nextDate.setDate(monthEnd.getDate() + i);
@@ -385,10 +386,10 @@ export default function CalendarPage() {
       // Normalize both dates to start of day for comparison
       const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
       const normalizedNextDate = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
-     
+
       return normalizedHwDate.getTime() === normalizedNextDate.getTime();
     });
-   
+
     const nextDayTests = tests.filter(test => {
       try {
         const testDate = new Date(test.testDate);
@@ -415,17 +416,17 @@ export default function CalendarPage() {
       isToday: isDateToday(nextDate),
     });
   }
- 
+
   // Get due date status for homework items
   const getDueDateStatus = (dueDate: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-   
+
     const due = new Date(dueDate);
     due.setHours(0, 0, 0, 0);
-   
+
     const diffDays = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-   
+
     if (diffDays < 0) return 'overdue';
     if (diffDays === 0) return 'today';
     if (diffDays === 1) return 'tomorrow';
@@ -451,22 +452,22 @@ export default function CalendarPage() {
     const status = getDueDateStatus(dueDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-   
+
     if (isSameDay(dueDate, today)) return isTest ? 'Today' : 'Due today';
-   
+
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     if (isSameDay(dueDate, tomorrow)) return isTest ? 'Tomorrow' : 'Due tomorrow';
-   
+
     if (status === 'overdue') {
       if (isTest) {
         return `Completed`;
       }
       return `Overdue by ${Math.abs(Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))} days`;
     }
-   
-    return isTest 
-      ? format(dueDate, 'MMM d') 
+
+    return isTest
+      ? format(dueDate, 'MMM d')
       : `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}`;
   };
   // Toggle sidebar on mobile
@@ -492,44 +493,59 @@ export default function CalendarPage() {
         </div>
         {/* Desktop Header */}
         <div className="hidden md:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              {format(currentMonth, 'MMMM yyyy')}
-            </h1>
+          <div className="relative text-left">
+            <SplittingText
+              text={format(currentMonth, 'MMMM yyyy')}
+              aria-hidden="true"
+              className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
+              style={{ fontFamily: 'var(--font-header)' }}
+              disableAnimation
+            />
+            <SplittingText
+              text={format(currentMonth, 'MMMM yyyy')}
+              className="block text-4xl font-semibold absolute inset-0"
+              style={{ fontFamily: 'var(--font-header)' }}
+              type="chars"
+              alternateColors={['#ef4444', '#10b981']} // Red and Green colors
+              inView
+              initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
+              animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Viewing {format(monthStart, 'MMM d')} - {format(monthEnd, 'MMM d, yyyy')}
             </p>
           </div>
-         
+
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 w-fit rounded-full">
               <button
                 onClick={prevMonth}
-                className="p-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors touch-manipulation rounded-l-lg"
+                className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 rounded-full"
                 aria-label="Previous month"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
-              
+
               <button
                 onClick={resetToToday}
-                className="px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors touch-manipulation border-x border-gray-200 dark:border-gray-700"
+                className="px-5 py-1.5 text-sm font-semibold text-white bg-slate-600 dark:bg-slate-500 hover:bg-slate-700 dark:hover:bg-slate-400 transition-colors duration-200 rounded-full"
               >
                 Today
               </button>
-              
+
               <button
                 onClick={nextMonth}
-                className="p-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors touch-manipulation rounded-r-lg"
+                className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 rounded-full"
                 aria-label="Next month"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
-           
+
             <Link
               href="/"
-              className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md transition-all touch-manipulation"
+              className="inline-flex items-center px-4 py-2.5 border-2 border-[#264f84] dark:border-blue-400 text-sm font-bold rounded-xl shadow-md text-[#264f84] dark:text-blue-400 bg-white dark:bg-gray-800 hover:bg-[#264f84] hover:text-white dark:hover:bg-blue-400 dark:hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-200 touch-manipulation"
             >
               <Home className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Back to Home</span>
@@ -537,7 +553,7 @@ export default function CalendarPage() {
             </Link>
           </div>
         </div>
-       
+
         <div className="relative">
           {/* Mobile month switcher */}
           {isMobile && (
@@ -583,19 +599,16 @@ export default function CalendarPage() {
                   {day}
                 </div>
               ))}
-             
+
               {days.map(({ day, date, homeworks, tests, events, isCurrentMonth, isToday }) => (
                 <div
                   key={date.toString()}
-                  className={`relative min-h-16 sm:min-h-24 p-1 sm:p-2 border transition-colors ${
-                    !isCurrentMonth ? 'bg-gray-50 dark:bg-gray-700 text-gray-400' : 'bg-white dark:bg-gray-800'
-                  } ${
-                    isToday ? 'ring-2 ring-blue-500 ring-inset' : ''
-                  } ${
-                    dragState.currentHoverDate && isSameDay(dragState.currentHoverDate, date)
+                  className={`relative min-h-16 sm:min-h-24 p-1 sm:p-2 border transition-colors ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-700 text-gray-400' : 'bg-white dark:bg-gray-800'
+                    } ${isToday ? 'ring-2 ring-blue-500 ring-inset' : ''
+                    } ${dragState.currentHoverDate && isSameDay(dragState.currentHoverDate, date)
                       ? 'ring-2 ring-blue-400 bg-blue-50 dark:bg-blue-900/30'
                       : 'border-gray-100 dark:border-gray-600'
-                  }`}
+                    }`}
                   onDragOver={(e) => handleDragOver(e, date)}
                   onDrop={(e) => handleDrop(e, date)}
                   onTouchStart={isTouchDevice() ? (e: React.TouchEvent) => {
@@ -635,13 +648,12 @@ export default function CalendarPage() {
                   } : undefined}
                 >
                   <div className="flex justify-between items-start">
-                    <span className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-xs sm:text-sm font-medium ${
-                      isToday
-                        ? 'bg-blue-600 text-white'
-                        : !isCurrentMonth
-                          ? 'text-gray-400'
-                          : 'text-gray-900 dark:text-white'
-                    }`}>
+                    <span className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-xs sm:text-sm font-medium ${isToday
+                      ? 'bg-blue-600 text-white'
+                      : !isCurrentMonth
+                        ? 'text-gray-400'
+                        : 'text-gray-900 dark:text-white'
+                      }`}>
                       {day}
                     </span>
                     {isSameDay(date, new Date()) && (
@@ -650,7 +662,7 @@ export default function CalendarPage() {
                       </span>
                     )}
                   </div>
-                 
+
                   <div className="mt-1 space-y-0.5 sm:space-y-1 max-h-16 sm:max-h-20 overflow-y-auto touch-pan-y">
                     <TooltipProvider>
                       {events.length > 0 && (
@@ -708,86 +720,86 @@ export default function CalendarPage() {
                       {homeworks
                         .slice(0, 3)
                         .map((hw) => {
-                        const classItem = classes.find(c => c.id === hw.classId);
-                        const isOverdue = new Date(hw.dueDate) < new Date() && !hw.completed;
-                        const isDueToday = isDateToday(new Date(hw.dueDate));
-                        const status = getDueDateStatus(new Date(hw.dueDate));
-                        const statusIcon = getDueDateIcon(status);
+                          const classItem = classes.find(c => c.id === hw.classId);
+                          const isOverdue = new Date(hw.dueDate) < new Date() && !hw.completed;
+                          const isDueToday = isDateToday(new Date(hw.dueDate));
+                          const status = getDueDateStatus(new Date(hw.dueDate));
+                          const statusIcon = getDueDateIcon(status);
 
-                        return (
-                          <Tooltip key={hw.id}>
-                            <TooltipTrigger asChild>
-                              <div
-                                className={`text-xs p-1 mb-1 rounded truncate cursor-move ${hw.completed ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 line-through' : isOverdue ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300' : isDueToday ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'}`}
-                                draggable
-                                onDragStart={(e) => {
-                                  // Normalize the source date to start of day
-                                  const normalizedSourceDate = new Date(new Date(hw.dueDate).getFullYear(), new Date(hw.dueDate).getMonth(), new Date(hw.dueDate).getDate());
-                                  handleDragStart(e, hw.id, 'homework', normalizedSourceDate);
-                                }}
-                                onDragEnd={handleDragEnd}
-                              >
-                                <div className="flex items-center">
-                                  <GripVertical className="w-3 h-3 mr-1 opacity-50 flex-shrink-0" />
-                                  <span className="truncate">
-                                    {classItem?.name ? `${classItem.name}: ` : ''}{hw.title}
-                                  </span>
+                          return (
+                            <Tooltip key={hw.id}>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className={`text-xs p-1 mb-1 rounded truncate cursor-move ${hw.completed ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 line-through' : isOverdue ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300' : isDueToday ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'}`}
+                                  draggable
+                                  onDragStart={(e) => {
+                                    // Normalize the source date to start of day
+                                    const normalizedSourceDate = new Date(new Date(hw.dueDate).getFullYear(), new Date(hw.dueDate).getMonth(), new Date(hw.dueDate).getDate());
+                                    handleDragStart(e, hw.id, 'homework', normalizedSourceDate);
+                                  }}
+                                  onDragEnd={handleDragEnd}
+                                >
+                                  <div className="flex items-center">
+                                    <GripVertical className="w-3 h-3 mr-1 opacity-50 flex-shrink-0" />
+                                    <span className="truncate">
+                                      {classItem?.name ? `${classItem.name}: ` : ''}{hw.title}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="w-64 p-2">
-                              <div className="space-y-1">
-                                <h4 className="font-medium">{hw.title}</h4>
-                                {classItem && (
+                              </TooltipTrigger>
+                              <TooltipContent className="w-64 p-2">
+                                <div className="space-y-1">
+                                  <h4 className="font-medium">{hw.title}</h4>
+                                  {classItem && (
+                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                      <BookOpen className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                                      <span className="truncate">{classItem.name}</span>
+                                    </div>
+                                  )}
                                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <BookOpen className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
-                                    <span className="truncate">{classItem.name}</span>
+                                    {statusIcon}
+                                    <span>{formatDueDate(new Date(hw.dueDate))}</span>
                                   </div>
-                                )}
-                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                  {statusIcon}
-                                  <span>{formatDueDate(new Date(hw.dueDate))}</span>
+                                  {hw.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{hw.description}</p>
+                                  )}
+                                  {hw.links && hw.links.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                      {hw.links.map((link, idx: number) => (
+                                        <LinkCard
+                                          key={idx}
+                                          url={typeof link === 'string' ? link : link.url}
+                                          title={typeof link === 'string' ? link : link.title || 'Link'}
+                                          className="border-0 px-0 py-0 hover:bg-transparent"
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
-                                {hw.description && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{hw.description}</p>
-                                )}
-                                {hw.links && hw.links.length > 0 && (
-                                  <div className="mt-2 space-y-1">
-                                    {hw.links.map((link, idx: number) => (
-                                      <LinkCard
-                                        key={idx}
-                                        url={typeof link === 'string' ? link : link.url}
-                                        title={typeof link === 'string' ? link : link.title || 'Link'}
-                                        className="border-0 px-0 py-0 hover:bg-transparent"
-                                      />
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
 
                       {/* Tests Display */}
                       {tests
                         .slice(0, 3)
                         .map((test) => {
-                        const classItem = classes.find(c => c.id === test.classId);
-                        // Use BookOpen as a fallback icon
-                        const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
+                          const classItem = classes.find(c => c.id === test.classId);
+                          // Use BookOpen as a fallback icon
+                          const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
 
-                        return (
-                          <CalendarTestItem
-                            key={test.id}
-                            test={test}
-                            classInfo={classItem}
-                            classIcon={ClassIcon}
-                            handleDragStart={handleDragStart}
-                            handleDragEnd={handleDragEnd}
-                          />
-                        );
-                      })}
+                          return (
+                            <CalendarTestItem
+                              key={test.id}
+                              test={test}
+                              classInfo={classItem}
+                              classIcon={ClassIcon}
+                              handleDragStart={handleDragStart}
+                              handleDragEnd={handleDragEnd}
+                            />
+                          );
+                        })}
                     </TooltipProvider>
                   </div>
                 </div>
