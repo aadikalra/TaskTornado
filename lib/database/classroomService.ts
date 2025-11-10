@@ -6,14 +6,14 @@ export interface ClassroomCourseRecord {
   user_id: string;
   google_course_id: string;
   name: string;
-  section?: string;
-  description?: string;
-  room?: string;
+  section?: string | null;
+  description?: string | null;
+  room?: string | null;
   owner_id: string;
   course_state: string;
-  synced_at: string;
-  created_at?: string;
-  updated_at?: string;
+  synced_at: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface ClassroomCourseworkRecord {
@@ -23,30 +23,30 @@ export interface ClassroomCourseworkRecord {
   google_coursework_id: string;
   google_course_id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   state: string;
   work_type: string;
-  max_points?: number;
-  due_date?: string;
-  due_time?: string;
-  last_synced: string;
-  created_at?: string;
-  updated_at?: string;
+  max_points?: number | null;
+  due_date?: string | null;
+  due_time?: string | null;
+  last_synced: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface ClassroomSubmissionRecord {
   id?: string;
   user_id: string;
   coursework_id: string;
-  google_submission_id?: string;
+  google_submission_id?: string | null;
   state: string;
-  grade?: number;
-  assigned_grade?: number;
-  creation_time?: string;
-  update_time?: string;
-  last_synced: string;
-  created_at?: string;
-  updated_at?: string;
+  grade?: number | null;
+  assigned_grade?: number | null;
+  creation_time?: string | null;
+  update_time?: string | null;
+  last_synced: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export class ClassroomDatabaseService {

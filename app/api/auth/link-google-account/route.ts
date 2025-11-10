@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already exists in Supabase
     const { data: existingUser } = await supabase
-      .from('auth.users')
+      .from('profiles')
       .select('id, email')
       .eq('email', googleAuth.user.email)
       .single();

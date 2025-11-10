@@ -93,7 +93,7 @@ export type Test = Omit<Database['public']['Tables']['tests']['Row'],
   grade: string | null;
   notes: string | null;
   completed_at: string | null;
-  created_at: string;
+  created_at: string | null;
 };
 
 interface ClassContextType {
@@ -312,7 +312,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
           weight: test.weight,
           location: test.location,
           duration: test.duration,
-          priority: test.priority as Priority,
+          priority: (test.priority as Priority) || 'medium',
           status: test.status as TestStatus,
           score: test.score,
           grade: test.grade,
@@ -1111,7 +1111,8 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         )
       );
       
-      return updated;
+      
+      // The subscription will handle any necessary state updates
     } catch (err) {
       console.error('Error updating homework:', err);
       throw err;
@@ -1187,11 +1188,18 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         prev.map(test =>
           test.id === tempId
             ? {
+                ...test,
                 ...createdTest,
+                id: createdTest.id,
                 classId: createdTest.class_id,
                 testDate: createdTest.test_date,
-                testTime: createdTest.test_time || undefined,
-                studyMaterials: createdTest.study_materials || []
+                testTime: createdTest.test_time,
+                testType: createdTest.test_type as TestType,
+                maxScore: createdTest.max_score,
+                priority: (createdTest.priority as Priority) || 'medium',
+                studyMaterials: createdTest.study_materials || [],
+                created_at: createdTest.created_at,
+                status: (createdTest.status as TestStatus) || 'upcoming',
               }
             : test
         )
@@ -1289,7 +1297,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         )
       );
 
-      return updated;
+      // The subscription will handle any necessary state updates
     } catch (err) {
       console.error('Error updating test:', err);
       throw err;

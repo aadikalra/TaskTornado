@@ -53,7 +53,7 @@ export const flashcardService = {
       .rpc('create_flashcard_deck_with_cards', {
         p_user_id: userId,
         p_title: deckData.title,
-        p_description: deckData.description || null,
+        p_description: deckData.description || '',
         p_flashcards: deckData.flashcards
       });
 

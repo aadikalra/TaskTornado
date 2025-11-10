@@ -15,7 +15,7 @@ export interface Flashcard {
   answer: string;
   topic: string;
   deck_id?: string;
-  created_at?: string | Date;
+  created_at?: string | Date | null;
   updated_at?: string | Date | null;
   user_id?: string;
 }

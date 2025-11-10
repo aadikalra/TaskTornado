@@ -296,7 +296,7 @@ export default function WebSavesPage() {
                     {save.url}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Saved {new Date(save.created_at).toLocaleDateString()}
+                    Saved {save.created_at ? new Date(save.created_at).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

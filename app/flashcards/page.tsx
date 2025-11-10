@@ -12,12 +12,19 @@ import Link from 'next/link';
 import { SplittingText } from '@/components/animate-ui/primitives/texts/splitting';
 
 interface FlashcardDeckType {
+
   id: string;
+
   title: string;
+
   description: string | null;
-  created_at: string;
+
+  created_at: string | null;
+
   updated_at: string | null;
+
   flashcards?: Flashcard[];
+
 }
 
 export default function FlashcardsPage() {
@@ -64,22 +71,16 @@ export default function FlashcardsPage() {
     
     try {
       const deck = await flashcardService.getDeckWithCards(deckId, user.id);
-      setSelectedDeck(deck);
-      setView('saved');
       
       // Convert to the format expected by the FlashcardDeck component
-      const formattedCards = (deck.flashcards || []).map((card: Flashcard) => ({
-        id: card.id,
-        question: card.question,
-        answer: card.answer,
+      const formattedCards = (deck.flashcards || []).map((card) => ({
+        ...card,
         topic: deck.title,
-        deck_id: deck.id,
-        created_at: card.created_at,
-        updated_at: card.updated_at,
-        user_id: card.user_id
       }));
-      
+
+      setSelectedDeck({ ...deck, flashcards: formattedCards });
       setFlashcards(formattedCards);
+      setView('saved');
     } catch (error) {
       console.error('Error loading flashcard deck:', error);
       toast.error('Failed to load flashcard deck');
@@ -210,7 +211,7 @@ export default function FlashcardsPage() {
                   </p>
                 )}
                 <div className="mt-3 text-xs text-muted-foreground">
-                  Created: {new Date(deck.created_at).toLocaleDateString()}
+                  Created: {deck.created_at ? new Date(deck.created_at).toLocaleDateString() : 'N/A'}
                 </div>
               </div>
             ))}

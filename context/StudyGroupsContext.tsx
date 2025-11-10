@@ -255,7 +255,6 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         }]);
 
       await fetchGroups();
-      return group;
     } catch (err) {
       console.error('Error creating group:', err);
       throw new Error('Failed to create group');

@@ -204,7 +204,25 @@ export class RecurringHomeworkService {
       .single();
 
     if (error) throw error;
-    return data;
+    if (!data) return null;
+
+    if (!data.parent_recurring_id) {
+      throw new Error('Created recurring instance has no parent ID');
+    }
+
+    // Map database result to RecurringInstance interface
+    const result: RecurringInstance = {
+      id: data.id,
+      title: data.title || '',
+      dueDate: new Date(data.due_date),
+      classId: data.class_id || '',
+      priority: data.priority || '',
+      links: data.links || [],
+      parentRecurringId: data.parent_recurring_id,
+      isRecurringInstance: true
+    };
+
+    return result;
   }
 
   /**
@@ -217,6 +235,10 @@ export class RecurringHomeworkService {
       const activeRecurring = await this.getActiveRecurringHomework(userId);
 
       for (const masterRecord of activeRecurring) {
+        if (!masterRecord.recurring_id) {
+          console.warn('Skipping recurring homework with null recurring_id', masterRecord);
+          continue;
+        }
         // Get existing instances
         const existingInstances = await this.getRecurringInstances(masterRecord.recurring_id, userId);
 
