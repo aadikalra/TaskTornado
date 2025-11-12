@@ -13,7 +13,8 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/animate-ui/radix/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function EditHomeworkPage() {
   const { id } = useParams() as { id: string };
@@ -25,7 +26,8 @@ export default function EditHomeworkPage() {
     description: '',
     dueDate: '',
     classId: '',
-    completed: false
+    completed: false,
+    priority: 'medium' as 'low' | 'medium' | 'high'
   });
   
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,8 @@ export default function EditHomeworkPage() {
         description: homework.description || '',
         dueDate: homework.dueDate,
         classId: homework.classId,
-        completed: homework.completed || false
+        completed: homework.completed || false,
+        priority: homework.priority || 'medium'
       });
       setDate(dueDate);
     }
@@ -68,12 +71,10 @@ export default function EditHomeworkPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    
+  const handleChange = (name: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: value
     }));
   };
 
@@ -122,7 +123,7 @@ export default function EditHomeworkPage() {
                   id="title"
                   name="title"
                   value={formData.title}
-                  onChange={handleChange}
+                  onChange={(e) => handleChange('title', e.target.value)}
                   placeholder="Enter homework title"
                   required
                 />
@@ -136,14 +137,14 @@ export default function EditHomeworkPage() {
                   id="description"
                   name="description"
                   value={formData.description}
-                  onChange={handleChange}
+                  onChange={(e) => handleChange('description', e.target.value)}
                   placeholder="Add details about the homework"
                   rows={4}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+              <div className="flex justify-between">
+                <div className="w-1/3">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Due Date <span className="text-red-500">*</span>
                   </label>
@@ -174,25 +175,43 @@ export default function EditHomeworkPage() {
                   </Popover>
                 </div>
 
-                <div>
+                <div className="w-1/3 mx-3">
                   <label htmlFor="classId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Class <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    id="classId"
-                    name="classId"
+                  <Select
                     value={formData.classId}
-                    onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    required
+                    onValueChange={(value) => handleChange('classId', value)}
                   >
-                    <option value="">Select a class</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          {cls.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-1/3">
+                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Priority
+                  </label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => handleChange('priority', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -201,9 +220,7 @@ export default function EditHomeworkPage() {
                   <Checkbox
                     id="completed"
                     checked={formData.completed}
-                    onCheckedChange={(checked) =>
-                      setFormData(prev => ({ ...prev, completed: checked as boolean }))
-                    }
+                    onCheckedChange={(checked) => handleChange('completed', checked as boolean)}
                   />
                   <label
                     htmlFor="completed"

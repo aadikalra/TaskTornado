@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: 'TaskTornado',
-  description: 'A comprehensive task management tool for students to organize homework, classes, schedules, and study groups.',
+  description: 'A comprehensive task management tool for students to organize homework, classes, schedules, and group chats.',
   keywords: 'task, organizer, homework, classes, student, academic, study',
   authors: [{ name: 'TaskTornado Team' }],
   icons: {

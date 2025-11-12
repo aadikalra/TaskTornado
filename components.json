@@ -4,21 +4,18 @@
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "config": "",
+    "config": "tailwind.config.ts",
     "css": "app/globals.css",
     "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
+    "cssVariables": true
   },
-  "iconLibrary": "lucide",
+  "iconLibrary": "radix",
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "utils": "@/lib/utils"
   },
   "registries": {
+    "@shadcn-editor": "https://shadcn-editor.vercel.app/r/{name}.json",
     "@animate-ui": "https://animate-ui.com/r/{name}.json"
   }
 }

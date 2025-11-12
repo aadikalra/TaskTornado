@@ -6,6 +6,12 @@ import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { CustomContextMenu } from '@/components/CustomContextMenu';
 import * as React from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import DockNav with no SSR to avoid hydration issues
+const DockNav = dynamic(() => import('@/components/DockNav'), {
+  ssr: false,
+});
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -36,29 +42,26 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     '/complete-signup'
   ];
 
-  // Check if current route should show navbar
-  const shouldShowNavbar = protectedRoutes.some(route => pathname?.startsWith(route));
-
-  // Routes that should hide navbar (public routes and 404s)
+  // Keep the navbar logic but don't use it for showing Navbar component
+  const shouldShowNavbar = false; // Always hide the top navbar
+  
+  // Routes that should hide navbar (public routes)
   const isLandingPage = pathname === '/';
   const isAuthPage = pathname === '/login' || pathname === '/signup';
   const isAIGuidelinesPage = pathname === '/ai-guidelines';
   const isLegalPage = pathname?.startsWith('/legal');
-  const is404Page = !shouldShowNavbar && !isLandingPage && !isAuthPage && !isAIGuidelinesPage && !isLegalPage;
+  const is404Page = !isLandingPage && !isAuthPage && !isLegalPage;
 
   return (
     <>
       <Analytics />
       <div className="min-h-screen flex flex-col" onContextMenu={handleContextMenu}>
-        {shouldShowNavbar && (
-          <>
-            <Navbar />
-            <SearchBar />
-          </>
-        )}
-        <main className={shouldShowNavbar ? 'flex-1 pt-24 md:pt-26 bg-transparent' : 'flex-1'}>
+        {/* Navbar and SearchBar components are kept in code but not rendered */}
+        <main className="flex-1 bg-transparent pb-24 md:pb-0">
           {children}
         </main>
+        {/* Always show DockNav on all pages except landing, auth, and legal pages */}
+        {!isLandingPage && !isAuthPage && !isLegalPage && <DockNav />}
         {contextMenu && <CustomContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu} />}
       </div>
     </>

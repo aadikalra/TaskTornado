@@ -249,10 +249,11 @@ const LevelDisplay: React.FC<LevelDisplayProps> = ({ className, showDetails = tr
                 >
                   {/* Animated shine */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                    animate={{ x: ['-100%', '200%'] }}
-                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                  />
+  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-full"
+  style={{ left: '-100%' }}
+  animate={{ left: ['-100%', '100%'] }}
+  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, ease: 'linear' }}
+/>
                 </motion.div>
               </div>
 

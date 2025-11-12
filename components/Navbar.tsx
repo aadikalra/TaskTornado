@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useDarkMode } from '@/context/DarkModeContext';
 import { SearchTrigger } from './SearchBar';
+import IconCalendar from './glass-icons/IconCalendar';
+import IconBookOpen from './glass-icons/IconBookOpen';
 import {
   Popover,
   PopoverContent,
@@ -35,6 +37,10 @@ import { StudyTimer } from './StudyTimer';
 import { MinimalistTimer } from './MinimalistTimer';
 import { AIAssistant } from './AIAssistant';
 import { Search } from './animate-ui/icons/search';
+import IconPin from './glass-icons/IconPin';
+import IconSparkle from './glass-icons/IconSparkle';
+import IconUsers from './glass-icons/IconUsers';
+import IconFile from './glass-icons/IconFile';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -130,11 +136,10 @@ export default function Navbar() {
                   <TooltipTrigger asChild>
                     <button 
                       onClick={() => setIsAIAssistantOpen(true)} 
-                      className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-purple-400/20 hover:to-pink-400/20 hover:scale-110 group"
+                      className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300  hover:scale-110 group"
                     >
-                      <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                      <IconSparkle />
                       <span className="sr-only">Study Assistant</span>
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent 
@@ -151,7 +156,7 @@ export default function Navbar() {
                       href="/calendar"
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
-                      <Calendar className="w-5 h-5" />
+                      <IconCalendar />
                       <span className="sr-only">Calendar</span>
                     </Link>
                   </TooltipTrigger>
@@ -169,7 +174,7 @@ export default function Navbar() {
                       href="/flashcards"
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
-                      <BookOpen className="w-5 h-5" />
+                      <IconBookOpen />
                       <span className="sr-only">Flashcards</span>
                     </Link>
                   </TooltipTrigger>
@@ -187,7 +192,7 @@ export default function Navbar() {
                       href="/web-saves" 
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
-                      <Bookmark className="w-5 h-5" />
+                      <IconPin />
                       <span className="sr-only">Web Saves</span>
                     </Link>
                   </TooltipTrigger>
@@ -223,15 +228,15 @@ export default function Navbar() {
                       href="/groups"
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
-                      <Users className="w-5 h-5" />
-                      <span className="sr-only">Study Groups</span>
+                      <IconUsers />
+                      <span className="sr-only">Group Chats</span>
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent 
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
-                    Study Groups
+                    Group Chats
                   </TooltipContent>
                 </Tooltip>
 
@@ -241,7 +246,7 @@ export default function Navbar() {
                       href="/changelog"
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
-                      <FileText className="w-5 h-5" />
+                      <IconFile />
                       <span className="sr-only">Changelog</span>
                     </Link>
                   </TooltipTrigger>
@@ -401,7 +406,7 @@ export default function Navbar() {
               >
                 <div className="flex items-center">
                   <Users className="w-5 h-5 mr-3" />
-                  Study Groups
+                  Group Chats
                 </div>
               </Link>
 

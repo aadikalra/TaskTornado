@@ -2,10 +2,13 @@
 
 import dynamic from 'next/dynamic';
 
-const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), { ssr: false });
+const LexicalEditor = dynamic(
+  () => import('@/components/LexicalEditor'), 
+  { ssr: false }
+);
 
 const WritingAssistPage = () => {
-  return <TiptapEditor />;
+  return <LexicalEditor />;
 };
 
 export default WritingAssistPage;

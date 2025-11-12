@@ -1,4 +1,4 @@
--- Enable RLS and set up policies for study groups
+-- Enable RLS and set up policies for group chats
 
 -- Enable RLS on study_groups
 ALTER TABLE public.study_groups ENABLE ROW LEVEL SECURITY;
@@ -7,14 +7,14 @@ ALTER TABLE public.study_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_members ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view their study groups" ON public.study_groups;
-DROP POLICY IF EXISTS "Users can insert their study groups" ON public.study_groups;
-DROP POLICY IF EXISTS "Users can update their study groups" ON public.study_groups;
-DROP POLICY IF EXISTS "Users can delete their study groups" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can view their group chats" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can insert their group chats" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can update their group chats" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can delete their group chats" ON public.study_groups;
 
 -- Create policies for study_groups
--- Users can view study groups they created or are members of
-CREATE POLICY "Users can view their study groups" 
+-- Users can view group chats they created or are members of
+CREATE POLICY "Users can view their group chats" 
 ON public.study_groups
 FOR SELECT 
 USING (
@@ -26,20 +26,20 @@ USING (
   )
 );
 
--- Users can create study groups
-CREATE POLICY "Users can insert their study groups"
+-- Users can create group chats
+CREATE POLICY "Users can insert their group chats"
 ON public.study_groups
 FOR INSERT 
 WITH CHECK (auth.uid() = created_by);
 
--- Users can update study groups they created
-CREATE POLICY "Users can update their study groups"
+-- Users can update group chats they created
+CREATE POLICY "Users can update their group chats"
 ON public.study_groups
 FOR UPDATE 
 USING (auth.uid() = created_by);
 
--- Users can delete study groups they created
-CREATE POLICY "Users can delete their study groups"
+-- Users can delete group chats they created
+CREATE POLICY "Users can delete their group chats"
 ON public.study_groups
 FOR DELETE 
 USING (auth.uid() = created_by);

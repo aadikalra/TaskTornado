@@ -1,19 +1,19 @@
 -- Fix RLS policies for study_groups and study_group_members to prevent infinite recursion
 
 -- First, drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view their own study groups" ON public.study_groups;
-DROP POLICY IF EXISTS "Users can insert their own study groups" ON public.study_groups;
-DROP POLICY IF EXISTS "Users can update their own study groups" ON public.study_groups;
-DROP POLICY IF EXISTS "Users can delete their own study groups" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can view their own group chats" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can insert their own group chats" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can update their own group chats" ON public.study_groups;
+DROP POLICY IF EXISTS "Users can delete their own group chats" ON public.study_groups;
 
-DROP POLICY IF EXISTS "Users can view their own study group memberships" ON public.study_group_members;
-DROP POLICY IF EXISTS "Users can insert their own study group memberships" ON public.study_group_members;
-DROP POLICY IF EXISTS "Users can update their own study group memberships" ON public.study_group_members;
-DROP POLICY IF EXISTS "Users can delete their own study group memberships" ON public.study_group_members;
+DROP POLICY IF EXISTS "Users can view their own group chat memberships" ON public.study_group_members;
+DROP POLICY IF EXISTS "Users can insert their own group chat memberships" ON public.study_group_members;
+DROP POLICY IF EXISTS "Users can update their own group chat memberships" ON public.study_group_members;
+DROP POLICY IF EXISTS "Users can delete their own group chat memberships" ON public.study_group_members;
 
--- Study Groups RLS Policies
--- Users can view study groups they are a member of or groups they created
-CREATE POLICY "Users can view their own study groups" 
+-- Group Chats RLS Policies
+-- Users can view group chats they are a member of or groups they created
+CREATE POLICY "Users can view their own group chats" 
 ON public.study_groups
 FOR SELECT USING (
   auth.uid() = created_by OR 
@@ -24,24 +24,24 @@ FOR SELECT USING (
   )
 );
 
--- Only group creators can insert new study groups
-CREATE POLICY "Users can insert their own study groups"
+-- Only group creators can insert new group chats
+CREATE POLICY "Users can insert their own group chats"
 ON public.study_groups
 FOR INSERT WITH CHECK (auth.uid() = created_by);
 
--- Only group creators can update study groups
-CREATE POLICY "Users can update their own study groups"
+-- Only group creators can update group chats
+CREATE POLICY "Users can update their own group chats"
 ON public.study_groups
 FOR UPDATE USING (auth.uid() = created_by);
 
--- Only group creators can delete study groups
-CREATE POLICY "Users can delete their own study groups"
+-- Only group creators can delete group chats
+CREATE POLICY "Users can delete their own group chats"
 ON public.study_groups
 FOR DELETE USING (auth.uid() = created_by);
 
 -- Study Group Members RLS Policies
 -- Users can view their own memberships and members of groups they created
-CREATE POLICY "Users can view their own study group memberships"
+CREATE POLICY "Users can view their own group chat memberships"
 ON public.study_group_members
 FOR SELECT USING (
   auth.uid() = user_id OR
@@ -64,7 +64,7 @@ FOR INSERT WITH CHECK (
 );
 
 -- Group creators can update member roles
-CREATE POLICY "Users can update their own study group memberships"
+CREATE POLICY "Users can update their own group chat memberships"
 ON public.study_group_members
 FOR UPDATE USING (
   auth.uid() = user_id OR
@@ -76,7 +76,7 @@ FOR UPDATE USING (
 );
 
 -- Users can leave groups, group creators can remove members
-CREATE POLICY "Users can delete their own study group memberships"
+CREATE POLICY "Users can delete their own group chat memberships"
 ON public.study_group_members
 FOR DELETE USING (
   auth.uid() = user_id OR

@@ -100,7 +100,7 @@ export default function LandingPage() {
             {/* Feature Card 4 */}
             <ServiceCard
               icon={<Users className="w-6 h-6 stroke-1" />}
-              title="Study Groups"
+              title="Group Chats"
               description="Collaborate with classmates, share resources, and study together in virtual study rooms."
             />
 

@@ -256,7 +256,7 @@ export default function GroupPage() {
         </div>
       )}
 
-      {/* School Warning Banner - Only for Study Groups */}
+      {/* School Warning Banner - Only for Group Chats */}
       {schoolWarning?.showWarning && (
         <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 rounded-r-lg">
           <div className="flex items-center justify-between">

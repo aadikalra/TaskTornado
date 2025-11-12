@@ -22,7 +22,7 @@ A modern, AI-powered school organizer designed to help students manage homework,
 ### 📅 Study Tools
 - **Built-in Timer**: Pomodoro-style study sessions with visual feedback
 - **Subject Mastery Tracking**: Monitor progress across different subjects
-- **Study Groups**: Collaborate with classmates on group projects
+- **Group Chats**: Collaborate with classmates on group projects
 - **Flashcards**: Create and study digital flashcards
 
 ### 🎨 User Experience

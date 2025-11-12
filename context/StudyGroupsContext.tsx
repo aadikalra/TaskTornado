@@ -48,7 +48,7 @@ interface StudyGroupsContextType {
 const StudyGroupsContext = createContext<StudyGroupsContextType | undefined>(undefined);
 
 export function StudyGroupsProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, full_name } = useAuth();
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [currentGroup, setCurrentGroup] = useState<StudyGroup | null>(null);
   const [messages, setMessages] = useState<GroupMessage[]>([]);
@@ -71,7 +71,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     setError(null);
     
     try {
-      console.log('Fetching study group memberships for user:', user.id);
+      console.log('Fetching group chat memberships for user:', user.id);
       
       // First, get all groups the user is a member of
       const { data: memberships, error: membershipsError, status } = await supabase
@@ -142,7 +142,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       console.log('Formatted groups:', formattedGroups);
       setGroups(formattedGroups);
     } catch (err: any) {
-      const errorMessage = err?.message || 'Failed to load study groups. Please try again.';
+      const errorMessage = err?.message || 'Failed to load group chats. Please try again.';
       console.error('Error in fetchGroups:', {
         error: err,
         message: errorMessage,
@@ -312,31 +312,21 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     if (!user) throw new Error('User not authenticated');
     
     try {
-      // First, get the user's full name from their profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError);
-        throw new Error('Failed to load user profile');
-      }
-      
       const { error } = await supabase
         .from('group_messages')
         .insert([{
           group_id: groupId,
           user_id: user.id,
           content,
-          full_name: profile?.full_name || 'User' // Fallback to 'User' if full_name is not available
+          full_name: full_name || 'User' // Use full_name from AuthContext
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting message:', error);
+        throw new Error('Failed to send message');
+      }
       
-      // Refresh messages
-      await fetchMessages(groupId);
+      // Real-time subscription handles updates
     } catch (err) {
       console.error('Error sending message:', err);
       throw new Error('Failed to send message');
@@ -360,18 +350,6 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         }
       }
 
-      // Get the user's full name from their profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError);
-        throw new Error('Failed to load user profile');
-      }
-
       const { error } = await supabase
         .from('group_links')
         .insert([{
@@ -379,143 +357,84 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
           url,
           title: linkTitle,
           user_id: user.id,
-          full_name: profile?.full_name || 'User' // Fallback to 'User' if full_name is not available
+          full_name: full_name || 'User' // Use full_name from AuthContext
         }]);
 
       if (error) throw error;
       
-      // Refresh links
-      await fetchLinks(groupId);
+      // Real-time subscription handles updates
     } catch (err) {
       console.error('Error adding link:', err);
       throw new Error('Failed to add link');
     }
   };
 
-  // Set up real-time subscriptions with retry logic
+  // Set up real-time subscriptions
   useEffect(() => {
     if (!currentGroup?.id || !user) {
       setConnectionStatus('disconnected');
       return;
     }
 
-    let retryTimeout: NodeJS.Timeout;
-    let messageSubscription: any;
-    let linkSubscription: any;
+    const channelName = `group-chat-${currentGroup.id}`;
+    const channel = supabase.channel(channelName, {
+      config: {
+        broadcast: {
+          self: true,
+        },
+      },
+    });
 
-    const setupSubscription = async (attempt: number = 0) => {
-      try {
-        setConnectionStatus('connecting');
-        console.log(`Setting up real-time subscription for group ${currentGroup.id} (user: ${user.id}), attempt ${attempt + 1}`);
-
-        // Create unique channel names to avoid conflicts
-        const messageChannel = `group_messages_${currentGroup.id}_${user.id}_${Date.now()}`;
-        const linkChannel = `group_links_${currentGroup.id}_${user.id}_${Date.now()}`;
-
-        // Subscribe to new messages - filter by group_id only
-        messageSubscription = supabase
-          .channel(messageChannel)
-          .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'group_messages',
-            filter: `group_id=eq.${currentGroup.id}`
-          }, (payload) => {
-            console.log('🎉 RECEIVED REAL-TIME MESSAGE:', {
-              messageId: payload.new.id,
-              content: payload.new.content,
-              userId: payload.new.user_id,
-              groupId: payload.new.group_id,
-              currentUserId: user.id,
-              timestamp: new Date().toISOString()
-            });
-
-            setMessages(prev => {
-              // Check if message already exists to prevent duplicates
-              const exists = prev.some(msg => msg.id === payload.new.id);
-              if (exists) {
-                console.log('⚠️ Message already exists, skipping duplicate');
-                return prev;
-              }
-
-              console.log('✅ Adding new message to state');
-              const newMessage = payload.new as GroupMessage;
-
-              // Handle the profile data properly
-              if (payload.new.user_id === user.id) {
-                newMessage.profiles = {
-                  full_name: payload.new.full_name || 'You',
-                  avatar_url: ''
-                };
-              }
-
-              return [...prev, newMessage];
-            });
-          })
-          .subscribe((status, error) => {
-            console.log('📡 Message subscription status:', status, error);
-            if (status === 'SUBSCRIBED') {
-              console.log('✅ Message subscription successfully established');
-              setConnectionStatus('connected');
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-              console.error('❌ Message subscription error:', status, error);
-              setConnectionStatus('disconnected');
-              // Retry with exponential backoff
-              const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
-              retryTimeout = setTimeout(() => setupSubscription(attempt + 1), delay);
-            }
-          });
-
-        // Subscribe to new links
-        linkSubscription = supabase
-          .channel(linkChannel)
-          .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'group_links',
-            filter: `group_id=eq.${currentGroup.id}`
-          }, (payload) => {
-            console.log('🔗 Received real-time link:', payload.new);
-            setLinks(prev => {
-              // Check if link already exists to prevent duplicates
-              const exists = prev.some(link => link.id === payload.new.id);
-              if (exists) {
-                console.log('⚠️ Link already exists, skipping duplicate');
-                return prev;
-              }
-              return [payload.new as GroupLink, ...prev];
-            });
-          })
-          .subscribe((status, error) => {
-            console.log('🔗 Link subscription status:', status, error);
-          });
-
-      } catch (error) {
-        console.error('💥 Error setting up subscription:', error);
-        setConnectionStatus('disconnected');
-        // Retry with exponential backoff
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
-        retryTimeout = setTimeout(() => setupSubscription(attempt + 1), delay);
-      }
+    const handleNewMessage = (payload: any) => {
+      console.log('🎉 RECEIVED REAL-TIME MESSAGE:', payload.new);
+      setMessages(prevMessages => {
+        if (prevMessages.some(msg => msg.id === payload.new.id)) {
+          return prevMessages;
+        }
+        const newMessage = payload.new as GroupMessage;
+        // Construct the profile object for the new message
+        newMessage.profiles = {
+          full_name: payload.new.full_name || 'User',
+          avatar_url: '', // You can fetch this if available
+        };
+        return [...prevMessages, newMessage];
+      });
     };
 
-    // Start the initial subscription setup
-    setupSubscription();
+    const handleNewLink = (payload: any) => {
+      console.log('🔗 RECEIVED REAL-TIME LINK:', payload.new);
+      setLinks(prevLinks => {
+        if (prevLinks.some(link => link.id === payload.new.id)) {
+          return prevLinks;
+        }
+        const newLink = payload.new as GroupLink;
+        // Construct the profile object for the new link
+        newLink.profiles = {
+          full_name: payload.new.full_name || 'User',
+          avatar_url: '',
+        };
+        return [newLink, ...prevLinks];
+      });
+    };
+
+    channel
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages', filter: `group_id=eq.${currentGroup.id}` }, handleNewMessage)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_links', filter: `group_id=eq.${currentGroup.id}` }, handleNewLink)
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`✅ Subscribed to channel: ${channelName}`);
+          setConnectionStatus('connected');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('❌ Subscription error:', err);
+          setConnectionStatus('disconnected');
+        }
+      });
 
     return () => {
-      console.log('🧹 Cleaning up real-time subscriptions');
-      if (retryTimeout) {
-        clearTimeout(retryTimeout);
-      }
-      if (messageSubscription) {
-        messageSubscription.unsubscribe();
-      }
-      if (linkSubscription) {
-        linkSubscription.unsubscribe();
-      }
-      setConnectionStatus('disconnected');
+      console.log(`🧹 Unsubscribing from channel: ${channelName}`);
+      supabase.removeChannel(channel);
     };
-  }, [currentGroup?.id, user]);
+  }, [currentGroup?.id, user?.id]);
 
   // Load groups when user changes
   useEffect(() => {

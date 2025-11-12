@@ -1090,6 +1090,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
         due_date: updates.dueDate ? new Date(updates.dueDate).toISOString() : undefined,
         class_id: updates.classId,
         completed: updates.completed,
+        priority: updates.priority,
         updated_at: new Date().toISOString()
       };
       

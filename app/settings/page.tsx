@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Trash2, BookOpen } from 'lucide-react';
+import { Home, Trash2, BookOpen, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,6 +60,7 @@ const DangerZone = ({
 
 export default function SettingsPage() {
   const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
+  const { signOut } = useAuth() || {};
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
   const router = useRouter();
@@ -140,6 +142,30 @@ export default function SettingsPage() {
                   countLabel="assignment"
                   icon={BookOpen}
                 />
+
+                <Card className="border-blue-200 dark:border-blue-900/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                        <LogOut className="h-5 w-5" />
+                        Sign Out
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-muted-foreground">
+                      Sign out of your account. You'll need to sign in again to access your data.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter>
+                    <Button
+                      variant="outline"
+                      onClick={signOut}
+                      className="w-full justify-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </CardFooter>
+                </Card>
               </CardContent>
             </Card>
 

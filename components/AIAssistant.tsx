@@ -47,6 +47,8 @@ import { X } from './animate-ui/icons/x';
 import { Flashcard, FlashcardDeck } from './Flashcard';
 import { Tabs, TabsList, TabsTab, TabsPanels, TabsPanel } from '@/components/animate-ui/components/base/tabs';
 import { Class, Homework, Test } from '@/context/ClassContext';
+import IconSparkle from './glass-icons/IconSparkle';
+import IconBadgeSparkle from './glass-icons/IconBadgeSparkle';
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -1519,15 +1521,7 @@ Examples of how to handle different types:
             {/* Header */}
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-4 flex justify-between items-center border-b border-gray-200/50 dark:border-gray-800/50">
               <div className="flex items-center space-x-3">
-                <div className="p-1.5 rounded-lg bg-slate-600 dark:bg-slate-700">
-                  <Bot
-                    animation="default"
-                    className="h-5 w-5 text-white"
-                    animateOnHover
-                    loop
-                    loopDelay={1.5}
-                  />
-                </div>
+                <IconBadgeSparkle />
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">
                     Study Assistant

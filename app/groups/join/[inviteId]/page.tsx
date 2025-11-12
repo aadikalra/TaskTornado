@@ -117,7 +117,7 @@ export default function JoinGroupPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">Already a Member</h1>
             <p className="text-muted-foreground">
-              You're already a member of this study group.
+              You're already a member of this group chat.
             </p>
           </div>
           <div className="flex flex-col gap-2 pt-4">
@@ -173,7 +173,7 @@ export default function JoinGroupPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">Joined Successfully!</h1>
             <p className="text-muted-foreground">
-              You've been added to the study group. Redirecting you now...
+              You've been added to the group chat. Redirecting you now...
             </p>
           </div>
           <div className="pt-4">
@@ -198,7 +198,7 @@ export default function JoinGroupPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">Join Study Group</h1>
           <p className="text-muted-foreground">
-            You've been invited to join a study group. Click the button below to join!
+            You've been invited to join a group chat. Click the button below to join!
           </p>
         </div>
         <div className="flex flex-col gap-2 pt-4">

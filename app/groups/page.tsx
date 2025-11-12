@@ -44,7 +44,7 @@ export default function GroupsPage() {
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Study Groups</h1>
+          <h1 className="text-3xl font-bold">Group Chats</h1>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
             New Group
@@ -81,14 +81,14 @@ export default function GroupsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div className="relative text-left">
           <SplittingText
-            text={'Study Groups'}
+            text={'Group Chats'}
             aria-hidden="true"
             className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
             style={{ fontFamily: 'var(--font-header)' }}
             disableAnimation
           />
           <SplittingText
-            text={'Study Groups'}
+            text={'Group Chats'}
             className="block text-4xl font-semibold absolute inset-0"
             style={{ fontFamily: 'var(--font-header)' }}
             type="chars"
@@ -99,7 +99,7 @@ export default function GroupsPage() {
             transition={{ duration: 0.4, ease: 'easeOut' }}
           />
           <p className="text-muted-foreground">
-            Join or create a study group to collaborate with classmates
+            Join or create a group chat to collaborate with classmates
           </p>
         </div>
 
@@ -131,7 +131,7 @@ export default function GroupsPage() {
         </div>
       )}
 
-      {/* School Warning Banner - Only for Study Groups */}
+      {/* School Warning Banner - Only for Group Chats */}
       {schoolWarning?.showWarning && (
         <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 rounded-r-lg">
           <div className="flex items-center justify-between">
@@ -164,8 +164,8 @@ export default function GroupsPage() {
       {groups.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No study groups yet</h3>
-          <p className="mt-1 text-sm text-gray-500">Get started by creating a new study group.</p>
+          <h3 className="mt-2 text-lg font-medium text-gray-900">No group chats yet</h3>
+          <p className="mt-1 text-sm text-gray-500">Get started by creating a new group chat.</p>
           <div className="mt-6">
             <Button
               variant="outline"
@@ -214,7 +214,7 @@ export default function GroupsPage() {
         <div className="fixed inset-0 bg-black/50" onClick={closeCreateGroupDialog} />
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
-            <h3 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Create a new study group</h3>
+            <h3 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Create a new group chat</h3>
 
             <form onSubmit={handleCreateGroup} className="space-y-6">
               <div className="space-y-2">
