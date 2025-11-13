@@ -9,12 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsPanel, TabsPanels, TabsList, TabsTab } from '@/components/animate-ui/components/base/tabs';
 import { MessageSquare, Link as LinkIcon, ArrowLeft, Send, Plus, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { RealtimeChat } from '@/components/realtime-chat';
+import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 
 export default function GroupPage() {
   const { groupId } = useParams() as { groupId: string };
   const router = useRouter();
+  const { user, full_name } = useAuth();
   const { 
     currentGroup, 
     messages, 
@@ -303,81 +306,42 @@ export default function GroupPage() {
             
             <TabsPanels className="mt-0">
               <TabsPanel value="chat">
-                <Card className="h-[500px] flex flex-col">
-                  <CardHeader className="border-b">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        Group Chat
-                        {connectionStatus === 'connected' && (
-                          <div className="flex items-center gap-1 text-xs text-green-600">
-                            <Wifi className="h-3 w-3" />
-                            <span>Live</span>
-                          </div>
-                        )}
-                        {connectionStatus === 'connecting' && (
-                          <div className="flex items-center gap-1 text-xs text-yellow-600">
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            <span>Connecting...</span>
-                          </div>
-                        )}
-                        {connectionStatus === 'disconnected' && (
-                          <div className="flex items-center gap-1 text-xs text-red-600">
-                            <WifiOff className="h-3 w-3" />
-                            <span>Offline</span>
-                          </div>
-                        )}
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  
-                  <div id="messages-container" className="flex-1 p-4 overflow-y-auto">
-                    {messages.length === 0 ? (
-                      <div className="h-full flex items-center justify-center text-muted-foreground">
-                        <p>No messages yet. Say hello!</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {messages.map((message) => (
-                          <div key={message.id} className="flex gap-3">
-                            <Avatar className="h-8 w-8 mt-1">
-                              <AvatarImage src={message.profiles?.avatar_url} />
-                              <AvatarFallback>
-                                {message.profiles?.full_name?.charAt(0).toUpperCase() || '?'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-baseline gap-2">
-                                <span className="font-medium">
-                                  {message.profiles?.full_name || 'Unknown User'}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(message.created_at), 'MMM d, h:mm a')}
-                                </span>
-                              </div>
-                              <p className="text-sm">{message.content}</p>
+                <div className="h-[500px] flex flex-col">
+                  <Card className="flex-1 flex flex-col">
+                    <CardHeader className="border-b">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          Group Chat
+                          {connectionStatus === 'connected' && (
+                            <div className="flex items-center gap-1 text-xs text-green-600">
+                              <Wifi className="h-3 w-3" />
+                              <span>Live</span>
                             </div>
-                          </div>
-                        ))}
+                          )}
+                          {connectionStatus === 'connecting' && (
+                            <div className="flex items-center gap-1 text-xs text-yellow-600">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <span>Connecting...</span>
+                            </div>
+                          )}
+                          {connectionStatus === 'disconnected' && (
+                            <div className="flex items-center gap-1 text-xs text-red-600">
+                              <WifiOff className="h-3 w-3" />
+                              <span>Offline</span>
+                            </div>
+                          )}
+                        </CardTitle>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-4 border-t">
-                    <form onSubmit={handleSendMessage} className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Type a message..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        className="flex-1"
-                        disabled={isSending}
+                    </CardHeader>
+                    <div className="flex-1 overflow-hidden">
+                      <RealtimeChat 
+                        roomName={`group-${groupId}`}
+                        username={full_name || user?.email || 'Anonymous'}
+                        className="h-full"
                       />
-                      <Button type="submit" disabled={!newMessage.trim() || isSending}>
-                        {isSending ? 'Sending...' : <Send className="h-4 w-4" />}
-                      </Button>
-                    </form>
-                  </div>
-                </Card>
+                    </div>
+                  </Card>
+                </div>
               </TabsPanel>
               
               <TabsPanel value="links">
