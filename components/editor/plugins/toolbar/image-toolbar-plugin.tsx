@@ -17,7 +17,7 @@ export function ImageToolbarPlugin() {
         ))
       }}
       variant={"outline"}
-      size={"icon-sm"}
+      size={"icon"}
       className=""
     >
       <ImageIcon className="size-4" />
