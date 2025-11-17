@@ -80,15 +80,7 @@ async function getGoogleClassroomData(userId: string) {
     return { classes, homeworks, tests: [] };
 }
 
-export async function getDashboardData() {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-        return { user: null, classes: [], homeworks: [], tests: [] };
-    }
-
-    const user = session.user;
+export async function getDashboardData(supabase: any, user: any) {
     const isGoogleUser = user.app_metadata?.provider === 'google';
 
     let data;

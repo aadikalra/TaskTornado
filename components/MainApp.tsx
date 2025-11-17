@@ -220,7 +220,7 @@ const MainApp = () => {
   const [showAddTest, setShowAddTest] = useState(false);
   const [showMarkTestAsTakenModal, setShowMarkTestAsTakenModal] = useState(false);
   const [testToMark, setTestToMark] = useState<{ id: string; title: string } | null>(null);
-  const [areAnimationsPaused, setAreAnimationsPaused] = useState(false);
+  const [areAnimationsPaused, setAreAnimationsPaused] = useState(true);
 
   const toggleAnimations = () => {
     setAreAnimationsPaused(prevState => !prevState);

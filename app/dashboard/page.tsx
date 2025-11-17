@@ -1,37 +1,28 @@
-'use client';
+import { getDashboardData } from '@/lib/data-loader';
+import DashboardClient from './DashboardClient';
+import { createClient } from '@/lib/supabase/server';
+import { Class, Homework, Test } from '@/context/ClassContext';
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState } from 'react';
-import MainApp from '@/components/MainApp';
-import { ToastProvider } from '@/context/ToastContext';
-import { GamificationProvider } from '@/context/GamificationContext';
-import { useClassContext } from '@/context/ClassContext';
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
 
-export default function DashboardPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const { classes, homeworks, loading: classLoading } = useClassContext();
+  let initialClasses: Class[] = [];
+  let initialHomeworks: Homework[] = [];
+  let initialTests: Test[] = [];
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
-
-  if (authLoading || !user || classLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary dark:border-blue-400" />
-      </div>
-    );
+  if (session) {
+    const { classes, homeworks, tests } = await getDashboardData(supabase, session.user);
+    initialClasses = classes;
+    initialHomeworks = homeworks;
+    initialTests = tests;
   }
 
   return (
-    <ToastProvider>
-      <GamificationProvider homeworks={homeworks} classes={classes}>
-        <MainApp />
-      </GamificationProvider>
-    </ToastProvider>
+    <DashboardClient
+      initialClasses={initialClasses}
+      initialHomeworks={initialHomeworks}
+      initialTests={initialTests}
+    />
   );
 }

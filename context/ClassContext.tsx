@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
 import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
-import { getGoogleClassroomCourses, getAllGoogleClassroomCourseWork } from '@/lib/services/GoogleClassroomService';
+ 
 import Cookies from 'js-cookie';
 
 // Predefined color palette for consistent class colors
@@ -37,7 +37,7 @@ const generateConsistentColor = (id: string) => {
 
 
 // Type for Lucide icon names
-type LucideIconName = keyof typeof import('lucide-react');
+export type LucideIconName = keyof typeof import('lucide-react');
 
 export type Class = Omit<Database['public']['Tables']['classes']['Row'], 'icon'> & {
   icon: LucideIconName;
@@ -136,16 +136,20 @@ interface ClassContextType {
 
 const ClassContext = createContext<ClassContextType | undefined>(undefined);
 
-export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
+export const ClassProvider = ({ children, initialClasses, initialHomeworks, initialTests }: { children: React.ReactNode; initialClasses?: Class[]; initialHomeworks?: Homework[]; initialTests?: Test[] }) => {
   const { user, isGoogleUser } = useAuth();
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [homeworks, setHomeworks] = useState<Homework[]>([]);
-  const [tests, setTests] = useState<Test[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [classes, setClasses] = useState<Class[]>(initialClasses ?? []);
+  const [homeworks, setHomeworks] = useState<Homework[]>(initialHomeworks ?? []);
+  const [tests, setTests] = useState<Test[]>(initialTests ?? []);
+  const [loading, setLoading] = useState(!(initialClasses || initialHomeworks || initialTests) ? true : false);
   const [error, setError] = useState<string | null>(null);
 
   // Track if we've already loaded data to prevent unnecessary refetches
-  const hasLoaded = useRef(false);
+  const hasLoaded = useRef<boolean>(
+    (initialClasses && initialClasses.length > 0) ||
+    (initialHomeworks && initialHomeworks.length > 0) ||
+    (initialTests && initialTests.length > 0)
+  );
 
   // Function to check if current route needs class/homework data
   const needsClassData = useCallback(() => {
@@ -176,85 +180,7 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
     setError(null);
 
     try {
-      if (isGoogleUser) {
-        // Use Google Classroom API for Google users
-        console.log('Fetching Google Classroom data...');
-
-        const [courses, allCourseWork] = await Promise.all([
-          getGoogleClassroomCourses(),
-          getAllGoogleClassroomCourseWork()
-        ]);
-
-        console.log('Fetched Google Classroom courses:', courses.length);
-        console.log('Fetched Google Classroom coursework:', allCourseWork.length);
-
-        // Transform Google Classroom courses to our Class format
-        const transformedClasses: Class[] = courses.map((course, index) => ({
-          id: course.id || `gc-${index}`,
-          name: course.name || 'Unknown Course',
-          icon: 'BookOpen' as LucideIconName, // Default icon for Google Classroom courses
-          color: generateConsistentColor(course.id || `gc-${index}`),
-          user_id: user.id,
-          created_at: course.creationTime || new Date().toISOString(),
-          updated_at: course.updateTime || new Date().toISOString()
-        }));
-
-        // Transform Google Classroom coursework to our Homework format
-        const transformedHomeworks: Homework[] = [];
-        allCourseWork.forEach(({ courseId, courseName, work }) => {
-          work.forEach((courseWork) => {
-            if (courseWork.dueDate) {
-              const dueDate = new Date(
-                courseWork.dueDate.year || new Date().getFullYear(),
-                (courseWork.dueDate.month || 1) - 1, // Month is 1-indexed in API
-                courseWork.dueDate.day || 1
-              );
-
-              // Add due time if available
-              if (courseWork.dueTime) {
-                dueDate.setHours(
-                  courseWork.dueTime.hours || 0,
-                  courseWork.dueTime.minutes || 0,
-                  courseWork.dueTime.seconds || 0
-                );
-              }
-
-              transformedHomeworks.push({
-                id: courseWork.id || `gc-${Date.now()}-${Math.random()}`,
-                user_id: user.id,
-                classId: courseId,
-                title: courseWork.title || 'Untitled Assignment',
-                description: courseWork.description || '',
-                dueDate: dueDate.toISOString(),
-                priority: 'medium',
-                completed: false,
-                pinned: false,
-                links: [],
-                created_at: courseWork.creationTime || new Date().toISOString(),
-                updated_at: courseWork.updateTime || new Date().toISOString(),
-                recurring_id: null,
-                recurring_frequency: null,
-                recurring_end_date: null,
-                recurring_max_occurrences: null,
-                parent_recurring_id: null,
-                is_recurring_instance: false
-              });
-            }
-          });
-        });
-
-        setClasses(transformedClasses);
-        setHomeworks(transformedHomeworks);
-
-        // Store class colors in a cookie
-        const colorMap = transformedClasses.reduce((acc, cls) => {
-          if (cls.id && cls.color) {
-            acc[cls.id] = cls.color;
-          }
-          return acc;
-        }, {} as { [key: string]: string });
-        Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
-      } else {
+      if (!isGoogleUser) {
         // Use Supabase API for regular users
         console.log('Fetching Supabase data...');
         const [classesData, homeworksData, testsData] = await Promise.all([
@@ -591,10 +517,9 @@ export const ClassProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Initial data fetch
     const initialize = async () => {
-      hasLoaded.current = false;
-      await fetchData();
-
-      // Only set up subscriptions if the route needs class data
+      if (!hasLoaded.current) {
+        await fetchData();
+      }
       if (needsClassData()) {
         await setupSubscriptions();
       }
