@@ -56,7 +56,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     <>
       <Analytics />
       <div className="min-h-screen flex flex-col" onContextMenu={handleContextMenu}>
-        {/* Navbar and SearchBar components are kept in code but not rendered */}
+        {/* SearchBar - rendered globally so it can be opened from anywhere */}
+        <SearchBar />
         <main className="flex-1 bg-transparent pb-24 md:pb-0">
           {children}
         </main>

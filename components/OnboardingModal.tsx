@@ -334,11 +334,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 <button
                   key={grade}
                   onClick={() => handleGradeSelect(grade)}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    selectedGrade === grade
-                      ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${selectedGrade === grade
+                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
                 >
                   <div className="text-lg font-semibold">Grade {grade}</div>
                 </button>
@@ -391,11 +390,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 <button
                   key={language}
                   onClick={() => handleLanguageSelect(language)}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    selectedLanguage === language
-                      ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${selectedLanguage === language
+                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
                 >
                   <div className="text-lg font-semibold">{language}</div>
                 </button>
@@ -419,11 +417,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             <div className="space-y-3">
               <button
                 onClick={() => setIsMathAccelerated(true)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${
-                  isMathAccelerated
-                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${isMathAccelerated
+                  ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
               >
                 <div className="text-lg font-semibold">Yes, I'm math accelerated</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -433,11 +430,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
               <button
                 onClick={() => setIsMathAccelerated(false)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${
-                  !isMathAccelerated
-                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${!isMathAccelerated
+                  ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
               >
                 <div className="text-lg font-semibold">No, regular math level</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -465,11 +461,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 <button
                   key={level}
                   onClick={() => setMathAccelerationLevel(level)}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    mathAccelerationLevel === level
-                      ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${mathAccelerationLevel === level
+                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
                 >
                   <div className="text-lg font-semibold">{level} grade{level > 1 ? 's' : ''}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -517,11 +512,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   <button
                     key={elective.name}
                     onClick={() => handleElectiveToggle(elective.name)}
-                    className={`p-3 rounded-lg border transition-all text-left ${
-                      selectedElectives.includes(elective.name)
-                        ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
+                    className={`p-3 rounded-lg border transition-all text-left ${selectedElectives.includes(elective.name)
+                      ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <IconComponent className="w-4 h-4 flex-shrink-0" />
@@ -630,7 +624,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
@@ -662,11 +656,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           <Button
             onClick={handleBack}
             disabled={currentStep === 'grade'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              currentStep === 'grade'
-                ? ''
-                : 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${currentStep === 'grade'
+              ? ''
+              : 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
+              }`}
             variant={currentStep === 'grade' ? 'ghost' : 'default'}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -682,13 +675,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               return steps.map((step, index) => (
                 <div
                   key={step}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    step === currentStep
-                      ? 'bg-[#264f84]'
-                      : steps.indexOf(currentStep) > index
+                  className={`w-2 h-2 rounded-full transition-colors ${step === currentStep
+                    ? 'bg-[#264f84]'
+                    : steps.indexOf(currentStep) > index
                       ? 'bg-[#264f84]/60'
                       : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
+                    }`}
                 />
               ));
             })()}
@@ -710,18 +702,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               )}
             </Button>
           ) : (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  canProceed()
-                    ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+            <Button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${canProceed()
+                ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
                 }`}
-              >
-                Next
-                <ArrowRight className="w-4 h-4" animateOnHover />
-              </Button>
+            >
+              Next
+              <ArrowRight className="w-4 h-4" animateOnHover />
+            </Button>
           )}
         </div>
       </div>

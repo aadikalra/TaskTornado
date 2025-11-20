@@ -119,3 +119,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+body[style*="overflow: hidden"] .fixed-padding-adjust {
+  padding-right: var(--removed-body-scroll-bar-size, 0px);
+}

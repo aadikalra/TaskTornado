@@ -104,6 +104,7 @@ export class RecurringHomeworkService {
     userId: string,
     classId: string,
     title: string,
+    description: string,
     dueDate: Date,
     priority: string,
     links: HomeworkLink[],
@@ -120,7 +121,7 @@ export class RecurringHomeworkService {
 
     const homeworkData: any = {
       title,
-      description: '', // Add empty description by default
+      description: description || '', // Use provided description or empty string
       due_date: formattedDueDate,
       priority: priorityString,
       class_id: classId,

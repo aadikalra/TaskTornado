@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowUpRight, Plus, FileText, BarChart2, Signal, Star, Layers, Wrench, Shield, Box, TrendingUp, BookOpen, CalendarDays, ClipboardList, Bell, Check, Factory, BarChart3, MoreVertical, ArrowUp, Sparkles, MessageSquare, CheckCircle, ShieldAlert, CheckCircle2, Users, Clock, Brain, Image as ImageIcon } from 'lucide-react';
+import { ArrowUpRight, Plus, FileText, BarChart2, Signal, Star, Layers, Wrench, Shield, Box, TrendingUp, BookOpen, CalendarDays, ClipboardList, Bell, Check, Factory, BarChart3, MoreVertical, ArrowUp, Sparkles, MessageSquare, CheckCircle, ShieldAlert, CheckCircle2, Users, Clock, Brain, Image as ImageIcon, Zap } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import LandingNavbar from '@/components/LandingNavbar';
 import Hero from './Hero';
@@ -19,7 +19,7 @@ export default function LandingPage() {
       return Math.random() * (max - min) + min;
     }
 
-    const interval: any = setInterval(function() {
+    const interval: any = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -28,7 +28,6 @@ export default function LandingPage() {
 
       const particleCount = 50 * (timeLeft / duration);
 
-      // since particles fall down, start a bit higher than random
       confetti(Object.assign({}, defaults, {
         particleCount,
         origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
@@ -43,105 +42,142 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F8FBF9] dark:bg-gray-900 overflow-x-hidden font-sans pt-12">
-      {/* Background Gradient */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#E6F5D8] via-[#F8FBF9] to-[#F8FBF9] dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 -z-10" />
+    <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans">
+      <LandingNavbar />
 
-      <LandingNavbar/>
-
-      {/* Beta Banner */}
-      <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-3 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 text-sm font-medium">
-          <Sparkles className="w-4 h-4" />
-          <span>v.1 Just Released. In public beta!!</span>
-          <Link
-            href="/changelog"
-            className="underline hover:no-underline flex items-center gap-1 ml-2"
+      {/* Clean Beta Banner */}
+      <div className="bg-[#275085] dark:bg-[#1f3f6b] mt-16">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 py-3 px-4">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200 }}
+            className="flex items-center gap-3 text-white"
           >
-            see more
-            <ArrowUpRight className="w-3 h-3" />
-          </Link>
+            <Sparkles className="w-4 h-4" />
+            <span className="text-sm font-medium">v1.0 Just Released — Public Beta Now Live!</span>
+            <Link
+              href="/changelog"
+              className="flex items-center gap-1 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-xs font-medium transition-colors"
+            >
+              Learn More
+              <ArrowUpRight className="w-3 h-3" />
+            </Link>
+          </motion.div>
         </div>
       </div>
 
       {/* Hero Section */}
-      <Hero/>
+      <Hero />
 
-      {/* Services Section */}
-      <section id="features" className="min-h-screen flex items-center bg-[#0d363c] dark:bg-gray-800 text-white py-20">
-        <div className="w-full">
-          <div className="max-w-5xl mx-auto text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 text-white">Everything You Need to Succeed</h2>
-            <p className="text-gray-400 dark:text-gray-300 text-xl max-w-3xl mx-auto">Powerful tools designed for serious students, from homework tracking to AI-powered assistance.</p>
+      {/* Clean Services Section */}
+      <section id="features" className="py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-3xl mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+                Features
+              </span>
+              <h2 className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+                Everything you need to excel
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400">
+                Powerful tools designed for students who want to stay organized and achieve more.
+              </p>
+            </motion.div>
           </div>
 
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
-            {/* Feature Card 1 */}
-            <ServiceCard
-              icon={<MessageSquare className="w-6 h-6 stroke-1" />}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <CleanServiceCard
+              icon={<MessageSquare className="w-6 h-6" />}
               title="AI Study Assistant"
               description="Get instant help with homework, explanations, and study guidance powered by advanced AI technology."
+              delay={0}
             />
 
-            {/* Feature Card 2 */}
-            <ServiceCard
-              icon={<ClipboardList className="w-6 h-6 stroke-1" />}
+            <CleanServiceCard
+              icon={<ClipboardList className="w-6 h-6" />}
               title="Homework Tracker"
               description="Organize assignments with priority levels, due dates, and progress tracking for all your classes."
+              delay={0.1}
             />
 
-            {/* Feature Card 3 */}
-            <ServiceCard
-              icon={<BookOpen className="w-6 h-6 stroke-1" />}
+            <CleanServiceCard
+              icon={<BookOpen className="w-6 h-6" />}
               title="Flashcard System"
               description="Create, study, and master subjects with our intelligent flashcard system and spaced repetition."
+              delay={0.2}
             />
 
-            {/* Feature Card 4 */}
-            <ServiceCard
-              icon={<Users className="w-6 h-6 stroke-1" />}
+            <CleanServiceCard
+              icon={<Users className="w-6 h-6" />}
               title="Group Chats"
               description="Collaborate with classmates, share resources, and study together in virtual study rooms."
+              delay={0.3}
             />
 
-            {/* Feature Card 5 */}
-            <ServiceCard
-              icon={<Clock className="w-6 h-6 stroke-1" />}
+            <CleanServiceCard
+              icon={<Clock className="w-6 h-6" />}
               title="Study Timer"
               description="Track your study sessions with customizable timers and productivity analytics."
+              delay={0.4}
             />
 
-            {/* Feature Card 6 */}
-            <ServiceCard
-              icon={<CalendarDays className="w-6 h-6 stroke-1" />}
+            <CleanServiceCard
+              icon={<CalendarDays className="w-6 h-6" />}
               title="Calendar Integration"
               description="Sync assignments and deadlines with your calendar to never miss important dates."
+              delay={0.5}
             />
           </div>
         </div>
       </section>
 
-      {/* AI Features Section */}
-      <section id="ai-assistant" className="pt-16 pb-16 bg-gradient-to-b from-white to-teal-50 dark:from-gray-800 dark:to-gray-900">
+      {/* Clean AI Features Section */}
+      <section id="ai-assistant" className="py-24 bg-white dark:bg-gray-950">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              AI-Powered Study Assistant
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Get instant help with your studies using our advanced AI assistant
-            </p>
+          <div className="max-w-3xl mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+                AI Assistant
+              </span>
+              <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                Your personal AI study companion
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400">
+                Get instant, intelligent help with your studies using our advanced AI assistant
+              </p>
+            </motion.div>
           </div>
 
           {/* AI Commands Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-16 border border-gray-100 dark:border-gray-700">
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="md:w-1/2">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">AI Assistant Commands</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 md:p-12 mb-16 border border-gray-200 dark:border-gray-800"
+          >
+            <div className="flex flex-col lg:flex-row gap-12">
+              <div className="lg:w-1/2">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-[#275085] dark:bg-[#1f3f6b] rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">AI Commands</h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-8">
                   Use these special commands to quickly access powerful features:
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {[
                     {
                       command: '@homework',
@@ -169,257 +205,313 @@ export default function LandingPage() {
                       example: '@therapist I\'m feeling overwhelmed'
                     }
                   ].map((item, index) => (
-                    <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600">
-                      <div className="font-mono text-teal-600 dark:text-teal-400 font-medium mb-1">{item.command}</div>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-1">{item.description}</p>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-[#275085]/50 dark:hover:border-[#275085]/70 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-1 bg-[#275085] dark:bg-[#1f3f6b] text-white text-xs font-mono font-semibold rounded">
+                          {item.command}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm mb-2">{item.description}</p>
+                      <div className="text-xs text-gray-500 dark:text-gray-500 font-mono bg-gray-100 dark:bg-gray-900 px-3 py-2 rounded border border-gray-200 dark:border-gray-700">
                         {item.example}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
-              <div className="md:w-1/2 bg-gray-50 dark:bg-gray-700 rounded-xl p-6 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 mb-4">
-                    <MessageSquare className="w-8 h-8" />
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Try it out!</h4>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    Open the AI Assistant and type any of these commands to get started.
-                  </p>
-                  <a
-                    href="/signin"
-                    className="inline-flex items-center px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    Sign In to Get Started
-                    <ArrowUpRight className="w-4 h-4 ml-2" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* AI Feature 1 */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-6">
-                <MessageSquare className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Interactive Chat</h3>
-              <p className="text-gray-600 dark:text-gray-300">Get instant answers to your questions and explanations for difficult concepts with our AI tutor.</p>
-            </div>
-
-            {/* AI Feature 2 */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-6">
-                <Brain className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Smart AI Models</h3>
-              <p className="text-gray-600 dark:text-gray-300">Choose between Quick mode (Gemma) for fast responses or Deep mode (Gemini) for more thoughtful analysis.</p>
-            </div>
-
-            {/* AI Feature 3 */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-6">
-                <ImageIcon className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Visual Learning</h3>
-              <p className="text-gray-600 dark:text-gray-300">Upload images of homework problems and get AI-powered explanations and solutions.</p>
-            </div>
-
-            {/* AI Feature 4 */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-6">
-                <BookOpen className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Smart Flashcards</h3>
-              <p className="text-gray-600 dark:text-gray-300">Generate and study with AI-created flashcards that adapt to your learning progress.</p>
-            </div>
-
-            {/* AI Feature 5 */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-6">
-                <CheckCircle className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Rate Limits</h3>
-              <p className="text-gray-600 dark:text-gray-300">Daily usage limits ensure fair access - 30 messages in Quick mode, 10 in Deep mode per day.</p>
-            </div>
-
-            {/* AI Feature 6 */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center mb-6">
-                <Sparkles className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Therapist Mode</h3>
-              <p className="text-gray-600 dark:text-gray-300">Access mental health support and stress management guidance when you need it most.</p>
-            </div>
-          </div>
-
-          <div className="mt-12 bg-teal-50 dark:bg-teal-900/20 rounded-2xl p-8 md:p-12 border border-teal-100 dark:border-teal-800">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="md:w-1/2">
-                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">Try Our AI Tutor</h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    Experience the future of learning with our AI-powered tutor. Get instant help with homework, exam prep, and concept explanations.
-                  </p>
-                  <ul className="space-y-3 mb-8">
-                    {[
-                      '24/7 availability',
-                      'Personalized learning',
-                      'Instant feedback',
-                      'Multi-subject support'
-                    ].map((feature, i) => (
-                      <li key={i} className="flex items-center">
-                        <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-500 mt-0.5 mr-2" />
-                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href="/login"
-                    className="bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors inline-flex items-center cursor-pointer"
-                  >
-                    Sign In to Get Started
-                  </Link>
-                </div>
-                <div className="md:w-1/2 mt-8 md:mt-0">
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-teal-700 dark:text-teal-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">AI Tutor</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
-                      </div>
+              <div className="lg:w-1/2 flex items-center">
+                <div className="w-full bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700">
+                  <div className="text-center space-y-6">
+                    <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-xl bg-[#275085] dark:bg-[#1f3f6b] text-white">
+                      <Sparkles className="w-8 h-8" />
                     </div>
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                        <p className="text-sm text-gray-700 dark:text-gray-300">How can I help with your studies today?</p>
-                      </div>
-                      <div className="bg-teal-50 dark:bg-teal-900/20 p-3 rounded-lg border border-teal-100 dark:border-teal-800">
-                        <p className="text-sm text-gray-700 dark:text-gray-300">I can help explain concepts, create study materials, or help with homework. Just ask me anything!</p>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Ask me anything..."
-                        className="flex-1 text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                      />
-                      <button className="p-2.5 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-600 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors">
-                        <ArrowUp className="w-5 h-5" />
-                      </button>
-                    </div>
+
+                    <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      Ready to get started?
+                    </h4>
+
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Launch the AI assistant and upgrade your workflow instantly.
+                    </p>
+
+                    <Link
+                      href="/signin"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white font-medium transition-colors"
+                    >
+                      Sign In
+                      <ArrowUpRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* AI Guidelines Mini-Section */}
-      <section className="py-16 bg-white dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-900/30 mb-5 border border-teal-100 dark:border-teal-800">
-            <ShieldAlert className="w-6 h-6 text-teal-700 dark:text-teal-600" />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Responsible AI Use</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto text-lg">
-            We're committed to ethical AI that enhances learning while maintaining academic integrity.
-            Our AI tools are designed to support your education, not replace your learning journey.
-          </p>
-          <a
-            href="/ai-guidelines"
-            className="inline-flex items-center px-6 py-3 text-sm font-medium text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg border border-teal-200 dark:border-teal-700 transition-colors"
-          >
-            Read our AI Guidelines
-            <ArrowUpRight className="w-4 h-4 ml-1.5" />
-          </a>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
-
-      {/* Features Section */}
-      <section id="pricing" className="py-20 bg-gray-900 dark:bg-gray-800 text-white">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-teal-900/30 text-teal-400 mb-4 border border-teal-500/30">
-              <Sparkles className="w-4 h-4 mr-2" />
-              All Features Included
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-              Everything You Need to Succeed
-            </h2>
-            <p className="text-gray-400 dark:text-gray-300 text-xl">
-              All features are completely free, forever. No hidden fees, no premium paywalls.
-            </p>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* AI Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: <BookOpen className="w-6 h-6 text-teal-400" />,
+                icon: <MessageSquare className="w-6 h-6" />,
+                title: "Interactive Chat",
+                description: "Get instant answers to your questions and explanations for difficult concepts with our AI tutor."
+              },
+              {
+                icon: <Brain className="w-6 h-6" />,
+                title: "Smart AI Models",
+                description: "Choose between Quick mode (Gemma) for fast responses or Deep mode (Gemini) for thoughtful analysis."
+              },
+              {
+                icon: <ImageIcon className="w-6 h-6" />,
+                title: "Visual Learning",
+                description: "Upload images of homework problems and get AI-powered explanations and solutions."
+              },
+              {
+                icon: <BookOpen className="w-6 h-6" />,
+                title: "Smart Flashcards",
+                description: "Generate and study with AI-created flashcards that adapt to your learning progress."
+              },
+              {
+                icon: <CheckCircle className="w-6 h-6" />,
+                title: "Fair Usage",
+                description: "Daily limits ensure fair access - 30 messages in Quick mode, 10 in Deep mode per day."
+              },
+              {
+                icon: <Sparkles className="w-6 h-6" />,
+                title: "Therapist Mode",
+                description: "Access mental health support and stress management guidance when you need it most."
+              }
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+              >
+                <div className="w-12 h-12 bg-[#275085] dark:bg-[#1f3f6b] rounded-lg flex items-center justify-center mb-4 text-white">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="bg-[#275085] dark:bg-[#1f3f6b] rounded-2xl overflow-hidden"
+          >
+            <div className="p-12 md:p-16">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex flex-col lg:flex-row items-center gap-12">
+                  <div className="lg:w-1/2 text-white">
+                    <h3 className="text-4xl font-bold mb-6">Experience AI-powered learning</h3>
+                    <p className="text-white/90 text-lg mb-8 leading-relaxed">
+                      Transform your study routine with our intelligent AI tutor. Get instant help, personalized feedback, and support whenever you need it.
+                    </p>
+                    <ul className="space-y-3 mb-10">
+                      {[
+                        '24/7 AI assistance',
+                        'Personalized learning paths',
+                        'Instant feedback & explanations',
+                        'Multi-subject expertise'
+                      ].map((feature, i) => (
+                        <motion.li
+                          key={i}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.1 }}
+                          className="flex items-center text-white/90"
+                        >
+                          <Check className="w-5 h-5 mr-3" />
+                          <span>{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center px-8 py-3 bg-white text-[#275085] font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Start Learning Now
+                      <ArrowUpRight className="w-5 h-5 ml-2" />
+                    </Link>
+                  </div>
+
+                  <div className="lg:w-1/2">
+                    <div className="bg-white/10 dark:bg-black/20 backdrop-blur-sm p-6 rounded-xl border border-white/20 dark:border-white/10">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gray-100 flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-[#275085] dark:text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-white">AI Study Assistant</h4>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                            <p className="text-xs text-white/90">Online & Ready</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="bg-white/20 dark:bg-black/30 backdrop-blur-sm p-3 rounded-lg">
+                          <p className="text-white dark:text-gray-100 text-sm">How can I help with your studies today?</p>
+                        </div>
+                        <div className="bg-white/30 dark:bg-black/40 backdrop-blur-sm p-3 rounded-lg">
+                          <p className="text-white dark:text-gray-100 text-sm">I can explain concepts, create study materials, solve problems, and more.</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Ask me anything..."
+                          className="flex-1 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 text-sm text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        />
+                        <button className="p-2 bg-white/30 hover:bg-white/40 backdrop-blur-sm text-white rounded-lg transition-colors">
+                          <ArrowUp className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* AI Guidelines Section */}
+      <section className="py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[#275085] dark:bg-[#1f3f6b] mb-6">
+              <ShieldAlert className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Ethical AI use</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto text-lg">
+              We're committed to responsible AI that enhances learning while maintaining academic integrity.
+              Our tools are designed to support your education, not replace your learning journey.
+            </p>
+            <Link
+              href="/ai-guidelines"
+              className="inline-flex items-center px-6 py-3 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white font-medium rounded-lg transition-colors"
+            >
+              Read Our AI Guidelines
+              <ArrowUpRight className="w-4 h-4 ml-2" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-3xl mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+                Free Forever
+              </span>
+              <h2 className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+                All features included
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400">
+                No hidden fees, no premium tiers, no paywalls. Everything you need to succeed.
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
+            {[
+              {
+                icon: <BookOpen className="w-6 h-6" />,
                 title: "Unlimited Classes",
                 description: "Track all your courses without any limits."
               },
               {
-                icon: <CalendarDays className="w-6 h-6 text-teal-400" />,
+                icon: <CalendarDays className="w-6 h-6" />,
                 title: "Smart Planner",
                 description: "Never miss an assignment or exam date."
               },
               {
-                icon: <MessageSquare className="w-6 h-6 text-teal-400" />,
+                icon: <MessageSquare className="w-6 h-6" />,
                 title: "AI Study Assistant",
                 description: "Get help with homework and study questions."
               },
               {
-                icon: <BarChart2 className="w-6 h-6 text-teal-400" />,
+                icon: <BarChart2 className="w-6 h-6" />,
                 title: "Progress Tracking",
                 description: "Visualize your academic performance."
               },
               {
-                icon: <ClipboardList className="w-6 h-6 text-teal-400" />,
+                icon: <ClipboardList className="w-6 h-6" />,
                 title: "Assignment Manager",
                 description: "Keep all your work organized in one place."
               },
               {
-                icon: <Bell className="w-6 h-6 text-teal-400" />,
+                icon: <Bell className="w-6 h-6" />,
                 title: "Smart Reminders",
                 description: "Get notified about upcoming deadlines."
               }
             ].map((feature, index) => (
-              <div key={index} className="bg-gray-800/50 dark:bg-gray-700/50 p-6 rounded-xl border border-gray-700/50 dark:border-gray-600/50 hover:border-teal-500/30 transition-colors">
-                <div className="w-12 h-12 rounded-lg bg-teal-900/30 flex items-center justify-center mb-4">
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+              >
+                <div className="w-12 h-12 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center mb-4 text-white">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                <p className="text-gray-400 dark:text-gray-300">{feature.description}</p>
-              </div>
+                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{feature.description}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-800 pt-12 pb-6 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 flex items-center justify-center mb-4">
-              <img src="/favicon-32x32.png" alt="SchoolOrganizer Logo" className="w-10 h-10" />
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 max-w-md mb-6">
-              Helping students stay organized and on top of their academic journey.
+      <footer className="bg-gray-50 dark:bg-gray-900 pt-16 pb-8 px-6 border-t border-gray-200 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[#275085] dark:bg-[#1f3f6b] mb-4"
+            >
+              <img src="/TaskTornadoDark.svg" alt="Task Tornado Logo" className="w-8 h-8" />
+            </motion.div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Task Tornado</h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+              Empowering students to achieve their full potential through intelligent organization and AI-powered assistance.
             </p>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              {new Date().getFullYear()} SchoolOrganizer. All rights reserved
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-800 pt-6 text-center">
+            <p className="text-gray-500 dark:text-gray-500 text-sm">
+              © {new Date().getFullYear()} Task Tornado. All rights reserved.
             </p>
           </div>
         </div>
@@ -428,36 +520,45 @@ export default function LandingPage() {
   );
 }
 
-// Service Card Component
-function ServiceCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+// Clean Service Card Component
+function CleanServiceCard({ icon, title, description, delay }: {
+  icon: React.ReactNode,
+  title: string,
+  description: string,
+  delay: number
+}) {
   return (
-    <div className="bg-[#143e44] dark:bg-gray-700 p-8 rounded-xl hover:bg-opacity-90 dark:hover:bg-gray-600 transition-all duration-300 cursor-pointer group h-72 flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5 }}
+      className="group bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+    >
       <div className="flex justify-between items-start mb-4">
-        <div className="text-white">
+        <div className="w-12 h-12 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center text-white">
           {icon}
         </div>
-        <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+        <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
       </div>
-      <h3 className="text-2xl font-semibold mb-4 text-white">{title}</h3>
-      <p className="text-gray-400 dark:text-gray-300 text-base flex-grow">{description}</p>
-    </div>
+      <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{description}</p>
+    </motion.div>
   );
 }
 
 function HoverCheckButton({ href, text }: { href: string; text: string }) {
   const [hovered, setHovered] = React.useState(false);
 
-  const messages = ["Good Job!", "CLICK!", "100% Free!", "Nice!"];
+  const messages = ["Let's Go!", "CLICK!", "100% Free!", "Nice!"];
 
-  // Predefined positions around the button
   const positions = [
-    { x: -40, y: -44 }, // top-left
-    { x: 40, y: -44 },  // top-right
-    { x: -40, y: 44 },  // bottom-left
-    { x: 40, y: 44 },   // bottom-right
+    { x: -40, y: -44 },
+    { x: 40, y: -44 },
+    { x: -40, y: 44 },
+    { x: 40, y: 44 },
   ];
 
-  // Randomly assign each message to a position
   const assignedPositions = React.useMemo(() => {
     const shuffled = positions.sort(() => 0.5 - Math.random());
     return messages.map((msg, i) => ({
@@ -470,7 +571,7 @@ function HoverCheckButton({ href, text }: { href: string; text: string }) {
     <div className="relative flex items-center">
       <Link
         href={href}
-        className="px-8 py-3 bg-teal-800 text-white font-medium rounded-full hover:bg-teal-900 transition-colors text-center flex items-center justify-center relative z-10"
+        className="px-8 py-3 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white font-semibold rounded-lg transition-colors text-center flex items-center justify-center relative z-10"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -480,7 +581,6 @@ function HoverCheckButton({ href, text }: { href: string; text: string }) {
       <AnimatePresence>
         {hovered && (
           <>
-            {/* Floating encouragement bubbles in pre-programmed positions */}
             {assignedPositions.map(({ msg, pos }, i) => (
               <motion.div
                 key={msg}
@@ -488,7 +588,7 @@ function HoverCheckButton({ href, text }: { href: string; text: string }) {
                 animate={{ opacity: 1, x: pos.x, y: pos.y, scale: 1 }}
                 exit={{ opacity: 0, x: pos.x, y: pos.y - 10, scale: 0 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: i * 0.1 }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-1 bg-teal-100 text-teal-800 text-xs rounded-full font-semibold shadow-md"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#275085] text-white text-xs rounded-md font-semibold"
               >
                 {msg}
               </motion.div>

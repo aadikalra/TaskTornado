@@ -65,7 +65,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
 
     try {
       setIsSaving(true);
-      
+
       const deckData = {
         title: deckTitle,
         description: `Flashcards about ${cards[0]?.topic || 'various topics'}`,
@@ -77,13 +77,13 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
       };
 
       const savedDeck = await flashcardService.createDeck(user.id, deckData);
-      
+
       toast.success('Flashcard deck saved successfully!');
-      
+
       if (onSave) {
         onSave(cards);
       }
-      
+
       // Close the save dialog
       setShowSaveDialog(false);
     } catch (error) {
@@ -178,7 +178,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -189,7 +189,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
             <FlipHorizontal className="h-4 w-4 mr-2" />
             {isFlipped ? 'Show Question' : 'Show Answer'}
           </Button>
-          
+
           {onSave && (
             <>
               <Button
@@ -211,26 +211,26 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
                   </>
                 )}
               </Button>
-              
+
               {/* Save Deck Dialog */}
               {showSaveDialog && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
                     <h3 className="text-lg font-semibold mb-4">Save Flashcard Deck</h3>
                     <div className="space-y-4">
                       <div>
-                            <label htmlFor="deckTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Deck Title
-                            </label>
-                            <input
-                              type="text"
-                              id="deckTitle"
-                              value={deckTitle}
-                              onChange={(e) => setDeckTitle(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                              placeholder="Enter a title for your deck"
-                            />
-                          </div>
+                        <label htmlFor="deckTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Deck Title
+                        </label>
+                        <input
+                          type="text"
+                          id="deckTitle"
+                          value={deckTitle}
+                          onChange={(e) => setDeckTitle(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                          placeholder="Enter a title for your deck"
+                        />
+                      </div>
                       <div className="flex justify-end space-x-3 pt-2">
                         <Button
                           variant="outline"
@@ -272,7 +272,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
-      
+
       <div className="text-sm text-muted-foreground">
         Card {currentIndex + 1} of {cards.length}
       </div>

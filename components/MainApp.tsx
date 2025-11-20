@@ -622,7 +622,8 @@ const MainApp = () => {
           newHomework.dueDate,
           newHomework.priority as Priority,
           newHomework.links,
-          recurringConfig
+          recurringConfig,
+          newHomework.description
         );
 
         success(
@@ -636,7 +637,8 @@ const MainApp = () => {
           newHomework.title,
           newHomework.dueDate,
           newHomework.priority as Priority,
-          newHomework.links
+          newHomework.links,
+          newHomework.description
         );
 
         success(
@@ -936,43 +938,41 @@ const MainApp = () => {
         </div>
         {/* Pinned Homeworks */}
         <div className="mb-10">
-<div
-  className="flex justify-between items-center mb-4 cursor-pointer group"
-  onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
->
-  <div>
-    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-      Pinned Homeworks
-    </h2>
-    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
-  </div>
-  <div className="flex items-center space-x-3">
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={(e) => {
-        e.stopPropagation();
-        setShowPinHomeworkModal(true);
-      }}
-      className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
-      title="Select homework to pin"
-    >
-      <Plus className="mr-2 h-4 w-4" />
-      Pin Homework
-    </Button>
-    <div 
-      className={`p-2 rounded-lg transition-all duration-500 ${
-        showPinnedHomeworks 
-          ? 'rotate-90 bg-[#264f84] dark:bg-blue-500' 
-          : 'rotate-0 bg-gray-200 dark:bg-gray-700'
-      }`}
-    >
-      <ChevronRight className={`h-5 w-5 transition-colors ${
-        showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-      }`} />
-    </div>
-  </div>
-</div>
+          <div
+            className="flex justify-between items-center mb-4 cursor-pointer group"
+            onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
+          >
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                Pinned Homeworks
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPinHomeworkModal(true);
+                }}
+                className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                title="Select homework to pin"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Pin Homework
+              </Button>
+              <div
+                className={`p-2 rounded-lg transition-all duration-500 ${showPinnedHomeworks
+                  ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                  : 'rotate-0 bg-gray-200 dark:bg-gray-700'
+                  }`}
+              >
+                <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                  }`} />
+              </div>
+            </div>
+          </div>
           <div
             className={`overflow-hidden transition-all duration-700 ease-in-out ${showPinnedHomeworks
               ? 'max-h-[2000px] opacity-100'
@@ -984,8 +984,8 @@ const MainApp = () => {
         </div>
 
         {/* Classes Section */}
-        <div className="mb-12">
-          <div className="mb-6">
+        <div className="mb-10">
+          <div>
             <div
               className="mb-4 cursor-pointer group"
               onClick={() => handleToggleClasses(!showClasses)}
@@ -1022,8 +1022,8 @@ const MainApp = () => {
                   </Button>
                   <div
                     className={`p-2 rounded-lg transition-all duration-500 ${showClasses
-                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-200 dark:bg-gray-700'
+                      ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                      : 'rotate-0 bg-gray-200 dark:bg-gray-700'
                       }`}
                   >
                     <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
@@ -1075,40 +1075,33 @@ const MainApp = () => {
                     className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center space-x-3 w-full">
+                      <div className="flex items-center w-full gap-2 p-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <div
-                          className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0"
                           style={{ backgroundColor: getClassColor(index) }}
                         >
                           {(() => {
-                            const IconComponent = iconMap[cls.icon as keyof typeof iconMap];
-                            console.log('Rendering icon:', {
-                              className: cls.name,
-                              icon: cls.icon,
-                              exists: !!IconComponent,
-                              availableIcons: Object.keys(iconMap)
-                            });
-                            return IconComponent
-                              ? React.createElement(IconComponent, { className: 'h-5 w-5' })
-                              : React.createElement(Book, { className: 'h-5 w-5' });
+                            const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? Book;
+                            return <IconComponent className="h-4 w-4" />;
                           })()}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                            {cls.name}
-                          </h3>
-                        </div>
+
+                        <h3 className="flex-1 min-w-0 font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {cls.name}
+                        </h3>
+
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             deleteClass(cls.id);
                           }}
-                          className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 -mr-1 -mt-1 transition-colors"
+                          className="p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
                           aria-label="Delete class"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
+
                     </div>
 
                     <div className="space-y-2 mt-2">
@@ -1230,8 +1223,8 @@ const MainApp = () => {
                   </Button>
                   <div
                     className={`p-2 rounded-lg transition-all duration-500 ${showTests
-                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-200 dark:bg-gray-700'
+                      ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                      : 'rotate-0 bg-gray-200 dark:bg-gray-700'
                       }`}
                   >
                     <ChevronRight className={`h-5 w-5 transition-colors ${showTests ? 'text-white' : 'text-gray-600 dark:text-gray-400'
@@ -1276,7 +1269,7 @@ const MainApp = () => {
         </div>
         <AnimatePresence>
           {showAddClass && (
-            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1417,7 +1410,7 @@ const MainApp = () => {
         {/* Add Homework Modal */}
         <AnimatePresence>
           {showAddHomework && (
-            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1510,7 +1503,7 @@ const MainApp = () => {
                         value={newHomework.priority}
                         onValueChange={(value) => setNewHomework({ ...newHomework, priority: value as Priority })}
                       >
-                        <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
+                        <SelectTrigger className="w-full !h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                         <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>

@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase/client';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -40,7 +41,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       router.push('/dashboard');
     } catch (err) {
       setError('Failed to log in. Please check your credentials.');
@@ -125,6 +126,8 @@ export default function LoginPage() {
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="remember-me" 
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                     className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:border-gray-300 dark:data-[state=unchecked]:border-gray-600 data-[state=unchecked]:border-2"
                   />
                   <label 

@@ -51,21 +51,25 @@ function useIdMapper(sourceIds: string[]) {
   const reverseRef = useRef<Map<number, string>>(new Map());
   const nextRef = useRef<number>(1);
 
-  useEffect(() => {
+  // Update maps synchronously during render to ensure IDs are available immediately
+  useMemo(() => {
+    const map = mapRef.current;
+    const reverse = reverseRef.current;
+
     // Add new ids
     for (const sid of sourceIds) {
-      if (!mapRef.current.has(sid)) {
+      if (!map.has(sid)) {
         const nid = nextRef.current++;
-        mapRef.current.set(sid, nid);
-        reverseRef.current.set(nid, sid);
+        map.set(sid, nid);
+        reverse.set(nid, sid);
       }
     }
-    // Prune removed ids (prevents leaks across hot reloads / long sessions)
+    // Prune removed ids
     const keep = new Set(sourceIds);
-    for (const [sid, nid] of mapRef.current.entries()) {
+    for (const [sid, nid] of map.entries()) {
       if (!keep.has(sid)) {
-        mapRef.current.delete(sid);
-        reverseRef.current.delete(nid);
+        map.delete(sid);
+        reverse.delete(nid);
       }
     }
   }, [sourceIds]);
@@ -178,11 +182,10 @@ export const HomeworkPinList: React.FC<{ triggerSelectModal?: boolean }> = ({
                 e.stopPropagation();
                 onClick();
               }}
-              className={`p-1.5 rounded-full transition-colors ${
-                pinned
-                  ? 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700/50'
-              }`}
+              className={`p-1.5 rounded-full transition-colors ${pinned
+                ? 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700/50'
+                }`}
               aria-label={pinned ? 'Unpin' : 'Pin'}
             >
               {pinned ? <Pin className="w-4 h-4 fill-current" /> : <PinOff className="w-4 h-4" />}
@@ -300,18 +303,6 @@ export const HomeworkPinList: React.FC<{ triggerSelectModal?: boolean }> = ({
     <div className="space-y-4">
       {pinnedItems.length > 0 ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-              Pinned Homework ({pinnedItems.length})
-            </h3>
-            <button
-              onClick={openSelectModal}
-              className="inline-flex items-center h-9 px-3 text-sm font-medium bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-full transition-colors"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Select Homework to Pin
-            </button>
-          </div>
           <PinList items={pinnedItems} onPinToggle={handlePinToggle} />
         </div>
       ) : (
@@ -341,7 +332,7 @@ export const HomeworkPinList: React.FC<{ triggerSelectModal?: boolean }> = ({
       {/* Select Homework Modal */}
       {showSelectModal && (
         <div
-          className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]"
           onMouseDown={(e) => {
             // close when clicking on backdrop only
             if (e.target === e.currentTarget) closeSelectModal();
@@ -349,17 +340,10 @@ export const HomeworkPinList: React.FC<{ triggerSelectModal?: boolean }> = ({
         >
           <div
             ref={modalRef}
-            className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden outline-none"
+            className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden outline-none bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-white/18 dark:border-gray-700/50"
             role="dialog"
             aria-modal="true"
             aria-labelledby="select-homework-title"
-            style={{
-              background:
-                'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.18)',
-            }}
             tabIndex={-1}
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">

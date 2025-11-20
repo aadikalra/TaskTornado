@@ -6,6 +6,10 @@ import { Checkbox } from '@/components/animate-ui/radix/checkbox';
 import { FolderContent } from './(landing)/folderContent';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import DotGrid from './DotGrid';
+import {
+  RotatingText,
+  RotatingTextContainer,
+} from '@/components/animate-ui/primitives/texts/rotating';
 const colors = {
   background: '#F7F7F9',
   primaryBlue: '#0052FF',
@@ -35,10 +39,10 @@ const CheckmarkIcon = () => (
 );
 
 const ClockIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="9" stroke={colors.grayText} strokeWidth="2"/>
-        <path d="M12 7V12L15 14" stroke={colors.grayText} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9" stroke={colors.grayText} strokeWidth="2" />
+    <path d="M12 7V12L15 14" stroke={colors.grayText} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
 );
 
 // Playful Todo List Component
@@ -146,14 +150,14 @@ const AIFeatureCard = ({ icon, title, description }: { icon: React.ReactNode; ti
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
     cursor: 'pointer',
   }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = 'translateY(-2px)';
-    e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)';
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = 'translateY(0)';
-    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
-  }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+    }}
   >
     <div style={{
       fontSize: '24px',
@@ -188,6 +192,54 @@ const Hero: React.FC = () => {
   const [isMicro, setIsMicro] = React.useState(true);
   const [isMinimal, setIsMinimal] = React.useState(true);
   const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const [currentHeadlineIndex, setCurrentHeadlineIndex] = React.useState(0);
+
+  const headlines = [
+    {
+      large: ["Deadlines handled.", "Stress canceled."],
+      small: ["Deadlines handled.", "Stress canceled."]
+    },
+    {
+      large: ["Your assignments,", "always under control"],
+      small: ["Assignments,", "under control"]
+    },
+    {
+      large: ["Work less.", "Achieve more."],
+      small: ["Work less.", "Achieve more."]
+    },
+    {
+      large: ["AI that keeps you", "ahead of your class"],
+      small: ["AI that keeps you", "ahead"]
+    },
+    {
+      large: ["Forget late work.", "Forever."],
+      small: ["Forget late work.", "Forever."]
+    },
+    {
+      large: ["Your schedule, but", "supercharged"],
+      small: ["Your schedule,", "supercharged"]
+    },
+    {
+      large: ["Turn chaos into", "checkmarks"],
+      small: ["Chaos →", "checkmarks"]
+    },
+    {
+      large: ["School organization", "done right"],
+      small: ["School organization", "done right"]
+    }
+  ];
+
+  // Extract rotating text for both parts
+  const rotatingTextsFirst = headlines.map(h => h.large[0]);
+  const rotatingTextsSecond = headlines.map(h => isLarge ? h.large[1] : h.small[1]);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHeadlineIndex((prev) => (prev + 1) % headlines.length);
+    }, 10000); // Change every 4 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   React.useEffect(() => {
     const checkDimensions = () => {
@@ -249,20 +301,20 @@ const Hero: React.FC = () => {
         {/* Main Content Area */}
         <main style={styles.mainContent}>
 
-        {/* --- Floating Decorative Cards --- */}
-        {isMinimal && (
-        <div style={{
-          ...styles.floatingCard,
-          ...styles.stickyNote,
-          top: isTiny ? '8%' : '1%',
-          left: '10%'
-        }}>
-             <div style={styles.pushpin}></div>
-             <p style={styles.stickyNoteText}>Take notes to keep track of crucial details, and accomplish more tasks with ease.</p>
-        </div>
-        )}
+          {/* --- Floating Decorative Cards --- */}
+          {isMinimal && (
+            <div style={{
+              ...styles.floatingCard,
+              ...styles.stickyNote,
+              top: isTiny ? '8%' : '1%',
+              left: '10%'
+            }}>
+              <div style={styles.pushpin}></div>
+              <p style={styles.stickyNoteText}>Take notes to keep track of crucial details, and accomplish more tasks with ease.</p>
+            </div>
+          )}
           {isMedium && (
-          <div style={{...styles.floatingCard, ...styles.checkCard, top: '35%', left: '8%'}}>
+            <div style={{ ...styles.floatingCard, ...styles.checkCard, top: '35%', left: '8%' }}>
               <div style={{ transform: 'scale(2)', transformOrigin: 'center' }}>
                 <Checkbox
                   checked={isFloatingChecked}
@@ -271,54 +323,54 @@ const Hero: React.FC = () => {
                   className={`border-2 data-[state=checked]:bg-blue-500 border-blue-500 ${isFloatingChecked ? 'bg-blue-500 hover:bg-blue-600' : 'bg-transparent hover:bg-blue-50'}`}
                 />
               </div>
-          </div>
+            </div>
           )}
 
           {isDesktop && (
-          <div style={{...styles.floatingCard, ...styles.remindersCard, top: '15%', right: '8%'}}>
+            <div style={{ ...styles.floatingCard, ...styles.remindersCard, top: '15%', right: '8%' }}>
               <p style={styles.cardTitle}>Reminders</p>
               <div style={styles.meetingCard}>
-                  <ClockIcon/>
-                  <div>
-                      <p style={{ fontWeight: 500, color: colors.darkText }}>Today's Meeting</p>
-                      <p style={{ margin: 0, fontSize: 12, color: colors.grayText }}>Call with the marketing team</p>
-                  </div>
+                <ClockIcon />
+                <div>
+                  <p style={{ fontWeight: 500, color: colors.darkText }}>Today's Meeting</p>
+                  <p style={{ margin: 0, fontSize: 12, color: colors.grayText }}>Call with the marketing team</p>
+                </div>
               </div>
-               <div style={{ ...styles.meetingCard, borderTop: `1px solid ${colors.borderGray}`, paddingTop: 8 }}>
-                   <p style={{ margin: 0, fontSize: 12, color: colors.grayText }}>Time</p>
-                   <p style={{ margin: 0, fontWeight: 500, color: colors.darkText }}>13:00 - 13:45</p>
+              <div style={{ ...styles.meetingCard, borderTop: `1px solid ${colors.borderGray}`, paddingTop: 8 }}>
+                <p style={{ margin: 0, fontSize: 12, color: colors.grayText }}>Time</p>
+                <p style={{ margin: 0, fontWeight: 500, color: colors.darkText }}>13:00 - 13:45</p>
               </div>
-          </div>
+            </div>
           )}
-          
+
           {isMicro && (
-          <div style={{
-            ...styles.floatingCard,
-            ...styles.tasksCard,
-            bottom: isLarge ? '8%' : '5%',
-            left: isLarge ? '12%' : undefined,
-            right: isLarge ? undefined : '8%'
-          }}>
-              <p style={{...styles.cardTitle, position: 'relative', bottom: '-12px' }}>Today's Homework</p>
+            <div style={{
+              ...styles.floatingCard,
+              ...styles.tasksCard,
+              bottom: isLarge ? '8%' : '5%',
+              left: isLarge ? '12%' : undefined,
+              right: isLarge ? undefined : '8%'
+            }}>
+              <p style={{ ...styles.cardTitle, position: 'relative', bottom: '-12px' }}>Today's Homework</p>
               <FolderContent />
 
               {/* Folder Icon Background */}
               <div style={styles.folderBackground}>
                 <img src="/folder.svg" alt="Folder" style={styles.folderIcon} />
               </div>
-          </div>
+            </div>
           )}
 
           {isDesktop && (
-          <div style={{...styles.floatingCard, ...styles.aiFeaturesCard, bottom: '15%', right: '10%'}}>
+            <div style={{ ...styles.floatingCard, ...styles.aiFeaturesCard, bottom: '15%', right: '10%' }}>
               <p style={styles.cardTitle}>AI-Powered Features</p>
               <div style={styles.aiFeaturesGrid}>
-                  <AIFeatureCard icon={<Brain size={24} />} title="Smart Study Plans" description="AI-generated study schedules" />
-                  <AIFeatureCard icon={<BookOpen size={24} />} title="Homework Helper" description="Instant homework assistance" />
-                  <AIFeatureCard icon={<BarChart3 size={24} />} title="Progress Insights" description="AI-powered progress tracking" />
-                  <AIFeatureCard icon={<Clock size={24} />} title="Smart Reminders" description="Intelligent deadline alerts" />
+                <AIFeatureCard icon={<Brain size={24} />} title="Smart Study Plans" description="AI-generated study schedules" />
+                <AIFeatureCard icon={<BookOpen size={24} />} title="Homework Helper" description="Instant homework assistance" />
+                <AIFeatureCard icon={<BarChart3 size={24} />} title="Progress Insights" description="AI-powered progress tracking" />
+                <AIFeatureCard icon={<Clock size={24} />} title="Smart Reminders" description="Intelligent deadline alerts" />
               </div>
-          </div>
+            </div>
           )}
 
           {/* Hero Section */}
@@ -329,17 +381,51 @@ const Hero: React.FC = () => {
             <h1 style={{
               ...styles.headline,
               fontSize: isTiny ? (isLarge ? '80px' : '60px') : '11vw',
-              lineHeight: isLarge ? 1.2 : 1.3
+              lineHeight: isLarge ? 1.0 : 1.1
             }}>
               {isLarge ? (
                 <>
-                  Never miss a deadline<br />
-                  <span style={styles.headlineGray}>again</span>
+                  <RotatingTextContainer
+                    text={rotatingTextsFirst}
+                    duration={10000}
+                    y={-50}
+                    className="inline-block"
+                    style={{ ...styles.headline, display: 'inline-block' }}
+                  >
+                    <RotatingText />
+                  </RotatingTextContainer>
+                  <br />
+                  <RotatingTextContainer
+                    text={rotatingTextsSecond}
+                    duration={10000}
+                    y={-50}
+                    className="inline-block"
+                    style={{ ...styles.headlineGray, display: 'inline-block' }}
+                  >
+                    <RotatingText />
+                  </RotatingTextContainer>
                 </>
               ) : (
                 <>
-                  Never miss a<br />
-                  <span style={styles.headlineGray}>deadline again</span>
+                  <RotatingTextContainer
+                    text={rotatingTextsFirst}
+                    duration={10000}
+                    y={-50}
+                    className="inline-block"
+                    style={{ ...styles.headline, display: 'inline-block' }}
+                  >
+                    <RotatingText />
+                  </RotatingTextContainer>
+                  <br />
+                  <RotatingTextContainer
+                    text={rotatingTextsSecond}
+                    duration={10000}
+                    y={-50}
+                    className="inline-block"
+                    style={{ ...styles.headlineGray, display: 'inline-block' }}
+                  >
+                    <RotatingText />
+                  </RotatingTextContainer>
                 </>
               )}
             </h1>
@@ -355,22 +441,22 @@ const Hero: React.FC = () => {
               </Button>
             </div>
             {isLarge && (
-            <div style={styles.heroStats}>
-              <div style={styles.statItem}>
-                <span style={styles.statNumber}>10k+</span>
-                <span style={styles.statLabel}>Students Organized</span>
+              <div style={styles.heroStats}>
+                <div style={styles.statItem}>
+                  <span style={styles.statNumber}>10k+</span>
+                  <span style={styles.statLabel}>Students Organized</span>
+                </div>
+                <div style={styles.statDivider} />
+                <div style={styles.statItem}>
+                  <span style={styles.statNumber}>95%</span>
+                  <span style={styles.statLabel}>Better Grades</span>
+                </div>
+                <div style={styles.statDivider} />
+                <div style={styles.statItem}>
+                  <span style={styles.statNumber}>AI-Powered</span>
+                  <span style={styles.statLabel}>Study Planning</span>
+                </div>
               </div>
-              <div style={styles.statDivider} />
-              <div style={styles.statItem}>
-                <span style={styles.statNumber}>95%</span>
-                <span style={styles.statLabel}>Better Grades</span>
-              </div>
-              <div style={styles.statDivider} />
-              <div style={styles.statItem}>
-                <span style={styles.statNumber}>AI-Powered</span>
-                <span style={styles.statLabel}>Study Planning</span>
-              </div>
-            </div>
             )}
           </div>
         </main>

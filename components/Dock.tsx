@@ -157,12 +157,12 @@ export default function Dock({
 
   // Responsive values
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -176,8 +176,8 @@ export default function Dock({
   const responsiveHeight = isMobile ? 52 : 68;
 
   return (
-    <motion.div 
-      className="fixed bottom-0 left-0 right-0 flex justify-center z-50 px-2 sm:px-4" 
+    <motion.div
+      className="fixed bottom-0 left-0 right-0 flex justify-center z-50 px-2 sm:px-4 fixed-padding-adjust"
       style={{ pointerEvents: 'none' }}
     >
       <motion.div

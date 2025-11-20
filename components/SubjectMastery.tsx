@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Target, Trophy, Sparkles, Award } from 'lucide-react';
+import { BookOpen, Target, Trophy, Sparkles, Award, Plus } from 'lucide-react';
 import { useGamification } from '@/context/GamificationContext';
 import { cn } from '@/lib/utils';
 
@@ -212,9 +212,9 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
             className="mt-3 text-center"
           >
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-sm">
-              <Sparkles className="w-3 h-3 text-gray-500 dark:text-white/60" />
+              <Plus className="w-3 h-3 text-gray-500 dark:text-white/60" />
               <span className="text-[10px] text-gray-600 dark:text-white/60">
-                +{Object.keys(data.subjectMastery).length - maxItems} more subjects
+                {Object.keys(data.subjectMastery).length - maxItems} more subjects
               </span>
             </div>
           </motion.div>

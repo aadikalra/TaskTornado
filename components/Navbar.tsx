@@ -54,7 +54,7 @@ export default function Navbar() {
   const { isDark } = useDarkMode();
   const authContext = useAuth();
   const { user, signOut } = authContext || {};
-  
+
   const logoSrc = '/TaskTornadoChristmas.png';
 
   // State hooks
@@ -109,8 +109,8 @@ export default function Navbar() {
                       className="w-full h-full object-contain"
                       priority
                       onError={(e) => {
-                        e.currentTarget.src = isDark 
-                          ? '/TaskTornado.svg' 
+                        e.currentTarget.src = isDark
+                          ? '/TaskTornado.svg'
                           : '/TaskTornadoDark.svg';
                       }}
                     />
@@ -124,7 +124,7 @@ export default function Navbar() {
                   <TooltipTrigger asChild>
                     <SearchTrigger className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110" />
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -134,15 +134,15 @@ export default function Navbar() {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button 
-                      onClick={() => setIsAIAssistantOpen(true)} 
+                    <button
+                      onClick={() => setIsAIAssistantOpen(true)}
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300  hover:scale-110 group"
                     >
                       <IconSparkle />
                       <span className="sr-only">Study Assistant</span>
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -160,7 +160,7 @@ export default function Navbar() {
                       <span className="sr-only">Calendar</span>
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -178,7 +178,7 @@ export default function Navbar() {
                       <span className="sr-only">Flashcards</span>
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -188,15 +188,15 @@ export default function Navbar() {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link 
-                      href="/web-saves" 
+                    <Link
+                      href="/web-saves"
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
                       <IconPin />
                       <span className="sr-only">Web Saves</span>
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -206,15 +206,15 @@ export default function Navbar() {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button 
-                      onClick={() => setIsMinimalistTimerOpen(true)} 
+                    <button
+                      onClick={() => setIsMinimalistTimerOpen(true)}
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
                       <Timer className="w-5 h-5" />
                       <span className="sr-only">Timer</span>
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -232,7 +232,7 @@ export default function Navbar() {
                       <span className="sr-only">Group Chats</span>
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -250,7 +250,7 @@ export default function Navbar() {
                       <span className="sr-only">Changelog</span>
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent 
+                  <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
@@ -272,7 +272,7 @@ export default function Navbar() {
                         <span className="sr-only">Sign Out</span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent 
+                    <TooltipContent
                       className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                       sideOffset={8}
                     >
@@ -291,7 +291,7 @@ export default function Navbar() {
                           <span className="sr-only">Sign In</span>
                         </Link>
                       </TooltipTrigger>
-                      <TooltipContent 
+                      <TooltipContent
                         className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                         sideOffset={8}
                       >
@@ -323,10 +323,9 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu */}
-          <div 
-            className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-              isMenuOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
-            }`}
+          <div
+            className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
           >
             <div className="pt-2 pb-3 space-y-1 border-t border-white/10 dark:border-gray-800/50 rounded-b-2xl backdrop-blur-xl">
               <div className="px-4 py-2">
@@ -474,8 +473,8 @@ export default function Navbar() {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div 
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200">
+          <div
             className="rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in duration-200"
             style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',

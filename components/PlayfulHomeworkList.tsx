@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 
 import { RecurringHomeworkIndicator } from './RecurringHomeworkIndicator';
 import { LinkCard } from './LinkCard';
+import { Checkbox } from './animate-ui/radix/checkbox';
 
 export type TodoItem = {
   id: string;
@@ -109,15 +110,15 @@ const getPathTransition = (isChecked: boolean): Transition => ({
   },
 });
 
-const PlayfulHomeworkListComponent = ({ 
-  items, 
-  onItemToggle, 
+const PlayfulHomeworkListComponent = ({
+  items,
+  onItemToggle,
   onPinToggle,
   className = '',
 }: PlayfulHomeworkListProps) => {
   const [mounted, setMounted] = React.useState(false);
   const [confettiItems, setConfettiItems] = React.useState<Set<string>>(new Set());
-  
+
   // Set mounted to true after component mounts (client-side only)
   React.useEffect(() => {
     setMounted(true);
@@ -167,7 +168,7 @@ const PlayfulHomeworkListComponent = ({
 
   // Memoize the items to prevent unnecessary re-renders
   const memoizedItems = React.useMemo(() => items, [items]);
-  
+
   // Don't render anything on the server or during hydration
   if (!mounted) {
     return (
@@ -189,32 +190,31 @@ const PlayfulHomeworkListComponent = ({
       {memoizedItems.map((item) => (
         <div key={item.id} className="space-y-2">
           <div className="flex items-center space-x-2">
-                <div className="flex items-center">
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => handleToggle(item.id)}
-                      className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                        item.completed 
-                          ? 'border-transparent bg-teal-500 hover:bg-teal-600'
-                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-300 dark:focus:ring-gray-600'
-                      } focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                      style={item.completed && item.classColor ? { 
+            <div className="flex items-center">
+              <div className="flex items-center">
+                <Checkbox
+                  checked={item.completed}
+                  onCheckedChange={() => handleToggle(item.id)}
+                  className={`
+    ${item.completed
+                      ? 'border-transparent bg-teal-500 hover:bg-teal-600'
+                      : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }
+  `}
+                  style={
+                    item.completed && item.classColor
+                      ? {
                         backgroundColor: item.classColor,
-                        // @ts-ignore - Custom CSS properties need to be in kebab-case
+                        // @ts-ignore — custom CSS variable, must be kebab-case
                         '--tw-ring-color': item.classColor,
-                        // @ts-ignore - Custom CSS properties need to be in kebab-case
-                        '--tw-ring-offset-color': '#fff'
-                      } as React.CSSProperties : undefined}
-                      aria-checked={item.completed}
-                      role="checkbox"
-                      id={`checkbox-${item.id}`}
-                    >
-                      {item.completed && (
-                        <Check className="h-3 w-3 text-white" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                        // @ts-ignore
+                        '--tw-ring-offset-color': '#fff',
+                      }
+                      : undefined
+                  }
+                />
+              </div>
+            </div>
             <div className="relative inline-block flex-1 group">
               <div className="flex justify-between items-start w-full">
                 <div className="flex items-center gap-2">
@@ -224,11 +224,10 @@ const PlayfulHomeworkListComponent = ({
                     </div>
                   )}
                   <div className="flex flex-col">
-                    <label 
-                      htmlFor={`checkbox-${item.id}`} 
-                      className={`text-sm font-medium cursor-pointer ${
-                        item.completed ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-white'
-                      }`}
+                    <label
+                      htmlFor={`checkbox-${item.id}`}
+                      className={`text-sm font-medium cursor-pointer ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
+                        }`}
                     >
                       {item.text}
                       {isGoogleClassroomAssignment(item) && (
@@ -238,64 +237,64 @@ const PlayfulHomeworkListComponent = ({
                       )}
                     </label>
                     <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400 gap-2">
-                        {!item.completed && (
-                            <>
-                                {item.dueDateIcon}
-                                <p>
-                                    {item.subtext instanceof Date ? item.subtext.toLocaleDateString() : item.subtext}
-                                </p>
-                            </>
-                        )}
+                      {!item.completed && (
+                        <>
+                          {item.dueDateIcon}
+                          <p>
+                            {item.subtext instanceof Date ? item.subtext.toLocaleDateString() : item.subtext}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
                 {!item.completed && item.onDelete && !isGoogleClassroomAssignment(item) && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <Link href={`/homework/edit/${item.id}`}>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Link href={`/homework/edit/${item.id}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400"
+                        title="Edit homework"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400"
-                          title="Edit homework"
+                          className="h-8 w-8 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                          title="Delete homework"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </Link>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-                            title="Delete homework"
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete this homework?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                            This will permanently delete the homework &quot;{item.text}&quot;.
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              item.onDelete?.();
+                            }}
+                            className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete this homework?</AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                              This will permanently delete the homework &quot;{item.text}&quot;.
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                item.onDelete?.();
-                              }}
-                              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
-                            >
-                              Delete Homework
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  )}
+                            Delete Homework
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
               </div>
               <motion.svg
                 width="100%"
@@ -327,7 +326,7 @@ const PlayfulHomeworkListComponent = ({
             <div className={`space-y-1.5 ml-8 transition-opacity duration-200`}>
               {item.links.map(link => (
                 <div key={link.id} className="text-xs">
-                  <LinkCard 
+                  <LinkCard
                     url={link.url}
                     title={link.title || item.text}
                   />
@@ -342,10 +341,10 @@ const PlayfulHomeworkListComponent = ({
 };
 
 export const PlayfulHomeworkList = memo(PlayfulHomeworkListComponent, (prevProps, nextProps) => {
-  return prevProps.items === nextProps.items && 
-         prevProps.onItemToggle === nextProps.onItemToggle &&
-         prevProps.onPinToggle === nextProps.onPinToggle &&
-         prevProps.className === nextProps.className;
+  return prevProps.items === nextProps.items &&
+    prevProps.onItemToggle === nextProps.onItemToggle &&
+    prevProps.onPinToggle === nextProps.onPinToggle &&
+    prevProps.className === nextProps.className;
 });
 
 PlayfulHomeworkList.displayName = 'PlayfulHomeworkList';

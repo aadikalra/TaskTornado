@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
 import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
- 
+
 import Cookies from 'js-cookie';
 
 // Predefined color palette for consistent class colors
@@ -74,8 +74,8 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
 export type TestType = 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
 export type TestStatus = 'upcoming' | 'taken';
 
-export type Test = Omit<Database['public']['Tables']['tests']['Row'], 
-  'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' | 
+export type Test = Omit<Database['public']['Tables']['tests']['Row'],
+  'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' |
   'max_score' | 'completed_at' | 'created_at' | 'updated_at'
 > & {
   classId: string;
@@ -103,8 +103,8 @@ interface ClassContextType {
   loading: boolean;
   error: string | null;
   addClass: (name: string, icon: LucideIconName) => Promise<void>;
-  addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[]) => Promise<void>;
-  addRecurringHomework: (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework) => Promise<void>;
+  addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[], description?: string) => Promise<void>;
+  addRecurringHomework: (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description?: string) => Promise<void>;
   toggleHomework: (id: string) => Promise<void>;
   togglePinHomework: (id: string, pinned: boolean) => Promise<void>;
   deleteClass: (id: string) => Promise<void>;
@@ -161,7 +161,8 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       '/classes',
       '/dashboard',
       '/calendar',
-      '/settings'
+      '/settings',
+      '/snake'
     ];
 
     return routesThatNeedClassData.some(route => path.startsWith(route));
@@ -297,12 +298,12 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
 
       try {
         const { supabase } = await import('@/lib/supabase/client');
-        
+
         // Subscribe to classes changes
         classesSubscription = supabase
           .channel('classes_changes')
-          .on('postgres_changes', 
-            { 
+          .on('postgres_changes',
+            {
               event: '*',
               schema: 'public',
               table: 'classes',
@@ -314,7 +315,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
               if (payload.eventType === 'INSERT') {
                 setClasses(prev => [...prev, payload.new as Class]);
               } else if (payload.eventType === 'UPDATE') {
-                setClasses(prev => 
+                setClasses(prev =>
                   prev.map(cls => cls.id === payload.new.id ? { ...cls, ...payload.new } as Class : cls)
                 );
               } else if (payload.eventType === 'DELETE') {
@@ -340,17 +341,17 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
               if (!isMounted) return;
               console.log('Homework change:', payload);
               const eventType = payload.eventType.toLowerCase();
-                
+
               if (eventType === 'insert') {
                 const newHomework = payload.new as any;
                 console.log('New homework received:', newHomework);
-                
+
                 // Parse links if it's a string
                 let links: HomeworkLink[] = [];
                 if (newHomework.links) {
                   try {
-                    links = typeof newHomework.links === 'string' 
-                      ? JSON.parse(newHomework.links) 
+                    links = typeof newHomework.links === 'string'
+                      ? JSON.parse(newHomework.links)
                       : newHomework.links;
                     if (!Array.isArray(links)) links = [];
                   } catch (e) {
@@ -358,14 +359,14 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                     links = [];
                   }
                 }
-                
+
                 setHomeworks(prev => {
                   // Check if homework with this ID already exists to avoid duplicates
                   if (prev.some(hw => hw.id === newHomework.id)) {
                     console.log('Homework already exists, skipping duplicate');
                     return prev;
                   }
-                  
+
                   // Transform the new homework to match our expected format
                   const newHw = {
                     ...newHomework,
@@ -376,32 +377,32 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                     pinned: newHomework.pinned || false,
                     completed: newHomework.completed || false
                   };
-                  
+
                   console.log('Adding new homework:', newHw);
                   return [...prev, newHw];
                 });
-                
+
               } else if (eventType === 'update') {
                 const updated = payload.new as any;
                 console.log('Updating homework:', updated);
-                
-                setHomeworks(prev => 
-                  prev.map(hw => hw.id === updated.id 
-                    ? { 
-                        ...hw, 
-                        ...updated,
-                        classId: updated.class_id || hw.classId,
-                        dueDate: updated.due_date || hw.dueDate,
-                        links: updated.links 
-                          ? (typeof updated.links === 'string' ? JSON.parse(updated.links) : updated.links)
-                          : (hw.links || []),
-                        pinned: updated.pinned !== undefined ? updated.pinned : (hw.pinned || false),
-                        completed: updated.completed !== undefined ? updated.completed : (hw.completed || false)
-                      } 
+
+                setHomeworks(prev =>
+                  prev.map(hw => hw.id === updated.id
+                    ? {
+                      ...hw,
+                      ...updated,
+                      classId: updated.class_id || hw.classId,
+                      dueDate: updated.due_date || hw.dueDate,
+                      links: updated.links
+                        ? (typeof updated.links === 'string' ? JSON.parse(updated.links) : updated.links)
+                        : (hw.links || []),
+                      pinned: updated.pinned !== undefined ? updated.pinned : (hw.pinned || false),
+                      completed: updated.completed !== undefined ? updated.completed : (hw.completed || false)
+                    }
                     : hw
                   )
                 );
-                
+
               } else if (eventType === 'delete') {
                 console.log('Deleting homework:', payload.old?.id);
                 setHomeworks(prev => prev.filter(hw => hw.id !== (payload.old as any).id));
@@ -468,23 +469,23 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                 setTests(prev =>
                   prev.map(test => test.id === updated.id
                     ? {
-                        ...test,
-                        ...updated,
-                        classId: updated.class_id || test.classId,
-                        testDate: updated.test_date || test.testDate,
-                        testTime: updated.test_time !== undefined ? updated.test_time : test.testTime,
-                        testType: updated.test_type ? updated.test_type as TestType : test.testType,
-                        maxScore: updated.max_score !== undefined ? updated.max_score : test.maxScore,
-                        studyMaterials: updated.study_materials !== undefined ? updated.study_materials : test.studyMaterials,
-                        weight: updated.weight !== undefined ? updated.weight : test.weight,
-                        location: updated.location !== undefined ? updated.location : test.location,
-                        duration: updated.duration !== undefined ? updated.duration : test.duration,
-                        priority: updated.priority !== undefined ? updated.priority : test.priority,
-                        status: updated.status ? updated.status as TestStatus : test.status,
-                        score: updated.score !== undefined ? updated.score : test.score,
-                        grade: updated.grade !== undefined ? updated.grade : test.grade,
-                        notes: updated.notes !== undefined ? updated.notes : test.notes
-                      }
+                      ...test,
+                      ...updated,
+                      classId: updated.class_id || test.classId,
+                      testDate: updated.test_date || test.testDate,
+                      testTime: updated.test_time !== undefined ? updated.test_time : test.testTime,
+                      testType: updated.test_type ? updated.test_type as TestType : test.testType,
+                      maxScore: updated.max_score !== undefined ? updated.max_score : test.maxScore,
+                      studyMaterials: updated.study_materials !== undefined ? updated.study_materials : test.studyMaterials,
+                      weight: updated.weight !== undefined ? updated.weight : test.weight,
+                      location: updated.location !== undefined ? updated.location : test.location,
+                      duration: updated.duration !== undefined ? updated.duration : test.duration,
+                      priority: updated.priority !== undefined ? updated.priority : test.priority,
+                      status: updated.status ? updated.status as TestStatus : test.status,
+                      score: updated.score !== undefined ? updated.score : test.score,
+                      grade: updated.grade !== undefined ? updated.grade : test.grade,
+                      notes: updated.notes !== undefined ? updated.notes : test.notes
+                    }
                     : test
                   )
                 );
@@ -532,7 +533,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     return () => {
       isMounted = false;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      
+
       if (classesSubscription) {
         classesSubscription.unsubscribe().catch(console.error);
       }
@@ -586,7 +587,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       id: tempId,
       name,
       icon,
-      color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       user_id: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -656,7 +657,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
 
   const clearAllClasses = async () => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       await db.deleteAllClasses(user.id);
       // The subscription will handle the state update
@@ -668,7 +669,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
 
   const clearAllHomeworks = async () => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       await db.deleteAllHomeworks(user.id);
       // The subscription will handle the state update
@@ -680,41 +681,41 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
 
   const toggleHomework = async (id: string) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     // Get the current homework state before any updates
     const currentHomework = homeworks.find(hw => hw.id === id);
     if (!currentHomework) return;
-    
+
     try {
       // Optimistically update the UI
-      setHomeworks(prev => 
-        prev.map(hw => 
-          hw.id === id 
-            ? { ...hw, completed: !hw.completed } 
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === id
+            ? { ...hw, completed: !hw.completed }
             : hw
         )
       );
-      
+
       // Update the database
       await db.toggleHomeworkComplete(id, user.id, !currentHomework.completed);
       // The subscription will handle any necessary state updates
     } catch (err) {
       console.error('Error toggling homework:', err);
-      
+
       // Revert optimistic update on error
-      setHomeworks(prev => 
-        prev.map(hw => 
-          hw.id === id 
-            ? { ...hw, completed: currentHomework.completed } 
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === id
+            ? { ...hw, completed: currentHomework.completed }
             : hw
         )
       );
-      
+
       throw err;
     }
   };
 
-  const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = []) => {
+  const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = [], description: string = '') => {
     if (!user) throw new Error('User not authenticated');
 
     // Generate a temporary ID for the optimistic update
@@ -726,7 +727,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       user_id: user.id,
       classId,
       title,
-      description: '',
+      description: description || '',
       dueDate: format(dueDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
       priority,
       completed: false,
@@ -768,7 +769,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         await db.createClass({
           id: localClassId,
           name: `Imported Class`,
-          color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+          color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
           icon: 'BookOpen',
           user_id: user.id
         });
@@ -789,7 +790,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
 
       const homeworkData: any = {
         title,
-        description: '', // Add empty description by default
+        description: description || '',
         due_date: formattedDueDate,
         priority: priorityString,
         class_id: classId,
@@ -813,14 +814,14 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         prev.map(hw =>
           hw.id === tempId
             ? {
-                ...createdHomework,
-                classId: createdHomework.class_id,
-                dueDate: createdHomework.due_date,
-                links: createdHomework.links ? (typeof createdHomework.links === 'string' ? JSON.parse(createdHomework.links) : createdHomework.links) : [],
-                priority: (createdHomework.priority as Priority) || 'medium',
-                pinned: createdHomework.pinned || false,
-                completed: createdHomework.completed || false
-              }
+              ...createdHomework,
+              classId: createdHomework.class_id,
+              dueDate: createdHomework.due_date,
+              links: createdHomework.links ? (typeof createdHomework.links === 'string' ? JSON.parse(createdHomework.links) : createdHomework.links) : [],
+              priority: (createdHomework.priority as Priority) || 'medium',
+              pinned: createdHomework.pinned || false,
+              completed: createdHomework.completed || false
+            }
             : hw
         )
       );
@@ -836,7 +837,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     }
   };
 
-  const addRecurringHomework = async (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework) => {
+  const addRecurringHomework = async (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description: string = '') => {
     if (!user) throw new Error('User not authenticated');
 
     // Generate a temporary ID for the optimistic update
@@ -848,7 +849,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       user_id: user.id,
       classId,
       title,
-      description: '',
+      description: description || '',
       dueDate: format(dueDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
       priority,
       completed: false,
@@ -873,6 +874,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         user.id,
         classId,
         title,
+        description,
         dueDate,
         priority,
         links,
@@ -884,14 +886,14 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         prev.map(hw =>
           hw.id === tempId
             ? {
-                ...masterRecord,
-                classId: masterRecord.class_id,
-                dueDate: masterRecord.due_date,
-                links: masterRecord.links ? (typeof masterRecord.links === 'string' ? JSON.parse(masterRecord.links) : masterRecord.links) : [],
-                priority: (masterRecord.priority as Priority) || 'medium',
-                pinned: masterRecord.pinned || false,
-                completed: masterRecord.completed || false
-              }
+              ...masterRecord,
+              classId: masterRecord.class_id,
+              dueDate: masterRecord.due_date,
+              links: masterRecord.links ? (typeof masterRecord.links === 'string' ? JSON.parse(masterRecord.links) : masterRecord.links) : [],
+              priority: (masterRecord.priority as Priority) || 'medium',
+              pinned: masterRecord.pinned || false,
+              completed: masterRecord.completed || false
+            }
             : hw
         )
       );
@@ -1006,7 +1008,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
 
   const updateHomework = async (id: string, updates: Partial<Homework>) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       // Map the fields to match the database schema
       const dbUpdates: Record<string, any> = {
@@ -1018,26 +1020,26 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         priority: updates.priority,
         updated_at: new Date().toISOString()
       };
-      
+
       // Remove undefined values
       Object.keys(dbUpdates).forEach((key: string) => {
         if (dbUpdates[key] === undefined) {
           delete dbUpdates[key];
         }
       });
-      
+
       const updated = await db.updateHomework(id, dbUpdates);
-      
+
       // Update local state
-      setHomeworks(prev => 
-        prev.map(hw => 
-          hw.id === id 
+      setHomeworks(prev =>
+        prev.map(hw =>
+          hw.id === id
             ? { ...hw, ...updates, updatedAt: new Date().toISOString() }
             : hw
         )
       );
-      
-      
+
+
       // The subscription will handle any necessary state updates
     } catch (err) {
       console.error('Error updating homework:', err);
@@ -1114,19 +1116,19 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         prev.map(test =>
           test.id === tempId
             ? {
-                ...test,
-                ...createdTest,
-                id: createdTest.id,
-                classId: createdTest.class_id,
-                testDate: createdTest.test_date,
-                testTime: createdTest.test_time,
-                testType: createdTest.test_type as TestType,
-                maxScore: createdTest.max_score,
-                priority: (createdTest.priority as Priority) || 'medium',
-                studyMaterials: createdTest.study_materials || [],
-                created_at: createdTest.created_at,
-                status: (createdTest.status as TestStatus) || 'upcoming',
-              }
+              ...test,
+              ...createdTest,
+              id: createdTest.id,
+              classId: createdTest.class_id,
+              testDate: createdTest.test_date,
+              testTime: createdTest.test_time,
+              testType: createdTest.test_type as TestType,
+              maxScore: createdTest.max_score,
+              priority: (createdTest.priority as Priority) || 'medium',
+              studyMaterials: createdTest.study_materials || [],
+              created_at: createdTest.created_at,
+              status: (createdTest.status as TestStatus) || 'upcoming',
+            }
             : test
         )
       );
@@ -1161,7 +1163,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     try {
       // Create a copy of updates to avoid mutating the original
       const updateData = { ...updates };
-      
+
       // Map UI status to database status
       const statusMapping: Record<string, 'upcoming' | 'taken'> = {
         'not_started': 'upcoming',
@@ -1335,12 +1337,12 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         prev.map(test =>
           test.id === id
             ? {
-                ...test,
-                status: 'taken' as TestStatus,
-                score: score || null,
-                maxScore: maxScore || null,
-                grade: grade || null
-              }
+              ...test,
+              status: 'taken' as TestStatus,
+              score: score || null,
+              maxScore: maxScore || null,
+              grade: grade || null
+            }
             : test
         )
       );
