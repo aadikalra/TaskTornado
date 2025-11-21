@@ -91,7 +91,7 @@ export const RealtimeChat = ({
     // Combine database messages, initial messages, and real-time messages
     // Remove duplicates by message ID
     const messageMap = new Map<string, ChatMessage>()
-    
+
     // Helper to create a ChatMessage from any message-like object
     const createChatMessage = (msg: any): ChatMessage => ({
       id: msg.id,
@@ -101,17 +101,17 @@ export const RealtimeChat = ({
       },
       createdAt: msg.createdAt || new Date().toISOString(),
     })
-    
-    // Add all messages to the map, last one in wins for duplicates
-    ;[...dbMessages, ...initialMessages, ...realtimeMessages].forEach(msg => {
-      messageMap.set(msg.id, createChatMessage(msg))
-    })
-    
+
+      // Add all messages to the map, last one in wins for duplicates
+      ;[...dbMessages, ...initialMessages, ...realtimeMessages].forEach(msg => {
+        messageMap.set(msg.id, createChatMessage(msg))
+      })
+
     // Convert back to array and sort by creation date
-    return Array.from(messageMap.values()).sort((a, b) => 
+    return Array.from(messageMap.values()).sort((a, b) =>
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )
-  }, [initialMessages, realtimeMessages])
+  }, [dbMessages, initialMessages, realtimeMessages])
 
   useEffect(() => {
     if (onMessage) {
@@ -138,16 +138,16 @@ export const RealtimeChat = ({
         const { error } = await supabase
           .from('group_messages')
           .insert([
-            { 
+            {
               content: newMessage,
               group_id: roomName.replace('group-', ''), // Extract group ID from room name
               user_id: user.id,
               full_name: username // Use the provided username (which comes from full_name or email)
             }
           ])
-          
+
         if (error) throw error
-        
+
         // Send message via realtime
         sendMessage(newMessage)
         setNewMessage('')
@@ -172,7 +172,7 @@ export const RealtimeChat = ({
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         {allMessages.length === 0 ? (
           <div className="text-center text-sm text-muted-foreground">
             No messages yet. Start the conversation!
@@ -199,7 +199,7 @@ export const RealtimeChat = ({
         </div>
       </div>
 
-      <form onSubmit={handleSendMessage} className="flex w-full gap-2 border-t border-border p-4">
+      <form onSubmit={handleSendMessage} className="flex-shrink-0 flex w-full gap-2 border-t border-border p-4">
         <Input
           className={cn(
             'rounded-full bg-background text-sm transition-all duration-300',

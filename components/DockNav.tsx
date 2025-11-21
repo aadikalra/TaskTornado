@@ -16,6 +16,7 @@ import IconFile from './glass-icons/IconFile';
 import IconHouse from './glass-icons/IconHouse';
 import IconGear from './glass-icons/IconGear';
 import IconProgressBar from './glass-icons/IconProgressBar';
+import IconBox from './glass-icons/IconBox';
 
 export default function DockNav() {
   const router = useRouter();
@@ -30,65 +31,70 @@ export default function DockNav() {
       label: 'Home',
       onClick: () => router.push('/')
     },
-    { 
-      icon: <IconMagnifier />, 
-      label: 'Search', 
+    {
+      icon: <IconMagnifier />,
+      label: 'Search',
       onClick: openSearch
     },
-    { 
-      icon: <IconSparkle />, 
-      label: 'AI Assistant', 
+    {
+      icon: <IconSparkle />,
+      label: 'AI Assistant',
       onClick: () => {
         if (!user) {
           router.push('/login');
           return;
         }
         setIsAIAssistantOpen(prev => !prev);
-      } 
+      }
     },
-    { 
-      icon: <IconCalendar />, 
-      label: 'Calendar', 
-      onClick: () => router.push('/calendar') 
+    {
+      icon: <IconCalendar />,
+      label: 'Calendar',
+      onClick: () => router.push('/calendar')
     },
-    { 
-      icon: <IconBookOpen />, 
-      label: 'Flashcards', 
-      onClick: () => router.push('/flashcards') 
+    {
+      icon: <IconBookOpen />,
+      label: 'Flashcards',
+      onClick: () => router.push('/flashcards')
     },
-    { 
-      icon: <IconPin />, 
-      label: 'Web Saves', 
+    {
+      icon: <IconPin />,
+      label: 'Web Saves',
       onClick: () => {
         if (!user) {
           router.push('/login');
           return;
         }
         router.push('/web-saves');
-      } 
+      }
     },
-    { 
-      icon: <IconProgressBar />, 
-      label: 'Study Timer', 
-      onClick: () => setIsMinimalistTimerOpen(prev => !prev) 
+    {
+      icon: <IconProgressBar />,
+      label: 'Study Timer',
+      onClick: () => setIsMinimalistTimerOpen(prev => !prev)
     },
-    { 
-      icon: <IconUsers />, 
-      label: 'Group Chats', 
+    {
+      icon: <IconUsers />,
+      label: 'Group Chats',
       onClick: () => {
         if (!user) {
           router.push('/login');
           return;
         }
         router.push('/groups');
-      } 
+      }
     },
-    { 
+    {
       icon: <IconFile />,
       label: "What's New",
       onClick: () => router.push('/changelog')
     },
-    { 
+    {
+      icon: <IconBox />,
+      label: "Games",
+      onClick: () => router.push('/games')
+    },
+    {
       icon: <IconGear />,
       label: 'Settings',
       onClick: () => {
@@ -103,16 +109,16 @@ export default function DockNav() {
 
   return (
     <>
-      <Dock 
+      <Dock
         items={items}
         panelHeight={68}
         baseItemSize={50}
         magnification={70}
       />
       <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setIsAIAssistantOpen(false)} />
-      <MinimalistTimer 
-        isVisible={isMinimalistTimerOpen} 
-        onClose={() => setIsMinimalistTimerOpen(false)} 
+      <MinimalistTimer
+        isVisible={isMinimalistTimerOpen}
+        onClose={() => setIsMinimalistTimerOpen(false)}
       />
     </>
   );

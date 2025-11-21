@@ -979,7 +979,10 @@ const MainApp = () => {
               : 'max-h-0 opacity-0'
               }`}
           >
-            <HomeworkPinList triggerSelectModal={showPinHomeworkModal} />
+            <HomeworkPinList
+              triggerSelectModal={showPinHomeworkModal}
+              onTriggerComplete={() => setShowPinHomeworkModal(false)}
+            />
           </div>
         </div>
 

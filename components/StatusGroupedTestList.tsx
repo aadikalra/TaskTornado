@@ -248,22 +248,22 @@ const StatusGroupedTestList = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.02 }}
-              className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-[#264f84] dark:hover:border-blue-400 transition-all duration-200"
+              className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-[#264f84] dark:hover:border-blue-400 transition-all duration-200"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`p-1.5 rounded-lg ${test.testType?.toLowerCase() === 'alpha'
-                        ? 'bg-purple-100 dark:bg-purple-900/30'
-                        : test.testType?.toLowerCase() === 'beta'
-                          ? 'bg-orange-100 dark:bg-orange-900/30'
-                          : 'bg-blue-100 dark:bg-blue-900/30'
+                      ? 'bg-purple-100 dark:bg-purple-900/30'
+                      : test.testType?.toLowerCase() === 'beta'
+                        ? 'bg-orange-100 dark:bg-orange-900/30'
+                        : 'bg-blue-100 dark:bg-blue-900/30'
                       }`}>
                       <TestTypeIcon className={`h-4 w-4 ${test.testType?.toLowerCase() === 'alpha'
-                          ? 'text-purple-600 dark:text-purple-400'
-                          : test.testType?.toLowerCase() === 'beta'
-                            ? 'text-orange-600 dark:text-orange-400'
-                            : 'text-blue-600 dark:text-blue-400'
+                        ? 'text-purple-600 dark:text-purple-400'
+                        : test.testType?.toLowerCase() === 'beta'
+                          ? 'text-orange-600 dark:text-orange-400'
+                          : 'text-blue-600 dark:text-blue-400'
                         }`} />
                     </div>
                     <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 truncate">
@@ -295,10 +295,10 @@ const StatusGroupedTestList = ({
                       </span>
                     )}
                     <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${test.testType?.toLowerCase() === 'alpha'
-                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
-                        : test.testType?.toLowerCase() === 'beta'
-                          ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
-                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                      : test.testType?.toLowerCase() === 'beta'
+                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                       }`}>
                       {test.testType}
                     </span>
@@ -439,8 +439,8 @@ const StatusGroupedTestList = ({
                 size="sm"
                 onClick={() => setViewMode('grid')}
                 className={`h-9 w-9 p-0 rounded-lg ${viewMode === 'grid'
-                    ? 'bg-[#264f84] dark:bg-blue-500 text-white hover:bg-[#1f3f6b] dark:hover:bg-blue-600'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-[#264f84] dark:bg-blue-500 text-white hover:bg-[#1f3f6b] dark:hover:bg-blue-600'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
               >
                 <Grid3X3 className="h-4 w-4" />
@@ -450,8 +450,8 @@ const StatusGroupedTestList = ({
                 size="sm"
                 onClick={() => setViewMode('list')}
                 className={`h-9 w-9 p-0 rounded-lg ${viewMode === 'list'
-                    ? 'bg-[#264f84] dark:bg-blue-500 text-white hover:bg-[#1f3f6b] dark:hover:bg-blue-600'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-[#264f84] dark:bg-blue-500 text-white hover:bg-[#1f3f6b] dark:hover:bg-blue-600'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
               >
                 <List className="h-4 w-4" />

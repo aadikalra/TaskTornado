@@ -64,11 +64,10 @@ const EnhancedTestCard = ({
           icon: Target,
           label: 'ALPHA',
           color: 'text-purple-600 dark:text-purple-400',
-          bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20',
+          bgColor: 'bg-purple-50 dark:bg-purple-900/20',
           borderColor: 'border-purple-300 dark:border-purple-700',
           pillColor: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm',
           iconBg: 'bg-purple-100 dark:bg-purple-900/40',
-          cardGradient: 'from-purple-50/50 via-white to-white dark:from-purple-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-purple-400 dark:hover:border-purple-500',
         };
       case 'beta':
@@ -76,11 +75,10 @@ const EnhancedTestCard = ({
           icon: Zap,
           label: 'BETA',
           color: 'text-orange-600 dark:text-orange-400',
-          bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20',
+          bgColor: 'bg-orange-50 dark:bg-orange-900/20',
           borderColor: 'border-orange-300 dark:border-orange-700',
           pillColor: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-sm',
           iconBg: 'bg-orange-100 dark:bg-orange-900/40',
-          cardGradient: 'from-orange-50/50 via-white to-white dark:from-orange-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-orange-400 dark:hover:border-orange-500',
         };
       case 'final':
@@ -88,11 +86,10 @@ const EnhancedTestCard = ({
           icon: GraduationCap,
           label: 'FINAL',
           color: 'text-red-600 dark:text-red-400',
-          bgColor: 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20',
+          bgColor: 'bg-red-50 dark:bg-red-900/20',
           borderColor: 'border-red-300 dark:border-red-700',
           pillColor: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm',
           iconBg: 'bg-red-100 dark:bg-red-900/40',
-          cardGradient: 'from-red-50/50 via-white to-white dark:from-red-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-red-400 dark:hover:border-red-500',
         };
       case 'exam':
@@ -101,11 +98,10 @@ const EnhancedTestCard = ({
           icon: GraduationCap,
           label: 'EXAM',
           color: 'text-red-600 dark:text-red-400',
-          bgColor: 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20',
+          bgColor: 'bg-red-50 dark:bg-red-900/20',
           borderColor: 'border-red-300 dark:border-red-700',
           pillColor: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm',
           iconBg: 'bg-red-100 dark:bg-red-900/40',
-          cardGradient: 'from-red-50/50 via-white to-white dark:from-red-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-red-400 dark:hover:border-red-500',
         };
       case 'quiz':
@@ -113,11 +109,10 @@ const EnhancedTestCard = ({
           icon: FileText,
           label: 'QUIZ',
           color: 'text-blue-600 dark:text-blue-400',
-          bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20',
+          bgColor: 'bg-blue-50 dark:bg-blue-900/20',
           borderColor: 'border-blue-300 dark:border-blue-700',
           pillColor: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm',
           iconBg: 'bg-blue-100 dark:bg-blue-900/40',
-          cardGradient: 'from-blue-50/50 via-white to-white dark:from-blue-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-blue-400 dark:hover:border-blue-500',
         };
       case 'project':
@@ -125,11 +120,10 @@ const EnhancedTestCard = ({
           icon: Presentation,
           label: 'PROJECT',
           color: 'text-green-600 dark:text-green-400',
-          bgColor: 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20',
+          bgColor: 'bg-green-50 dark:bg-green-900/20',
           borderColor: 'border-green-300 dark:border-green-700',
           pillColor: 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm',
           iconBg: 'bg-green-100 dark:bg-green-900/40',
-          cardGradient: 'from-green-50/50 via-white to-white dark:from-green-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-green-400 dark:hover:border-green-500',
         };
       default:
@@ -137,11 +131,10 @@ const EnhancedTestCard = ({
           icon: BookOpen,
           label: 'TEST',
           color: 'text-gray-600 dark:text-gray-400',
-          bgColor: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-800/20',
+          bgColor: 'bg-gray-50 dark:bg-gray-900/20',
           borderColor: 'border-gray-300 dark:border-gray-700',
           pillColor: 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-sm',
           iconBg: 'bg-gray-100 dark:bg-gray-900/40',
-          cardGradient: 'from-gray-50/50 via-white to-white dark:from-gray-900/10 dark:via-gray-800 dark:to-gray-850',
           hoverBorder: 'hover:border-gray-400 dark:hover:border-gray-500',
         };
     }
@@ -152,14 +145,14 @@ const EnhancedTestCard = ({
   if (variant === 'compact') {
     return (
       <motion.div
-        className={`group relative rounded-xl border-2 transition-all duration-300 bg-gradient-to-br ${testTypeConfig.cardGradient} ${testTypeConfig.borderColor} ${testTypeConfig.hoverBorder} hover:shadow-lg overflow-hidden`}
+        className={`group relative rounded-xl border-2 transition-all duration-300 ${testTypeConfig.bgColor} ${testTypeConfig.borderColor} ${testTypeConfig.hoverBorder} hover:shadow-lg overflow-hidden`}
         whileHover={{ scale: 1.03, y: -2 }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Accent bar */}
         <div className={`absolute top-0 left-0 right-0 h-1 ${testTypeConfig.pillColor.split(' ')[0]}`} />
-        
+
         <div className="flex items-start gap-2.5 p-3 pt-4">
           {/* Icon */}
           <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${testTypeConfig.iconBg} border ${testTypeConfig.borderColor} flex-shrink-0 shadow-sm`}>
@@ -234,14 +227,14 @@ const EnhancedTestCard = ({
   // Default variant (enhanced version)
   return (
     <motion.div
-      className={`group relative rounded-xl border-2 transition-all duration-300 bg-gradient-to-br ${testTypeConfig.cardGradient} ${testTypeConfig.borderColor} ${testTypeConfig.hoverBorder} hover:shadow-xl overflow-hidden`}
+      className={`group relative rounded-xl border-2 transition-all duration-300 ${testTypeConfig.bgColor} ${testTypeConfig.borderColor} ${testTypeConfig.hoverBorder} hover:shadow-xl overflow-hidden`}
       whileHover={{ scale: 1.01, y: -4 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Accent bar */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${testTypeConfig.pillColor.split(' ')[0]}`} />
-      
+
       <div className="flex items-start gap-3 p-4 pt-5">
         {/* Left: Icons */}
         <div className="flex flex-col items-center gap-2">

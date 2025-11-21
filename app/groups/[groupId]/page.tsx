@@ -18,15 +18,15 @@ export default function GroupPage() {
   const { groupId } = useParams() as { groupId: string };
   const router = useRouter();
   const { user, full_name } = useAuth();
-  const { 
-    currentGroup, 
-    messages, 
-    links, 
-    loading, 
-    error, 
+  const {
+    currentGroup,
+    messages,
+    links,
+    loading,
+    error,
     connectionStatus,
     schoolWarning,
-    sendMessage, 
+    sendMessage,
     addLink,
     leaveGroup,
     refreshGroups,
@@ -34,7 +34,7 @@ export default function GroupPage() {
     groups: contextGroups,
     dismissSchoolWarning
   } = useStudyGroups();
-  
+
   const [newMessage, setNewMessage] = useState('');
   const [newLink, setNewLink] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -45,15 +45,15 @@ export default function GroupPage() {
   // Set current group when component mounts
   useEffect(() => {
     if (!groupId) return;
-    
+
     const loadGroup = async () => {
       setIsLoadingGroup(true);
       setErrorMessage(null);
-      
+
       try {
         // First check if the group is in the context
         const group = contextGroups.find(g => g.id === groupId);
-        
+
         if (group) {
           setCurrentGroup(group);
         } else {
@@ -63,7 +63,7 @@ export default function GroupPage() {
             .select('*')
             .eq('id', groupId)
             .single();
-            
+
           if (error) throw error;
           if (data) {
             setCurrentGroup(data);
@@ -76,15 +76,15 @@ export default function GroupPage() {
         setIsLoadingGroup(false);
       }
     };
-    
+
     loadGroup();
-    
+
     // Clean up when component unmounts
     return () => {
       setCurrentGroup(null);
     };
   }, [groupId, contextGroups, setCurrentGroup]);
-  
+
   // Scroll to bottom of messages when new messages arrive (with smart scrolling)
   useEffect(() => {
     const messagesContainer = document.getElementById('messages-container');
@@ -122,7 +122,7 @@ export default function GroupPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !groupId) return;
-    
+
     setIsSending(true);
     try {
       await sendMessage(groupId as string, newMessage);
@@ -138,7 +138,7 @@ export default function GroupPage() {
   const handleAddLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLink.trim() || !groupId) return;
-    
+
     try {
       await addLink(groupId as string, newLink);
       setNewLink('');
@@ -151,7 +151,7 @@ export default function GroupPage() {
 
   const handleLeaveGroup = async () => {
     if (!window.confirm('Are you sure you want to leave this group?')) return;
-    
+
     try {
       await leaveGroup(groupId as string);
       router.push('/groups');
@@ -170,7 +170,7 @@ export default function GroupPage() {
           </Button>
           <Skeleton className="h-8 w-48" />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-4">
             <Skeleton className="h-96 w-full rounded-lg" />
@@ -192,7 +192,7 @@ export default function GroupPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Groups
         </Button>
-        
+
         <div className="bg-red-50 border-l-4 border-red-400 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -216,7 +216,7 @@ export default function GroupPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Groups
         </Button>
-        
+
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-gray-900">Group not found</h3>
           <p className="mt-2 text-sm text-gray-500">The group you're looking for doesn't exist or you don't have access to it.</p>
@@ -303,11 +303,11 @@ export default function GroupPage() {
                 Links
               </TabsTab>
             </TabsList>
-            
+
             <TabsPanels className="mt-0">
               <TabsPanel value="chat">
                 <div className="h-[500px] flex flex-col">
-                  <Card className="flex-1 flex flex-col">
+                  <Card className="flex-1 flex flex-col overflow-hidden">
                     <CardHeader className="border-b">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
@@ -333,8 +333,8 @@ export default function GroupPage() {
                         </CardTitle>
                       </div>
                     </CardHeader>
-                    <div className="flex-1 overflow-hidden">
-                      <RealtimeChat 
+                    <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                      <RealtimeChat
                         roomName={`group-${groupId}`}
                         username={full_name || user?.email || 'Anonymous'}
                         className="h-full"
@@ -343,15 +343,15 @@ export default function GroupPage() {
                   </Card>
                 </div>
               </TabsPanel>
-              
+
               <TabsPanel value="links">
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle>Shared Links</CardTitle>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => {
                           setActiveTab('chat');
                           document.getElementById('link-input')?.focus();
@@ -371,10 +371,10 @@ export default function GroupPage() {
                     ) : (
                       <div className="space-y-2">
                         {links.map((link) => (
-                          <a 
-                            key={link.id} 
-                            href={link.url} 
-                            target="_blank" 
+                          <a
+                            key={link.id}
+                            href={link.url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="block p-3 border rounded hover:bg-accent transition-colors"
                           >
@@ -412,7 +412,7 @@ export default function GroupPage() {
             </TabsPanels>
           </Tabs>
         </div>
-        
+
         {/* Sidebar */}
         <div className="space-y-4">
           <Card>
@@ -424,22 +424,22 @@ export default function GroupPage() {
                 <h3 className="text-sm font-medium text-muted-foreground">Created</h3>
                 <p>{format(new Date(currentGroup.created_at), 'MMMM d, yyyy')}</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Members</h3>
                 <p>{currentGroup.member_count || 0} members</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Invite Link</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <Input 
-                    value={`${window.location.origin}/groups/join/${groupId}`} 
-                    readOnly 
+                  <Input
+                    value={`${window.location.origin}/groups/join/${groupId}`}
+                    readOnly
                     className="text-xs h-8"
                   />
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => {
                       navigator.clipboard.writeText(`${window.location.origin}/groups/join/${groupId}`);
@@ -450,9 +450,9 @@ export default function GroupPage() {
                   </Button>
                 </div>
               </div>
-              
-              <Button 
-                variant="destructive" 
+
+              <Button
+                variant="destructive"
                 className="w-full mt-4"
                 onClick={handleLeaveGroup}
               >
@@ -460,7 +460,7 @@ export default function GroupPage() {
               </Button>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Share a Link</CardTitle>
