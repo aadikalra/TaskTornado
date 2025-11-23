@@ -72,7 +72,7 @@ export default function LandingNavbar() {
               }}
             />
           </div>
-          <span className="hidden sm:inline">SchoolOrganizer</span>
+          <span className="hidden sm:inline">TaskTornado</span>
         </Link>
 
         {/* Nav Links */}

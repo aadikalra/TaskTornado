@@ -60,7 +60,7 @@ export function SearchBar() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-base"
-                    placeholder="Search homework, classes..."
+                    placeholder="Search homework, tests, classes, pages..."
                     autoComplete="off"
                     autoFocus
                   />
@@ -98,7 +98,7 @@ export function SearchBar() {
                           Quick Search
                         </h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Search for homework, classes, and more
+                          Search for homework, tests, classes, and pages
                         </p>
                       </div>
                     </div>
