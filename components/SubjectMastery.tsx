@@ -55,14 +55,14 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
         )}
       >
         <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-20 bg-gradient-to-br from-blue-400 to-purple-500" />
-        
+
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
-<BookOpen className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <Award className="w-5 h-5 text-white" strokeWidth={2.5} />
             <div>
               <p className="text-[10px] text-gray-500 dark:text-white mt-0.5">Top {sortedSubjects.length} performing</p>            </div>
           </div>
-          
+
           <div className="flex flex-col items-center justify-center py-4">
             <Target className="w-12 h-12 text-gray-300 dark:text-green-500/40 mb-2" />
             <p className="text-xs text-gray-500 dark:text-green-500/70 text-center">
@@ -100,25 +100,25 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
       />
 
       <div className="relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="flex items-center justify-between mb-4"
         >
           <div className="flex items-center gap-2">
-            <motion.div 
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 via-violet-600 to-fuchsia-600 dark:from-purple-400 dark:via-violet-500 dark:to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30"
+            <motion.div
+              className="w-9 h-9 rounded-xl bg-blue-500 dark:bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: 'spring', stiffness: 400 }}
             >
-              <BookOpen className="w-5 h-5 text-white" strokeWidth={2.5} />
+              <Award className="w-5 h-5 text-white" strokeWidth={2.5} />
             </motion.div>
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Subject Mastery</h3>
               <p className="text-[10px] text-gray-500 dark:text-white mt-0.5">Top {sortedSubjects.length} performing</p>
             </div>
           </div>
-          
+
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -159,12 +159,12 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
                       className={cn(
                         'flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs',
                         isTopSubject ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30' :
-                        'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white/80'
+                          'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white/80'
                       )}
                     >
                       {index + 1}
                     </motion.div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-1">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white truncate">

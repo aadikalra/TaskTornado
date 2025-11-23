@@ -29,7 +29,7 @@ export default function DockNav() {
     {
       icon: <IconHouse />,
       label: 'Home',
-      onClick: () => router.push('/')
+      onClick: () => router.push('/dashboard')
     },
     {
       icon: <IconMagnifier />,

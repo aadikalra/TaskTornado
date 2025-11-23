@@ -188,7 +188,19 @@ const PlayfulHomeworkListComponent = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {memoizedItems.map((item) => (
-        <div key={item.id} className="space-y-2">
+        <motion.div
+          key={item.id}
+          layout
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{
+            layout: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { duration: 0.2 },
+            y: { duration: 0.2 }
+          }}
+          className="space-y-2"
+        >
           <div className="flex items-center space-x-2">
             <div className="flex items-center">
               <div className="flex items-center">
@@ -226,6 +238,7 @@ const PlayfulHomeworkListComponent = ({
                   <div className="flex flex-col">
                     <label
                       htmlFor={`checkbox-${item.id}`}
+                      onClick={() => handleToggle(item.id)}
                       className={`text-sm font-medium cursor-pointer ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
                         }`}
                     >
@@ -334,7 +347,7 @@ const PlayfulHomeworkListComponent = ({
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       ))}
     </div>
   );

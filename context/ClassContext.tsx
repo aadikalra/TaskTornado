@@ -72,7 +72,7 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
 
 // Test types
 export type TestType = 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
-export type TestStatus = 'upcoming' | 'taken';
+export type TestStatus = 'upcoming' | 'preparing' | 'taken' | 'not_started' | 'in_progress' | 'completed' | 'postponed' | 'cancelled';
 
 export type Test = Omit<Database['public']['Tables']['tests']['Row'],
   'test_date' | 'test_time' | 'class_id' | 'study_materials' | 'test_type' |
@@ -162,7 +162,8 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       '/dashboard',
       '/calendar',
       '/settings',
-      '/snake'
+      '/snake',
+      '/games'
     ];
 
     return routesThatNeedClassData.some(route => path.startsWith(route));
@@ -470,7 +471,6 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                   prev.map(test => test.id === updated.id
                     ? {
                       ...test,
-                      ...updated,
                       classId: updated.class_id || test.classId,
                       testDate: updated.test_date || test.testDate,
                       testTime: updated.test_time !== undefined ? updated.test_time : test.testTime,
@@ -481,10 +481,14 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                       location: updated.location !== undefined ? updated.location : test.location,
                       duration: updated.duration !== undefined ? updated.duration : test.duration,
                       priority: updated.priority !== undefined ? updated.priority : test.priority,
-                      status: updated.status ? updated.status as TestStatus : test.status,
+                      // Don't overwrite status from subscription - keep the local detailed status
+                      // The database only stores 'upcoming' or 'taken', but UI uses more detailed values
+                      status: test.status,
                       score: updated.score !== undefined ? updated.score : test.score,
                       grade: updated.grade !== undefined ? updated.grade : test.grade,
-                      notes: updated.notes !== undefined ? updated.notes : test.notes
+                      notes: updated.notes !== undefined ? updated.notes : test.notes,
+                      completed_at: updated.completed_at !== undefined ? updated.completed_at : test.completed_at,
+                      created_at: updated.created_at !== undefined ? updated.created_at : test.created_at
                     }
                     : test
                   )
@@ -1211,16 +1215,12 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       console.log('Updating test with data:', { id, updates: dbUpdates });
       const updated = await db.updateTest(id, dbUpdates);
 
-      // Update local state with the mapped status, ensuring we never have undefined status
-      const mappedUpdates: Partial<Test> = {
-        ...updateData,
-        status: dbStatus as TestStatus || 'upcoming'
-      };
-
+      // Update local state, preserving the original status value from updates
+      // The database stores simplified status ('upcoming' or 'taken'), but UI uses detailed values
       setTests(prev =>
         prev.map(test =>
           test.id === id
-            ? { ...test, ...mappedUpdates }
+            ? { ...test, ...updateData }
             : test
         )
       );

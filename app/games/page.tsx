@@ -1,13 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gamepad2, Trophy, Zap, ArrowRight } from 'lucide-react';
+import { Gamepad2, Trophy, Zap, ArrowRight, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { useClassContext } from '@/context/ClassContext';
 
 export default function GamesPage() {
     const router = useRouter();
+    const { homeworks } = useClassContext();
+
+    // Calculate homework completion percentage
+    const completionPercentage = useMemo(() => {
+        if (homeworks.length === 0) return 0;
+        const completedCount = homeworks.filter((hw: any) => hw.completed).length;
+        return Math.round((completedCount / homeworks.length) * 100);
+    }, [homeworks]);
 
     const games = [
         {
@@ -20,6 +29,7 @@ export default function GamesPage() {
             bgColor: 'bg-green-500/10',
             borderColor: 'border-green-200/50 dark:border-green-800/50',
             textColor: 'text-green-600 dark:text-green-400',
+            unlockThreshold: 75,
             stats: {
                 label: 'Unlocked',
                 value: 'Complete 75% homework',
@@ -35,6 +45,7 @@ export default function GamesPage() {
             bgColor: 'bg-purple-500/10',
             borderColor: 'border-purple-200/50 dark:border-purple-800/50',
             textColor: 'text-purple-600 dark:text-purple-400',
+            unlockThreshold: 80,
             stats: {
                 label: 'Unlocked',
                 value: 'Complete 80% homework',
@@ -80,26 +91,28 @@ export default function GamesPage() {
 
                     <Card className="bg-white/70 dark:bg-gray-900/40 backdrop-blur border-gray-200/50 dark:border-gray-800/50 hover:shadow-lg transition-all duration-200">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Unlock Progress</CardTitle>
+                            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Your Current Progress</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
-                            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">75%</div>
+                            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{completionPercentage}%</div>
                             <div className="flex items-center gap-1 mt-1">
                                 <Trophy className="h-3 w-3 text-purple-500" />
-                                <span className="text-xs text-gray-500 dark:text-gray-400">homework needed</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">homework completed</span>
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card className="bg-white/70 dark:bg-gray-900/40 backdrop-blur border-gray-200/50 dark:border-gray-800/50 hover:shadow-lg transition-all duration-200">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Coming Soon</CardTitle>
+                            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Games Unlocked</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-0">
-                            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">More</div>
+                            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                                {games.filter(g => completionPercentage >= g.unlockThreshold).length}/{games.length}
+                            </div>
                             <div className="flex items-center gap-1 mt-1">
                                 <Zap className="h-3 w-3 text-blue-500" />
-                                <span className="text-xs text-gray-500 dark:text-gray-400">stay tuned</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">keep completing!</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -109,33 +122,65 @@ export default function GamesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {games.map((game) => {
                         const Icon = game.icon;
-                        return (
-                            <Link key={game.id} href={game.href}>
-                                <Card className={`bg-white/70 dark:bg-gray-900/40 backdrop-blur ${game.borderColor} hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group h-full`}>
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                            <div className={`p-3 rounded-xl bg-gradient-to-br ${game.bgColor} border ${game.borderColor}`}>
-                                                <Icon className={`h-6 w-6 ${game.textColor}`} />
-                                            </div>
+                        const isUnlocked = completionPercentage >= game.unlockThreshold;
+
+                        const gameCard = (
+                            <Card className={`bg-white/70 dark:bg-gray-900/40 backdrop-blur ${game.borderColor} transition-all duration-300 h-full ${isUnlocked
+                                ? 'hover:shadow-xl hover:scale-[1.02] cursor-pointer'
+                                : 'opacity-50 cursor-not-allowed'
+                                } group`}>
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-start justify-between">
+                                        <div className={`p-3 rounded-xl bg-gradient-to-br ${game.bgColor} border ${game.borderColor} relative`}>
+                                            <Icon className={`h-6 w-6 ${game.textColor}`} />
+                                            {!isUnlocked && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/20 dark:bg-gray-900/40 rounded-xl">
+                                                    <Lock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        {isUnlocked && (
                                             <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 group-hover:translate-x-1 transition-all duration-200" />
-                                        </div>
-                                        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white mt-4">
-                                            {game.title}
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 leading-relaxed">
-                                            {game.description}
-                                        </p>
-                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${game.bgColor} border ${game.borderColor}`}>
-                                            <Trophy className={`h-3.5 w-3.5 ${game.textColor}`} />
-                                            <span className={`text-xs font-medium ${game.textColor}`}>
-                                                {game.stats.value}
-                                            </span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        )}
+                                    </div>
+                                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white mt-4 flex items-center gap-2">
+                                        {game.title}
+                                        {!isUnlocked && <Lock className="h-5 w-5 text-gray-400" />}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 leading-relaxed">
+                                        {game.description}
+                                    </p>
+                                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${game.bgColor} border ${game.borderColor}`}>
+                                        {isUnlocked ? (
+                                            <>
+                                                <Trophy className={`h-3.5 w-3.5 ${game.textColor}`} />
+                                                <span className={`text-xs font-medium ${game.textColor}`}>
+                                                    Unlocked!
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Lock className="h-3.5 w-3.5 text-gray-500" />
+                                                <span className="text-xs font-medium text-gray-500">
+                                                    {game.stats.value}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+
+                        return isUnlocked ? (
+                            <Link key={game.id} href={game.href}>
+                                {gameCard}
                             </Link>
+                        ) : (
+                            <div key={game.id} className="pointer-events-none">
+                                {gameCard}
+                            </div>
                         );
                     })}
 
@@ -159,14 +204,14 @@ export default function GamesPage() {
                 <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200/50 dark:border-purple-800/50">
                     <div className="flex items-start gap-4">
                         <div className="p-2 rounded-lg bg-purple-500/20 dark:bg-purple-900/30">
-                            <Trophy className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                                How to Unlock Games
+                                💡 Pro Tip: Complete More, Play Easier
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                                Games are unlocked as rewards for staying on top of your schoolwork. Complete at least 75% of your homework assignments to access the Snake game. The difficulty of each game adapts based on your remaining homework, making it a fun way to stay motivated!
+                                The more homework you complete, the easier the games become! Game difficulty dynamically adjusts based on your remaining homework count. Stay on top of your assignments to unlock a more relaxed gaming experience as your reward.
                             </p>
                         </div>
                     </div>

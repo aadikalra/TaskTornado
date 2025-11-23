@@ -1,51 +1,174 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowUpRight, Plus, FileText, BarChart2, Signal, Star, Layers, Wrench, Shield, Box, TrendingUp, BookOpen, CalendarDays, ClipboardList, Bell, Check, Factory, BarChart3, MoreVertical, ArrowUp, Sparkles, MessageSquare, CheckCircle, ShieldAlert, CheckCircle2, Users, Clock, Brain, Image as ImageIcon, Zap } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, CheckCircle2, Check, Shield, Zap, BookOpen, CalendarDays, MessageSquare, Terminal, Heart, Sparkles, Brain, Image as ImageIcon, TrendingUp, Clock, Users, ShieldAlert, Bell, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
 import LandingNavbar from '@/components/LandingNavbar';
 import Hero from './Hero';
-import confetti from 'canvas-confetti';
 
 export default function LandingPage() {
-  useEffect(() => {
-    // Confetti effect on page load
-    const duration = 3000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+  const [comparisonSet, setComparisonSet] = useState<'chatgpt-notion' | 'gemini-google'>('chatgpt-notion');
 
-    function randomInRange(min: number, max: number) {
-      return Math.random() * (max - min) + min;
+  const comparisonData: Record<'chatgpt-notion' | 'gemini-google', {
+    name: string;
+    tool1: {
+      name: string;
+      icon: React.ReactNode;
+      color: string;
+      description: string;
+    };
+    tool2: {
+      name: string;
+      icon: React.ReactNode;
+      color: string;
+      description: string;
+    };
+    features: Array<{
+      feature: string;
+      tasktornado: string;
+      tool1: string;
+      tool2: string;
+    }>;
+  }> = {
+    'chatgpt-notion': {
+      name: 'ChatGPT + Notion',
+      tool1: {
+        name: 'ChatGPT',
+        icon: <MessageSquare className="w-4 h-4 text-white" />,
+        color: 'bg-green-500',
+        description: 'AI chatbot'
+      },
+      tool2: {
+        name: 'Notion',
+        icon: <BookOpen className="w-4 h-4 text-white" />,
+        color: 'bg-gray-700',
+        description: 'Note-taking app'
+      },
+      features: [
+        {
+          feature: "Assignment Tracking",
+          tasktornado: "✓ Smart deadline alerts & progress tracking",
+          tool1: "✗ Manual tracking required",
+          tool2: "✓ Requires setup & maintenance"
+        },
+        {
+          feature: "AI Study Help",
+          tasktornado: "✓ Built-in tutor with visual learning",
+          tool1: "✓ Excellent AI assistance",
+          tool2: "✗ No AI capabilities"
+        },
+        {
+          feature: "Calendar Integration",
+          tasktornado: "✓ Auto-syncs with your classes",
+          tool1: "✗ No calendar features",
+          tool2: "✗ Manual calendar setup"
+        },
+        {
+          feature: "Flashcard System",
+          tasktornado: "✓ AI-generated decks with spaced repetition",
+          tool1: "✗ Can generate text only, no study system",
+          tool2: "✗ Basic templates only"
+        },
+        {
+          feature: "Command Workflow",
+          tasktornado: "✓ @commands for instant actions",
+          tool1: "✗ No specialized commands",
+          tool2: "✗ No command system"
+        },
+        {
+          feature: "Student-Focused",
+          tasktornado: "✓ Built specifically for students",
+          tool1: "✗ General-purpose tool",
+          tool2: "✗ Professional productivity focus"
+        },
+        {
+          feature: "Pricing",
+          tasktornado: "✓ Completely free forever",
+          tool1: "✗ $20/month for Plus features",
+          tool2: "✗ $10/month for personal plan"
+        },
+        {
+          feature: "Setup Time",
+          tasktornado: "✓ <2 minutes to get started",
+          tool1: "✓ Instant but limited",
+          tool2: "✗ Hours of template setup"
+        }
+      ]
+    },
+    'gemini-google': {
+      name: 'Gemini + Google Tasks',
+      tool1: {
+        name: 'Gemini',
+        icon: <Brain className="w-4 h-4 text-white" />,
+        color: 'bg-blue-500',
+        description: 'Google AI assistant'
+      },
+      tool2: {
+        name: 'Google Tasks',
+        icon: <CalendarDays className="w-4 h-4 text-white" />,
+        color: 'bg-yellow-500',
+        description: 'Task management'
+      },
+      features: [
+        {
+          feature: "Assignment Tracking",
+          tasktornado: "✓ Smart deadline alerts & progress tracking",
+          tool1: "✗ No dedicated task system",
+          tool2: "✓ Basic tasks, no school features"
+        },
+        {
+          feature: "AI Study Help",
+          tasktornado: "✓ Built-in tutor with visual learning",
+          tool1: "✓ Good AI assistance",
+          tool2: "✗ No AI capabilities"
+        },
+        {
+          feature: "Calendar Integration",
+          tasktornado: "✓ Auto-syncs with your classes",
+          tool1: "✗ No calendar features",
+          tool2: "✓ Syncs with Google Calendar only"
+        },
+        {
+          feature: "Flashcard System",
+          tasktornado: "✓ AI-generated decks with spaced repetition",
+          tool1: "✗ Can generate text only, no study system",
+          tool2: "✗ No flashcard features"
+        },
+        {
+          feature: "Command Workflow",
+          tasktornado: "✓ @commands for instant actions",
+          tool1: "✗ No specialized commands",
+          tool2: "✗ No command system"
+        },
+        {
+          feature: "Student-Focused",
+          tasktornado: "✓ Built specifically for students",
+          tool1: "✗ General-purpose tool",
+          tool2: "✗ General productivity tool"
+        },
+        {
+          feature: "Pricing",
+          tasktornado: "✓ Completely free forever",
+          tool1: "✗ $20/month for Advanced features",
+          tool2: "✓ Free with Google Account"
+        },
+        {
+          feature: "Setup Time",
+          tasktornado: "✓ 2 minutes to get started",
+          tool1: "✓ Instant but limited",
+          tool2: "✓ 5-10 minutes setup"
+        }
+      ]
     }
+  };
 
-    const interval: any = setInterval(function () {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const particleCount = 50 * (timeLeft / duration);
-
-      confetti(Object.assign({}, defaults, {
-        particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-      }));
-      confetti(Object.assign({}, defaults, {
-        particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-      }));
-    }, 250);
-
-    return () => clearInterval(interval);
-  }, []);
-
+  const currentComparison = comparisonData[comparisonSet];
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans">
       <LandingNavbar />
 
-      {/* Clean Beta Banner */}
+      {/* Beta Banner */}
       <div className="bg-[#275085] dark:bg-[#1f3f6b] mt-16">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 py-3 px-4">
           <motion.div
@@ -67,323 +190,373 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* 1. HERO SECTION */}
       <Hero />
 
-      {/* Clean Services Section */}
-      <section id="features" className="py-24 bg-gray-50 dark:bg-gray-900">
+      {/* 2. ORGANIZATION - The Foundation */}
+      <section id="organization" className="py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="max-w-3xl mb-16">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Text Content */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
               <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
-                Features
+                The Foundation
               </span>
-              <h2 className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">
-                Everything you need to excel
+              <h2 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+                Never miss a deadline again
               </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                Powerful tools designed for students who want to stay organized and achieve more.
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Throw away the paper planner. TaskTornado centralizes your school life in one powerful dashboard.
               </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: <CalendarDays className="w-5 h-5" />, title: "Smart Calendar", desc: "Syncs assignments across all your classes" },
+                  { icon: <Bell className="w-5 h-5" />, title: "Intelligent Alerts", desc: "Get notified before you fall behind" },
+                  { icon: <TrendingUp className="w-5 h-5" />, title: "Progress Tracking", desc: "Visual insights into your grades and completion rates" }
+                ].map((feature, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-start gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center text-white shrink-0">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white mb-1">{feature.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <CleanServiceCard
-              icon={<MessageSquare className="w-6 h-6" />}
-              title="AI Study Assistant"
-              description="Get instant help with homework, explanations, and study guidance powered by advanced AI technology."
-              delay={0}
-            />
-
-            <CleanServiceCard
-              icon={<ClipboardList className="w-6 h-6" />}
-              title="Homework Tracker"
-              description="Organize assignments with priority levels, due dates, and progress tracking for all your classes."
-              delay={0.1}
-            />
-
-            <CleanServiceCard
-              icon={<BookOpen className="w-6 h-6" />}
-              title="Flashcard System"
-              description="Create, study, and master subjects with our intelligent flashcard system and spaced repetition."
-              delay={0.2}
-            />
-
-            <CleanServiceCard
-              icon={<Users className="w-6 h-6" />}
-              title="Group Chats"
-              description="Collaborate with classmates, share resources, and study together in virtual study rooms."
-              delay={0.3}
-            />
-
-            <CleanServiceCard
-              icon={<Clock className="w-6 h-6" />}
-              title="Study Timer"
-              description="Track your study sessions with customizable timers and productivity analytics."
-              delay={0.4}
-            />
-
-            <CleanServiceCard
-              icon={<CalendarDays className="w-6 h-6" />}
-              title="Calendar Integration"
-              description="Sync assignments and deadlines with your calendar to never miss important dates."
-              delay={0.5}
-            />
+            {/* Visual - Dashboard Preview */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Today's Homework</h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">3 tasks</span>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { subject: "Math", task: "Chapter 8 Problems", checked: true },
+                    { subject: "History", task: "WWII Essay Draft", checked: false },
+                    { subject: "Science", task: "Lab Report", checked: false }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${item.checked ? 'bg-[#275085] border-[#275085]' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {item.checked && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium ${item.checked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                          {item.task}
+                        </p>
+                        <p className="text-xs text-gray-500">{item.subject}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Clean AI Features Section */}
-      <section id="ai-assistant" className="py-24 bg-white dark:bg-gray-950">
+      {/* 3. AI TUTOR - The Engine */}
+      <section className="py-24 bg-white dark:bg-gray-950">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="max-w-3xl mb-16">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Visual - AI Chat Preview */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="order-2 lg:order-1"
             >
-              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
-                AI Assistant
-              </span>
-              <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                Your personal AI study companion
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                Get instant, intelligent help with your studies using our advanced AI assistant
-              </p>
-            </motion.div>
-          </div>
-
-          {/* AI Commands Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 md:p-12 mb-16 border border-gray-200 dark:border-gray-800"
-          >
-            <div className="flex flex-col lg:flex-row gap-12">
-              <div className="lg:w-1/2">
+              <div className="bg-linear-to-br from-[#275085] to-[#1f3f6b] rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-[#275085] dark:bg-[#1f3f6b] rounded-lg">
-                    <MessageSquare className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <Brain className="w-5 h-5" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">AI Commands</h3>
+                  <div>
+                    <h4 className="font-semibold">AI Tutor</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-400" />
+                      <span className="text-xs opacity-90">Online & Ready</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-8">
-                  Use these special commands to quickly access powerful features:
-                </p>
+
                 <div className="space-y-3">
-                  {[
-                    {
-                      command: '@homework',
-                      description: 'Get help with assignments and track due dates',
-                      example: '@homework What do I have due this week?'
-                    },
-                    {
-                      command: '@control',
-                      description: 'Manage your tasks and assignments',
-                      example: '@control mark math homework as done'
-                    },
-                    {
-                      command: '@resources',
-                      description: 'Find study materials and learning resources',
-                      example: '@resources for calculus 2'
-                    },
-                    {
-                      command: '@flashcards',
-                      description: 'Create and study with AI-generated flashcards',
-                      example: '@flashcards for biology chapter 3'
-                    },
-                    {
-                      command: '@therapist',
-                      description: 'Get support for stress and mental health',
-                      example: '@therapist I\'m feeling overwhelmed'
-                    }
-                  ].map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-[#275085]/50 dark:hover:border-[#275085]/70 transition-colors"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-1 bg-[#275085] dark:bg-[#1f3f6b] text-white text-xs font-mono font-semibold rounded">
-                          {item.command}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm mb-2">{item.description}</p>
-                      <div className="text-xs text-gray-500 dark:text-gray-500 font-mono bg-gray-100 dark:bg-gray-900 px-3 py-2 rounded border border-gray-200 dark:border-gray-700">
-                        {item.example}
-                      </div>
-                    </motion.div>
-                  ))}
+                  <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg">
+                    <p className="text-sm">Can you explain the quadratic formula?</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                    <p className="text-sm">The quadratic formula is x = (-b ± √(b²-4ac)) / 2a. It's used to solve equations in the form ax² + bx + c = 0...</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs opacity-75">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>Upload images for visual help</span>
+                  </div>
                 </div>
               </div>
+            </motion.div>
 
-              <div className="lg:w-1/2 flex items-center">
-                <div className="w-full bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700">
-                  <div className="text-center space-y-6">
-                    <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-xl bg-[#275085] dark:bg-[#1f3f6b] text-white">
-                      <Sparkles className="w-8 h-8" />
+            {/* Text Content */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="order-1 lg:order-2"
+            >
+              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+                The Engine
+              </span>
+              <h2 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+                A private tutor in your pocket. 24/7.
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Stuck on a problem? Don't wait for office hours. Our AI adapts to your needs.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: <ImageIcon className="w-5 h-5" />, title: "Visual Learning", desc: "Upload a photo of a homework problem for instant explanations" },
+                  { icon: <Brain className="w-5 h-5" />, title: "Dual Modes", desc: "Use Quick Mode (Gemma) for fast answers or Deep Mode (Gemini) for complex analysis" },
+                  { icon: <BookOpen className="w-5 h-5" />, title: "Flashcards", desc: "Let the AI generate study decks based on your notes" }
+                ].map((feature, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center text-white shrink-0">
+                      {feature.icon}
                     </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white mb-1">{feature.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
-                    <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Ready to get started?
-                    </h4>
+      {/* 3.5. COMPARISON - Why TaskTornado */}
+      <section className="py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+              The Comparison
+            </span>
+            <h2 className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+              Why not just use {currentComparison.name}?
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
+              We love those tools too. But they weren't built for students. Here's how we're different.
+            </p>
 
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Launch the AI assistant and upgrade your workflow instantly.
-                    </p>
-
-                    <Link
-                      href="/signin"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white font-medium transition-colors"
-                    >
-                      Sign In
-                      <ArrowUpRight className="w-4 h-4" />
-                    </Link>
-                  </div>
+            {/* Dropdown Selector */}
+            <div className="flex justify-center mb-8">
+              <div className="relative inline-block">
+                <select
+                  value={comparisonSet}
+                  onChange={(e) => setComparisonSet(e.target.value as 'chatgpt-notion' | 'gemini-google')}
+                  className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-6 py-3 pr-10 text-gray-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#275085] focus:border-transparent cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                >
+                  <option value="chatgpt-notion">ChatGPT + Notion</option>
+                  <option value="gemini-google">Gemini + Google Tasks</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* AI Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                icon: <MessageSquare className="w-6 h-6" />,
-                title: "Interactive Chat",
-                description: "Get instant answers to your questions and explanations for difficult concepts with our AI tutor."
-              },
-              {
-                icon: <Brain className="w-6 h-6" />,
-                title: "Smart AI Models",
-                description: "Choose between Quick mode (Gemma) for fast responses or Deep mode (Gemini) for thoughtful analysis."
-              },
-              {
-                icon: <ImageIcon className="w-6 h-6" />,
-                title: "Visual Learning",
-                description: "Upload images of homework problems and get AI-powered explanations and solutions."
-              },
-              {
-                icon: <BookOpen className="w-6 h-6" />,
-                title: "Smart Flashcards",
-                description: "Generate and study with AI-created flashcards that adapt to your learning progress."
-              },
-              {
-                icon: <CheckCircle className="w-6 h-6" />,
-                title: "Fair Usage",
-                description: "Daily limits ensure fair access - 30 messages in Quick mode, 10 in Deep mode per day."
-              },
-              {
-                icon: <Sparkles className="w-6 h-6" />,
-                title: "Therapist Mode",
-                description: "Access mental health support and stress management guidance when you need it most."
-              }
-            ].map((feature, index) => (
+          {/* Modern Minimalist Comparison */}
+          <div className="space-y-3">
+            {/* Header Cards */}
+            <div className="grid grid-cols-4 gap-3 mb-6">
+              <div className="col-span-1" />
               <motion.div
-                key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+                className="bg-[#275085]/5 dark:bg-[#275085]/10 rounded-xl p-4 border border-[#275085]/20 dark:border-[#275085]/30"
               >
-                <div className="w-12 h-12 bg-[#275085] dark:bg-[#1f3f6b] rounded-lg flex items-center justify-center mb-4 text-white">
-                  {feature.icon}
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Sparkles className="w-4 h-4 text-[#275085] dark:text-[#4a7ba7]" />
+                  <span className="font-bold text-[#275085] dark:text-[#4a7ba7] text-sm">TaskTornado</span>
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">All-in-one</p>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <div className={`w-4 h-4 rounded ${currentComparison.tool1.color} flex items-center justify-center`}>
+                    <span className="text-white text-[10px]">
+                      {currentComparison.tool1.name.charAt(0)}
+                    </span>
+                  </div>
+                  <span className="font-bold text-gray-900 dark:text-white text-sm">{currentComparison.tool1.name}</span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{currentComparison.tool1.description}</p>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <div className={`w-4 h-4 rounded ${currentComparison.tool2.color} flex items-center justify-center`}>
+                    <span className="text-white text-[10px]">
+                      {currentComparison.tool2.name.charAt(0)}
+                    </span>
+                  </div>
+                  <span className="font-bold text-gray-900 dark:text-white text-sm">{currentComparison.tool2.name}</span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{currentComparison.tool2.description}</p>
+              </motion.div>
+            </div>
+
+            {/* Feature Rows */}
+            {currentComparison.features.map((row, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.03 }}
+                className="grid grid-cols-4 gap-3 items-center"
+              >
+                <div className="col-span-1">
+                  <h4 className="font-medium text-gray-900 dark:text-white text-sm">{row.feature}</h4>
+                </div>
+
+                {/* TaskTornado */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 flex items-center justify-center min-h-[60px]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 text-left">
+                      {row.tasktornado.replace('✓ ', '')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tool 1 */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 flex items-center justify-center min-h-[60px]">
+                  {row.tool1.startsWith('✓') ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-gray-600 dark:text-gray-300" />
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 text-left">
+                        {row.tool1.replace('✓ ', '')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                        <span className="text-gray-400 dark:text-gray-500 text-xs font-bold">✕</span>
+                      </div>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 text-left">
+                        {row.tool1.replace('✗ ', '')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tool 2 */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 flex items-center justify-center min-h-[60px]">
+                  {row.tool2.startsWith('✓') ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-gray-600 dark:text-gray-300" />
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 text-left">
+                        {row.tool2.replace('✓ ', '')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                        <span className="text-gray-400 dark:text-gray-500 text-xs font-bold">✕</span>
+                      </div>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 text-left">
+                        {row.tool2.replace('✗ ', '')}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>
 
-          {/* CTA Card */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-[#275085] dark:bg-[#1f3f6b] rounded-2xl overflow-hidden"
+            transition={{ delay: 0.3 }}
+            className="mt-12 text-center"
           >
-            <div className="p-12 md:p-16">
-              <div className="max-w-5xl mx-auto">
-                <div className="flex flex-col lg:flex-row items-center gap-12">
-                  <div className="lg:w-1/2 text-white">
-                    <h3 className="text-4xl font-bold mb-6">Experience AI-powered learning</h3>
-                    <p className="text-white/90 text-lg mb-8 leading-relaxed">
-                      Transform your study routine with our intelligent AI tutor. Get instant help, personalized feedback, and support whenever you need it.
-                    </p>
-                    <ul className="space-y-3 mb-10">
-                      {[
-                        '24/7 AI assistance',
-                        'Personalized learning paths',
-                        'Instant feedback & explanations',
-                        'Multi-subject expertise'
-                      ].map((feature, i) => (
-                        <motion.li
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: i * 0.1 }}
-                          className="flex items-center text-white/90"
-                        >
-                          <Check className="w-5 h-5 mr-3" />
-                          <span>{feature}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center px-8 py-3 bg-white text-[#275085] font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Start Learning Now
-                      <ArrowUpRight className="w-5 h-5 ml-2" />
-                    </Link>
-                  </div>
-
-                  <div className="lg:w-1/2">
-                    <div className="bg-white/10 dark:bg-black/20 backdrop-blur-sm p-6 rounded-xl border border-white/20 dark:border-white/10">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-white dark:bg-gray-100 flex items-center justify-center">
-                          <Sparkles className="w-6 h-6 text-[#275085] dark:text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-white">AI Study Assistant</h4>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                            <p className="text-xs text-white/90">Online & Ready</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="bg-white/20 dark:bg-black/30 backdrop-blur-sm p-3 rounded-lg">
-                          <p className="text-white dark:text-gray-100 text-sm">How can I help with your studies today?</p>
-                        </div>
-                        <div className="bg-white/30 dark:bg-black/40 backdrop-blur-sm p-3 rounded-lg">
-                          <p className="text-white dark:text-gray-100 text-sm">I can explain concepts, create study materials, solve problems, and more.</p>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex items-center gap-2">
-                        <input
-                          type="text"
-                          placeholder="Ask me anything..."
-                          className="flex-1 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 text-sm text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                        />
-                        <button className="p-2 bg-white/30 hover:bg-white/40 backdrop-blur-sm text-white rounded-lg transition-colors">
-                          <ArrowUp className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+            <div className="bg-linear-to-r from-[#275085]/10 to-[#4a7ba7]/10 dark:from-[#275085]/5 dark:to-[#4a7ba7]/5 rounded-2xl p-8 border border-[#275085]/20 dark:border-[#275085]/30">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                The best of both worlds, built for students
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-6">
+                We combined {currentComparison.tool1.name}'s AI power with {currentComparison.tool2.name}'s organization, then added student-specific features like deadline tracking, flashcard systems, and stress support. All in one place, all completely free.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">No subscription fees</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Student-focused design</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Everything in one place</span>
                 </div>
               </div>
             </div>
@@ -391,103 +564,385 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* AI Guidelines Section */}
+      {/* 4. COMMAND FLOW - The Workflow */}
       <section className="py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Text Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+                The Workflow
+              </span>
+              <h2 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+                Control everything with a keystroke
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Efficiency matters. Use our specialized chat commands to manage your workflow without leaving the keyboard.
+              </p>
+
+              <div className="space-y-3">
+                {[
+                  { cmd: '@homework', example: 'What is due this week?' },
+                  { cmd: '@flashcards', example: 'Create a deck for Biology Ch. 3' },
+                  { cmd: '@resources', example: 'Find calculus practice problems' },
+                  { cmd: '@control', example: 'Mark math homework as done' }
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-1 bg-[#275085] dark:bg-[#1f3f6b] text-white text-xs font-mono font-semibold rounded">
+                        {item.cmd}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">{item.example}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Visual - Terminal Style */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="bg-gray-900 dark:bg-black rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+                <div className="flex items-center gap-2 px-4 py-3 bg-gray-800 dark:bg-gray-900 border-b border-gray-700">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span className="ml-2 text-xs text-gray-400">AI Command Center</span>
+                </div>
+                <div className="p-6 font-mono text-sm space-y-3">
+                  <div className="text-green-400">$ @homework What's due this week?</div>
+                  <div className="text-gray-300 pl-4">→ You have 3 assignments due:</div>
+                  <div className="text-gray-400 pl-4">  • Math Ch. 8 - Due Friday</div>
+                  <div className="text-gray-400 pl-4">  • History Essay - Due Thursday</div>
+                  <div className="text-gray-400 pl-4">  • Science Lab - Due Monday</div>
+                  <div className="text-green-400 mt-4">$ @control mark math as done</div>
+                  <div className="text-gray-300 pl-4">✓ Math homework marked complete</div>
+                  <div className="text-green-400 animate-pulse">_</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. WELLBEING - The Support */}
+      <section className="py-24 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <span className="inline-block px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 rounded-md mb-4">
+              The Support
+            </span>
+            <h2 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+              Grades matter. Your health matters more.
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+              School is stressful. We built a safe space to help you manage the pressure.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 text-left"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Vent & Decompress</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                Talk through academic overwhelm with our supportive AI <code className="px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded text-sm">@therapist</code> mode. Get coping strategies for school-related stress.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-amber-50 dark:bg-amber-950/20 rounded-2xl p-8 border border-amber-200 dark:border-amber-900/50 text-left"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Reality Check</h3>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                This is for coaching and coping strategies, not crisis management. Think of it as a supportive friend, not a professional therapist.
+              </p>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-blue-100 dark:bg-blue-900/30 rounded-xl p-6 border border-blue-300 dark:border-blue-800"
+          >
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              <strong className="font-semibold">If you're in crisis:</strong> Please reach out to professional resources like the Crisis Text Line (text HOME to 741741) or call 988 for the Suicide & Crisis Lifeline.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 5.5. GROUP CHATS - Collaboration */}
+      <section className="py-24 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Text Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+                Collaboration
+              </span>
+              <h2 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+                Study together, succeed together
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Connect with classmates, share resources, and collaborate in real-time study groups. Learning is better together.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: <Users className="w-5 h-5" />, title: "Class Group Chats", desc: "Create dedicated channels for each class to share notes and discuss assignments" },
+                  { icon: <MessageSquare className="w-5 h-5" />, title: "Real-Time Messaging", desc: "Instant messaging with your study group, no phone numbers required" },
+                  { icon: <BookOpen className="w-5 h-5" />, title: "Resource Sharing", desc: "Share study materials, flashcards, and helpful links with your group" }
+                ].map((feature, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center text-white shrink-0">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white mb-1">{feature.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Visual - Group Chat Preview */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {/* Chat Header */}
+                <div className="bg-[#275085] dark:bg-[#1f3f6b] p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white">AP Chemistry Study Group</h3>
+                    <p className="text-xs text-white/80">8 members • 3 online</p>
+                  </div>
+                </div>
+
+                {/* Chat Messages */}
+                <div className="p-4 space-y-3 bg-gray-50 dark:bg-gray-900 min-h-[300px]">
+                  <div className="flex items-start gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      SM
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1">Sarah M.</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">Did anyone finish the lab report yet?</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      JD
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1">Jake D.</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">Just finished! I can share my notes if you need help with the calculations</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      AL
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1">Alex L.</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">That would be amazing! Also, anyone want to study together for the midterm?</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chat Input */}
+                <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Type a message..."
+                      className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#275085]"
+                      disabled
+                    />
+                    <button className="px-4 py-2 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white rounded-lg transition-colors text-sm font-medium">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Badge */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
+              >
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                <span className="text-sm font-semibold">Live Collaboration</span>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. THE PROMISE - Transparency */}
+      <section className="py-24 bg-white dark:bg-gray-950">
+        <div className="max-w-5xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
+              The Promise
+            </span>
+            <h2 className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+              Free. Forever. No hidden fees.
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              We've been burned by "free" apps that switch to paid models too. TaskTornado is different.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-2xl p-8 md:p-12 border border-green-200 dark:border-green-900/50 mb-8"
+          >
+            <div className="flex items-start gap-4 mb-6">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-green-500 dark:bg-green-600 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                  TaskTornado will always be free
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6">
+                  This isn't a bait-and-switch. We're committed to keeping all core features free forever.
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Zap className="w-5 h-5 text-[#275085] dark:text-[#4a7ba7]" />
+                      <h4 className="font-bold text-gray-900 dark:text-white">Open Source Power</h4>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      We use efficient models like Gemma to keep costs low
+                    </p>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Users className="w-5 h-5 text-[#275085] dark:text-[#4a7ba7]" />
+                      <h4 className="font-bold text-gray-900 dark:text-white">Fair Limits</h4>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Daily message caps ensure everyone gets access
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 mt-6">
+              {['No premium tiers', 'No paywalls', 'Just tools to help you succeed'].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{item}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 7. FINAL CTA */}
+      <section className="py-24 bg-linear-to-br from-[#275085] to-[#1f3f6b] text-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[#275085] dark:bg-[#1f3f6b] mb-6">
-              <ShieldAlert className="w-7 h-7 text-white" />
-            </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Ethical AI use</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto text-lg">
-              We're committed to responsible AI that enhances learning while maintaining academic integrity.
-              Our tools are designed to support your education, not replace your learning journey.
+            <h2 className="text-5xl font-bold mb-6">
+              Ready to upgrade your GPA?
+            </h2>
+            <p className="text-xl opacity-90 mb-8 leading-relaxed">
+              Be one of the first to try the app.
             </p>
             <Link
-              href="/ai-guidelines"
-              className="inline-flex items-center px-6 py-3 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white font-medium rounded-lg transition-colors"
+              href="/signup"
+              className="inline-flex items-center px-8 py-4 bg-white text-[#275085] font-semibold rounded-lg hover:bg-gray-50 transition-colors text-lg"
             >
-              Read Our AI Guidelines
-              <ArrowUpRight className="w-4 h-4 ml-2" />
+              Launch TaskTornado
+              <ArrowUpRight className="w-5 h-5 ml-2" />
             </Link>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-white dark:bg-gray-950">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="max-w-3xl mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <span className="inline-block px-3 py-1 text-sm font-medium text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/10 dark:bg-[#275085]/5 rounded-md mb-4">
-                Free Forever
-              </span>
-              <h2 className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">
-                All features included
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                No hidden fees, no premium tiers, no paywalls. Everything you need to succeed.
-              </p>
-            </motion.div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
-            {[
-              {
-                icon: <BookOpen className="w-6 h-6" />,
-                title: "Unlimited Classes",
-                description: "Track all your courses without any limits."
-              },
-              {
-                icon: <CalendarDays className="w-6 h-6" />,
-                title: "Smart Planner",
-                description: "Never miss an assignment or exam date."
-              },
-              {
-                icon: <MessageSquare className="w-6 h-6" />,
-                title: "AI Study Assistant",
-                description: "Get help with homework and study questions."
-              },
-              {
-                icon: <BarChart2 className="w-6 h-6" />,
-                title: "Progress Tracking",
-                description: "Visualize your academic performance."
-              },
-              {
-                icon: <ClipboardList className="w-6 h-6" />,
-                title: "Assignment Manager",
-                description: "Keep all your work organized in one place."
-              },
-              {
-                icon: <Bell className="w-6 h-6" />,
-                title: "Smart Reminders",
-                description: "Get notified about upcoming deadlines."
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
-              >
-                <div className="w-12 h-12 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center mb-4 text-white">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -504,9 +959,21 @@ export default function LandingPage() {
               <img src="/TaskTornadoDark.svg" alt="Task Tornado Logo" className="w-8 h-8" />
             </motion.div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Task Tornado</h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
               Empowering students to achieve their full potential through intelligent organization and AI-powered assistance.
             </p>
+
+            <div className="flex justify-center gap-6 mb-8">
+              <Link href="/ai-guidelines" className="text-gray-600 dark:text-gray-400 hover:text-[#275085] dark:hover:text-[#4a7ba7] transition-colors">
+                AI Guidelines
+              </Link>
+              <Link href="/changelog" className="text-gray-600 dark:text-gray-400 hover:text-[#275085] dark:hover:text-[#4a7ba7] transition-colors">
+                Changelog
+              </Link>
+              <Link href="/signin" className="text-gray-600 dark:text-gray-400 hover:text-[#275085] dark:hover:text-[#4a7ba7] transition-colors">
+                Sign In
+              </Link>
+            </div>
           </div>
 
           <div className="border-t border-gray-200 dark:border-gray-800 pt-6 text-center">
@@ -516,86 +983,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-// Clean Service Card Component
-function CleanServiceCard({ icon, title, description, delay }: {
-  icon: React.ReactNode,
-  title: string,
-  description: string,
-  delay: number
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.5 }}
-      className="group bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
-    >
-      <div className="flex justify-between items-start mb-4">
-        <div className="w-12 h-12 rounded-lg bg-[#275085] dark:bg-[#1f3f6b] flex items-center justify-center text-white">
-          {icon}
-        </div>
-        <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
-      </div>
-      <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{description}</p>
-    </motion.div>
-  );
-}
-
-function HoverCheckButton({ href, text }: { href: string; text: string }) {
-  const [hovered, setHovered] = React.useState(false);
-
-  const messages = ["Let's Go!", "CLICK!", "100% Free!", "Nice!"];
-
-  const positions = [
-    { x: -40, y: -44 },
-    { x: 40, y: -44 },
-    { x: -40, y: 44 },
-    { x: 40, y: 44 },
-  ];
-
-  const assignedPositions = React.useMemo(() => {
-    const shuffled = positions.sort(() => 0.5 - Math.random());
-    return messages.map((msg, i) => ({
-      msg,
-      pos: shuffled[i % shuffled.length],
-    }));
-  }, [messages]);
-
-  return (
-    <div className="relative flex items-center">
-      <Link
-        href={href}
-        className="px-8 py-3 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white font-semibold rounded-lg transition-colors text-center flex items-center justify-center relative z-10"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {text}
-      </Link>
-
-      <AnimatePresence>
-        {hovered && (
-          <>
-            {assignedPositions.map(({ msg, pos }, i) => (
-              <motion.div
-                key={msg}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, x: pos.x, y: pos.y, scale: 1 }}
-                exit={{ opacity: 0, x: pos.x, y: pos.y - 10, scale: 0 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15, delay: i * 0.1 }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#275085] text-white text-xs rounded-md font-semibold"
-              >
-                {msg}
-              </motion.div>
-            ))}
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useClassContext, TestType, Priority as ContextPriority, TestStatus as ContextTestStatus } from '@/context/ClassContext';
+import { useClassContext, TestType, Priority as ContextPriority, TestStatus } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,14 +27,13 @@ import {
 
 type StudyMaterial = string | { url: string; title?: string };
 type Priority = 'low' | 'medium' | 'high' | 'critical';
-type TestStatus = 'not_started' | 'in_progress' | 'completed' | 'postponed' | 'cancelled';
 
 export default function EditTestPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { tests, classes, updateTest } = useClassContext();
   const { success, error: toastError } = useToast();
-  
+
   const [title, setTitle] = useState('');
   const [classId, setClassId] = useState('');
   const [testDate, setTestDate] = useState<Date | undefined>(new Date());
@@ -61,13 +60,13 @@ export default function EditTestPage() {
     if (score !== null && maxScore !== null && maxScore > 0) {
       const percentage = (score / maxScore) * 100;
       let calculatedGrade = '';
-      
+
       if (percentage >= 90) calculatedGrade = 'A';
       else if (percentage >= 80) calculatedGrade = 'B';
       else if (percentage >= 70) calculatedGrade = 'C';
       else if (percentage >= 60) calculatedGrade = 'D';
       else calculatedGrade = 'F';
-      
+
       setGrade(calculatedGrade);
     } else {
       setGrade('');
@@ -104,7 +103,7 @@ export default function EditTestPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title || !classId || !testDate) {
       toastError('Please fill in all required fields');
       return;
@@ -112,9 +111,9 @@ export default function EditTestPage() {
 
     try {
       setIsSubmitting(true);
-      
+
       const priorityForUpdate: ContextPriority = priority === 'critical' ? 'high' : priority;
-      
+
       await updateTest(id, {
         title,
         classId,
@@ -127,14 +126,14 @@ export default function EditTestPage() {
         location: location || null,
         duration: duration || null,
         priority: priorityForUpdate,
-        status: status as ContextTestStatus,
+        status: status as TestStatus,
         score: score || null,
         maxScore: maxScore || 100,
         grade: grade || null,
         notes: notes || null,
         completed_at: completedAt ? completedAt.toISOString() : null
       });
-      
+
       success('Test updated successfully');
       router.push(`/tests/${id}`);
     } catch (err) {
@@ -419,7 +418,7 @@ export default function EditTestPage() {
                   Add Material
                 </Button>
               </div>
-              
+
               <div className="space-y-3">
                 {studyMaterials.map((material, index) => (
                   <div key={index} className="flex items-center space-x-2">

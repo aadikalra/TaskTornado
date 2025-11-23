@@ -25,7 +25,7 @@ function Checkbox({
   }, [props?.checked]);
 
   const handleCheckedChange = React.useCallback(
-    (checked: boolean, eventDetails: { reason: "none"; event: Event; cancel: () => void; allowPropagation: () => void; isCanceled: boolean; isPropagationAllowed: boolean; }) => {
+    (checked: boolean, eventDetails: { reason: "none"; event: Event; cancel: () => void; allowPropagation: () => void; isCanceled: boolean; isPropagationAllowed: boolean; trigger: HTMLElement | undefined; }) => {
       setIsChecked(checked);
       onCheckedChange?.(checked, eventDetails);
     },

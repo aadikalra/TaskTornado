@@ -13,6 +13,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 
 import { useAI } from '@/context/AIContext';
 import { useClassContext } from '@/context/ClassContext';
+import { useRateLimitReset } from '@/hooks/useRateLimitReset';
 
 import {
   MessageSquare,
@@ -141,6 +142,27 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [activeCommand, setActiveCommand] = useState<
     'data' | 'control' | 'resources' | 'flashcards' | 'therapist' | 'grade' | null
   >(null);
+
+  // AI Personality setting
+  type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
+  const [aiPersonality, setAIPersonality] = useState<AIPersonality>('default');
+
+  // Load AI personality from cookie
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPersonality = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('aiPersonality='))
+        ?.split('=')[1];
+
+      if (savedPersonality) {
+        setAIPersonality(savedPersonality as AIPersonality);
+      }
+    }
+  }, []);
+
+  // Automatically clear rate-limit cookies at midnight
+  useRateLimitReset();
 
   /* ---------------------------------------------------------------------- */
   /* Command Definitions                       */
@@ -1279,6 +1301,29 @@ I've created ${formattedCards.length} flashcards for you to study.
     }
 
     try {
+      // Get personality-specific prompt modifier
+      const getPersonalityModifier = (personality: AIPersonality): string => {
+        switch (personality) {
+          case 'professional':
+            return '\n\nCommunication Style: Maintain a professional, polished tone. Use precise language, formal structure, and academic vocabulary. Be thorough and methodical in your explanations.';
+          case 'friendly':
+            return '\n\nCommunication Style: Be warm, chatty, and approachable. Use casual language, emojis occasionally, and show enthusiasm. Make the student feel comfortable and supported like a friendly tutor.';
+          case 'candid':
+            return '\n\nCommunication Style: Be direct, honest, and encouraging. Get straight to the point without unnecessary fluff. Provide constructive feedback openly while maintaining a supportive and motivating tone.';
+          case 'quirky':
+            return '\n\nCommunication Style: Be playful, imaginative, and creative. Use analogies, metaphors, and fun examples. Add personality and humor to make learning engaging and memorable.';
+          case 'efficient':
+            return '\n\nCommunication Style: Be concise, plain, and to-the-point. Minimize unnecessary words. Focus on delivering clear, actionable information quickly without elaborate explanations unless specifically requested.';
+          case 'nerdy':
+            return '\n\nCommunication Style: Be exploratory, enthusiastic, and detail-oriented. Dive deep into interesting tangents and connections. Share fascinating facts and show genuine excitement about the subject matter.';
+          case 'cynical':
+            return '\n\nCommunication Style: Be critical, sarcastic, and witty. Challenge assumptions and point out flaws in reasoning. Use dry humor and skepticism while still being helpful and educational.';
+          case 'default':
+          default:
+            return ''; // No modifier for default personality
+        }
+      };
+
       // Build the system prompt
       let systemPrompt = isTherapistMode
         ? `You are a compassionate and supportive mental health assistant. Your role is to provide a safe, non-judgmental space for users to express their feelings and thoughts.
@@ -1346,6 +1391,11 @@ Examples of how to handle different types:
 - Code: Test functionality, check for errors, evaluate efficiency`;
 
         console.log('Using enhanced grading mode system prompt');
+      }
+
+      // Apply personality modifier (except for therapist mode which has its own style)
+      if (!isTherapistMode) {
+        systemPrompt += getPersonalityModifier(aiPersonality);
       }
 
       const chatMessages = [
@@ -1714,14 +1764,26 @@ Examples of how to handle different types:
                   <h3 className="font-medium text-gray-900 dark:text-white">
                     Study Assistant
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedModel === 'gemma-3-12b-it'
-                      ? `Quick Messages: ${quickMessageCounter} / 100`
-                      : selectedModel === 'gemini-2.5-flash-lite'
-                        ? `Deep Messages: ${deeperMessageCounter} / 10`
-                        : `Cloud Messages: ${cloudMessageCounter} / 20`
-                    }
-                  </p>
+                  <div className="flex flex-col gap-1.5 mt-1 min-w-[180px]">
+                    <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <motion.div
+                        className={cn(
+                          "h-full rounded-full",
+                          selectedModel === 'gemma-3-12b-it' ? "bg-teal-500" :
+                            selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" : "bg-blue-500"
+                        )}
+                        initial={{ width: 0 }}
+                        animate={{
+                          width: `${Math.min(100, (
+                            selectedModel === 'gemma-3-12b-it' ? (quickMessageCounter / 100) * 100 :
+                              selectedModel === 'gemini-2.5-flash-lite' ? (deeperMessageCounter / 10) * 100 :
+                                (cloudMessageCounter / 20) * 100
+                          ))}%`
+                        }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

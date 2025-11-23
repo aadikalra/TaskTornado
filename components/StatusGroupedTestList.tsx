@@ -147,7 +147,10 @@ const StatusGroupedTestList = ({
     now.setHours(0, 0, 0, 0);
 
     filteredAndSortedTests.forEach(test => {
-      if (new Date(test.testDate) < now) {
+      // A test is completed if:
+      // 1. The test date has already occurred (is in the past), OR
+      // 2. The test has a status of 'completed' (case-insensitive)
+      if (new Date(test.testDate) < now || test.status?.toLowerCase() === 'completed') {
         groups.taken.push(test);
       } else {
         groups.upcoming.push(test);

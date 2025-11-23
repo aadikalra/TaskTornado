@@ -5,6 +5,8 @@ import { useClassContext } from '@/context/ClassContext';
 import { useAI } from '@/context/AIContext';
 import { Sparkles, Clock, AlertTriangle, BookOpen, Loader2, GraduationCap, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { iconMap } from '@/lib/icon-map';
+import { useToast } from '@/context/ToastContext';
 
 interface PriorityTest {
   id: string;
@@ -18,8 +20,9 @@ interface PriorityTest {
 }
 
 const PriorityTestCard = () => {
-  const { tests, classes } = useClassContext();
+  const { tests, classes, updateTest } = useClassContext();
   const { chat } = useAI();
+  const { success } = useToast();
   const [priorityTest, setPriorityTest] = useState<PriorityTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,9 +83,16 @@ const PriorityTestCard = () => {
         setIsLoading(true);
         setError(null);
 
-        // Filter out completed/missed tests and format them for the AI
+        // Filter out completed/missed tests and tests whose dates have passed
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+        
         const upcomingTests = tests
-          .filter(test => test.status === 'upcoming')
+          .filter(test => {
+            const testDate = new Date(test.testDate);
+            testDate.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+            return test.status === 'upcoming' && testDate >= today;
+          })
           .map(test => ({
             id: test.id,
             title: test.title,
@@ -99,30 +109,6 @@ const PriorityTestCard = () => {
           setIsLoading(false);
           return;
         }
-
-        // Create a prompt for the AI
-        const prompt = `Given the following list of upcoming tests, please determine which one should be studied for first based on test date, test type, and importance.
-
-        Consider the following factors:
-        1. Proximity to test date (sooner is higher priority)
-        2. Test type (BETA tests and ALPHA quizzes are typically more important than regular quizzes)
-        3. Class importance (prioritize core subjects)
-        4. Study materials available (tests with more study materials might need more time)
-        5. Any other relevant factors
-
-        Here's the test data in JSON format:
-        ${JSON.stringify(upcomingTests, null, 2)}
-
-        Please respond with a JSON object in this exact format:
-        {
-          "id": "test-id",
-          "title": "Test Title",
-          "className": "Class Name",
-          "testDate": "ISO date string",
-          "testType": "ALPHA|BETA|Quiz|Other|exam|quiz|midterm|final|project|presentation",
-          "reason": "Brief explanation of why this should be studied first",
-          "priority": "high|medium|low"
-        }`;
 
         // Get current date and time in ISO format
         const currentDateTime = new Date().toISOString();
@@ -153,11 +139,11 @@ Please respond with a JSON object in this exact format:
   "reason": "Brief explanation of why this should be studied first",
   "priority": "high|medium|low"
 }`
-        }], 'gemma3n:latest');
+        }], 'gemma-3-12b-it');
 
         // Try to parse the JSON response
         try {
-            // Safely extract the response content
+          // Safely extract the response content
           let responseContent = '';
 
           if (typeof response === 'string') {
@@ -167,9 +153,9 @@ Please respond with a JSON object in this exact format:
             if ('response' in response && typeof response.response === 'string') {
               responseContent = response.response;
             } else if ('message' in response &&
-                      response.message &&
-                      typeof response.message === 'object' &&
-                      'content' in response.message) {
+              response.message &&
+              typeof response.message === 'object' &&
+              'content' in response.message) {
               responseContent = String(response.message.content);
             } else {
               // Try to stringify if it's an object
@@ -244,30 +230,26 @@ Please respond with a JSON object in this exact format:
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 mb-6 border border-purple-100 dark:border-purple-900/50 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            <div className="h-6 w-6 bg-purple-200 dark:bg-purple-800 rounded-full flex items-center justify-center">
-              <Loader2 className="h-4 w-4 text-purple-600 dark:text-purple-400 animate-spin" />
-            </div>
-            <h3 className="font-medium text-purple-900 dark:text-purple-100">Finding your top test priority...</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="h-8 w-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+            <Loader2 className="h-4 w-4 text-purple-600 dark:text-purple-400 animate-spin" />
+          </div>
+          <div className="flex-1">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse mb-2"></div>
+            <div className="h-3 bg-gray-100 dark:bg-gray-700/50 rounded w-1/4 animate-pulse"></div>
           </div>
         </div>
-        <div className="space-y-2 mt-3">
-          <div className="h-4 bg-purple-100 dark:bg-purple-800/50 rounded w-3/4 animate-pulse"></div>
-          <div className="h-4 bg-purple-100 dark:bg-purple-800/50 rounded w-1/2 animate-pulse"></div>
+        <div className="space-y-2 mt-4">
+          <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-3/4 animate-pulse"></div>
+          <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-1/2 animate-pulse"></div>
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (error) {
-    return null; // Don't show anything if there's an error
-  }
-
-  // No priority test found
-  if (!priorityTest) {
+  // Error state or no priority test found
+  if (error || !priorityTest) {
     return null;
   }
 
@@ -275,24 +257,21 @@ Please respond with a JSON object in this exact format:
   const priorityConfig = {
     high: {
       icon: AlertTriangle,
-      color: 'text-red-500',
-      bgColor: 'bg-red-100 dark:bg-red-900/20',
-      borderColor: 'border-red-200 dark:border-red-800/50',
-      textColor: 'text-red-900 dark:text-red-100',
+      iconBg: 'bg-red-100 dark:bg-red-900/30',
+      iconColor: 'text-red-600 dark:text-red-400',
+      badge: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
     },
     medium: {
       icon: Clock,
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-100 dark:bg-amber-900/20',
-      borderColor: 'border-amber-200 dark:border-amber-800/50',
-      textColor: 'text-amber-900 dark:text-amber-100',
+      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+      iconColor: 'text-amber-600 dark:text-amber-400',
+      badge: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
     },
     low: {
       icon: BookOpen,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-      borderColor: 'border-blue-200 dark:border-blue-800/50',
-      textColor: 'text-blue-900 dark:text-blue-100',
+      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      badge: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
     },
   }[priorityTest.priority];
 
@@ -304,79 +283,90 @@ Please respond with a JSON object in this exact format:
     day: 'numeric',
   });
 
-  // Get test type icon
-  const getTestTypeIcon = (testType: string) => {
-    switch (testType.toLowerCase()) {
-      case 'exam':
-      case 'final':
-      case 'midterm':
-      case 'beta':
-        return GraduationCap;
-      case 'quiz':
-      case 'alpha':
-        return BookOpen;
-      case 'project':
-        return Calendar;
-      case 'presentation':
-        return Calendar;
-      default:
-        return BookOpen;
+  // Get the class icon
+  const testClass = tests.find(t => t.id === priorityTest.id);
+  const classData = testClass ? classes.find(c => c.id === testClass.classId) : null;
+  const ClassIcon = classData?.icon ? (iconMap[classData.icon as keyof typeof iconMap] ?? GraduationCap) : GraduationCap;
+
+  const handleStartStudying = async () => {
+    if (!testClass) return;
+
+    try {
+      await updateTest(testClass.id, { status: 'preparing' });
+      success(`Test status updated to "Preparing" - ${priorityTest.title}`);
+    } catch (error) {
+      console.error('Error updating test status:', error);
     }
   };
 
-  const TestTypeIcon = getTestTypeIcon(priorityTest.testType);
-
   return (
-    <div className={cn(
-      'rounded-xl p-4 mb-6 w-full max-w-2xl mx-auto shadow-sm border',
-      priorityConfig.bgColor,
-      priorityConfig.borderColor
-    )}>
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
-        <div className="flex items-start space-x-2">
-          <div className={`h-8 w-8 flex-shrink-0 ${priorityConfig.bgColor} rounded-full flex items-center justify-center`}>
-            <TestTypeIcon className={`h-4 w-4 ${priorityConfig.color}`} />
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+        <div className="flex items-start space-x-3">
+          <div className={cn(
+            'h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0',
+            priorityConfig.iconBg
+          )}>
+            <ClassIcon className={cn('h-5 w-5', priorityConfig.iconColor)} />
           </div>
-          <div className="min-w-0">
-            <h3 className="font-medium text-sm text-gray-900 dark:text-white truncate">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-base text-gray-900 dark:text-white mb-1">
               {priorityTest.className}
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {priorityTest.testType} • {formattedTestDate}
-            </p>
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>{priorityTest.testType} • {formattedTestDate}</span>
+            </div>
           </div>
         </div>
-        <div className="px-2 py-1 text-xs rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-          {priorityTest.priority} priority
+        <div className={cn(
+          'px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap',
+          priorityConfig.badge
+        )}>
+          {priorityTest.priority.charAt(0).toUpperCase() + priorityTest.priority.slice(1)} Priority
         </div>
       </div>
 
-      <div className="mt-3">
-        <h4 className="font-semibold text-gray-900 dark:text-white mb-1 break-words">
-          {priorityTest.title}
-        </h4>
-        <div className="mt-1 text-sm text-gray-600 dark:text-gray-300 break-words">
-          {priorityTest.reason}
+      <div className="space-y-3">
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+            {priorityTest.title}
+          </h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            {priorityTest.reason}
+          </p>
         </div>
 
         {/* Display study materials if available */}
         {priorityTest.studyMaterials && priorityTest.studyMaterials.length > 0 && (
-          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            📚 Study topics: {priorityTest.studyMaterials.slice(0, 3).join(', ')}
-            {priorityTest.studyMaterials.length > 3 && ` +${priorityTest.studyMaterials.length - 3} more`}
+          <div className="flex flex-wrap gap-2">
+            {priorityTest.studyMaterials.slice(0, 3).map((material, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                📚 {material}
+              </span>
+            ))}
+            {priorityTest.studyMaterials.length > 3 && (
+              <span className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+                +{priorityTest.studyMaterials.length - 3} more
+              </span>
+            )}
           </div>
         )}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="h-4 w-4 text-purple-500" />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            AI Recommended
-          </span>
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+          <Sparkles className="h-3.5 w-3.5 text-purple-500" />
+          <span>AI Recommended</span>
         </div>
-        <button className="text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">
-          Start studying
+        <button
+          onClick={handleStartStudying}
+          className="px-4 py-2 text-xs font-semibold text-white bg-[#264f84] hover:bg-[#1f3f6b] dark:bg-blue-600 dark:hover:bg-blue-700 rounded-lg transition-colors"
+        >
+          Start Studying
         </button>
       </div>
     </div>

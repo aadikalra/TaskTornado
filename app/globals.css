@@ -1,6 +1,7 @@
+/* OpenDyslexic Font for accessibility */
+@import url('https://fonts.cdnfonts.com/css/opendyslexic');
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -45,19 +46,32 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #f9fafb; /* Light gray background */
-  --foreground: oklch(0.145 0 0); /* Dark text for contrast */
-  --card: oklch(1 0 0); /* White cards */
-  --card-foreground: oklch(0.145 0 0); /* Dark text on cards */
-  --popover: oklch(1 0 0); /* White popovers */
-  --popover-foreground: oklch(0.145 0 0); /* Dark text on popovers */
-  --primary: oklch(0.205 0 0); /* Dark primary button */
-  --primary-foreground: oklch(0.985 0 0); /* Light text on dark primary */
-  --secondary: oklch(0.97 0 0); /* Light gray secondary */
-  --secondary-foreground: oklch(0.205 0 0); /* Dark text on secondary */
-  --muted: oklch(0.97 0 0); /* Light gray muted */
-  --muted-foreground: oklch(0.556 0 0); /* Medium gray text */
-  --accent-foreground: oklch(0.205 0 0); /* Dark text on accent */
+  --background: #f9fafb;
+  /* Light gray background */
+  --foreground: oklch(0.145 0 0);
+  /* Dark text for contrast */
+  --card: oklch(1 0 0);
+  /* White cards */
+  --card-foreground: oklch(0.145 0 0);
+  /* Dark text on cards */
+  --popover: oklch(1 0 0);
+  /* White popovers */
+  --popover-foreground: oklch(0.145 0 0);
+  /* Dark text on popovers */
+  --primary: oklch(0.205 0 0);
+  /* Dark primary button */
+  --primary-foreground: oklch(0.985 0 0);
+  /* Light text on dark primary */
+  --secondary: oklch(0.97 0 0);
+  /* Light gray secondary */
+  --secondary-foreground: oklch(0.205 0 0);
+  /* Dark text on secondary */
+  --muted: oklch(0.97 0 0);
+  /* Light gray muted */
+  --muted-foreground: oklch(0.556 0 0);
+  /* Medium gray text */
+  --accent-foreground: oklch(0.205 0 0);
+  /* Dark text on accent */
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -115,8 +129,27 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  body.dyslexic-font,
+  body.dyslexic-font * {
+    font-family: 'OpenDyslexic', Arial, sans-serif !important;
+  }
+
+  body.reduce-motion *,
+  body.reduce-motion *::before,
+  body.reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  body.reduce-motion {
+    scroll-behavior: auto;
   }
 }
 
