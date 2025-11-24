@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Trash2, BookOpen } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, BookOpen, Home } from 'lucide-react';
 import { FlashcardDeck, Flashcard } from '@/components/Flashcard';
 import { useAuth } from '@/context/AuthContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { SplittingText } from '@/components/animate-ui/primitives/texts/splitting';
+import { motion } from 'framer-motion';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 interface FlashcardDeckType {
 
@@ -30,6 +31,7 @@ interface FlashcardDeckType {
 export default function FlashcardsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { getContainerClass } = useWideLayout();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [savedDecks, setSavedDecks] = useState<FlashcardDeckType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,8 +129,31 @@ export default function FlashcardsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-white dark:bg-gray-950">
+        <div className={getContainerClass() + ' py-16'}>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-16"
+          >
+            <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+              Flashcards
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Study and review your flashcard decks
+            </p>
+          </motion.div>
+
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border-b border-gray-200 dark:border-gray-800 pb-6">
+                <div className="h-6 w-48 bg-gray-100 dark:bg-gray-800 rounded mb-2 animate-pulse" />
+                <div className="h-4 w-32 bg-gray-100 dark:bg-gray-800 rounded mb-4 animate-pulse" />
+                <div className="h-10 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -136,87 +161,132 @@ export default function FlashcardsPage() {
   // Show the saved decks list
   if (view === 'saved' && !selectedDeck) {
     return (
-      <div className="container mx-auto p-4 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="relative text-left">
-            <SplittingText
-              text={`Saved Flashcards`}
-              aria-hidden="true"
-              className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
-              style={{ fontFamily: 'var(--font-header)' }}
-              disableAnimation
-            />
-            <SplittingText
-              text={`Saved Flashcards`}
-              className="block text-4xl font-semibold absolute inset-0"
-              style={{ fontFamily: 'var(--font-header)' }}
-              type="chars"
-              alternateColors={['#ef4444', '#10b981']} // Red and Green colors
-              inView
-              initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
-              animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-            />
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => setView('current')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Current Session
-            </Button>
-            <Button asChild>
-              <Link href="/study-assistant">
-                <Plus className="mr-2 h-4 w-4" />
-                Create New with AI
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {savedDecks.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No flashcard decks yet</h3>
-            <p className="text-muted-foreground mt-2">
-              Create your first flashcard deck using the Study Assistant!
-            </p>
-            <Button className="mt-6" asChild>
-              <Link href="/study-assistant">
-                Go to Study Assistant
-              </Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {savedDecks.map((deck) => (
-              <div 
-                key={deck.id}
-                onClick={() => loadDeck(deck.id)}
-                className="relative p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer group"
-              >
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    onClick={(e) => deleteDeck(deck.id, e)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete deck</span>
-                  </Button>
-                </div>
-                <h3 className="font-semibold line-clamp-1">{deck.title}</h3>
-                {deck.description && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                    {deck.description}
-                  </p>
-                )}
-                <div className="mt-3 text-xs text-muted-foreground">
-                  Created: {deck.created_at ? new Date(deck.created_at).toLocaleDateString() : 'N/A'}
-                </div>
+      <div className="min-h-screen bg-white dark:bg-gray-950">
+        <div className={getContainerClass() + ' py-16'}>
+          
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-16"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+                  Saved Flashcards
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {savedDecks.length} deck{savedDecks.length !== 1 ? 's' : ''}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setView('current')} className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Current
+                </Button>
+                <Button asChild>
+                  <Link href="/study-assistant" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create New
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            {savedDecks.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                  <BookOpen className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                  No flashcard decks yet
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Create your first flashcard deck using the Study Assistant!
+                </p>
+                <Button asChild>
+                  <Link href="/study-assistant" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Go to Study Assistant
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {savedDecks.map((deck, index) => (
+                  <motion.div
+                    key={deck.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + index * 0.05 }}
+                    className="border-b border-gray-200 dark:border-gray-800 pb-6 last:border-0 group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" onClick={() => loadDeck(deck.id)}>
+                          {deck.title}
+                        </h3>
+                        {deck.description && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+                            {deck.description}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          Created {deck.created_at ? new Date(deck.created_at).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => loadDeck(deck.id)} className="gap-2">
+                          Study
+                          <ArrowLeft className="h-4 w-4 rotate-180" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => deleteDeck(deck.id, e)}
+                          className="h-8 w-8 p-0 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Built for students • Public Beta v1.0
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/')}
+                className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Button>
+            </div>
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -224,82 +294,174 @@ export default function FlashcardsPage() {
   // If we have no flashcards to display
   if (flashcards.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
-        <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-2">No Flashcards Found</h1>
-        <p className="text-muted-foreground mb-6 max-w-md">
-          {view === 'current' 
-            ? "It looks like you don't have any flashcards to review. Generate some from the Study Assistant!"
-            : "This flashcard deck is empty."}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          {view === 'saved' ? (
-            <>
-              <Button variant="outline" onClick={() => setView('saved')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Saved Flashcards
+      <div className="min-h-screen bg-white dark:bg-gray-950">
+        <div className={getContainerClass() + ' py-16'}>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-16"
+          >
+            <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+              Flashcards
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Study and review your flashcard decks
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                <BookOpen className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                No Flashcards Found
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+                {view === 'current' 
+                  ? "It looks like you don't have any flashcards to review. Generate some from the Study Assistant!"
+                  : "This flashcard deck is empty."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {view === 'saved' ? (
+                  <>
+                    <Button variant="ghost" size="sm" onClick={() => setView('saved')} className="gap-2">
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to Saved
+                    </Button>
+                    <Button asChild>
+                      <Link href="/study-assistant" className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Create New
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={() => router.push('/study-assistant')} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Go to Study Assistant
+                  </Button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Built for students • Public Beta v1.0
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/')}
+                className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <Home className="h-4 w-4" />
+                <span>Home</span>
               </Button>
-              <Button asChild>
-                <Link href="/study-assistant">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New with AI
-                </Link>
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => router.push('/study-assistant')}>
-              Go to Study Assistant
-            </Button>
-          )}
+            </div>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <div className="flex justify-between items-center mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => view === 'saved' ? setView('saved') : router.back()}
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className={getContainerClass() + ' py-16'}>
+        
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {view === 'saved' ? 'Back to Saved Flashcards' : 'Back'}
-        </Button>
-        
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">
-            {selectedDeck ? selectedDeck.title : 'Flashcards'}
-          </h1>
-          {selectedDeck?.description && (
-            <p className="text-sm text-muted-foreground">
-              {selectedDeck.description}
-            </p>
-          )}
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          {savedDecks.length > 0 && view !== 'saved' && (
-            <Button 
-              variant="outline" 
-              onClick={() => setView('saved')}
-              className="hidden sm:flex"
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Saved Flashcards
-            </Button>
-          )}
-          <Button asChild>
-            <Link href="/study-assistant">
-              <Plus className="mr-2 h-4 w-4" />
-              New with AI
-            </Link>
-          </Button>
-        </div>
-      </div>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+                {selectedDeck ? selectedDeck.title : 'Flashcards'}
+              </h1>
+              {selectedDeck?.description && (
+                <p className="text-gray-500 dark:text-gray-400">
+                  {selectedDeck.description}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => view === 'saved' ? setView('saved') : router.back()}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {view === 'saved' ? 'Back to Saved' : 'Back'}
+              </Button>
+              {savedDecks.length > 0 && view !== 'saved' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setView('saved')}
+                  className="gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Saved
+                </Button>
+              )}
+              <Button asChild>
+                <Link href="/study-assistant" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
 
-      <div className="bg-card rounded-lg shadow-sm border p-4">
-        <FlashcardDeck cards={flashcards} onSave={handleSave} />
+        {/* Flashcard Deck */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-6 bg-white dark:bg-gray-900">
+            <FlashcardDeck cards={flashcards} onSave={handleSave} />
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Built for students • Public Beta v1.0
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/')}
+              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            >
+              <Home className="h-4 w-4" />
+              <span>Home</span>
+            </Button>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -18,6 +18,7 @@
     "@shadcn-editor": "https://shadcn-editor.vercel.app/r/{name}.json",
     "@animate-ui": "https://animate-ui.com/r/{name}.json",
     "@supabase": "https://supabase.com/ui/r/{name}.json",
-    "@blocks": "https://blocks.so/r/{name}.json"
+    "@blocks": "https://blocks.so/r/{name}.json",
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
   }
 }

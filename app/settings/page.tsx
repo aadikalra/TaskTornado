@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, AlertTriangle } from 'lucide-react';
+import { Home, AlertTriangle, Maximize2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
   PreferencesSection,
   SectionOrderSection,
@@ -37,13 +38,16 @@ const getCookie = (name: string): string | null => {
 
 export default function SettingsPage() {
   const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
-  const { signOut } = useAuth() || {};
+  const { signOut, full_name } = useAuth() || {};
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const router = useRouter();
+  const { useWideLayout: isWideLayout, toggleWideLayout, getContainerClass } = useWideLayout();
 
   const [showAIPriority, setShowAIPriority] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -250,146 +254,183 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteAccount = async (confirmed: boolean) => {
+    if (!confirmed) return;
+    
+    setIsDeleting(true);
+    try {
+      // TODO: Implement actual account deletion API call
+      // For now, just simulate the process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Clear all local data
+      clearAllClasses();
+      clearAllHomeworks();
+      
+      // Sign out and redirect
+      if (signOut) {
+        signOut();
+      }
+      
+      router.push('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      setIsDeleting(false);
+    }
+  };
+
+  // Get user name for delete confirmation
+  const userName = full_name || "User"; // Use actual user name or fallback to "User"
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className={getContainerClass() + ' py-16'}>
+        
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex items-center justify-between mb-8"
+          className="mb-16"
         >
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Manage your data and preferences
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/')}
-            className="gap-2"
-          >
-            <Home className="h-4 w-4" />
-            <span className="hidden sm:inline">Home</span>
-          </Button>
+          <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+            Settings
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage your preferences and data
+          </p>
         </motion.div>
 
         {/* Main Content */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.1
-              }
-            }
-          }}
-          className="space-y-6"
-        >
+        <div className="space-y-12">
           {/* Preferences Section */}
-          <Card className="border-gray-200 dark:border-gray-800">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Preferences</CardTitle>
-              <CardDescription className="text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                Preferences
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Customize your app experience
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PreferencesSection
-                showAIPriority={showAIPriority}
-                onToggleAIPriority={handleToggleAIPriority}
-                showLevelDisplay={showLevelDisplay}
-                onToggleLevelDisplay={handleToggleLevelDisplay}
-                showSubjectMastery={showSubjectMastery}
-                onToggleSubjectMastery={handleToggleSubjectMastery}
-                aiPersonality={aiPersonality}
-                onPersonalityChange={handlePersonalityChange}
-              />
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <PreferencesSection
+              showAIPriority={showAIPriority}
+              onToggleAIPriority={handleToggleAIPriority}
+              showLevelDisplay={showLevelDisplay}
+              onToggleLevelDisplay={handleToggleLevelDisplay}
+              showSubjectMastery={showSubjectMastery}
+              onToggleSubjectMastery={handleToggleSubjectMastery}
+              aiPersonality={aiPersonality}
+              onPersonalityChange={handlePersonalityChange}
+              useWideLayout={isWideLayout}
+              onToggleWideLayout={toggleWideLayout}
+            />
+          </motion.div>
 
           {/* Section Order */}
-          <Card className="border-gray-200 dark:border-gray-800">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Section Order</CardTitle>
-              <CardDescription className="text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                Section Order
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Customize the order of sections on your dashboard
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SectionOrderSection
-                sectionOrder={sectionOrder}
-                onMoveUp={moveSectionUp}
-                onMoveDown={moveSectionDown}
-                onOrderChange={handleSectionOrderChange}
-              />
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <SectionOrderSection
+              sectionOrder={sectionOrder}
+              onMoveUp={moveSectionUp}
+              onMoveDown={moveSectionDown}
+              onOrderChange={handleSectionOrderChange}
+            />
+          </motion.div>
 
           {/* Accessibility Section */}
-          <Card className="border-gray-200 dark:border-gray-800">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Accessibility</CardTitle>
-              <CardDescription className="text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                Accessibility
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Customize for better readability and usability
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AccessibilitySection
-                reduceMotion={reduceMotion}
-                onToggleReduceMotion={handleToggleReduceMotion}
-                useDyslexicFont={useDyslexicFont}
-                onToggleDyslexicFont={handleToggleDyslexicFont}
-              />
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <AccessibilitySection
+              reduceMotion={reduceMotion}
+              onToggleReduceMotion={handleToggleReduceMotion}
+              useDyslexicFont={useDyslexicFont}
+              onToggleDyslexicFont={handleToggleDyslexicFont}
+            />
+          </motion.div>
 
           {/* Data Management Section */}
-          <Card className="border-gray-200 dark:border-gray-800">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Data Management</CardTitle>
-              <CardDescription className="text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                Data Management
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Manage your classes and homework data
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DataManagementSection
-                classes={classes}
-                homeworks={homeworks}
-                showClassConfirm={showClassConfirm}
-                showHomeworkConfirm={showHomeworkConfirm}
-                onClearClasses={handleClearClasses}
-                onClearHomeworks={handleClearHomeworks}
-              />
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <DataManagementSection
+              classes={classes}
+              homeworks={homeworks}
+              showClassConfirm={showClassConfirm}
+              showHomeworkConfirm={showHomeworkConfirm}
+              onClearClasses={handleClearClasses}
+              onClearHomeworks={handleClearHomeworks}
+            />
+          </motion.div>
 
           {/* Account Section */}
-          <Card className="border-gray-200 dark:border-gray-800">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Account</CardTitle>
-              <CardDescription className="text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                Account
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Manage your account settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AccountSection
-                isLoggingOut={isLoggingOut}
-                showLogoutConfirm={showLogoutConfirm}
-                countdown={countdown}
-                onSignOut={handleSignOut}
-              />
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <AccountSection
+              isLoggingOut={isLoggingOut}
+              showLogoutConfirm={showLogoutConfirm}
+              countdown={countdown}
+              onSignOut={handleSignOut}
+              showDeleteConfirm={showDeleteConfirm}
+              isDeleting={isDeleting}
+              onDeleteAccountWithConfirmation={handleDeleteAccount}
+              userName={userName}
+            />
+          </motion.div>
 
           {/* Warning Notice */}
-          <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg"
+          >
             <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
@@ -399,6 +440,29 @@ export default function SettingsPage() {
                 Make sure you have a backup of any important data before proceeding with delete operations.
               </p>
             </div>
+          </motion.div>
+        </div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Built for students • Public Beta v1.0
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/')}
+              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            >
+              <Home className="h-4 w-4" />
+              <span>Home</span>
+            </Button>
           </div>
         </motion.div>
       </div>

@@ -65,7 +65,7 @@ export function LinkCard({ url, title, className = '' }: LinkCardProps) {
       className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/30 transition-colors text-sm ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className={`flex-shrink-0 h-5 w-5 rounded ${bgColor} dark:bg-opacity-20 flex items-center justify-center overflow-hidden`}>
+      <div className={`shrink-0 h-5 w-5 rounded ${bgColor} dark:bg-opacity-20 flex items-center justify-center overflow-hidden`}>
         {faviconUrl ? (
           <div className="relative h-full w-full">
             <Image 
@@ -91,7 +91,7 @@ export function LinkCard({ url, title, className = '' }: LinkCardProps) {
       <span className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-[160px] sm:max-w-[200px]">
         {title || domain}
       </span>
-      <ExternalLink className="h-3 w-3 text-gray-400 dark:text-gray-500 flex-shrink-0 ml-0.5" />
+      <ExternalLink className="h-3 w-3 text-gray-400 dark:text-gray-500 shrink-0 ml-0.5" />
     </a>
   );
 }

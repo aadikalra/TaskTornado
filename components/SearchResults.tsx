@@ -3,60 +3,63 @@
 import { useState, useEffect } from 'react';
 import { useSearch } from '@/context/SearchContext';
 import { useClassContext } from '@/context/ClassContext';
-import { Search, BookOpen, GraduationCap, FileText, Presentation, Target, Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield, MessageSquare, CreditCard, Clock, MapPin, Star, Gamepad2, Trophy, PenTool, Bookmark, HelpCircle, FileQuestion, Scroll, User, History, Mail } from 'lucide-react';
+import {
+  Search, BookOpen, GraduationCap, FileText, Presentation, Target,
+  Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield,
+  PenTool, Bookmark, HelpCircle, Scroll, User, History,
+  CreditCard, Gamepad2, Trophy
+} from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
+// Test Type Icons
 const getTestTypeIcon = (testType: string) => {
   const type = testType?.toLowerCase() || '';
   switch (type) {
     case 'alpha':
-      return { icon: Target, color: 'text-purple-600 dark:text-purple-400' };
+      return { icon: Target, color: 'text-purple-500 dark:text-purple-400' };
     case 'beta':
-      return { icon: Zap, color: 'text-orange-600 dark:text-orange-400' };
+      return { icon: Zap, color: 'text-orange-500 dark:text-orange-400' };
     case 'quiz':
-      return { icon: FileText, color: 'text-blue-600 dark:text-blue-400' };
+      return { icon: FileText, color: 'text-blue-500 dark:text-blue-400' };
     case 'exam':
     case 'midterm':
     case 'final':
-      return { icon: GraduationCap, color: 'text-red-600 dark:text-red-400' };
+      return { icon: GraduationCap, color: 'text-red-500 dark:text-red-400' };
     case 'project':
     case 'presentation':
-      return { icon: Presentation, color: 'text-green-600 dark:text-green-400' };
+      return { icon: Presentation, color: 'text-green-500 dark:text-green-400' };
     default:
-      return { icon: BookOpen, color: 'text-gray-600 dark:text-gray-400' };
+      return { icon: BookOpen, color: 'text-gray-500 dark:text-gray-400' };
   }
 };
 
+// Default search route shortcuts
 const routeSearchItems = [
-  // Main App Pages
-  { title: 'Dashboard', href: '/dashboard', icon: Home, keywords: ['home', 'dashboard', 'main', 'overview'] },
-  { title: 'Homework', href: '/homework', icon: FileText, keywords: ['homework', 'assignments', 'tasks', 'work'] },
-  { title: 'Tests', href: '/tests', icon: GraduationCap, keywords: ['tests', 'exams', 'quiz', 'assessment'] },
-  { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events', 'dates'] },
-  { title: 'Settings', href: '/settings', icon: Settings, keywords: ['settings', 'preferences', 'config', 'options'] },
-  
-  // Study & Learning Tools
-  { title: 'Flashcards', href: '/flashcards', icon: CreditCard, keywords: ['flashcards', 'cards', 'study', 'memorize'] },
-  { title: 'Groups', href: '/groups', icon: Users, keywords: ['groups', 'study groups', 'team', 'collaborate'] },
-  { title: 'Writing Assist', href: '/writing-assist', icon: PenTool, keywords: ['writing', 'essay', 'assist', 'help'] },
-  { title: 'Web Saves', href: '/web-saves', icon: Bookmark, keywords: ['web saves', 'bookmarks', 'save', 'links'] },
-  
-  // Games & Fun
-  { title: 'Games', href: '/games', icon: Gamepad2, keywords: ['games', 'fun', 'play'] },
-  { title: 'Snake Game', href: '/snake', icon: Trophy, keywords: ['snake', 'game', 'retro'] },
-  { title: 'Task Tower', href: '/task-tower', icon: BarChart, keywords: ['task tower', 'tower', 'game'] },
-  
-  // AI & Testing
-  { title: 'AI Guidelines', href: '/ai-guidelines', icon: HelpCircle, keywords: ['ai', 'guidelines', 'assistant', 'help'] },
-  
-  // Legal & About
-  { title: 'About Creator', href: '/about-creator', icon: User, keywords: ['about', 'creator', 'developer', 'info'] },
-  { title: 'Changelog', href: '/changelog', icon: History, keywords: ['changelog', 'updates', 'version', 'history'] },
-  { title: 'Privacy Policy', href: '/legal/privacy', icon: Shield, keywords: ['privacy', 'policy', 'legal'] },
-  { title: 'Terms of Service', href: '/legal/terms', icon: Scroll, keywords: ['terms', 'service', 'legal'] },
+  { title: 'Dashboard', href: '/dashboard', icon: Home, keywords: ['home', 'dashboard', 'overview'] },
+  { title: 'Homework', href: '/homework', icon: FileText, keywords: ['homework', 'assignments', 'tasks'] },
+  { title: 'Tests', href: '/tests', icon: GraduationCap, keywords: ['tests', 'exams', 'quiz'] },
+  { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events'] },
+  { title: 'Settings', href: '/settings', icon: Settings, keywords: ['settings', 'preferences'] },
+
+  { title: 'Flashcards', href: '/flashcards', icon: CreditCard, keywords: ['flashcards'] },
+  { title: 'Groups', href: '/groups', icon: Users, keywords: ['groups'] },
+  { title: 'Writing Assist', href: '/writing-assist', icon: PenTool, keywords: ['writing', 'essay'] },
+  { title: 'Web Saves', href: '/web-saves', icon: Bookmark, keywords: ['web saves', 'links'] },
+
+  { title: 'Games', href: '/games', icon: Gamepad2, keywords: ['games'] },
+  { title: 'Snake Game', href: '/snake', icon: Trophy, keywords: ['snake'] },
+  { title: 'Task Tower', href: '/task-tower', icon: BarChart, keywords: ['task tower'] },
+
+  { title: 'AI Guidelines', href: '/ai-guidelines', icon: HelpCircle, keywords: ['ai', 'guidelines'] },
+
+  { title: 'About Creator', href: '/about-creator', icon: User, keywords: ['about'] },
+  { title: 'Changelog', href: '/changelog', icon: History, keywords: ['changelog'] },
+  { title: 'Privacy Policy', href: '/legal/privacy', icon: Shield, keywords: ['privacy'] },
+  { title: 'Terms of Service', href: '/legal/terms', icon: Scroll, keywords: ['terms'] },
 ];
 
 export function SearchResults() {
@@ -67,6 +70,7 @@ export function SearchResults() {
   const [colorMap, setColorMap] = useState<{ [key: string]: string }>({});
   const isDark = theme === 'dark';
 
+  // Load class badge colors
   useEffect(() => {
     const cookieColors = Cookies.get('classColors');
     if (cookieColors) {
@@ -78,48 +82,43 @@ export function SearchResults() {
     }
   }, []);
 
-  // Handle Enter key to navigate to top result
+  // ENTER-to-go-first-result
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && query.trim()) {
         e.preventDefault();
-        const searchTerm = query.toLowerCase();
+        const term = query.toLowerCase();
 
-        // Check routes first
-        const matchedRoute = routeSearchItems.find(item =>
-          item.title.toLowerCase().includes(searchTerm) ||
-          item.keywords.some(keyword => keyword.includes(searchTerm))
+        const matchRoute = routeSearchItems.find(item =>
+          item.title.toLowerCase().includes(term) ||
+          item.keywords.some(k => k.includes(term))
         );
 
-        if (matchedRoute) {
-          router.push(matchedRoute.href);
+        if (matchRoute) {
+          router.push(matchRoute.href);
           closeSearch();
           return;
         }
 
-        // Check homework
-        const filteredHomeworks = homeworks.filter(homework =>
-          homework.title.toLowerCase().includes(searchTerm) ||
-          homework.description?.toLowerCase().includes(searchTerm) ||
-          classes.find(c => c.id === homework.classId)?.name.toLowerCase().includes(searchTerm)
+        const hw = homeworks.filter(h =>
+          h.title.toLowerCase().includes(term) ||
+          h.description?.toLowerCase().includes(term) ||
+          classes.find(c => c.id === h.classId)?.name.toLowerCase().includes(term)
         );
-
-        if (filteredHomeworks.length > 0) {
-          router.push(`/homework/${filteredHomeworks[0].id}`);
+        if (hw.length) {
+          router.push(`/homework/${hw[0].id}`);
           closeSearch();
           return;
         }
 
-        // Check tests
-        const filteredTests = tests.filter(test =>
-          test.title.toLowerCase().includes(searchTerm) ||
-          test.description?.toLowerCase().includes(searchTerm) ||
-          classes.find(c => c.id === test.classId)?.name.toLowerCase().includes(searchTerm) ||
-          test.testType?.toLowerCase().includes(searchTerm)
+        const ts = tests.filter(t =>
+          t.title.toLowerCase().includes(term) ||
+          t.description?.toLowerCase().includes(term) ||
+          classes.find(c => c.id === t.classId)?.name.toLowerCase().includes(term) ||
+          t.testType?.toLowerCase().includes(term)
         );
-
-        if (filteredTests.length > 0) {
-          router.push(`/tests/${filteredTests[0].id}`);
+        if (ts.length) {
+          router.push(`/tests/${ts[0].id}`);
           closeSearch();
           return;
         }
@@ -132,189 +131,300 @@ export function SearchResults() {
 
   if (!query.trim()) {
     return (
-      <div className="mt-4 text-center bg-white dark:bg-gray-800">
-        <Search className="mx-auto h-8 w-8 text-gray-300 dark:text-gray-500" />
-        <p className="mt-2 text-gray-500 dark:text-gray-400">Search for assignments, tests, or classes</p>
+      <div className="mt-6 flex flex-col items-center text-center py-10
+                      bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl mx-4 shadow-sm">
+        <Search className="h-8 w-8 text-gray-300 dark:text-gray-500" />
+        <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm">
+          Search assignments, tests, or pages
+        </p>
       </div>
     );
   }
 
-  const searchTerm = query.toLowerCase();
+  const term = query.toLowerCase();
 
-  // Filter routes
   const filteredRoutes = routeSearchItems.filter(item =>
-    item.title.toLowerCase().includes(searchTerm) ||
-    item.keywords.some(keyword => keyword.includes(searchTerm))
+    item.title.toLowerCase().includes(term) ||
+    item.keywords.some(k => k.includes(term))
   );
 
-  const filteredHomeworks = homeworks.filter(homework =>
-    homework.title.toLowerCase().includes(searchTerm) ||
-    homework.description?.toLowerCase().includes(searchTerm) ||
-    classes.find(c => c.id === homework.classId)?.name.toLowerCase().includes(searchTerm)
+  const filteredHomeworks = homeworks.filter(h =>
+    h.title.toLowerCase().includes(term) ||
+    h.description?.toLowerCase().includes(term) ||
+    classes.find(c => c.id === h.classId)?.name.toLowerCase().includes(term)
   );
 
-  const filteredTests = tests.filter(test =>
-    test.title.toLowerCase().includes(searchTerm) ||
-    test.description?.toLowerCase().includes(searchTerm) ||
-    classes.find(c => c.id === test.classId)?.name.toLowerCase().includes(searchTerm) ||
-    test.testType?.toLowerCase().includes(searchTerm)
+  const filteredTests = tests.filter(t =>
+    t.title.toLowerCase().includes(term) ||
+    t.description?.toLowerCase().includes(term) ||
+    classes.find(c => c.id === t.classId)?.name.toLowerCase().includes(term) ||
+    t.testType?.toLowerCase().includes(term)
   );
 
-  const hasResults = filteredRoutes.length > 0 || filteredHomeworks.length > 0 || filteredTests.length > 0;
+  const hasResults =
+    filteredRoutes.length ||
+    filteredHomeworks.length ||
+    filteredTests.length;
 
   if (!hasResults) {
     return (
-      <div className="text-center p-4 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800">
-        <p>No results found for &quot;{query}&quot;</p>
+      <div className="py-10 text-center mx-4 rounded-xl shadow-sm
+                      bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          No results for “{query}”
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-h-96 overflow-y-auto bg-white dark:bg-gray-800">
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+        className="max-h-104 overflow-y-auto mx-4 mt-4"
+      >
+      
+      {/* ROUTES */}
       {filteredRoutes.length > 0 && (
-        <div className="mb-4">
-          <h3 className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15, delay: 0.05 }}
+          className="pt-3 pb-6"
+        >
+          <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
+                         text-gray-500 dark:text-gray-400 font-medium">
             Pages
           </h3>
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredRoutes.map((route) => {
-              const RouteIcon = route.icon;
+          <motion.ul>
+            {filteredRoutes.map((route, index) => {
+              const Icon = route.icon;
               return (
-                <li key={`route-${route.href}`} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <motion.li
+                  key={route.href}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.15, delay: 0.1 + index * 0.05 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Link
                     href={route.href}
-                    className="block px-4 py-3"
                     onClick={closeSearch}
+                    className="flex items-center px-5 py-3 text-sm
+                               hover:bg-gray-50/60 dark:hover:bg-gray-800/70
+                               transition rounded-md"
                   >
-                    <div className="flex items-center">
-                      <RouteIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-3" />
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {route.title}
-                      </h3>
-                    </div>
+                    <motion.div
+                      initial={{ rotate: 0 }}
+                      whileHover={{ rotate: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Icon className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                    </motion.div>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {route.title}
+                    </span>
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
-          </ul>
-        </div>
+          </motion.ul>
+        </motion.div>
       )}
 
+      {/* HOMEWORKS */}
       {filteredHomeworks.length > 0 && (
-        <div className="mb-4">
-          <h3 className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15, delay: 0.1 + filteredRoutes.length * 0.05 }}
+          className="pt-3 pb-6"
+        >
+          <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
+                         text-gray-500 dark:text-gray-400 font-medium">
             Assignments
           </h3>
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredHomeworks.map((homework) => {
-              const classItem = classes.find(c => c.id === homework.classId);
-              const color = classItem ? colorMap[classItem.id] ?? '#808080' : '#808080';
+
+          <motion.ul>
+            {filteredHomeworks.map((hw, index) => {
+              const c = classes.find(x => x.id === hw.classId);
+              const color = c ? colorMap[c.id] ?? '#808080' : '#808080';
+
               return (
-                <li key={`hw-${homework.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <motion.li
+                  key={hw.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.15, delay: 0.15 + filteredRoutes.length * 0.05 + index * 0.05 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Link
-                    href={`/homework/${homework.id}`}
-                    className="block px-4 py-3"
+                    href={`/homework/${hw.id}`}
                     onClick={closeSearch}
+                    className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
+                               transition rounded-md"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        {homework.completed && (
-                          <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400 mr-2" />
+                        {hw.completed && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ duration: 0.2, delay: 0.2 + index * 0.05 }}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                          </motion.div>
                         )}
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {homework.title}
-                        </h3>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {hw.title}
+                        </span>
                       </div>
-                      {classItem && (
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors"
+
+                      {c && (
+                        <motion.span
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
+                          whileHover={{ scale: 1.05 }}
+                          className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
                           style={{
-                            backgroundColor: isDark ? `${color}22` : `${color}33`,
-                            color: color,
-                            border: `1px solid ${isDark ? `${color}44` : `${color}66`}`,
-                            backdropFilter: isDark ? 'brightness(0.9)' : 'none'
+                            background: isDark ? `${color}22` : `${color}20`,
+                            color,
+                            borderColor: `${color}55`,
                           }}
                         >
-                          {classItem.name}
-                        </span>
+                          {c.name}
+                        </motion.span>
                       )}
                     </div>
-                    {homework.description && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {homework.description}
-                      </p>
+
+                    {hw.description && (
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+                        className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+                      >
+                        {hw.description}
+                      </motion.p>
                     )}
-                    <div className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
-                      <span>Due: {new Date(homework.dueDate).toLocaleDateString()}</span>
-                    </div>
+
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
+                      className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+                    >
+                      Due: {new Date(hw.dueDate).toLocaleDateString()}
+                    </motion.p>
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
-          </ul>
-        </div>
+          </motion.ul>
+        </motion.div>
       )}
 
+      {/* TESTS */}
       {filteredTests.length > 0 && (
-        <div>
-          <h3 className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15, delay: 0.15 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 }}
+          className="pt-3 pb-6"
+        >
+          <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
+                         text-gray-500 dark:text-gray-400 font-medium">
             Tests & Exams
           </h3>
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredTests.map((test) => {
-              const classItem = classes.find(c => c.id === test.classId);
-              const testType = getTestTypeIcon(test.testType);
-              const TestIcon = testType.icon;
-              const color = classItem ? colorMap[classItem.id] ?? '#808080' : '#808080';
+
+          <motion.ul>
+            {filteredTests.map((t, index) => {
+              const c = classes.find(x => x.id === t.classId);
+              const { icon: TestIcon, color: testColor } = getTestTypeIcon(t.testType);
+              const badgeColor = c ? colorMap[c.id] ?? '#808080' : '#808080';
 
               return (
-                <li key={`test-${test.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <motion.li
+                  key={t.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.15, delay: 0.2 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 + index * 0.05 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Link
-                    href={`/tests/${test.id}`}
-                    className="block px-4 py-3"
+                    href={`/tests/${t.id}`}
                     onClick={closeSearch}
+                    className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
+                               transition rounded-md"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <TestIcon className={`h-4 w-4 mr-2 ${testType.color}`} />
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {test.title}
-                        </h3>
+                        <motion.div
+                          initial={{ rotate: 0 }}
+                          whileHover={{ rotate: 10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <TestIcon className={`h-4 w-4 mr-2 ${testColor}`} />
+                        </motion.div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {t.title}
+                        </span>
                       </div>
-                      {classItem && (
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors"
+
+                      {c && (
+                        <motion.span
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
+                          whileHover={{ scale: 1.05 }}
+                          className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
                           style={{
-                            backgroundColor: isDark ? `${color}22` : `${color}33`,
-                            color: color,
-                            border: `1px solid ${isDark ? `${color}44` : `${color}66`}`,
-                            backdropFilter: isDark ? 'brightness(0.9)' : 'none'
+                            background: isDark ? `${badgeColor}22` : `${badgeColor}20`,
+                            color: badgeColor,
+                            borderColor: `${badgeColor}55`,
                           }}
                         >
-                          {classItem.name}
-                        </span>
+                          {c.name}
+                        </motion.span>
                       )}
                     </div>
-                    <div className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-4">
-                      <span>Test: {test.testType}</span>
-                      <span>Date: {new Date(test.testDate).toLocaleDateString()}</span>
-                      {test.testTime && (
-                        <span>Time: {test.testTime}</span>
-                      )}
-                    </div>
-                    {test.description && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {test.description}
-                      </p>
+
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+                      className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-4"
+                    >
+                      <span>Type: {t.testType}</span>
+                      <span>Date: {new Date(t.testDate).toLocaleDateString()}</span>
+                      {t.testTime && <span>Time: {t.testTime}</span>}
+                    </motion.div>
+
+                    {t.description && (
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
+                        className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+                      >
+                        {t.description}
+                      </motion.p>
                     )}
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
-          </ul>
-        </div>
+          </motion.ul>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
+    </AnimatePresence>
   );
 }

@@ -9,11 +9,13 @@ import { Plus, GraduationCap, Calendar, Filter, Target, Zap, Brain } from 'lucid
 import Link from 'next/link';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 export default function TestsPage() {
   const { user, loading: authLoading } = useAuth();
   const { tests, classes, loading: classLoading, deleteTest, deleteClass } = useClassContext();
   const router = useRouter();
+  const { getContainerClass } = useWideLayout();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -40,7 +42,7 @@ export default function TestsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className={getContainerClass('max-w-7xl') + ' py-8'}>
         {/* Enhanced Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-3">

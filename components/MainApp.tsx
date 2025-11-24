@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
 import { AddTestModal } from './AddTestModal';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/animate-ui/components/buttons/button';
 import { SplittingText } from './animate-ui/primitives/texts/splitting';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 // Cookie utilities for persisting UI state
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -192,7 +193,8 @@ type Priority = 'low' | 'medium' | 'high';
 const MainApp = () => {
   const { user, full_name } = useAuth();
   const { success, error: toastError, warning, info } = useToast();
-  const { data: gamificationData } = useGamification();
+  const { data: gamificationData, addXP } = useGamification();
+  const { getContainerClass } = useWideLayout();
   const {
     classes,
     homeworks,
@@ -221,7 +223,7 @@ const MainApp = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddTest, setShowAddTest] = useState(false);
   const [showMarkTestAsTakenModal, setShowMarkTestAsTakenModal] = useState(false);
-  const [testToMark, setTestToMark] = useState<{ id: string; title: string } | null>(null);
+  const [testToMark, setTestToMark] = useState<Test | null>(null);
   const [areAnimationsPaused, setAreAnimationsPaused] = useState(true);
 
   const toggleAnimations = () => {
@@ -642,6 +644,56 @@ const MainApp = () => {
     console.log('Homework items:', homeworks.map((hw: Homework) => ({ id: hw.id, classId: hw.classId, title: hw.title })));
   }, [classes, homeworks]);
 
+  // Award XP for existing completed tests on component mount
+  useEffect(() => {
+    const awardXpForCompletedTests = () => {
+      const completedTests = tests.filter(test => 
+        test.status?.toLowerCase() === 'completed' || 
+        test.status?.toLowerCase() === 'taken' ||
+        (test.score !== null && test.score !== undefined)
+      );
+
+      completedTests.forEach(test => {
+        if (test.score && test.maxScore) {
+          const percentageScore = (test.score / test.maxScore) * 100;
+          let xpEarned = 50; // Base XP for completing any test
+          
+          // Bonus XP for good performance
+          if (percentageScore >= 90) {
+            xpEarned += 30; // Excellent performance
+          } else if (percentageScore >= 80) {
+            xpEarned += 20; // Great performance
+          } else if (percentageScore >= 70) {
+            xpEarned += 10; // Good performance
+          } else if (percentageScore >= 60) {
+            xpEarned += 5; // Passing performance
+          }
+          
+          // Extra bonus for perfect scores
+          if (test.score === test.maxScore) {
+            xpEarned += 15;
+          }
+          
+          // Bonus XP for high-stakes tests
+          if (test.testType?.toLowerCase() === 'exam') {
+            xpEarned += 10;
+          } else if (test.testType?.toLowerCase() === 'alpha') {
+            xpEarned += 5;
+          }
+          
+          // Award the XP
+          const testClass = classes.find(c => c.id === test.classId);
+          addXP(xpEarned, test.classId, testClass?.name);
+        }
+      });
+    };
+
+    // Only run if we have tests and classes loaded
+    if (tests.length > 0 && classes.length > 0 && !loading) {
+      awardXpForCompletedTests();
+    }
+  }, [tests, classes, loading, addXP]);
+
   // Only return null if not client-side after hooks are initialized
   if (!isClient) {
     return null;
@@ -729,9 +781,41 @@ const MainApp = () => {
 
     try {
       await markTestComplete(testToMark.id, score, maxScore, grade);
+      
+      // Calculate XP based on test performance
+      const percentageScore = (score / maxScore) * 100;
+      let xpEarned = 50; // Base XP for completing any test
+      
+      // Bonus XP for good performance
+      if (percentageScore >= 90) {
+        xpEarned += 30; // Excellent performance
+      } else if (percentageScore >= 80) {
+        xpEarned += 20; // Great performance
+      } else if (percentageScore >= 70) {
+        xpEarned += 10; // Good performance
+      } else if (percentageScore >= 60) {
+        xpEarned += 5; // Passing performance
+      }
+      
+      // Extra bonus for perfect scores
+      if (score === maxScore) {
+        xpEarned += 15;
+      }
+      
+      // Bonus XP for high-stakes tests
+      if (testToMark.testType?.toLowerCase() === 'exam') {
+        xpEarned += 10;
+      } else if (testToMark.testType?.toLowerCase() === 'alpha') {
+        xpEarned += 5;
+      }
+      
+      // Award the XP
+      const testClass = classes.find(c => c.id === testToMark.classId);
+      addXP(xpEarned, testToMark.classId, testClass?.name);
+      
       success(
         `✅ ${testToMark.title} marked as taken!`,
-        `Score: ${score}/${maxScore}${grade ? ` (${grade})` : ''}`
+        `Score: ${score}/${maxScore}${grade ? ` (${grade})` : ''} | +${xpEarned} XP 🎯`
       );
       setShowMarkTestAsTakenModal(false);
       setTestToMark(null);
@@ -850,8 +934,7 @@ const MainApp = () => {
               onClick={() => handleToggleAIPriority(!aiPriorityExpanded)}
             >
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
+                <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                   AI Priority Recommendations
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
@@ -859,12 +942,19 @@ const MainApp = () => {
                 </p>
               </div>
               <div
-                className={`p-2 rounded-lg transition-all duration-500 ${aiPriorityExpanded
-                  ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                  : 'rotate-0 bg-gray-200 dark:bg-gray-700'
-                  }`}
+                className={`p-2 rounded-lg transition-all duration-500 ${
+                  aiPriorityExpanded
+                    ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                    : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                }`}
               >
-                <ChevronRight className={`h-5 w-5 transition-colors ${aiPriorityExpanded ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
+                <ChevronRight 
+                  className={`h-5 w-5 transition-colors ${
+                    aiPriorityExpanded 
+                      ? 'text-white' 
+                      : 'text-gray-600 dark:text-gray-400'
+                  }`} 
+                />
               </div>
             </div>
 
@@ -891,20 +981,19 @@ const MainApp = () => {
               onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
             >
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                   Pinned Homeworks
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
               </div>
               <div className="flex items-center space-x-3">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="default"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowPinHomeworkModal(true);
                   }}
-                  className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                  className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
                   title="Select homework to pin"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -913,7 +1002,7 @@ const MainApp = () => {
                 <div
                   className={`p-2 rounded-lg transition-all duration-500 ${showPinnedHomeworks
                     ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                    : 'rotate-0 bg-gray-200 dark:bg-gray-700'
+                    : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                     }`}
                 >
                   <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
@@ -945,38 +1034,36 @@ const MainApp = () => {
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                    <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                       My Classes
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="default"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowAddClass(true);
                       }}
-                      className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Class
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="default"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowAddHomework(true);
                       }}
-                      className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Homework
                     </Button>
                     <div
                       className={`p-2 rounded-lg transition-all duration-500 ${showClasses
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-200 dark:bg-gray-700'
+                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
                     >
                       <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
@@ -1175,27 +1262,26 @@ const MainApp = () => {
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                    <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                       Tests & Exams
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="default"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowAddTest(true);
                       }}
-                      className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Test
                     </Button>
                     <div
                       className={`p-2 rounded-lg transition-all duration-500 ${showTests
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-200 dark:bg-gray-700'
+                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
                     >
                       <ChevronRight className={`h-5 w-5 transition-colors ${showTests ? 'text-white' : 'text-gray-600 dark:text-gray-400'
@@ -1246,130 +1332,99 @@ const MainApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
       {!areAnimationsPaused && <Snowfall />}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Welcome & Stats Section */}
-        <div className="mb-10">
-          <div className="relative text-left">
-            <SplittingText
-              text={`Welcome back, ${full_name || 'Student'}!`}
-              aria-hidden="true"
-              className="block text-4xl font-semibold text-neutral-200 dark:text-neutral-800"
-              style={{ fontFamily: 'var(--font-header)' }}
-              disableAnimation
-            />
-            <SplittingText
-              text={`Welcome back, ${full_name || 'Student'}!`}
-              className="block text-4xl font-semibold absolute inset-0"
-              style={{ fontFamily: 'var(--font-header)' }}
-              type="chars"
-              alternateColors={['#ef4444', '#10b981']} // Red and Green colors
-              inView
-              initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
-              animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-            />
-          </div>
-          <p className="text-gray-600 dark:text-gray-400 text-base text-left">Here's what's happening with your classes today</p>
-        </div>
+      <main className={getContainerClass('max-w-7xl') + ' py-8'}>
+        {/* Welcome Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+            Welcome back, {full_name || 'Student'}!
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Here's what's happening with your classes today
+          </p>
+        </motion.div>
 
-        {/* Stats Section - Compact Horizontal Layout */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        {/* Stats Section - Minimalist Design */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Completion Rate */}
-          <div className="group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-white/10 shadow-sm">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 to-green-500/5 dark:from-emerald-400/10 dark:to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 shadow-md shadow-emerald-500/20 dark:shadow-lg dark:shadow-emerald-500/30">
-                <CheckCircle className="h-4 w-4 text-white" strokeWidth={2.5} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">
-                  {homeworks.length > 0 ? Math.round((homeworks.filter((hw: any) => hw.completed).length / homeworks.length) * 100) : 0}%
-                </p>
-                <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">Complete</p>
-              </div>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Complete</span>
+              <CheckCircle className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+            </div>
+            <div className="text-2xl font-light text-gray-900 dark:text-white">
+              {homeworks.length > 0 ? Math.round((homeworks.filter((hw: any) => hw.completed).length / homeworks.length) * 100) : 0}%
             </div>
           </div>
 
           {/* Overdue Items */}
-          <div className="group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-white/10 shadow-sm">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-400/5 to-rose-500/5 dark:from-red-400/10 dark:to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-red-400 to-rose-500 shadow-md shadow-red-500/20 dark:shadow-lg dark:shadow-red-500/30 relative">
-                <Clock className="h-4 w-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-red-500 font-medium">Overdue</span>
+              <div className="relative">
+                <Clock className="w-4 h-4 text-red-500" />
                 {homeworks.filter((hw: any) => {
                   const dueDate = new Date(hw.dueDate);
                   const todayStart = new Date();
                   todayStart.setHours(0, 0, 0, 0);
                   return !hw.completed && dueDate < todayStart;
                 }).length > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-400 rounded-full animate-pulse" />
-                  )}
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">
-                  {homeworks.filter((hw: any) => {
-                    const dueDate = new Date(hw.dueDate);
-                    const todayStart = new Date();
-                    todayStart.setHours(0, 0, 0, 0);
-                    return !hw.completed && dueDate < todayStart;
-                  }).length}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">Overdue</p>
-              </div>
+            </div>
+            <div className="text-2xl font-light text-gray-900 dark:text-white">
+              {homeworks.filter((hw: any) => {
+                const dueDate = new Date(hw.dueDate);
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                return !hw.completed && dueDate < todayStart;
+              }).length}
             </div>
           </div>
 
           {/* Test Stats */}
-          <div className="group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-white/10 shadow-sm">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 to-indigo-500/5 dark:from-blue-400/10 dark:to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 shadow-md shadow-blue-500/20 dark:shadow-lg dark:shadow-blue-500/30">
-                <GraduationCap className="h-4 w-4 text-white" strokeWidth={2.5} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">
-                  {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">Tests</p>
-              </div>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Tests</span>
+              <GraduationCap className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+            </div>
+            <div className="text-2xl font-light text-gray-900 dark:text-white">
+              {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
             </div>
           </div>
 
           {/* Next Deadline */}
-          <div className="group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-white/10 shadow-sm">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-400/5 to-amber-500/5 dark:from-orange-400/10 dark:to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-orange-400 to-amber-500 shadow-md shadow-orange-500/20 dark:shadow-lg dark:shadow-orange-500/30">
-                <CalendarIcon className="h-4 w-4 text-white" strokeWidth={2.5} />
-              </div>
-              <div className="flex-1 min-w-0">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">
                 {nextDueHomework || nextUpcomingTest ? (
                   (() => {
                     const nextItem = nextDueHomework && nextUpcomingTest
                       ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                       : (nextDueHomework || nextUpcomingTest);
-
                     const isTest = nextItem === nextUpcomingTest;
-                    const daysUntil = isTest ? daysUntilNextTest : daysUntilNextDue;
-
-                    return (
-                      <>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">
-                          {daysUntil}<span className="text-sm text-gray-500 dark:text-white/60 ml-1">days</span>
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">Next {isTest ? 'Test' : 'Due'}</p>
-                      </>
-                    );
+                    return `Next ${isTest ? 'Test' : 'Due'}`;
                   })()
-                ) : (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">-</p>
-                    <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">Next Due</p>
-                  </>
-                )}
-              </div>
+                ) : 'Next Due'}
+              </span>
+              <CalendarIcon className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+            </div>
+            <div className="text-2xl font-light text-gray-900 dark:text-white">
+              {nextDueHomework || nextUpcomingTest ? (
+                (() => {
+                  const nextItem = nextDueHomework && nextUpcomingTest
+                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                    : (nextDueHomework || nextUpcomingTest);
+                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                  return `${daysUntil}d`;
+                })()
+              ) : '-'}
             </div>
           </div>
         </div>
@@ -1387,29 +1442,29 @@ const MainApp = () => {
 
         <AnimatePresence>
           {showAddClass && (
-            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+            <div className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-100">
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 20 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md relative border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-950 rounded-lg shadow-lg w-full max-w-md relative border border-gray-200 dark:border-gray-800"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
                     Add New Class
                   </h2>
                   <button
                     onClick={() => setShowAddClass(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-5">
+                <div className="p-6 space-y-4">
                   {/* Class Name Input */}
                   <div>
                     <Label htmlFor="className" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1421,7 +1476,7 @@ const MainApp = () => {
                       value={newClassName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewClassName(e.target.value)}
                       placeholder="e.g., Mathematics 101"
-                      className="w-full h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                      className="w-full h-10 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleAddClass()}
                     />
                   </div>
@@ -1440,17 +1495,17 @@ const MainApp = () => {
                         placeholder="Search icons..."
                         value={searchQuery}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                        className="pl-10 w-full h-10 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                        className="pl-10 w-full h-10 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
                         autoComplete="off"
                       />
                     </div>
 
                     {/* Icon Grid */}
-                    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-950">
                       <div className="max-h-64 overflow-y-auto">
                         {Object.entries(groupedIcons).map(([category, icons]) => (
                           <div key={category}>
-                            <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                            <div className="sticky top-0 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
                               {category}
                             </div>
                             <div className="grid grid-cols-7 gap-1 p-2">
@@ -1463,14 +1518,14 @@ const MainApp = () => {
                                     setSearchQuery('');
                                   }}
                                   className={`relative p-2.5 rounded-lg flex items-center justify-center transition-all ${newClassIcon === name
-                                    ? 'bg-[#264f84] text-white scale-105 shadow-md'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105'
+                                    ? 'bg-[#264f84] text-white scale-105 shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 hover:scale-105'
                                     }`}
                                   title={name}
                                 >
                                   <IconComponent className="h-5 w-5" />
                                   {newClassIcon === name && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
+                                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-950" />
                                   )}
                                 </button>
                               ))}
@@ -1480,7 +1535,7 @@ const MainApp = () => {
 
                         {filteredIcons.length === 0 && (
                           <div className="p-8 text-center">
-                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-900 mb-3">
                               <Search className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1505,18 +1560,18 @@ const MainApp = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-800">
                   <Button
                     variant="outline"
                     onClick={() => setShowAddClass(false)}
-                    className="h-10 px-4 text-sm border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
+                    className="h-10 px-4 text-sm border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleAddClass}
                     disabled={!newClassName.trim()}
-                    className="h-10 px-6 text-sm bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="h-10 px-6 text-sm bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
                   >
                     Add Class
                   </Button>

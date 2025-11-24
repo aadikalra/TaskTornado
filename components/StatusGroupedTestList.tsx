@@ -503,15 +503,15 @@ const StatusGroupedTestList = ({
         <div className="space-y-8">
           {groupedTests.upcoming.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-blue-800/20 px-5 py-4 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-blue-200 dark:border-blue-700">
-                  <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#264f84] dark:bg-blue-600">
+                  <Calendar className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-blue-900 dark:text-blue-100">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
                     Upcoming Tests
                   </h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {groupedTests.upcoming.length} test{groupedTests.upcoming.length !== 1 ? 's' : ''} scheduled
                   </p>
                 </div>
@@ -545,15 +545,15 @@ const StatusGroupedTestList = ({
 
           {groupedTests.taken.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-900/30 dark:to-emerald-800/20 px-5 py-4 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-emerald-200 dark:border-emerald-700">
-                  <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-600 dark:bg-gray-700">
+                  <Clock className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
                     Completed Tests
                   </h3>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {groupedTests.taken.length} test{groupedTests.taken.length !== 1 ? 's' : ''} taken
                   </p>
                 </div>

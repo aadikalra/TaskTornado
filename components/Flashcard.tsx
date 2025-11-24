@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { FlipHorizontal, ArrowLeft, ArrowRight, Save, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { FlipHorizontal, ArrowLeft, ArrowRight, Save, Loader2, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { toast } from 'sonner';
@@ -97,10 +97,27 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
   if (!currentCard) return null;
 
   return (
-    <div className="flex flex-col items-center space-y-6 w-full max-w-3xl mx-auto">
-      <div className="w-full relative" style={{ height: '400px' }}>
+    <div className="flex flex-col items-center gap-8 w-full max-w-4xl mx-auto">
+      {/* Progress Indicator */}
+      <div className="w-full">
+        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
+          <span>Question {currentIndex + 1}</span>
+          <span>{cards.length}</span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+          <motion.div
+            className="bg-gray-900 dark:bg-white h-1 rounded-full"
+            initial={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
+            animate={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+      </div>
+
+      {/* Flashcard */}
+      <div className="w-full">
         <motion.div
-          className="w-full h-full"
+          className="relative w-full aspect-3/2 cursor-pointer"
           initial={false}
           animate={{ rotateY: isFlipped ? 180 : 0 }}
           transition={{ duration: 0.6 }}
@@ -109,13 +126,11 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
             transformStyle: 'preserve-3d',
             position: 'relative',
             width: '100%',
-            height: '100%',
-            cursor: 'pointer',
           }}
         >
           {/* Front of card */}
           <motion.div
-            className="absolute w-full h-full backface-hidden"
+            className="absolute inset-0 backface-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -123,24 +138,26 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
             initial={false}
             animate={{ opacity: isFlipped ? 0 : 1 }}
           >
-            <Card className="h-full flex flex-col">
-              <CardHeader className="border-b p-4">
-                <CardTitle className="text-lg text-muted-foreground">
-                  Question {currentIndex + 1} of {cards.length}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow flex items-center justify-center p-6 overflow-y-auto">
-                <p className="text-xl text-center break-words max-w-full">{currentCard.question}</p>
-              </CardContent>
-              <div className="p-3 text-center text-sm text-muted-foreground border-t">
-                Click to reveal answer
+            <div className="w-full h-full bg-white dark:bg-gray-900 rounded-2xl flex flex-col">
+              <div className="flex items-center justify-between mb-6 px-8 pt-8">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Question
+                </span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  Click to reveal
+                </span>
               </div>
-            </Card>
+              <div className="flex-1 flex items-center justify-center px-8 pb-8">
+                <p className="text-xl text-center text-gray-900 dark:text-white leading-relaxed wrap-break-word">
+                  {currentCard.question}
+                </p>
+              </div>
+            </div>
           </motion.div>
 
           {/* Back of card */}
           <motion.div
-            className="absolute w-full h-full backface-hidden"
+            className="absolute inset-0 backface-hidden"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -149,133 +166,167 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
             initial={false}
             animate={{ opacity: isFlipped ? 1 : 0 }}
           >
-            <Card className="h-full flex flex-col bg-muted/50">
-              <CardHeader className="border-b p-4">
-                <CardTitle className="text-lg">Answer</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow flex items-center p-6 overflow-y-auto">
-                <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none w-full">
-                  <p className="text-xl text-center break-words whitespace-pre-line">
-                    {currentCard.answer}
-                  </p>
-                </div>
-              </CardContent>
-              <div className="p-3 text-center text-sm text-muted-foreground border-t">
-                Click to see question
+            <div className="w-full h-full bg-gray-50 dark:bg-gray-800 rounded-2xl flex flex-col">
+              <div className="flex items-center justify-between mb-6 px-8 pt-8">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Answer
+                </span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  Click to flip back
+                </span>
               </div>
-            </Card>
+              <div className="flex-1 flex items-center justify-center px-8 pb-8">
+                <p className="text-xl text-center text-gray-900 dark:text-white leading-relaxed wrap-break-word whitespace-pre-line">
+                  {currentCard.answer}
+                </p>
+              </div>
+            </div>
           </motion.div>
         </motion.div>
       </div>
 
-      <div className="flex justify-between w-full items-center">
+      {/* Controls */}
+      <div className="flex items-center justify-between w-full">
         <Button
-          variant="outline"
-          size="icon"
+          variant="ghost"
+          size="sm"
           onClick={handlePrevious}
           disabled={cards.length <= 1}
-          aria-label="Previous card"
+          className="gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
+          Previous
         </Button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-3">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setIsFlipped(!isFlipped)}
-            className="flex items-center"
+            className="gap-2"
           >
-            <FlipHorizontal className="h-4 w-4 mr-2" />
-            {isFlipped ? 'Show Question' : 'Show Answer'}
+            <FlipHorizontal className="h-4 w-4" />
+            {isFlipped ? 'Question' : 'Answer'}
           </Button>
 
           {onSave && (
-            <>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowSaveDialog(true)}
-                disabled={isSaving}
-                className="flex items-center"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Deck
-                  </>
-                )}
-              </Button>
-
-              {/* Save Deck Dialog */}
-              {showSaveDialog && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                    <h3 className="text-lg font-semibold mb-4">Save Flashcard Deck</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="deckTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Deck Title
-                        </label>
-                        <input
-                          type="text"
-                          id="deckTitle"
-                          value={deckTitle}
-                          onChange={(e) => setDeckTitle(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                          placeholder="Enter a title for your deck"
-                        />
-                      </div>
-                      <div className="flex justify-end space-x-3 pt-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowSaveDialog(false)}
-                          disabled={isSaving}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleSave}
-                          disabled={isSaving || !deckTitle.trim()}
-                          className="bg-primary hover:bg-primary/90"
-                        >
-                          {isSaving ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            'Save Deck'
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setShowSaveDialog(true)}
+              disabled={isSaving}
+              className="gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save
+                </>
               )}
-            </>
+            </Button>
           )}
         </div>
 
         <Button
-          variant="outline"
-          size="icon"
+          variant="ghost"
+          size="sm"
           onClick={handleNext}
           disabled={cards.length <= 1}
-          aria-label="Next card"
+          className="gap-2"
         >
+          Next
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="text-sm text-muted-foreground">
-        Card {currentIndex + 1} of {cards.length}
-      </div>
+      {/* Save Deck Modal */}
+      <AnimatePresence>
+        {showSaveDialog && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setShowSaveDialog(false)}
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-medium text-gray-900 dark:text-white">
+                      Save Flashcard Deck
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowSaveDialog(false)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="deckTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Deck Title
+                      </label>
+                      <Input
+                        id="deckTitle"
+                        type="text"
+                        value={deckTitle}
+                        onChange={(e) => setDeckTitle(e.target.value)}
+                        className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                        placeholder="Enter a title for your deck"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSaveDialog(false)}
+                        disabled={isSaving}
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSave}
+                        disabled={isSaving || !deckTitle.trim()}
+                        size="sm"
+                        className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Deck'
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

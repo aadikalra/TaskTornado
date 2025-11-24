@@ -3,9 +3,10 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useAI } from '@/context/AIContext';
-import { Sparkles, Clock, AlertTriangle, BookOpen, Loader2, Link as LinkIcon, Calendar, ChevronRight } from 'lucide-react';
+import { Clock, AlertTriangle, BookOpen, Loader2, Link as LinkIcon, Calendar, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { iconMap } from '@/lib/icon-map';
+import { Button } from '@/components/animate-ui/components/buttons/button';
 
 interface PriorityHomework {
   id: string;
@@ -220,19 +221,19 @@ Please respond with a JSON object in this exact format:
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="h-8 w-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-            <Loader2 className="h-4 w-4 text-purple-600 dark:text-purple-400 animate-spin" />
+      <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-6 h-6 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
+            <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
           </div>
           <div className="flex-1">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse mb-2"></div>
-            <div className="h-3 bg-gray-100 dark:bg-gray-700/50 rounded w-1/4 animate-pulse"></div>
+            <div className="h-4 bg-gray-100 dark:bg-gray-900 rounded w-1/3 animate-pulse mb-2"></div>
+            <div className="h-3 bg-gray-50 dark:bg-gray-800 rounded w-1/4 animate-pulse"></div>
           </div>
         </div>
-        <div className="space-y-2 mt-4">
-          <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-3/4 animate-pulse"></div>
-          <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-1/2 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-3 bg-gray-50 dark:bg-gray-800 rounded w-3/4 animate-pulse"></div>
+          <div className="h-3 bg-gray-50 dark:bg-gray-800 rounded w-1/2 animate-pulse"></div>
         </div>
       </div>
     );
@@ -243,68 +244,40 @@ Please respond with a JSON object in this exact format:
     return null;
   }
 
-  // Determine icon and color based on priority (or use defaults for loading state)
-  const priorityConfig = priorityHomework ? {
-    high: {
-      icon: AlertTriangle,
-      iconBg: 'bg-red-100 dark:bg-red-900/30',
-      iconColor: 'text-red-600 dark:text-red-400',
-      badge: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
-    },
-    medium: {
-      icon: Clock,
-      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-      iconColor: 'text-amber-600 dark:text-amber-400',
-      badge: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
-    },
-    low: {
-      icon: BookOpen,
-      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-      iconColor: 'text-blue-600 dark:text-blue-400',
-      badge: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
-    },
-  }[priorityHomework.priority] : null;
+  // Get the class icon
+  const homework = homeworks.find(hw => hw.id === priorityHomework?.id);
+  const classData = homework ? classes.find(c => c.id === homework.classId) : null;
+  const ClassIcon = classData?.icon ? (iconMap[classData.icon as keyof typeof iconMap] ?? BookOpen) : BookOpen;
 
-  const PriorityIcon = priorityConfig?.icon;
   const formattedDueDate = priorityHomework ? new Date(priorityHomework.dueDate).toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   }) : '';
 
-  // Get the class icon
-  const homework = homeworks.find(hw => hw.id === priorityHomework?.id);
-  const classData = homework ? classes.find(c => c.id === homework.classId) : null;
-  const ClassIcon = classData?.icon ? (iconMap[classData.icon as keyof typeof iconMap] ?? BookOpen) : BookOpen;
-
-  if (!priorityHomework || !priorityConfig || !PriorityIcon) {
+  if (!priorityHomework) {
     return null;
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
-        <div className="flex items-start space-x-3">
-          <div className={cn(
-            'h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0',
-            priorityConfig.iconBg
-          )}>
-            <ClassIcon className={cn('h-5 w-5', priorityConfig.iconColor)} />
+    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex flex-col h-full">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+            <ClassIcon className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-base text-gray-900 dark:text-white mb-1">
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
               {priorityHomework.className}
             </h3>
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <Calendar className="h-3.5 w-3.5" />
+              <Calendar className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
               <span>Due {formattedDueDate}</span>
             </div>
           </div>
         </div>
-        <div className={cn(
-          'px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap',
-          priorityConfig.badge
-        )}>
+        
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-900">
           {(() => {
             const homework = homeworks.find(hw => hw.id === priorityHomework.id);
             const today = new Date();
@@ -312,19 +285,40 @@ Please respond with a JSON object in this exact format:
             const isOverdue = homework && new Date(homework.dueDate) < today;
             
             if (isOverdue) {
-              return 'OVERDUE';
+              return (
+                <>
+                  <AlertTriangle className="w-3 h-3 text-red-500" />
+                  <span className="text-xs font-medium text-red-600 dark:text-red-400">Overdue</span>
+                </>
+              );
             }
-            return priorityHomework.priority.charAt(0).toUpperCase() + priorityHomework.priority.slice(1) + ' Priority';
+            
+            const priorityConfig = {
+              high: { icon: AlertTriangle, color: 'text-red-600 dark:text-red-400' },
+              medium: { icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
+              low: { icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
+            }[priorityHomework.priority];
+            
+            const Icon = priorityConfig.icon;
+            
+            return (
+              <>
+                <Icon className={`w-3 h-3 ${priorityConfig.color}`} />
+                <span className={`text-xs font-medium ${priorityConfig.color}`}>
+                  {priorityHomework.priority.charAt(0).toUpperCase() + priorityHomework.priority.slice(1)}
+                </span>
+              </>
+            );
           })()}
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="flex-1 space-y-3">
         <div>
-          <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+          <h4 className="text-base font-medium text-gray-900 dark:text-white mb-2">
             {priorityHomework.title}
           </h4>
-          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
             {priorityHomework.reason}
           </p>
         </div>
@@ -356,10 +350,10 @@ Please respond with a JSON object in this exact format:
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-800 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <LinkIcon className="h-3 w-3" />
+                  <LinkIcon className="w-3 h-3" />
                   <span className="truncate max-w-[150px]" title={link.title || link.url}>
                     {link.title || link.url}
                   </span>
@@ -370,22 +364,23 @@ Please respond with a JSON object in this exact format:
         })()}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-          <Sparkles className="h-3.5 w-3.5 text-purple-500" />
+      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-900 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <Sparkles className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
           <span>AI Recommended</span>
         </div>
-        <button 
+        <Button 
           onClick={() => setHasStartedWorking(true)}
           disabled={hasStartedWorking}
-          className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
-            hasStartedWorking 
-              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
-              : 'text-white bg-[#264f84] hover:bg-[#1f3f6b] dark:bg-blue-600 dark:hover:bg-blue-700'
-          }`}
+          size="sm"
+          variant={hasStartedWorking ? "secondary" : "default"}
+          className={cn(
+            "text-xs",
+            !hasStartedWorking && "bg-[#264f84] hover:bg-[#1f3f6b] dark:bg-blue-600 dark:hover:bg-blue-700"
+          )}
         >
           {hasStartedWorking ? 'Working...' : 'Start Working'}
-        </button>
+        </Button>
       </div>
     </div>
   );

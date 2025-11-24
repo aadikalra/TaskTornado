@@ -237,14 +237,14 @@ const CompactTestCard = ({
       <div className="flex items-center gap-3">
         {/* Class Icon */}
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
           style={{ backgroundColor: classColor }}
         >
           <ClassIconComponent className="h-4 w-4 text-white" strokeWidth={1.5} />
         </div>
 
         {/* Test Type Icon */}
-        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
           <testItem.TestTypeIcon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
         </div>
 
@@ -254,7 +254,7 @@ const CompactTestCard = ({
             <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">
               {testItem.title}
             </h4>
-            <testItem.StatusIcon className={`w-3 h-3 ${testItem.statusConfig.color} flex-shrink-0`} />
+            <testItem.StatusIcon className={`w-3 h-3 ${testItem.statusConfig.color} shrink-0`} />
             <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(testItem.priority)}`}>
               {testItem.priority}
             </span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Trophy, Award, Brain, Check } from 'lucide-react';
+import { Sparkles, Trophy, Award, Brain, Check, Maximize2 } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
@@ -16,6 +16,8 @@ interface PreferencesSectionProps {
   onToggleSubjectMastery: (checked: boolean) => void;
   aiPersonality: AIPersonality;
   onPersonalityChange: (value: AIPersonality) => void;
+  useWideLayout: boolean;
+  onToggleWideLayout: (checked: boolean) => void;
 }
 
 export default function PreferencesSection({
@@ -26,7 +28,9 @@ export default function PreferencesSection({
   showSubjectMastery,
   onToggleSubjectMastery,
   aiPersonality,
-  onPersonalityChange
+  onPersonalityChange,
+  useWideLayout,
+  onToggleWideLayout
 }: PreferencesSectionProps) {
   return (
     <div className="space-y-4">
@@ -87,6 +91,29 @@ export default function PreferencesSection({
         <Switch
           checked={showSubjectMastery}
           onCheckedChange={onToggleSubjectMastery}
+        />
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+        <div className="flex items-start gap-3">
+          <div className="mt-1">
+            <Maximize2 className="h-5 w-5 text-green-500" />
+          </div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+              Full Width Mode
+            </h3>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+              Recommended
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+            Use the full width of your screen for the settings page layout.
+          </p>
+        </div>
+        <Switch
+          checked={useWideLayout}
+          onCheckedChange={onToggleWideLayout}
         />
       </div>
 

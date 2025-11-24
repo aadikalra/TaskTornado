@@ -6,18 +6,21 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tilt, TiltContent } from '@/components/animate-ui/primitives/effects/tilt';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 export default function AboutCreator() {
+  const { getContainerClass } = useWideLayout();
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-7xl">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className={getContainerClass('max-w-7xl')}>
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center p-2 bg-blue-50 dark:bg-blue-950/30 rounded-full mb-4">
             <span className="px-3 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
               Meet the Creator
             </span>
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-linear-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">
             Aadi Kalra
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
@@ -148,7 +151,7 @@ export default function AboutCreator() {
             </Card>
 
             {/* TaskTornado */}
-            <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200/50 dark:border-blue-800/50">
+            <Card className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200/50 dark:border-blue-800/50">
               <CardContent className="p-8">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm">

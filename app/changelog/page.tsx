@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 type Version = {
   version: string;
@@ -16,6 +17,7 @@ type Version = {
 
 export default function ChangelogPage() {
   const [open, setOpen] = useState<string | null>(null);
+  const { getContainerClass } = useWideLayout();
 
   const versions: Version[] = [
     {
@@ -306,7 +308,7 @@ export default function ChangelogPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className="max-w-4xl mx-auto px-6 py-16">
+      <div className={getContainerClass() + ' py-16'}>
         
         {/* Header */}
         <motion.div 

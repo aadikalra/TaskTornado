@@ -315,12 +315,12 @@ export const HomeworkPinList: React.FC<{
           </div>
         ) : (
           // Empty state
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 min-h-[160px] flex flex-col items-center justify-center relative border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-8 min-h-[160px] flex flex-col items-center justify-center relative">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Pin className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-gray-50 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Pin className="w-8 h-8 text-[#264f84] dark:text-blue-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 No Pinned Homework
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
@@ -328,7 +328,7 @@ export const HomeworkPinList: React.FC<{
               </p>
               <button
                 onClick={openSelectModal}
-                className="inline-flex items-center border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
+                className="inline-flex items-center border border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white rounded-lg h-10 px-5 text-sm font-medium transition-all duration-200 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Select Homework to Pin
@@ -340,7 +340,7 @@ export const HomeworkPinList: React.FC<{
         {/* Select Homework Modal */}
         {showSelectModal && (
           <div
-            className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]"
+            className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-100"
             onMouseDown={(e) => {
               // close when clicking on backdrop only
               if (e.target === e.currentTarget) closeSelectModal();
@@ -348,16 +348,16 @@ export const HomeworkPinList: React.FC<{
           >
             <div
               ref={modalRef}
-              className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden outline-none bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-white/18 dark:border-gray-700/50"
+              className="rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-hidden outline-none bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800"
               role="dialog"
               aria-modal="true"
               aria-labelledby="select-homework-title"
               tabIndex={-1}
             >
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
                 <h2
                   id="select-homework-title"
-                  className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+                  className="text-lg font-medium text-gray-900 dark:text-white"
                 >
                   Select Homework to Pin
                 </h2>
@@ -376,22 +376,22 @@ export const HomeworkPinList: React.FC<{
                     {unpinnedItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                        className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors"
                         onClick={() => {
                           const stringId = getStringId(item.id);
                           if (stringId) handlePinSelectedHomework(stringId);
                         }}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                          <div className="w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center justify-center">
                             <item.icon
-                              className="w-5 h-5 hover:scale-110 transition-transform"
-                              style={{ color: item.classColor || undefined }}
+                              className="w-5 h-5"
+                              style={{ color: item.classColor || '#264f84' }}
                               aria-hidden="true"
                             />
                           </div>
                           <div>
-                            <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                            <h3 className="font-medium text-gray-900 dark:text-white">
                               {item.name}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -402,7 +402,7 @@ export const HomeworkPinList: React.FC<{
                         </div>
                         <div className="text-gray-400 dark:text-gray-500">
                           <button
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-all hover:scale-110"
+                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#264f84] dark:hover:text-blue-400 transition-all"
                             onClick={(e) => {
                               e.stopPropagation();
                               const stringId = getStringId(item.id);

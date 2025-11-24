@@ -868,10 +868,13 @@ For example:
       
       Create high-quality flashcards about: ${topic}
 
-      Each flashcard should have:
-      - A clear, concise question
-      - A detailed, educational answer
-      - Cover key concepts, terms, and important details
+      Guidelines:
+      - Create exactly 10 flashcards unless the user specifies a different number
+      - Each flashcard should have:
+        * A clear, concise question
+        * A detailed, educational answer (maximum 2-3 sentences)
+        * Cover key concepts, terms, and important details
+        * Keep answers concise yet comprehensive for effective studying
 
       Format the response as a JSON array of objects with 'question' and 'answer' properties.`;
 
@@ -1700,10 +1703,10 @@ Examples of how to handle different types:
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            initial={{ opacity: 0, x: '100%', y: '100%' }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, x: '100%', y: '100%' }}
+            transition={{ duration: 0.3 }}
             style={{
               width: window.innerWidth < 768 ? '100vw' : `${panelSize.width}px`,
               height: window.innerWidth < 768 ? '100vh' : `${panelSize.height}px`,

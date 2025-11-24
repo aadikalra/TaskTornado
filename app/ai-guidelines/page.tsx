@@ -18,6 +18,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 /* -----------------------------------------------------------------
    Updated content to match our app's features
@@ -122,6 +123,7 @@ const importantGuidelines = [
 export default function AIGuidelinesPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const { getContainerClass } = useWideLayout();
 
   useEffect(() => setMounted(true), []);
 
@@ -129,7 +131,7 @@ export default function AIGuidelinesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className={getContainerClass('max-w-6xl') + ' py-8'}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -303,7 +305,7 @@ export default function AIGuidelinesPage() {
                       transition={{ delay: i * 0.05 }}
                       className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800"
                     >
-                      <CheckCircle2 className="w-5 h-5 text-teal-600 dark:text-teal-400 mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-teal-600 dark:text-teal-400 mt-0.5 shrink-0" />
                       <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                         {guideline}
                       </p>
