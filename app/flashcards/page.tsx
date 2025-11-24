@@ -321,7 +321,7 @@ export default function FlashcardsPage() {
               <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                 No Flashcards Found
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md text-center">
                 {view === 'current' 
                   ? "It looks like you don't have any flashcards to review. Generate some from the Study Assistant!"
                   : "This flashcard deck is empty."}

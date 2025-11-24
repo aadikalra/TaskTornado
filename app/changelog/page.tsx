@@ -385,10 +385,11 @@ export default function ChangelogPage() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <Calendar className="w-3.5 h-3.5" />
-                    {new Date(v.date).toLocaleDateString('en-US', { 
+                    {new Date(v.date + 'T00:00:00').toLocaleDateString('en-US', { 
                       month: 'long', 
                       day: 'numeric', 
-                      year: 'numeric' 
+                      year: 'numeric',
+                      timeZone: 'UTC'
                     })}
                   </div>
                 </div>
