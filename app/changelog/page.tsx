@@ -21,6 +21,34 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
+      version: '1.2.0',
+      date: '2025-11-24',
+      title: 'Global UI Refactor & Layout Unification',
+      highlight: 'Massive refactor focused on layout standardization, wide-layout support, and visual consistency',
+      type: 'major',
+      short: [
+        'Complete UI overhaul giving the app a fresh new look',
+        'Added useWideLayout hook across entire app for unified layout system',
+        'Replaced gradient utilities (bg-gradient-to-*) with cleaner bg-linear syntax',
+        'Major UI modernization with better spacing and cleaner headers',
+        'Settings page completely redesigned with delete account flow',
+        'Removed redundant JSX wrappers and simplified animations',
+        'Significant line reduction and cleanup across multiple pages'
+      ],
+      full: [
+        'Injected useWideLayout hook into almost all pages: About Creator, AI Guidelines, Changelog, Settings, Legal pages, Flashcards, Games, Groups, Calendar, and more',
+        'Replaced hardcoded container classes (max-w-4xl, max-w-6xl, max-w-7xl) with unified getContainerClass() system',
+        'Standardized gradient syntax across entire app from bg-gradient-to-* to bg-linear-to-r and bg-linear-to-br',
+        'Modernized UI across nearly every page with better spacing (space-y-*), cleaner headers, and simpler motion animations',
+        'Removed cluttered Cards around sections and converted to non-card layouts with modern headers',
+        'Completely redesigned Settings page with delete account flow, wide layout toggle, and motion-div grouped sections',
+        'Added Maximize2 icon import and fixed missing state variables in Settings',
+        'Removed redundant JSX wrappers, old transition variants, excessive borders, and outdated container divs',
+        'Achieved significant line reduction in Calendar, Flashcards, Games, Groups, and Legal pages',
+        'Simplified animations and improved visual consistency throughout the application'
+      ]
+    },
+    {
       version: '1.1.1',
       date: '2025-11-23',
       title: 'Changelog Redesign',
