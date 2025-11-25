@@ -87,7 +87,7 @@ const PriorityTestCard = () => {
         // Filter out completed/missed tests and tests whose dates have passed
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
-        
+
         const upcomingTests = tests
           .filter(test => {
             const testDate = new Date(test.testDate);
@@ -140,7 +140,7 @@ Please respond with a JSON object in this exact format:
   "reason": "Brief explanation of why this should be studied first",
   "priority": "high|medium|low"
 }`
-        }], 'gemma-3-12b-it');
+        }], 'gemma-3n-e4b-it');
 
         // Try to parse the JSON response
         try {
@@ -294,7 +294,7 @@ Please respond with a JSON object in this exact format:
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-900">
           {(() => {
             const priorityConfig = {
@@ -302,9 +302,9 @@ Please respond with a JSON object in this exact format:
               medium: { icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
               low: { icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
             }[priorityTest.priority];
-            
+
             const Icon = priorityConfig.icon;
-            
+
             return (
               <>
                 <Icon className={`w-3 h-3 ${priorityConfig.color}`} />

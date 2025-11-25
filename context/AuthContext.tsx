@@ -57,7 +57,7 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
     }
 
     if (savedCount > 0) {
-      console.log(`🎯 Successfully saved ${savedCount} new courses to database`);
+      console.log(`Successfully saved ${savedCount} new courses to database`);
     } else {
       console.log('ℹ️  No new courses to save - all courses already exist');
     }
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
     });
-    
+
     if (error) throw error;
   };
 
@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       // Handle the specific case where a profile already exists for this email
       if (error.message?.includes('duplicate key value violates unique constraint') ||
-          error.message?.includes('profiles_email_unique')) {
+        error.message?.includes('profiles_email_unique')) {
 
         // This usually means a profile exists but the auth user was deleted
         // Provide a helpful error message to the user

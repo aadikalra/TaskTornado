@@ -647,8 +647,8 @@ const MainApp = () => {
   // Award XP for existing completed tests on component mount
   useEffect(() => {
     const awardXpForCompletedTests = () => {
-      const completedTests = tests.filter(test => 
-        test.status?.toLowerCase() === 'completed' || 
+      const completedTests = tests.filter(test =>
+        test.status?.toLowerCase() === 'completed' ||
         test.status?.toLowerCase() === 'taken' ||
         (test.score !== null && test.score !== undefined)
       );
@@ -657,7 +657,7 @@ const MainApp = () => {
         if (test.score && test.maxScore) {
           const percentageScore = (test.score / test.maxScore) * 100;
           let xpEarned = 50; // Base XP for completing any test
-          
+
           // Bonus XP for good performance
           if (percentageScore >= 90) {
             xpEarned += 30; // Excellent performance
@@ -668,19 +668,19 @@ const MainApp = () => {
           } else if (percentageScore >= 60) {
             xpEarned += 5; // Passing performance
           }
-          
+
           // Extra bonus for perfect scores
           if (test.score === test.maxScore) {
             xpEarned += 15;
           }
-          
+
           // Bonus XP for high-stakes tests
           if (test.testType?.toLowerCase() === 'exam') {
             xpEarned += 10;
           } else if (test.testType?.toLowerCase() === 'alpha') {
             xpEarned += 5;
           }
-          
+
           // Award the XP
           const testClass = classes.find(c => c.id === test.classId);
           addXP(xpEarned, test.classId, testClass?.name);
@@ -781,11 +781,11 @@ const MainApp = () => {
 
     try {
       await markTestComplete(testToMark.id, score, maxScore, grade);
-      
+
       // Calculate XP based on test performance
       const percentageScore = (score / maxScore) * 100;
       let xpEarned = 50; // Base XP for completing any test
-      
+
       // Bonus XP for good performance
       if (percentageScore >= 90) {
         xpEarned += 30; // Excellent performance
@@ -796,23 +796,23 @@ const MainApp = () => {
       } else if (percentageScore >= 60) {
         xpEarned += 5; // Passing performance
       }
-      
+
       // Extra bonus for perfect scores
       if (score === maxScore) {
         xpEarned += 15;
       }
-      
+
       // Bonus XP for high-stakes tests
       if (testToMark.testType?.toLowerCase() === 'exam') {
         xpEarned += 10;
       } else if (testToMark.testType?.toLowerCase() === 'alpha') {
         xpEarned += 5;
       }
-      
+
       // Award the XP
       const testClass = classes.find(c => c.id === testToMark.classId);
       addXP(xpEarned, testToMark.classId, testClass?.name);
-      
+
       success(
         `✅ ${testToMark.title} marked as taken!`,
         `Score: ${score}/${maxScore}${grade ? ` (${grade})` : ''} | +${xpEarned} XP 🎯`
@@ -942,18 +942,16 @@ const MainApp = () => {
                 </p>
               </div>
               <div
-                className={`p-2 rounded-lg transition-all duration-500 ${
-                  aiPriorityExpanded
+                className={`p-2 rounded-lg transition-all duration-500 ${aiPriorityExpanded
                     ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                     : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                }`}
+                  }`}
               >
-                <ChevronRight 
-                  className={`h-5 w-5 transition-colors ${
-                    aiPriorityExpanded 
-                      ? 'text-white' 
+                <ChevronRight
+                  className={`h-5 w-5 transition-colors ${aiPriorityExpanded
+                      ? 'text-white'
                       : 'text-gray-600 dark:text-gray-400'
-                  }`} 
+                    }`}
                 />
               </div>
             </div>
@@ -1336,8 +1334,8 @@ const MainApp = () => {
       {!areAnimationsPaused && <Snowfall />}
       <main className={getContainerClass('max-w-7xl') + ' py-8'}>
         {/* Welcome Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
@@ -1374,8 +1372,8 @@ const MainApp = () => {
                   todayStart.setHours(0, 0, 0, 0);
                   return !hw.completed && dueDate < todayStart;
                 }).length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
-                )}
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
+                  )}
               </div>
             </div>
             <div className="text-2xl font-light text-gray-900 dark:text-white">

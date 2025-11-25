@@ -121,7 +121,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 2. Choose your preferred session length (Pomodoro-style)
 3. Take breaks and track your productivity
 
-## 🎯 Key Components
+## Key Components
 
 - **MainApp**: Central dashboard with homework overview
 - **PlayfulHomeworkList**: Animated homework list with interactions

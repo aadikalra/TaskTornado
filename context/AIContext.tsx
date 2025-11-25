@@ -39,7 +39,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const makeRequest = useCallback(async (endpoint: string, body: any) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Always use the root /api/ai endpoint - the route.ts will handle the specific action
       const response = await fetch('/api/ai', {
@@ -56,7 +56,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
       // First get the response as text
       const responseText = await response.text();
-      
+
       // Try to parse as JSON
       let data;
       try {
@@ -69,10 +69,10 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         const errorMessage = data?.error || 'Failed to get response from AI service';
         const errorDetails = data?.details || 'No additional details available';
-        console.error('AI API error:', { 
-          status: response.status, 
+        console.error('AI API error:', {
+          status: response.status,
           statusText: response.statusText,
-          error: errorMessage, 
+          error: errorMessage,
           details: errorDetails,
           response: data
         });
@@ -82,20 +82,20 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       return data;
     } catch (err) {
       let errorMessage = 'An unknown error occurred';
-      
+
       if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === 'string') {
         errorMessage = err;
       }
-      
+
       // Check for common error patterns
       if (errorMessage.includes('Failed to fetch')) {
         errorMessage = 'Unable to connect to the AI service. Please check your internet connection.';
       } else if (errorMessage.includes('Unexpected token') || errorMessage.includes('invalid JSON')) {
         errorMessage = 'Received an invalid response from the AI service. The service might be unavailable.';
       }
-      
+
       setError(errorMessage);
       console.error('AI request failed:', errorMessage, err);
       throw new Error(errorMessage);
@@ -104,7 +104,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const generateText = useCallback(async (prompt: string, model: string = 'gemma-3-12b-it') => {
+  const generateText = useCallback(async (prompt: string, model: string = 'gemma-3n-e4b-it') => {
     try {
       const data = await makeRequest('generate', { prompt, model });
       return data.response || '';
@@ -113,7 +113,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [makeRequest]);
 
-  const chat = useCallback(async (messages: AIMessage[], model = 'gemma-3-12b-it'): Promise<AIResponse> => {
+  const chat = useCallback(async (messages: AIMessage[], model = 'gemma-3n-e4b-it'): Promise<AIResponse> => {
     const defaultResponse: AIResponse = {
       response: 'I encountered an error. Please try again.',
       done: true,

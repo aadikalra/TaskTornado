@@ -42,6 +42,7 @@ const routeSearchItems = [
   { title: 'Dashboard', href: '/dashboard', icon: Home, keywords: ['home', 'dashboard', 'overview'] },
   { title: 'Homework', href: '/homework', icon: FileText, keywords: ['homework', 'assignments', 'tasks'] },
   { title: 'Tests', href: '/tests', icon: GraduationCap, keywords: ['tests', 'exams', 'quiz'] },
+  { title: 'Interactive Quizzes', href: '/quiz', icon: FileText, keywords: ['quiz', 'quizzes', 'interactive'] },
   { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events'] },
   { title: 'Settings', href: '/settings', icon: Settings, keywords: ['settings', 'preferences'] },
 
@@ -179,252 +180,252 @@ export function SearchResults() {
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
         className="max-h-104 overflow-y-auto mx-4 mt-4"
       >
-      
-      {/* ROUTES */}
-      {filteredRoutes.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15, delay: 0.05 }}
-          className="pt-3 pb-6"
-        >
-          <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
+
+        {/* ROUTES */}
+        {filteredRoutes.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15, delay: 0.05 }}
+            className="pt-3 pb-6"
+          >
+            <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
                          text-gray-500 dark:text-gray-400 font-medium">
-            Pages
-          </h3>
-          <motion.ul>
-            {filteredRoutes.map((route, index) => {
-              const Icon = route.icon;
-              return (
-                <motion.li
-                  key={route.href}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.15, delay: 0.1 + index * 0.05 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href={route.href}
-                    onClick={closeSearch}
-                    className="flex items-center px-5 py-3 text-sm
+              Pages
+            </h3>
+            <motion.ul>
+              {filteredRoutes.map((route, index) => {
+                const Icon = route.icon;
+                return (
+                  <motion.li
+                    key={route.href}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.1 + index * 0.05 }}
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Link
+                      href={route.href}
+                      onClick={closeSearch}
+                      className="flex items-center px-5 py-3 text-sm
                                hover:bg-gray-50/60 dark:hover:bg-gray-800/70
                                transition rounded-md"
-                  >
-                    <motion.div
-                      initial={{ rotate: 0 }}
-                      whileHover={{ rotate: 5 }}
-                      transition={{ duration: 0.2 }}
                     >
-                      <Icon className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                    </motion.div>
-                    <span className="text-gray-900 dark:text-gray-100">
-                      {route.title}
-                    </span>
-                  </Link>
-                </motion.li>
-              );
-            })}
-          </motion.ul>
-        </motion.div>
-      )}
-
-      {/* HOMEWORKS */}
-      {filteredHomeworks.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15, delay: 0.1 + filteredRoutes.length * 0.05 }}
-          className="pt-3 pb-6"
-        >
-          <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
-                         text-gray-500 dark:text-gray-400 font-medium">
-            Assignments
-          </h3>
-
-          <motion.ul>
-            {filteredHomeworks.map((hw, index) => {
-              const c = classes.find(x => x.id === hw.classId);
-              const color = c ? colorMap[c.id] ?? '#808080' : '#808080';
-
-              return (
-                <motion.li
-                  key={hw.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.15, delay: 0.15 + filteredRoutes.length * 0.05 + index * 0.05 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href={`/homework/${hw.id}`}
-                    onClick={closeSearch}
-                    className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
-                               transition rounded-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        {hw.completed && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.2, delay: 0.2 + index * 0.05 }}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                          </motion.div>
-                        )}
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {hw.title}
-                        </span>
-                      </div>
-
-                      {c && (
-                        <motion.span
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
-                          whileHover={{ scale: 1.05 }}
-                          className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
-                          style={{
-                            background: isDark ? `${color}22` : `${color}20`,
-                            color,
-                            borderColor: `${color}55`,
-                          }}
-                        >
-                          {c.name}
-                        </motion.span>
-                      )}
-                    </div>
-
-                    {hw.description && (
-                      <motion.p 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-                        className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+                      <motion.div
+                        initial={{ rotate: 0 }}
+                        whileHover={{ rotate: 5 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        {hw.description}
-                      </motion.p>
-                    )}
+                        <Icon className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                      </motion.div>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {route.title}
+                      </span>
+                    </Link>
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+          </motion.div>
+        )}
 
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
-                      className="mt-1 text-xs text-gray-500 dark:text-gray-400"
-                    >
-                      Due: {new Date(hw.dueDate).toLocaleDateString()}
-                    </motion.p>
-                  </Link>
-                </motion.li>
-              );
-            })}
-          </motion.ul>
-        </motion.div>
-      )}
-
-      {/* TESTS */}
-      {filteredTests.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15, delay: 0.15 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 }}
-          className="pt-3 pb-6"
-        >
-          <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
+        {/* HOMEWORKS */}
+        {filteredHomeworks.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15, delay: 0.1 + filteredRoutes.length * 0.05 }}
+            className="pt-3 pb-6"
+          >
+            <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
                          text-gray-500 dark:text-gray-400 font-medium">
-            Tests & Exams
-          </h3>
+              Assignments
+            </h3>
 
-          <motion.ul>
-            {filteredTests.map((t, index) => {
-              const c = classes.find(x => x.id === t.classId);
-              const { icon: TestIcon, color: testColor } = getTestTypeIcon(t.testType);
-              const badgeColor = c ? colorMap[c.id] ?? '#808080' : '#808080';
+            <motion.ul>
+              {filteredHomeworks.map((hw, index) => {
+                const c = classes.find(x => x.id === hw.classId);
+                const color = c ? colorMap[c.id] ?? '#808080' : '#808080';
 
-              return (
-                <motion.li
-                  key={t.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.15, delay: 0.2 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 + index * 0.05 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href={`/tests/${t.id}`}
-                    onClick={closeSearch}
-                    className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
-                               transition rounded-md"
+                return (
+                  <motion.li
+                    key={hw.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.15 + filteredRoutes.length * 0.05 + index * 0.05 }}
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <motion.div
-                          initial={{ rotate: 0 }}
-                          whileHover={{ rotate: 10 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <TestIcon className={`h-4 w-4 mr-2 ${testColor}`} />
-                        </motion.div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {t.title}
-                        </span>
+                    <Link
+                      href={`/homework/${hw.id}`}
+                      onClick={closeSearch}
+                      className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
+                               transition rounded-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {hw.completed && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ duration: 0.2, delay: 0.2 + index * 0.05 }}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                            </motion.div>
+                          )}
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {hw.title}
+                          </span>
+                        </div>
+
+                        {c && (
+                          <motion.span
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
+                            whileHover={{ scale: 1.05 }}
+                            className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
+                            style={{
+                              background: isDark ? `${color}22` : `${color}20`,
+                              color,
+                              borderColor: `${color}55`,
+                            }}
+                          >
+                            {c.name}
+                          </motion.span>
+                        )}
                       </div>
 
-                      {c && (
-                        <motion.span
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
-                          whileHover={{ scale: 1.05 }}
-                          className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
-                          style={{
-                            background: isDark ? `${badgeColor}22` : `${badgeColor}20`,
-                            color: badgeColor,
-                            borderColor: `${badgeColor}55`,
-                          }}
+                      {hw.description && (
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+                          className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
                         >
-                          {c.name}
-                        </motion.span>
+                          {hw.description}
+                        </motion.p>
                       )}
-                    </div>
 
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-                      className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-4"
-                    >
-                      <span>Type: {t.testType}</span>
-                      <span>Date: {new Date(t.testDate).toLocaleDateString()}</span>
-                      {t.testTime && <span>Time: {t.testTime}</span>}
-                    </motion.div>
-
-                    {t.description && (
-                      <motion.p 
+                      <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
-                        className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+                        className="mt-1 text-xs text-gray-500 dark:text-gray-400"
                       >
-                        {t.description}
+                        Due: {new Date(hw.dueDate).toLocaleDateString()}
                       </motion.p>
-                    )}
-                  </Link>
-                </motion.li>
-              );
-            })}
-          </motion.ul>
-        </motion.div>
-      )}
-    </motion.div>
+                    </Link>
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+          </motion.div>
+        )}
+
+        {/* TESTS */}
+        {filteredTests.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15, delay: 0.15 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 }}
+            className="pt-3 pb-6"
+          >
+            <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
+                         text-gray-500 dark:text-gray-400 font-medium">
+              Tests & Exams
+            </h3>
+
+            <motion.ul>
+              {filteredTests.map((t, index) => {
+                const c = classes.find(x => x.id === t.classId);
+                const { icon: TestIcon, color: testColor } = getTestTypeIcon(t.testType);
+                const badgeColor = c ? colorMap[c.id] ?? '#808080' : '#808080';
+
+                return (
+                  <motion.li
+                    key={t.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.2 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 + index * 0.05 }}
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Link
+                      href={`/tests/${t.id}`}
+                      onClick={closeSearch}
+                      className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
+                               transition rounded-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <motion.div
+                            initial={{ rotate: 0 }}
+                            whileHover={{ rotate: 10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <TestIcon className={`h-4 w-4 mr-2 ${testColor}`} />
+                          </motion.div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {t.title}
+                          </span>
+                        </div>
+
+                        {c && (
+                          <motion.span
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
+                            whileHover={{ scale: 1.05 }}
+                            className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
+                            style={{
+                              background: isDark ? `${badgeColor}22` : `${badgeColor}20`,
+                              color: badgeColor,
+                              borderColor: `${badgeColor}55`,
+                            }}
+                          >
+                            {c.name}
+                          </motion.span>
+                        )}
+                      </div>
+
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+                        className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-4"
+                      >
+                        <span>Type: {t.testType}</span>
+                        <span>Date: {new Date(t.testDate).toLocaleDateString()}</span>
+                        {t.testTime && <span>Time: {t.testTime}</span>}
+                      </motion.div>
+
+                      {t.description && (
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
+                          className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+                        >
+                          {t.description}
+                        </motion.p>
+                      )}
+                    </Link>
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+          </motion.div>
+        )}
+      </motion.div>
     </AnimatePresence>
   );
 }

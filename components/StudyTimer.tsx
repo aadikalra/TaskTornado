@@ -3,19 +3,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Play, Pause, RotateCcw } from 'lucide-react';
-import { AnimateIcon } from './animate-ui/animate-icon';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
+import { Play, Pause, RotateCcw, Minimize2, Maximize2 } from 'lucide-react';
 import { Timer } from './animate-ui/icons/timer';
 
 interface TimerProps {
   trigger?: React.ReactNode;
   onComplete?: () => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function StudyTimer({ trigger, onComplete }: TimerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpenChange }: TimerProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
+  const [isMinimized, setIsMinimized] = useState(false);
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(25);
   const [seconds, setSeconds] = useState(0);
@@ -27,20 +30,16 @@ export function StudyTimer({ trigger, onComplete }: TimerProps) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Cookie management with better debugging
   const getCookie = (name: string): string | null => {
     if (typeof document === 'undefined') return null;
     try {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
       if (parts.length === 2) {
-        const cookieValue = parts.pop()?.split(';').shift() || null;
-        console.log(`Loaded cookie ${name}:`, cookieValue);
-        return cookieValue;
+        return parts.pop()?.split(';').shift() || null;
       }
       return null;
-    } catch (e) {
-      console.error('Error reading cookie:', e);
+    } catch {
       return null;
     }
   };
@@ -50,73 +49,49 @@ export function StudyTimer({ trigger, onComplete }: TimerProps) {
     try {
       const expires = new Date();
       expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-      const cookieString = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
-      document.cookie = cookieString;
-      console.log(`Saved cookie ${name}:`, value);
-    } catch (e) {
-      console.error('Error setting cookie:', e);
+      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+    } catch {
+      // Silent fail
     }
   };
 
-  // Load timer state from cookies on mount
   useEffect(() => {
     const savedTimer = getCookie('studyTimer');
     if (savedTimer) {
       try {
         const timerData = JSON.parse(savedTimer);
-        console.log('Parsed timer data:', timerData);
-
-        // Validate the data
         if (timerData && typeof timerData === 'object') {
-          // Restore the timer settings
           setHours(timerData.hours || 0);
           setMinutes(timerData.minutes || 25);
           setSeconds(timerData.seconds || 0);
           setIsRunning(timerData.isRunning || false);
           setIsPaused(timerData.isPaused || false);
 
-          // Use saved timeLeft if available, otherwise calculate from total
           if (timerData.timeLeft !== undefined && timerData.timeLeft > 0) {
             setTimeLeft(timerData.timeLeft);
             setTotalTime(timerData.totalTime || 0);
-            console.log('Restored timer with timeLeft:', timerData.timeLeft);
           } else {
-            // Fallback: calculate from inputs
             const totalSeconds = (timerData.hours || 0) * 3600 + (timerData.minutes || 25) * 60 + (timerData.seconds || 0);
             setTotalTime(totalSeconds);
             setTimeLeft(totalSeconds);
-            console.log('Calculated timer from inputs:', totalSeconds);
           }
         }
-      } catch (e) {
-        console.error('Failed to parse saved timer:', e);
+      } catch {
+        // Silent fail
       }
-    } else {
-      console.log('No saved timer found');
     }
   }, []);
 
-  // Save timer state to cookies when timer state changes (debounced)
   useEffect(() => {
     if (totalTime > 0) {
       const timeoutId = setTimeout(() => {
-        const timerState = {
-          hours,
-          minutes,
-          seconds,
-          isRunning,
-          isPaused,
-          timeLeft,
-          totalTime
-        };
+        const timerState = { hours, minutes, seconds, isRunning, isPaused, timeLeft, totalTime };
         setCookie('studyTimer', JSON.stringify(timerState));
-      }, 500); // Debounce saves by 500ms
-
+      }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [hours, minutes, seconds, isRunning, isPaused, timeLeft, totalTime]);
 
-  // Initialize total time when inputs change
   useEffect(() => {
     const totalSeconds = hours * 3600 + minutes * 60 + seconds;
     setTotalTime(totalSeconds);
@@ -125,14 +100,10 @@ export function StudyTimer({ trigger, onComplete }: TimerProps) {
     }
   }, [hours, minutes, seconds, isRunning]);
 
-  // Timer countdown logic
   useEffect(() => {
     if (isRunning && !isPaused && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          const newTime = Math.max(0, prev - 1);
-          return newTime;
-        });
+        setTimeLeft(prev => Math.max(0, prev - 1));
       }, 1000);
     } else {
       if (intervalRef.current) {
@@ -140,48 +111,38 @@ export function StudyTimer({ trigger, onComplete }: TimerProps) {
         intervalRef.current = null;
       }
     }
-
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isRunning, isPaused, timeLeft]);
 
-  // Handle timer completion
   useEffect(() => {
     if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setIsPaused(false);
-      playCompletionSound();
-      updateAppTitle(totalTime);
-      clearTimerCookie(); // Clear cookie when timer completes
+      audioRef.current?.play().catch(() => {});
+      clearTimerCookie();
       onComplete?.();
     }
-  }, [timeLeft, isRunning, totalTime, onComplete]);
+  }, [timeLeft, isRunning, onComplete]);
 
-  const updateAppTitle = (remainingSeconds: number) => {
-    const hours = Math.floor(remainingSeconds / 3600);
-    const minutes = Math.floor((remainingSeconds % 3600) / 60);
-    const seconds = remainingSeconds % 60;
-
-    const timeString = hours > 0
-      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      : `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-    document.title = `⏰ ${timeString} - TaskTornado`;
-  };
-
-  const playCompletionSound = () => {
-    if (audioRef.current) {
-      audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+  // Dynamic page title
+  useEffect(() => {
+    if (isRunning && isMinimized) {
+      const formattedTime = formatTime(timeLeft);
+      document.title = `${formattedTime} - Study Timer`;
+    } else {
+      document.title = 'School Organizer';
     }
-  };
+
+    return () => {
+      document.title = 'School Organizer';
+    };
+  }, [isRunning, isMinimized, timeLeft]);
 
   const clearTimerCookie = () => {
     if (typeof document !== 'undefined') {
       document.cookie = 'studyTimer=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      console.log('Cleared timer cookie');
     }
   };
 
@@ -190,181 +151,166 @@ export function StudyTimer({ trigger, onComplete }: TimerProps) {
       setIsRunning(true);
       setIsPaused(false);
       setTimeLeft(totalTime);
-      updateAppTitle(totalTime);
     }
   };
 
-  const pauseTimer = () => {
-    setIsPaused(!isPaused);
-  };
+  const pauseTimer = () => setIsPaused(!isPaused);
 
   const resetTimer = () => {
     setIsRunning(false);
     setIsPaused(false);
     setTimeLeft(totalTime);
-    updateAppTitle(totalTime);
-    clearTimerCookie(); // Clear cookie when resetting
+    clearTimerCookie();
   };
 
   const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    if (h > 0) {
+      return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
+  const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 100;
+
+  // Floating pill component
+  const FloatingPill = () => {
+    if (!isMinimized || !isRunning) return null;
+    
+    return (
+      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-2 bg-background/95 backdrop-blur-xl border border-border rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200"
+           onClick={() => setIsMinimized(false)}>
+        <Timer className="w-4 h-4 text-foreground" />
+        <span className="text-sm font-medium text-foreground tabular-nums">
+          {formatTime(timeLeft)}
+        </span>
+        <div className="w-1 h-4 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-foreground transition-all duration-1000 ease-linear"
+            style={{ height: `${progress}%` }}
+          />
+        </div>
+        <Maximize2 className="w-3 h-3 text-muted-foreground" />
+      </div>
+    );
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm" className="gap-2">
-          <Timer/>
-            Study Timer
-          </Button>
-        )}
-      </DialogTrigger>
+    <>
+      <Dialog open={isOpen && !isMinimized} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+              <Timer className="w-4 h-4" />
+              Timer
+            </Button>
+          )}
+        </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Timer animateOnHover />
-            Study Timer
-          </DialogTitle>
-        </DialogHeader>
+        <DialogContent className="sm:max-w-xs border-0 shadow-2xl bg-background/95 backdrop-blur-xl">
+          <DialogTitle className="sr-only">Study Timer</DialogTitle>
+          <div className="py-8 space-y-8">
+            {/* Timer Display */}
+            <div className="text-center">
+              <div className="text-7xl font-extralight tracking-tight text-foreground tabular-nums">
+                {formatTime(timeLeft)}
+              </div>
+            </div>
 
-        <div className="space-y-6">
-          {/* Time Input */}
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Set Timer Duration</Label>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="hours" className="text-sm">Hours</Label>
-                <Input
-                  id="hours"
-                  type="number"
-                  min="0"
-                  max="23"
-                  value={hours}
-                  onChange={(e) => setHours(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="text-center"
-                  disabled={isRunning}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="minutes" className="text-sm">Minutes</Label>
-                <Input
-                  id="minutes"
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={minutes}
-                  onChange={(e) => setMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                  className="text-center"
-                  disabled={isRunning}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="seconds" className="text-sm">Seconds</Label>
-                <Input
-                  id="seconds"
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={seconds}
-                  onChange={(e) => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                  className="text-center"
-                  disabled={isRunning}
+            {/* Progress Bar */}
+            <div className="px-4">
+              <div className="w-full h-0.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-foreground/60 transition-all duration-1000 ease-linear"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
-          </div>
 
-          {/* Timer Display */}
-          <div className="text-center space-y-4">
-            <div className="text-4xl font-mono font-bold text-primary">
-              {formatTime(timeLeft)}
+            {/* Time Input */}
+            {!isRunning && (
+              <div className="flex justify-center gap-6 px-4">
+                {[
+                  { value: hours, setter: setHours, max: 23, label: 'h' },
+                  { value: minutes, setter: setMinutes, max: 59, label: 'm' },
+                  { value: seconds, setter: setSeconds, max: 59, label: 's' },
+                ].map(({ value, setter, max, label }) => (
+                  <div key={label} className="flex flex-col items-center gap-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      max={max}
+                      value={value || ''}
+                      onChange={(e) => setter(Math.max(0, Math.min(max, parseInt(e.target.value) || 0)))}
+                      className="w-14 h-10 text-center text-lg font-light border-0 bg-muted/50 rounded-lg focus-visible:ring-1 focus-visible:ring-foreground/20"
+                    />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Controls */}
+            <div className="flex justify-center gap-3">
+              {!isRunning ? (
+                <Button 
+                  onClick={startTimer} 
+                  disabled={totalTime === 0}
+                  size="lg"
+                  className="w-14 h-14 rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30"
+                >
+                  <Play className="w-5 h-5 ml-0.5" />
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    onClick={pauseTimer}
+                    variant="ghost"
+                    size="lg"
+                    className="w-12 h-12 rounded-full hover:bg-muted"
+                  >
+                    {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
+                  </Button>
+                  <Button 
+                    onClick={resetTimer}
+                    variant="ghost"
+                    size="lg"
+                    className="w-12 h-12 rounded-full hover:bg-muted"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    onClick={() => setIsMinimized(true)}
+                    variant="ghost"
+                    size="lg"
+                    className="w-12 h-12 rounded-full hover:bg-muted"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
             </div>
 
-            {/* Progress Circle */}
-            <div className="relative w-32 h-32 mx-auto">
-              <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  className="text-muted-foreground/20"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  strokeDasharray={`${2 * Math.PI * 45}`}
-                  strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`}
-                  className="text-primary transition-all duration-1000 ease-out"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-medium text-muted-foreground">
-                  {Math.round(progress)}%
+            {/* Status */}
+            {isRunning && (
+              <div className="text-center">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+                  {isPaused ? 'paused' : 'focus'}
                 </span>
               </div>
-            </div>
-          </div>
-
-          {/* Control Buttons */}
-          <div className="flex justify-center gap-2">
-            {!isRunning ? (
-              <Button onClick={startTimer} disabled={totalTime === 0} className="gap-2">
-                <Play className="w-4 h-4" />
-                Start
-              </Button>
-            ) : (
-              <Button onClick={pauseTimer} variant="outline" className="gap-2">
-                <Pause className="w-4 h-4" />
-                {isPaused ? 'Resume' : 'Pause'}
-              </Button>
-            )}
-
-            <Button onClick={resetTimer} variant="outline" className="gap-2">
-              <RotateCcw className="w-4 h-4" />
-              Reset
-            </Button>
-          </div>
-
-          {/* Status */}
-          <div className="text-center text-sm text-muted-foreground">
-            {isRunning && !isPaused ? (
-              <span className="text-green-600">Timer running...</span>
-            ) : isPaused ? (
-              <span className="text-yellow-600">Timer paused</span>
-            ) : timeLeft === 0 && totalTime > 0 ? (
-              <span className="text-blue-600">Timer completed!</span>
-            ) : (
-              <span>Ready to start</span>
             )}
           </div>
-        </div>
 
-        {/* Hidden audio element for completion sound */}
-        <audio
-          ref={audioRef}
-          preload="none"
-          src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhEUOlwOi6bxhW"
-        />
-      </DialogContent>
-    </Dialog>
+          <audio
+            ref={audioRef}
+            preload="none"
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhEUOlwOi6bxhW"
+          />
+        </DialogContent>
+      </Dialog>
+      <FloatingPill />
+    </>
   );
 }

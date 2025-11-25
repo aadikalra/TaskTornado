@@ -84,7 +84,7 @@ const PriorityHomeworkCard = () => {
         // Filter out completed homeworks and format them for the AI
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
-        
+
         const incompleteHomeworks = homeworks
           .filter(hw => !hw.completed)
           .map(hw => ({
@@ -136,7 +136,7 @@ Please respond with a JSON object in this exact format:
   "reason": "Brief explanation of why this should be done first (include 'overdue' or 'most overdue' if applicable)",
   "priority": "high|medium|low"
 }`
-        }], 'gemma-3-12b-it');
+        }], 'gemma-3n-e4b-it');
 
         // Try to parse the JSON response
         try {
@@ -276,14 +276,14 @@ Please respond with a JSON object in this exact format:
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-900">
           {(() => {
             const homework = homeworks.find(hw => hw.id === priorityHomework.id);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const isOverdue = homework && new Date(homework.dueDate) < today;
-            
+
             if (isOverdue) {
               return (
                 <>
@@ -292,15 +292,15 @@ Please respond with a JSON object in this exact format:
                 </>
               );
             }
-            
+
             const priorityConfig = {
               high: { icon: AlertTriangle, color: 'text-red-600 dark:text-red-400' },
               medium: { icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
               low: { icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
             }[priorityHomework.priority];
-            
+
             const Icon = priorityConfig.icon;
-            
+
             return (
               <>
                 <Icon className={`w-3 h-3 ${priorityConfig.color}`} />
@@ -369,7 +369,7 @@ Please respond with a JSON object in this exact format:
           <Sparkles className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
           <span>AI Recommended</span>
         </div>
-        <Button 
+        <Button
           onClick={() => setHasStartedWorking(true)}
           disabled={hasStartedWorking}
           size="sm"

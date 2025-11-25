@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   try {
     // Parse the incoming request body
     const body = await req.json();
-    const { prompt, messages, model = 'gemma-3-12b-it', action = 'chat' } = body;
+    const { prompt, messages, model = 'gemma-3n-e4b-it', action = 'chat' } = body;
 
     // Get client IP for rate limiting
     const clientIP = getClientIP(req);

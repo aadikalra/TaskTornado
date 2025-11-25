@@ -32,6 +32,7 @@ import {
   Calculator,
   Bookmark,
   Cloud,
+  HelpCircle,
 } from 'lucide-react';
 
 import { Bot } from '@/components/animate-ui/icons/bot';
@@ -53,6 +54,8 @@ import { Markdown } from './markdown';
 import { ResizablePanel } from './ui/resizable-panel';
 import { X } from './animate-ui/icons/x';
 import { Flashcard, FlashcardDeck } from './Flashcard';
+import { QuizQuestion, InteractiveQuiz } from './Quiz';
+import { ShimmeringText } from './animate-ui/primitives/texts/shimmering';
 import { Tabs, TabsList, TabsTab, TabsPanels, TabsPanel } from '@/components/animate-ui/components/base/tabs';
 import { Class, Homework, Test } from '@/context/ClassContext';
 import IconSparkle from './glass-icons/IconSparkle';
@@ -100,6 +103,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showHomeworkEffect, setShowHomeworkEffect] = useState(false);
   const [flashcards, setFlashcards] = useState<import('./Flashcard').Flashcard[]>([]);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   // Message counters for tracking AI usage by model
   const [quickMessageCounter, setQuickMessageCounter] = useState(0);
   const [deeperMessageCounter, setDeeperMessageCounter] = useState(0);
@@ -110,7 +115,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [commandMenuPosition, setCommandMenuPosition] = useState({ top: 0, left: 0 });
 
   // Model selection state
-  const [selectedModel, setSelectedModel] = useState<'gemma-3-12b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud'>('gemma-3-12b-it');
+  const [selectedModel, setSelectedModel] = useState<'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud'>('gemma-3n-e4b-it');
 
   // Resize state and refs
   const [panelSize, setPanelSize] = useState({ width: 500, height: 600 });
@@ -140,7 +145,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
   // Track active @-command
   const [activeCommand, setActiveCommand] = useState<
-    'data' | 'control' | 'resources' | 'flashcards' | 'therapist' | 'grade' | null
+    'data' | 'control' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | null
   >(null);
 
   // AI Personality setting
@@ -172,6 +177,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     { id: 'control', label: 'Control', icon: PlusCircle, color: 'blue', description: 'Create or manage homework' },
     { id: 'resources', label: 'Resources', icon: Search, color: 'purple', description: 'Find study resources' },
     { id: 'flashcards', label: 'Flashcards', icon: Bookmark, color: 'pink', description: 'Generate flashcards' },
+    { id: 'quiz', label: 'Quiz', icon: HelpCircle, color: 'orange', description: 'Generate interactive quizzes' },
     { id: 'therapist', label: 'Therapist', icon: MessageSquare, color: 'cyan', description: 'Mental health support' },
     { id: 'grade', label: 'Grade', icon: Calculator, color: 'green', description: 'Grade assignments' },
   ];
@@ -194,6 +200,9 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       setShowHomeworkEffect(false);
     } else if (inputLower.includes('@flashcards')) {
       setActiveCommand('flashcards');
+      setShowHomeworkEffect(false);
+    } else if (inputLower.includes('@quiz')) {
+      setActiveCommand('quiz');
       setShowHomeworkEffect(false);
     } else if (inputLower.includes('@therapist')) {
       setActiveCommand('therapist');
@@ -857,7 +866,7 @@ For example:
     const loadingMsg = {
       id: Date.now(),
       role: 'assistant' as const,
-      content: `🧠 Generating flashcards about: ${topic}...`,
+      content: `Generating flashcards about: ${topic}`,
       timestamp: new Date(),
       isLoading: true,
     };
@@ -943,6 +952,129 @@ I've created ${formattedCards.length} flashcards for you to study.
       return `❌ I couldn't generate flashcards right now. Please try again with a different topic.`;
     }
   };
+
+  /* ---------------------------------------------------------------------- */
+  /* @quiz command handling                    */
+  /* ---------------------------------------------------------------------- */
+  const handleQuizCommand = async (userInput: string) => {
+    const topic = userInput.split('@quiz')[1]?.trim() || 'general knowledge';
+
+    if (!topic) {
+      return `# Quiz Generator
+
+I'll help you create interactive quiz questions! Just type:
+
+@quiz [your topic or subject]
+
+For example:
+- @quiz French Revolution
+- @quiz Algebra equations
+- @quiz Cell biology`;
+    }
+
+    // First, let the user know we're working on it
+    const loadingMsg = {
+      id: Date.now(),
+      role: 'assistant' as const,
+      content: `Generating quiz questions about: ${topic}`,
+      timestamp: new Date(),
+      isLoading: true,
+    };
+    setMessages(prev => [...prev, loadingMsg]);
+
+    try {
+      const prompt = `You are an expert educational content creator. 
+      
+      Create high-quality multiple-choice quiz questions about: ${topic}
+
+      Guidelines:
+      - Create exactly 5 quiz questions unless the user specifies a different number
+      - Each question should have:
+        * A clear, specific question
+        * Exactly 4 multiple choice options
+        * The index (0-3) of the correct answer
+        * A brief explanation of why the answer is correct (1-2 sentences)
+        * Cover key concepts and important details
+        * Make the questions challenging but fair
+        * Ensure distractors (wrong answers) are plausible but clearly incorrect
+
+      Format the response as a JSON array of objects with these properties:
+      - 'question': string (the question text)
+      - 'options': array of 4 strings (the answer choices)
+      - 'correctAnswer': number (index 0-3 of the correct option)
+      - 'explanation': string (brief explanation)
+      - 'topic': string (topic name)`;
+
+      const response = await chat([
+        {
+          role: 'system',
+          content: 'You are a helpful study assistant that creates educational quiz questions. Return ONLY a valid JSON array of objects with question, options (array of 4 strings), correctAnswer (number 0-3), explanation, and topic properties.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]);
+
+      // Parse the response
+      let jsonString = response.response.trim();
+
+      // Remove markdown code block syntax if present
+      if (jsonString.startsWith('```json')) {
+        jsonString = jsonString.replace(/^```json\n?|\n?```$/g, '').trim();
+      } else if (jsonString.startsWith('```')) {
+        jsonString = jsonString.replace(/^```\n?|\n?```$/g, '').trim();
+      }
+
+      // Parse the JSON and ensure it's an array
+      let parsedQuestions = JSON.parse(jsonString);
+      if (!Array.isArray(parsedQuestions)) {
+        parsedQuestions = [parsedQuestions];
+      }
+
+      // Format the questions to match the QuizQuestion interface
+      interface QuizData {
+        question?: string;
+        options?: string[];
+        correctAnswer?: number;
+        explanation?: string;
+        topic?: string;
+      }
+
+      const formattedQuestions = parsedQuestions.map((q: QuizData, index: number) => ({
+        id: `question-${Date.now()}-${index}`,
+        question: q.question || `Question ${index + 1}`,
+        options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctAnswer: q.correctAnswer ?? 0,
+        explanation: q.explanation || '',
+        topic: q.topic || topic,
+      }));
+
+      // Save to localStorage for the quiz page
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('currentQuiz', JSON.stringify(formattedQuestions));
+      }
+
+      // Remove the loading message
+      setMessages(prev => prev.filter(msg => !msg.isLoading));
+
+      // Return a success message with a link to the quiz page  
+      return `# Quiz: ${topic}
+
+I've created ${formattedQuestions.length} multiple-choice questions for you to test your knowledge.
+
+[Start Quiz](/quiz?t=${Date.now()}) to begin!
+
+*The quiz will be saved for this session. Good luck!*`;
+
+    } catch (error) {
+      console.error('Error generating quiz:', error);
+      // Remove the loading message
+      setMessages(prev => prev.filter(msg => !msg.isLoading));
+      return `❌ I couldn't generate quiz questions right now. Please try again with a different topic.`;
+    }
+  };
+
   /* ---------------------------------------------------------------------- */
   /* Data context for AI prompts (@data)                 */
   /* ---------------------------------------------------------------------- */
@@ -1136,21 +1268,22 @@ I've created ${formattedCards.length} flashcards for you to study.
     const isRequestingData = userInput.toLowerCase().includes('@data');
     const isControlCommand = userInput.toLowerCase().startsWith('@control');
     const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards');
+    const isQuizCommand = userInput.toLowerCase().includes('@quiz');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
     const isGradeCommand = userInput.toLowerCase().includes('@grade');
 
     if ((!userInput && selectedImages.length === 0) || isAILoading) return;
 
     // Check daily message limit based on selected model
-    const currentCounter = selectedModel === 'gemma-3-12b-it' ? quickMessageCounter :
+    const currentCounter = selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
-    const maxLimit = selectedModel === 'gemma-3-12b-it' ? 100 :
+    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? 100 :
       selectedModel === 'gemini-2.5-flash-lite' ? 10 :
         20;
 
     if (currentCounter >= maxLimit) {
-      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode). Please try again tomorrow.`);
+      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode). Please try again tomorrow.`);
       return;
     }
 
@@ -1230,6 +1363,32 @@ I've created ${formattedCards.length} flashcards for you to study.
     }
 
     // --------------------------------------------------------------
+    // @quiz command
+    // --------------------------------------------------------------
+    if (isQuizCommand) {
+      try {
+        const response = await handleQuizCommand(userInput);
+
+        // If the handler returned a response string, show it as a normal assistant message
+        if (response) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              role: 'assistant',
+              content: response,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+        return;
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Failed to generate quiz');
+        return;
+      }
+    }
+
+    // --------------------------------------------------------------
     // @control commands
     // --------------------------------------------------------------
     if (isControlCommand) {
@@ -1295,7 +1454,7 @@ I've created ${formattedCards.length} flashcards for you to study.
     setIsAILoading(true);
 
     // Increment the appropriate message counter
-    if (selectedModel === 'gemma-3-12b-it') {
+    if (selectedModel === 'gemma-3n-e4b-it') {
       setQuickMessageCounter(prev => prev + 1);
     } else if (selectedModel === 'gemini-2.5-flash-lite') {
       setDeeperMessageCounter(prev => prev + 1);
@@ -1772,13 +1931,13 @@ Examples of how to handle different types:
                       <motion.div
                         className={cn(
                           "h-full rounded-full",
-                          selectedModel === 'gemma-3-12b-it' ? "bg-teal-500" :
+                          selectedModel === 'gemma-3n-e4b-it' ? "bg-teal-500" :
                             selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" : "bg-blue-500"
                         )}
                         initial={{ width: 0 }}
                         animate={{
                           width: `${Math.min(100, (
-                            selectedModel === 'gemma-3-12b-it' ? (quickMessageCounter / 100) * 100 :
+                            selectedModel === 'gemma-3n-e4b-it' ? (quickMessageCounter / 100) * 100 :
                               selectedModel === 'gemini-2.5-flash-lite' ? (deeperMessageCounter / 10) * 100 :
                                 (cloudMessageCounter / 20) * 100
                           ))}%`
@@ -1958,7 +2117,15 @@ Examples of how to handle different types:
                           )}
 
                           {/* Always render the content, even if it's just "Thinking..." */}
-                          <Markdown>{msg.content}</Markdown>
+                          {msg.isLoading ? (
+                            <ShimmeringText
+                              text={msg.content}
+                              duration={1.5}
+                              wave={true}
+                            />
+                          ) : (
+                            <Markdown>{msg.content}</Markdown>
+                          )}
                         </div>
                       </div>
                       {msg.role === 'user' && (
@@ -2106,20 +2273,20 @@ Examples of how to handle different types:
                           }
                         }}
                         placeholder={
-                          (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
+                          (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
                             (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
-                            ? `Daily limit reached for ${selectedModel === 'gemma-3-12b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode - try again tomorrow`
+                            ? `Daily limit reached for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode - try again tomorrow`
                             : "Ask me anything..."
                         }
                         disabled={
-                          (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
+                          (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                           (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
                           (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
                         }
                         className={cn(
                           `min-h-[60px] w-full resize-none border-0 bg-transparent p-3 pr-24 pb-10 focus-visible:ring-0 focus-visible:ring-offset-0`,
-                          ((selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
+                          ((selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
                             (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)) &&
                           'opacity-50 cursor-not-allowed',
@@ -2144,7 +2311,7 @@ Examples of how to handle different types:
                       {/* Model Selector - Bottom Left */}
                       <div className="absolute bottom-0 left-2 z-10 flex items-center gap-1.5">
                         <div className="flex aspect-1 items-center gap-1 rounded-full bg-muted p-1.5 text-xs">
-                          {selectedModel === 'gemma-3-12b-it' ? (
+                          {selectedModel === 'gemma-3n-e4b-it' ? (
                             <Zap className="h-3.5 w-3.5 text-muted-foreground" />
                           ) : selectedModel === 'gemini-2.5-flash-lite' ? (
                             <Brain className="h-3.5 w-3.5 text-muted-foreground" />
@@ -2155,11 +2322,11 @@ Examples of how to handle different types:
 
                         <Select
                           value={selectedModel}
-                          onValueChange={(value) => setSelectedModel(value as 'gemma-3-12b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud')}
+                          onValueChange={(value) => setSelectedModel(value as 'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud')}
                         >
                           <SelectTrigger className="w-fit border-none bg-transparent! p-0 text-sm text-muted-foreground hover:text-foreground focus:ring-0 shadow-none h-auto">
                             <SelectValue>
-                              {selectedModel === 'gemma-3-12b-it' ? (
+                              {selectedModel === 'gemma-3n-e4b-it' ? (
                                 <div className="flex items-center gap-1">
                                   <span>Quick</span>
                                 </div>
@@ -2187,7 +2354,7 @@ Examples of how to handle different types:
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="gemma-3-12b-it">
+                            <SelectItem value="gemma-3n-e4b-it">
                               <div className="flex items-center gap-1">
                                 <span>Quick</span>
                               </div>
@@ -2299,7 +2466,7 @@ Examples of how to handle different types:
                         type="submit"
                         disabled={
                           (!input.trim() && selectedImages.length === 0) ||
-                          (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
+                          (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                           (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
                           (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
                         }
@@ -2319,7 +2486,7 @@ Examples of how to handle different types:
                                       ? 'bg-green-500 hover:bg-green-600 text-white'
                                       : 'bg-primary hover:bg-primary/90 text-primary-foreground',
                           ((!input.trim() && selectedImages.length === 0) ||
-                            (selectedModel === 'gemma-3-12b-it' && quickMessageCounter >= 100) ||
+                            (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10)) &&
                           'opacity-50 pointer-events-none'
                         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Home, Layers, Waves } from 'lucide-react';
 import Link from 'next/link';
@@ -8,11 +8,14 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import WorthinessCheckModal from '@/components/WorthinessCheckModal';
 
 export default function GamesPage() {
     const router = useRouter();
     const { homeworks } = useClassContext();
     const { getContainerClass } = useWideLayout();
+    const [selectedGame, setSelectedGame] = useState<{title: string, href: string} | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Calculate homework completion percentage
     const completionPercentage = useMemo(() => {
@@ -20,6 +23,17 @@ export default function GamesPage() {
         const completedCount = homeworks.filter((hw: any) => hw.completed).length;
         return Math.round((completedCount / homeworks.length) * 100);
     }, [homeworks]);
+
+    const handleGameClick = (game: {title: string, href: string}) => {
+        setSelectedGame(game);
+        setIsModalOpen(true);
+    };
+
+    const handleWorthinessApproved = () => {
+        if (selectedGame) {
+            router.push(selectedGame.href);
+        }
+    };
 
     const games = [
         {
@@ -191,12 +205,15 @@ export default function GamesPage() {
                                         
                                         {isUnlocked && (
                                             <div className="flex items-center gap-2">
-                                                <Link href={game.href}>
-                                                    <Button variant="ghost" size="sm" className="gap-2">
-                                                        Play
-                                                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
-                                                    </Button>
-                                                </Link>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="gap-2"
+                                                    onClick={() => handleGameClick({ title: game.title, href: game.href })}
+                                                >
+                                                    Play
+                                                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                                                </Button>
                                             </div>
                                         )}
                                     </div>
@@ -275,6 +292,14 @@ export default function GamesPage() {
                     </div>
                 </motion.div>
             </div>
+            
+            {/* Worthiness Check Modal */}
+            <WorthinessCheckModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onApproved={handleWorthinessApproved}
+                gameTitle={selectedGame?.title || ''}
+            />
         </div>
     );
 }

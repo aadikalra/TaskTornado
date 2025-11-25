@@ -15,12 +15,12 @@ interface DashboardClientProps {
 }
 
 function GamificationProviderWrapper() {
-    const { classes, homeworks } = useClassContext();
-    return (
-        <GamificationProvider homeworks={homeworks} classes={classes}>
-            <MainApp />
-        </GamificationProvider>
-    )
+  const { classes, homeworks } = useClassContext();
+  return (
+    <GamificationProvider homeworks={homeworks} classes={classes}>
+      <MainApp />
+    </GamificationProvider>
+  )
 }
 
 const MainApp = dynamic(() => import('@/components/MainApp'), {

@@ -21,7 +21,70 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
-      version: '1.2.0',
+      version: '1.1.7',
+      date: '2025-11-25',
+      title: 'AI Worthiness & Timer Redesign',
+      highlight: 'Smart game validation and minimalist study timer experience',
+      type: 'major',
+      short: [
+        'AI worthiness check for game access',
+        'Students must prove they deserve to play games',
+        '5-minute block system for unworthy attempts',
+        'Intelligent evaluation using Gemma 3 model',
+        'Fair but strict judgment criteria',
+        'Enhanced game access control and responsibility',
+        'Minimalist study timer redesign',
+        'Clean and focused timer interface',
+        'Improved timer visual hierarchy'
+      ],
+      full: [
+        'Implemented AI-powered worthiness check system for all games',
+        'Students must explain why they deserve to play before accessing games',
+        'AI evaluates responses based on homework completion, intent, and honesty',
+        'Uses Gemma 3 model for intelligent and contextual judgment',
+        '5-minute temporary block for students judged unworthy',
+        'Persistent blocking system remembers failed attempts across sessions',
+        'Fair criteria: rewards completed homework, legitimate study breaks, and honesty',
+        'Blocks procrastination, avoidance, and dishonest behavior',
+        'Seamless integration with existing game unlock system',
+        'Enhanced user accountability and responsible gaming habits',
+        'Redesigned study timer with minimalistic approach',
+        'Clean, focused interface with larger time display and simplified controls',
+        'Removed visual clutter while maintaining core functionality',
+        'Improved typography and spacing for better readability',
+        'Streamlined input fields and circular control buttons',
+        'Enhanced progress visualization with subtle progress bar'
+      ]
+    },
+    {
+      version: '1.1.6',
+      date: '2025-11-25',
+      title: 'Interactive Quiz & Enhanced AI Experience',
+      highlight: 'New interactive quiz feature, upgraded AI models, improved navigation and search capabilities',
+      type: 'major',
+      short: [
+        'Interactive quiz feature with engaging study tools',
+        'Upgraded AI quick models for more intelligent help',
+        'Faster AI response times and improved performance',
+        'Enhanced right-click menu for better navigation',
+        'Delete account feature for user control',
+        'Improved search bar with route searching capabilities'
+      ],
+      full: [
+        'Added comprehensive interactive quiz feature with multiple question types and instant feedback',
+        'Upgraded AI quick models to provide more intelligent and contextual assistance',
+        'Optimized AI response times for faster help and improved user experience',
+        'Redesigned right-click context menu with improved navigation options and better organization',
+        'Implemented secure delete account feature with proper data removal and confirmation flow',
+        'Enhanced search bar to support route searching in addition to content search',
+        'Improved search algorithm for better results and faster query processing',
+        'Added keyboard shortcuts and accessibility improvements to navigation menus',
+        'Enhanced user control with comprehensive account management options',
+        'Optimized performance across all AI-powered features for smoother interactions'
+      ]
+    },
+    {
+      version: '1.1.5',
       date: '2025-11-24',
       title: 'Global UI Refactor & Layout Unification',
       highlight: 'Massive refactor focused on layout standardization, wide-layout support, and visual consistency',
@@ -342,13 +405,28 @@ export default function ChangelogPage() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }}
-          className="mb-16"
+          className="mb-8"
         >
           <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
             Changelog
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
             Product updates and improvements
+          </p>
+        </motion.div>
+
+        {/* Thanksgiving Message - Minimalist */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-12 text-center p-4 border border-gray-200 dark:border-gray-800 rounded-lg"
+        >
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            🦃 Thanksgiving Special
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            One major release every day until end of November!
           </p>
         </motion.div>
 
@@ -380,6 +458,11 @@ export default function ChangelogPage() {
                     {v.type === 'minor' && (
                       <span className="px-2 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
                         Minor
+                      </span>
+                    )}
+                    {(v.version === '1.1.7' || v.version === '1.1.6' || v.version === '1.1.5') && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
+                        🦃 Thanksgiving
                       </span>
                     )}
                   </div>

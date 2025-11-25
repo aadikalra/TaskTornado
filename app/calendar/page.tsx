@@ -76,7 +76,7 @@ function useDragAndDrop(
   const handleDrop = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault();
 
-    console.log('🎯 DROP EVENT:', {
+    console.log('DROP EVENT:', {
       targetDate: targetDate.toISOString(),
       targetDateDay: targetDate.getDate(),
       targetDateLocal: targetDate.toLocaleDateString(),
@@ -312,7 +312,7 @@ export default function CalendarPage() {
 
       const matches = normalizedHwDate.getTime() === normalizedDay.getTime();
 
-      console.log('🎯 HOMEWORK FILTERING:', {
+      console.log('HOMEWORK FILTERING:', {
         day: day.getDate(),
         hwId: hw.id,
         hwTitle: hw.title,
@@ -343,7 +343,7 @@ export default function CalendarPage() {
 
         const matches = normalizedTestDate.getTime() === normalizedDay.getTime();
 
-        console.log('🎯 TEST FILTERING:', {
+        console.log('TEST FILTERING:', {
           day: day.getDate(),
           testId: test.id,
           testTitle: test.title,
@@ -479,10 +479,10 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass('max-w-6xl') + ' py-16'}>
-        
+
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-16"
         >
@@ -496,26 +496,26 @@ export default function CalendarPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={prevMonth}
                 className="gap-2"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={resetToToday}
                 className="gap-2"
               >
                 Today
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={nextMonth}
                 className="gap-2"
               >
@@ -542,7 +542,7 @@ export default function CalendarPage() {
           transition={{ delay: 0.05 }}
         >
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-            
+
             {/* Weekday Headers */}
             <div className="grid grid-cols-7 gap-4 mb-4">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
@@ -562,12 +562,12 @@ export default function CalendarPage() {
                   transition={{ delay: 0.1 + index * 0.01 }}
                   className={`
                     relative p-3 border rounded-lg min-h-[100px] transition-colors
-                    ${calendarDay.isCurrentMonth 
-                      ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900' 
+                    ${calendarDay.isCurrentMonth
+                      ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
                       : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950'
                     }
-                    ${calendarDay.isToday 
-                      ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-gray-800' 
+                    ${calendarDay.isToday
+                      ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-gray-800'
                       : ''
                     }
                     ${dragState.currentHoverDate && isSameDay(calendarDay.date, dragState.currentHoverDate)
@@ -579,9 +579,9 @@ export default function CalendarPage() {
                   <div className="flex items-start justify-between mb-2">
                     <span className={`
                       text-sm font-medium
-                      ${calendarDay.isCurrentMonth 
-                        ? calendarDay.isToday 
-                          ? 'text-gray-900 dark:text-white' 
+                      ${calendarDay.isCurrentMonth
+                        ? calendarDay.isToday
+                          ? 'text-gray-900 dark:text-white'
                           : 'text-gray-700 dark:text-gray-300'
                         : 'text-gray-400 dark:text-gray-600'
                       }

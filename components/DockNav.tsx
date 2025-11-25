@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
 import Dock from './Dock';
 import { AIAssistant } from './AIAssistant';
-import { MinimalistTimer } from './MinimalistTimer';
+import { StudyTimer } from './StudyTimer';
 import IconMagnifier from './glass-icons/IconMagnifier';
 import IconSparkle from './glass-icons/IconSparkle';
 import IconCalendar from './glass-icons/IconCalendar';
@@ -17,13 +17,14 @@ import IconHouse from './glass-icons/IconHouse';
 import IconGear from './glass-icons/IconGear';
 import IconProgressBar from './glass-icons/IconProgressBar';
 import IconBox from './glass-icons/IconBox';
+import IconGrid2 from './glass-icons/IconGrid2';
 
 export default function DockNav() {
   const router = useRouter();
   const { user, signOut } = useAuth() || {};
   const { openSearch } = useSearch();
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
-  const [isMinimalistTimerOpen, setIsMinimalistTimerOpen] = useState(false);
+  const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
 
   const items = [
     {
@@ -58,6 +59,11 @@ export default function DockNav() {
       onClick: () => router.push('/flashcards')
     },
     {
+      icon: <IconGrid2 />,
+      label: "Interactive Quizzes",
+      onClick: () => router.push('/quiz')
+    },
+    {
       icon: <IconPin />,
       label: 'Web Saves',
       onClick: () => {
@@ -71,7 +77,7 @@ export default function DockNav() {
     {
       icon: <IconProgressBar />,
       label: 'Study Timer',
-      onClick: () => setIsMinimalistTimerOpen(prev => !prev)
+      onClick: () => setIsStudyTimerOpen(true)
     },
     {
       icon: <IconUsers />,
@@ -85,14 +91,14 @@ export default function DockNav() {
       }
     },
     {
-      icon: <IconFile />,
-      label: "What's New",
-      onClick: () => router.push('/changelog')
-    },
-    {
       icon: <IconBox />,
       label: "Games",
       onClick: () => router.push('/games')
+    },
+    {
+      icon: <IconFile />,
+      label: "What's New",
+      onClick: () => router.push('/changelog')
     },
     {
       icon: <IconGear />,
@@ -116,10 +122,7 @@ export default function DockNav() {
         magnification={70}
       />
       <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setIsAIAssistantOpen(false)} />
-      <MinimalistTimer
-        isVisible={isMinimalistTimerOpen}
-        onClose={() => setIsMinimalistTimerOpen(false)}
-      />
+      <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} />
     </>
   );
 }
