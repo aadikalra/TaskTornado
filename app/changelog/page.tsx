@@ -21,8 +21,45 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
+      version: '1.1.8',
+      date: '2025-11-27',
+      title: 'Dictionary Popup & AI Assistant Overhaul',
+      highlight: 'Interactive dictionary lookup, advanced AI features with persistent storage, and enhanced UI polish',
+      type: 'major',
+      short: [
+        'Dictionary popup for instant word definitions',
+        'Enhanced right-click context menu with "Define" option',
+        'Advanced AI Assistant with persistent conversation storage',
+        'Interactive teaching buttons with keyboard shortcuts',
+        'Command detection system for special AI modes',
+        'Model-specific message limits and usage tracking',
+        'Redesigned dashboard loading spinner with new 3 dots animation',
+        'Console log cleanup for better performance'
+      ],
+      full: [
+        'Created DictionaryPopup.tsx component from scratch (143 lines) with single-word text selection detection',
+        'Integrated Dictionary API (dictionaryapi.dev) for comprehensive word definitions including phonetics, parts of speech, examples',
+        'Added ESC key binding and smooth animations for better user experience',
+        'Enhanced ClientLayout.tsx (+40 lines) to detect selected text and pass it to context menu',
+        'Redesigned CustomContextMenu.tsx (+49, -31 lines) with onDictionaryOpen handler and "Define" menu option for single-word selections',
+        'Updated menu items with better icons (Trophy for Tests, BookOpen for Define) and reorganized navigation structure',
+        'Overhauled AI Assistant with persistent storage using cookies (4KB limit, last 10 messages) and localStorage for input recovery',
+        'Implemented interactive teaching buttons system with JSON parsing, keyboard shortcuts, and usage tracking for quick/deeper/cloud modes',
+        'Added advanced command detection system with / commands for quiz, flashcards, therapist, grade modes and real-time filtering',
+        'Enhanced system prompt with detailed Socratic questioning methodology, homework detection, and therapist mode guidelines',
+        'Improved streaming response handling with TextDecoder for real-time processing and dynamic loading messages',
+        'Added model-specific message limits: Quick mode (Gemma): 100 messages, Deep mode (Gemini): 10 messages, Cloud mode (Kimi): 10 messages',
+        'Enhanced UI with "New Chat" button, close button, SplittingText component, and shimmering loading states',
+        'Redesigned dashboard loading spinner in DashboardClient.tsx (+13, -2 lines) with gradient background and bouncing animation',
+        'Updated loading spinner colors to red-500 across authentication components for better visual consistency',
+        'Cleaned up console logs by commenting out debug statements in calendar/page.tsx, MainApp.tsx, and PlayfulHomeworkList.tsx',
+        'Enhanced performance with dual persistence approach using cookies for cross-session messages and localStorage for input recovery',
+        'Improved accessibility with markdown rendering, proper error handling, and comprehensive keyboard shortcuts'
+      ]
+    },
+    {
       version: '1.1.7',
-      date: '2025-11-25',
+      date: '2025-11-26',
       title: 'AI Worthiness & Timer Redesign',
       highlight: 'Smart game validation and minimalist study timer experience',
       type: 'major',
@@ -433,15 +470,27 @@ export default function ChangelogPage() {
         {/* Versions */}
         <div className="space-y-12">
           {versions.map((v, i) => (
-            <motion.div
-              key={v.version}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="group"
-            >
+            <div key={v.version} className="relative">
+              {/* FUTURE tag outside the opacity container */}
+              {v.version === '1.1.8' && (
+                <div className="absolute -top-2.5 -left-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded z-10">
+                  FUTURE
+                </div>
+              )}
+              
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: v.version === '1.1.8' ? 0.5 : 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className={`group ${v.version === '1.1.8' ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-4 -mx-4 rounded-xl' : ''}`}
+              >
+              {/* Special styling for version 1.1.8 */}
+              {v.version === '1.1.8' && (
+                <div className="absolute inset-0 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl opacity-40 pointer-events-none" />
+              )}
+
               {/* Version Header */}
-              <div className="flex items-start justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+              <div className={`relative flex items-start justify-between mb-4 pb-4 border-b ${v.version === '1.1.8' ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'}`}>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-3 mb-2">
                     <h2 className="text-xl font-medium text-gray-900 dark:text-white">
@@ -460,7 +509,7 @@ export default function ChangelogPage() {
                         Minor
                       </span>
                     )}
-                    {(v.version === '1.1.7' || v.version === '1.1.6' || v.version === '1.1.5') && (
+                    {(v.version === '1.1.8' || v.version === '1.1.7' || v.version === '1.1.6' || v.version === '1.1.5') && (
                       <span className="px-2 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
                         🦃 Thanksgiving
                       </span>
@@ -497,7 +546,7 @@ export default function ChangelogPage() {
 
               {/* Highlight */}
               {v.highlight && (
-                <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                <p className={`relative text-gray-600 dark:text-gray-300 mb-6 leading-relaxed ${v.version === '1.1.8' ? 'text-gray-700 dark:text-gray-200' : ''}`}>
                   {v.highlight}
                 </p>
               )}
@@ -505,8 +554,8 @@ export default function ChangelogPage() {
               {/* Short list */}
               <ul className="space-y-2">
                 {v.short.map((txt, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="text-gray-400 dark:text-gray-600 mt-1.5">•</span>
+                  <li key={idx} className={`relative flex items-start gap-3 text-sm ${v.version === '1.1.8' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                    <span className="text-gray-400 dark:text-gray-600 mt-0.5">•</span>
                     <span className="leading-relaxed">{txt}</span>
                   </li>
                 ))}
@@ -529,9 +578,9 @@ export default function ChangelogPage() {
                           initial={{ opacity: 0, x: -5 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.02 }}
-                          className="flex items-start gap-3 text-sm text-gray-500 dark:text-gray-500"
+                          className={`relative flex items-start gap-3 text-sm ${v.version === '1.1.8' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
                         >
-                          <span className="text-gray-300 dark:text-gray-700 mt-1.5">•</span>
+                          <span className="text-gray-300 dark:text-gray-700 mt-0.5">•</span>
                           <span className="leading-relaxed">{txt}</span>
                         </motion.li>
                       ))}
@@ -539,7 +588,8 @@ export default function ChangelogPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+              </motion.div>
+            </div>
           ))}
         </div>
 
