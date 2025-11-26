@@ -882,15 +882,15 @@ const MainApp = () => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    console.log('Test filtering:', {
-      testTitle: test.title,
-      testDate: test.testDate,
-      testDateObj: testDate,
-      today: today,
-      isBeforeToday: testDate < today,
-      isAfterOrEqualToday: testDate >= today,
-      currentFilter: testFilter
-    });
+    // console.log('Test filtering:', {
+    //   testTitle: test.title,
+    //   testDate: test.testDate,
+    //   testDateObj: testDate,
+    //   today: today,
+    //   isBeforeToday: testDate < today,
+    //   isAfterOrEqualToday: testDate >= today,
+    //   currentFilter: testFilter
+    // });
 
     switch (testFilter) {
       case 'upcoming':
@@ -1165,14 +1165,14 @@ const MainApp = () => {
                                 return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
                               })
                               .map((hw: any) => {
-                                console.log('Homework item for class', cls.name, ':', {
-                                  id: hw.id,
-                                  classId: hw.classId,
-                                  className: cls.name,
-                                  title: hw.title,
-                                  completed: hw.completed,
-                                  dueDate: hw.dueDate
-                                });
+                                // console.log('Homework item for class', cls.name, ':', {
+                                //   id: hw.id,
+                                //   classId: hw.classId,
+                                //   className: cls.name,
+                                //   title: hw.title,
+                                //   completed: hw.completed,
+                                //   dueDate: hw.dueDate
+                                // });
                                 return {
                                   id: hw.id,
                                   text: hw.title,

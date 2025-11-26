@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next';
 import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { CustomContextMenu } from '@/components/CustomContextMenu';
+import { DictionaryPopup } from '@/components/DictionaryPopup';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 
@@ -19,15 +20,35 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
-  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
+  const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
-    setContextMenu({ x: event.clientX, y: event.clientY });
+    
+    // Detect text selection
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
+    const hasSelection = Boolean(selectedText && selectedText.length > 0);
+    
+    setContextMenu({ 
+      x: event.clientX, 
+      y: event.clientY,
+      hasSelection,
+      selectedText: hasSelection ? selectedText : undefined
+    });
   };
 
   const closeContextMenu = () => {
     setContextMenu(null);
+  };
+
+  const handleDictionaryOpen = (word: string) => {
+    setDictionaryWord(word);
+  };
+
+  const closeDictionary = () => {
+    setDictionaryWord(null);
   };
 
   // Define all valid routes that should show the navbar
@@ -63,7 +84,23 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </main>
         {/* Always show DockNav on all pages except landing, auth, and legal pages */}
         {!isLandingPage && !isAuthPage && !isLegalPage && <DockNav />}
-        {contextMenu && <CustomContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu} />}
+        {contextMenu && (
+        <CustomContextMenu 
+          x={contextMenu.x} 
+          y={contextMenu.y} 
+          onClose={closeContextMenu}
+          hasSelection={contextMenu.hasSelection}
+          selectedText={contextMenu.selectedText}
+          onDictionaryOpen={handleDictionaryOpen}
+        />
+      )}
+      {dictionaryWord && (
+        <DictionaryPopup 
+          word={dictionaryWord}
+          isOpen={Boolean(dictionaryWord)}
+          onClose={closeDictionary}
+        />
+      )}
       </div>
     </>
   );

@@ -181,9 +181,9 @@ const PlayfulHomeworkListComponent = ({
   }
 
   // Print current class color
-  if (items.length > 0) {
-    console.log(`For class ${items[0].className}, icon is ${items[0].classIcon}`)
-  }
+  // if (items.length > 0) {
+  //   console.log(`For class ${items[0].className}, icon is ${items[0].classIcon}`)
+  // }
 
   return (
     <div className={`space-y-6 ${className}`}>

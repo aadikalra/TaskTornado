@@ -343,18 +343,18 @@ export default function CalendarPage() {
 
         const matches = normalizedTestDate.getTime() === normalizedDay.getTime();
 
-        console.log('TEST FILTERING:', {
-          day: day.getDate(),
-          testId: test.id,
-          testTitle: test.title,
-          testDate: test.testDate,
-          testDateParsed: testDate.toISOString(),
-          normalizedTestDate: normalizedTestDate.toISOString().split('T')[0],
-          normalizedDay: normalizedDay.toISOString().split('T')[0],
-          normalizedTestDay: normalizedTestDate.getDate(),
-          normalizedDayValue: normalizedDay.getDate(),
-          matches: matches
-        });
+        // console.log('TEST FILTERING:', {
+        //   day: day.getDate(),
+        //   testId: test.id,
+        //   testTitle: test.title,
+        //   testDate: test.testDate,
+        //   testDateParsed: testDate.toISOString(),
+        //   normalizedTestDate: normalizedTestDate.toISOString().split('T')[0],
+        //   normalizedDay: normalizedDay.toISOString().split('T')[0],
+        //   normalizedTestDay: normalizedTestDate.getDate(),
+        //   normalizedDayValue: normalizedDay.getDate(),
+        //   matches: matches
+        // });
 
         return matches;
       } catch (error) {

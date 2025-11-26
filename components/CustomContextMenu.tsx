@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Home, 
+  LayoutDashboard, 
   Settings, 
   Calendar, 
   FileText, 
@@ -12,20 +12,62 @@ import {
   Users, 
   Zap,
   Heart,
-  Shield,
-  Terminal
+  Terminal,
+  BookOpen,
+  X,
+  Globe,
+  Trophy,
+  Gamepad2,
+  ScrollText
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface CustomContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
+  onDictionaryOpen?: (word: string) => void;
+  hasSelection?: boolean;
+  selectedText?: string;
 }
 
-export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onClose }) => {
+export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onClose, onDictionaryOpen, hasSelection, selectedText }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Check if selected text is just one word
+  const isSingleWord = hasSelection && selectedText ? selectedText.trim().split(/\s+/).length === 1 : false;
+
+  const menuItems = [
+    // Dictionary - only show for single words (at top)
+    ...(isSingleWord && selectedText && onDictionaryOpen ? [{
+      label: 'Define',
+      icon: BookOpen,
+      action: () => {
+        onClose();
+        onDictionaryOpen(selectedText.trim());
+      },
+      description: `Define "${selectedText.trim()}"`
+    }] : []),
+    
+    // Main Navigation
+    { label: 'Dashboard', icon: LayoutDashboard, action: () => router.push('/dashboard'), description: 'Your personal dashboard' },
+    
+    // Academic Tools
+    { label: 'Tests', icon: Trophy, action: () => router.push('/tests'), description: 'Manage your tests' },
+    { label: 'Calendar', icon: Calendar, action: () => router.push('/calendar'), description: 'View your calendar' },
+    { label: 'Flashcards', icon: Brain, action: () => router.push('/flashcards'), description: 'Study with flashcards' },
+    { label: 'Groups', icon: Users, action: () => router.push('/groups'), description: 'Study groups' },
+    
+    // Tools & Features
+    { label: 'Web Saves', icon: Globe, action: () => router.push('/web-saves'), description: 'Saved web content' },
+    { label: 'Games', icon: Gamepad2, action: () => router.push('/games'), description: 'Educational games' },
+    
+    // Settings & Info
+    { label: 'Settings', icon: Settings, action: () => router.push('/settings'), description: 'App settings' },
+    { label: 'Changelog', icon: ScrollText, action: () => router.push('/changelog'), description: 'What\'s new' },
+  ];
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -48,27 +90,9 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     };
   }, [onClose]);
 
-  const menuItems = [
-    // Main Navigation
-    { label: 'Dashboard', icon: Zap, action: () => router.push('/dashboard'), description: 'Your personal dashboard' },
-    
-    // Academic Tools
-    { label: 'Tests', icon: FileText, action: () => router.push('/tests'), description: 'Manage your tests' },
-    { label: 'Calendar', icon: Calendar, action: () => router.push('/calendar'), description: 'View your calendar' },
-    { label: 'Flashcards', icon: Brain, action: () => router.push('/flashcards'), description: 'Study with flashcards' },
-    { label: 'Groups', icon: Users, action: () => router.push('/groups'), description: 'Study groups' },
-    
-    // Tools & Features
-    { label: 'Web Saves', icon: Heart, action: () => router.push('/web-saves'), description: 'Saved web content' },
-    { label: 'Games', icon: Terminal, action: () => router.push('/games'), description: 'Educational games' },
-    
-    // Settings & Info
-    { label: 'Settings', icon: Settings, action: () => router.push('/settings'), description: 'App settings' },
-    { label: 'Changelog', icon: Terminal, action: () => router.push('/changelog'), description: 'What\'s new' },
-  ];
-
   return (
-    <AnimatePresence>
+    <>
+      <AnimatePresence>
       <motion.div
         ref={menuRef}
         initial={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -102,15 +126,9 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
               ))}
             </div>
           </div>
-          
-          <div className="border-t border-gray-200 dark:border-gray-800 px-3 py-2">
-            <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-2">
-              <Shield className="w-3 h-3" />
-              Press ESC to close
-            </div>
-          </div>
         </div>
       </motion.div>
     </AnimatePresence>
+    </>
   );
 };
