@@ -486,7 +486,7 @@ export default function CalendarPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-16"
         >
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
                 {format(currentMonth, 'MMMM yyyy')}
@@ -495,7 +495,7 @@ export default function CalendarPage() {
                 {format(monthStart, 'MMM d')} - {format(monthEnd, 'MMM d, yyyy')}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
@@ -544,16 +544,16 @@ export default function CalendarPage() {
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
 
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-4 mb-4">
+            <div className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-7 gap-1 sm:gap-2 md:gap-4 mb-2 sm:mb-4">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                <div key={day} className="text-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
                   {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-4">
+            <div className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-7 gap-1 sm:gap-2 md:gap-4">
               {days.map((calendarDay, index) => (
                 <motion.div
                   key={`${calendarDay.date.toISOString()}-${index}`}
@@ -561,7 +561,7 @@ export default function CalendarPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.01 }}
                   className={`
-                    relative p-3 border rounded-lg min-h-[100px] transition-colors
+                    relative p-1 sm:p-2 md:p-3 border rounded-lg min-h-[60px] sm:min-h-[80px] md:min-h-[100px] transition-colors
                     ${calendarDay.isCurrentMonth
                       ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
                       : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950'
@@ -576,9 +576,9 @@ export default function CalendarPage() {
                     }
                   `}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between mb-1 sm:mb-2">
                     <span className={`
-                      text-sm font-medium
+                      text-xs sm:text-sm font-medium
                       ${calendarDay.isCurrentMonth
                         ? calendarDay.isToday
                           ? 'text-gray-900 dark:text-white'
@@ -589,22 +589,23 @@ export default function CalendarPage() {
                       {calendarDay.day}
                     </span>
                     {calendarDay.isToday && (
-                      <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
+                      <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-gray-900 dark:bg-white rounded-full"></div>
                     )}
                   </div>
 
                   {/* Events */}
                   <TooltipProvider>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5 sm:space-y-1">
                       {/* Homework */}
                       {calendarDay.homeworks.slice(0, 2).map((hw) => {
                         const classItem = classes.find(c => c.id === hw.classId);
                         return (
                           <Tooltip key={hw.id}>
                             <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1 p-1 bg-blue-100 dark:bg-blue-900/30 rounded text-xs text-blue-700 dark:text-blue-300 truncate cursor-pointer">
-                                <BookOpen className="h-3 w-3 shrink-0" />
-                                <span className="truncate">{hw.title}</span>
+                              <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-blue-100 dark:bg-blue-900/30 rounded text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 truncate cursor-pointer">
+                                <BookOpen className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
+                                <span className="truncate hidden xs:inline sm:inline">{hw.title}</span>
+                                <span className="truncate xs:hidden sm:hidden">{hw.title.slice(0, 8)}...</span>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="w-64 p-2">
@@ -632,9 +633,10 @@ export default function CalendarPage() {
                         return (
                           <Tooltip key={test.id}>
                             <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1 p-1 bg-red-100 dark:bg-red-900/30 rounded text-xs text-red-700 dark:text-red-300 truncate cursor-pointer">
-                                <ClassIcon className="h-3 w-3 shrink-0" />
-                                <span className="truncate">{test.title}</span>
+                              <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-red-100 dark:bg-red-900/30 rounded text-[10px] sm:text-xs text-red-700 dark:text-red-300 truncate cursor-pointer">
+                                <ClassIcon className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
+                                <span className="truncate hidden xs:inline sm:inline">{test.title}</span>
+                                <span className="truncate xs:hidden sm:hidden">{test.title.slice(0, 8)}...</span>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="w-64 p-2">
@@ -656,9 +658,10 @@ export default function CalendarPage() {
                       {calendarDay.events.slice(0, 1).map((event) => (
                         <Tooltip key={event.id}>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center gap-1 p-1 bg-green-100 dark:bg-green-900/30 rounded text-xs text-green-700 dark:text-green-300 truncate cursor-pointer">
-                              <CalendarDays className="h-3 w-3 shrink-0" />
-                              <span className="truncate">{event.title}</span>
+                            <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-green-100 dark:bg-green-900/30 rounded text-[10px] sm:text-xs text-green-700 dark:text-green-300 truncate cursor-pointer">
+                              <CalendarDays className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
+                              <span className="truncate hidden xs:inline sm:inline">{event.title}</span>
+                              <span className="truncate xs:hidden sm:hidden">{event.title.slice(0, 8)}...</span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -674,7 +677,7 @@ export default function CalendarPage() {
 
                       {/* Show more indicator */}
                       {calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length > 3 && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                        <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 text-center">
                           +{calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length - 3} more
                         </div>
                       )}
@@ -695,7 +698,7 @@ export default function CalendarPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.0
+              Built for students • Public Beta v1.1.8
             </p>
             <Button
               variant="ghost"

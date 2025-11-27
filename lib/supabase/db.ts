@@ -276,27 +276,38 @@ export const db = {
     if (error) throw error;
   },
 
-  // Profile operations
-  getProfile: async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+  // User profile operations using Supabase Auth
+  getUserProfile: async (userId: string) => {
+    // Get user from Supabase Auth
+    const { data: { users }, error } = await supabase.auth.admin.listUsers();
     
     if (error) throw error;
-    return data;
+    
+    const user = users?.find(u => u.id === userId);
+    if (!user) throw new Error('User not found');
+    
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+      created_at: user.created_at,
+      last_sign_in_at: user.last_sign_in_at,
+      email_confirmed_at: user.email_confirmed_at,
+      is_google_user: user.app_metadata?.provider === 'google' || 
+                     user.user_metadata?.provider === 'google' ||
+                     user.email?.endsWith('@gmail.com') ||
+                     user.user_metadata?.email_verified
+    };
   },
 
-  updateProfile: async (userId: string, updates: { full_name?: string; avatar_url?: string }) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId)
-      .select()
-      .single();
+  updateUserProfile: async (userId: string, updates: { full_name?: string; avatar_url?: string }) => {
+    // Update user metadata in Supabase Auth
+    const { data, error } = await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: updates
+    });
     
     if (error) throw error;
-    return data;
+    return data.user;
   }
 };

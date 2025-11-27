@@ -254,7 +254,7 @@ export default function Navbar() {
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
-                    What's New
+                    Changelog
                   </TooltipContent>
                 </Tooltip>
 

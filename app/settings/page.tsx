@@ -16,6 +16,7 @@ import {
   DataManagementSection,
   AccountSection
 } from '@/components/settings';
+import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection';
 
 // Cookie utilities
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -38,7 +39,7 @@ const getCookie = (name: string): string | null => {
 
 export default function SettingsPage() {
   const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
-  const { signOut, full_name } = useAuth() || {};
+  const { signOut, full_name, isGoogleUser } = useAuth() || {};
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -302,6 +303,16 @@ export default function SettingsPage() {
 
         {/* Main Content */}
         <div className="space-y-12">
+          {/* Google Classroom Section */}
+          {isGoogleUser && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <GoogleClassroomSection />
+            </motion.div>
+          )}
+
           {/* Preferences Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -452,7 +463,7 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.0
+              Built for students • Public Beta v1.1.8
             </p>
             <Button
               variant="ghost"

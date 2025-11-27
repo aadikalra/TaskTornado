@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { ClassroomDatabaseService } from '@/lib/database/classroomService';
 
 type AuthContextType = {
   user: User | null;
@@ -18,93 +17,156 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-// Helper function to save courses to database, avoiding duplicates
+// Helper function to save courses and assignments to database, avoiding duplicates
 async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
   try {
-    const dbService = new ClassroomDatabaseService();
+    // Use the main database service for classes and homework
+    const { db } = await import('@/lib/supabase/db');
 
     // Get existing courses for this user
-    const existingCourses = await dbService.getUserCourses(userId);
+    const existingCourses = await db.getClasses(userId);
     const existingCourseNames = new Set(existingCourses.map(course => course.name));
 
-    let savedCount = 0;
+    // Get existing homework for this user to avoid duplicates
+    const existingHomework = await db.getHomework(userId);
+    const existingHomeworkTitles = new Set(existingHomework.map(hw => hw.title));
 
-    // Save each course if it doesn't already exist by name
+    let savedCoursesCount = 0;
+    let savedHomeworkCount = 0;
+
+    // Save each course and its assignments
     for (const item of formattedData) {
       const course = item.course;
+      let classId: string | null = null;
 
-      // Skip if course with same name already exists
-      if (existingCourseNames.has(course.name)) {
-        console.log(`⏭️  Skipping course "${course.name}" - already exists in database`);
-        continue;
+      // Save the course to the main classes table if it doesn't exist
+      if (!existingCourseNames.has(course.name)) {
+        const courseData = {
+          user_id: userId,
+          name: course.name,
+          // Use icon to indicate Google Classroom origin
+          icon: '📚', // Book icon for Google Classroom courses
+          color: '#4285F4', // Google blue color
+        };
+
+        const savedCourse = await db.createClass(courseData);
+        classId = savedCourse.id;
+        savedCoursesCount++;
+        console.log(`✅ Saved Google Classroom course "${course.name}" to main classes database`);
+      } else {
+        // Find the existing course ID
+        const existingCourse = existingCourses.find(c => c.name === course.name);
+        classId = existingCourse?.id || null;
       }
 
-      // Save the course
-      const courseData = {
-        user_id: userId,
-        google_course_id: course.id,
-        name: course.name,
-        section: course.section,
-        description: course.description,
-        owner_id: course.id, // Using course ID as owner for now
-        course_state: 'ACTIVE',
-        synced_at: new Date().toISOString(),
-      };
+      // Save assignments for this course if we have a class ID
+      if (classId && item.assignments && item.assignments.length > 0) {
+        for (const assignment of item.assignments) {
+          // Skip if homework with same title already exists
+          if (existingHomeworkTitles.has(assignment.title)) {
+            console.log(`⏭️  Skipping assignment "${assignment.title}" - already exists in database`);
+            continue;
+          }
 
-      await dbService.saveCourse(courseData);
-      savedCount++;
-      console.log(`✅ Saved course "${course.name}" to database`);
+          // Convert Google Classroom assignment to homework format
+          let dueDate: string;
+          
+          // Handle different due date formats from Google Classroom
+          if (assignment.dueDate) {
+            if (typeof assignment.dueDate === 'string') {
+              dueDate = assignment.dueDate;
+            } else if (typeof assignment.dueDate === 'object' && assignment.dueDate.year) {
+              // Convert date object to ISO string
+              const date = new Date(assignment.dueDate.year, assignment.dueDate.month - 1, assignment.dueDate.day);
+              dueDate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+            } else {
+              // Default to 1 week from now
+              dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            }
+          } else {
+            // Default to 1 week from now
+            dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          }
+
+          const homeworkData = {
+            user_id: userId,
+            class_id: classId,
+            title: assignment.title,
+            description: assignment.description || null,
+            due_date: dueDate,
+            completed: false,
+            pinned: false,
+            priority: 'medium', // Default priority
+          };
+
+          await db.createHomework(homeworkData);
+          savedHomeworkCount++;
+          console.log(`✅ Saved Google Classroom assignment "${assignment.title}" to homework database`);
+        }
+      }
     }
 
-    if (savedCount > 0) {
-      console.log(`Successfully saved ${savedCount} new courses to database`);
+    if (savedCoursesCount > 0) {
+      console.log(`Successfully saved ${savedCoursesCount} new Google Classroom courses to main database`);
     } else {
       console.log('ℹ️  No new courses to save - all courses already exist');
     }
+
+    if (savedHomeworkCount > 0) {
+      console.log(`Successfully saved ${savedHomeworkCount} new Google Classroom assignments to homework database`);
+    } else {
+      console.log('ℹ️  No new assignments to save - all assignments already exist');
+    }
   } catch (error) {
-    console.error('Error saving courses to database:', error);
+    console.error('Error saving courses and assignments to database:', error);
   }
 }
 
-async function checkGoogleUserAndLogClassroom(userId: string) {
+async function checkGoogleUserAndLogClassroom(user: User) {
   try {
-    // Check if user is from Google
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('from_google')
-      .eq('id', userId)
-      .single();
+    // Check if user is from Google using auth metadata instead of profiles table
+    const isGoogleUser = user.app_metadata?.provider === 'google' || 
+                       user.user_metadata?.provider === 'google' ||
+                       user.email?.endsWith('@gmail.com') || 
+                       user.user_metadata?.email_verified;
 
-    if (profile?.from_google) {
-      console.log('🎓 User is from Google - Fetching Google Classroom data...');
+    if (isGoogleUser) {
+      console.log('🎓 Google user detected - Checking Classroom API authorization...');
 
-      // Call server-side API to fetch Google Classroom data
+      // Check if Classroom API is authorized by looking for the classroom-auth cookie
       try {
         const response = await fetch('/api/classroom/debug-log', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify({ userId: user.id }),
         });
 
         if (response.ok) {
           const data = await response.json();
           console.log('📚 Google Classroom Data:');
           console.table(data.formattedData);
-          console.log('✅ Successfully fetched Google Classroom data for Google user');
+          console.log('✅ Successfully fetched Google Classroom data');
 
           // Also save courses to database if they don't already exist
-          await saveCoursesToDatabase(userId, data.formattedData);
+          await saveCoursesToDatabase(user.id, data.formattedData);
         } else {
-          console.error('Failed to fetch Google Classroom data:', await response.text());
+          const errorData = await response.json();
+          if (response.status === 401 && errorData.message?.includes('No Google Classroom authentication found')) {
+            console.log('ℹ️  Google user detected, but Classroom API not authorized');
+            console.log('💡 User can authorize Classroom API access when needed');
+            // Don't show an error - this is expected for many Google users
+          } else {
+            console.warn('⚠️  Unexpected error checking Classroom access:', errorData.message);
+          }
         }
       } catch (error) {
-        console.error('Error calling Google Classroom debug API:', error);
+        console.warn('⚠️  Network error checking Classroom access:', error);
       }
     }
   } catch (error) {
-    console.error('Error checking Google user or fetching Classroom data:', error);
+    console.error('Error checking Google user:', error);
   }
 }
 
@@ -123,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
 
       if (session?.user) {
-        checkGoogleUserAndLogClassroom(session.user.id);
+        checkGoogleUserAndLogClassroom(session.user);
       }
     });
 
@@ -146,20 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string): Promise<void> => {
     try {
-      // First check if a profile already exists for this email
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .single();
-
-      if (existingProfile) {
-        // Profile already exists - this usually means an account already exists
-        const customError = new Error('An account with this email already exists. Please try signing in instead, or contact support if you believe this is an error.');
-        throw customError;
-      }
-
-      // No existing profile, proceed with normal signup
+      // Use Supabase Auth signup - it will handle duplicate emails automatically
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -172,22 +221,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
     } catch (error: any) {
-      // Handle the specific case where a profile already exists for this email
-      if (error.message?.includes('duplicate key value violates unique constraint') ||
-        error.message?.includes('profiles_email_unique')) {
-
-        // This usually means a profile exists but the auth user was deleted
-        // Provide a helpful error message to the user
-        const customError = new Error('An account with this email already exists. Please try signing in instead, or contact support if you believe this is an error.');
-        throw customError;
-      }
-
-      // For other errors, just re-throw them
+      // Re-throw any errors for the UI to handle
       throw error;
     }
   };
 
   const signOut = async () => {
+    // Clear Google Classroom authentication cookies
+    if (typeof window !== 'undefined') {
+      // Clear the classroom-auth cookie
+      document.cookie = 'classroom-auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      
+      // Clear any other Google Classroom related cookies
+      document.cookie = 'classroom-sync=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    }
+    
     // Sign out from Supabase
     await supabase.auth.signOut();
   };
@@ -200,7 +248,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     full_name,
-    isGoogleUser: user?.user_metadata?.provider === 'google' || false,
+    isGoogleUser: user?.app_metadata?.provider === 'google' || 
+               user?.user_metadata?.provider === 'google' ||
+               user?.email?.endsWith('@gmail.com') || 
+               user?.user_metadata?.email_verified || false,
   };
 
   return (

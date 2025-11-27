@@ -943,14 +943,14 @@ const MainApp = () => {
               </div>
               <div
                 className={`p-2 rounded-lg transition-all duration-500 ${aiPriorityExpanded
-                    ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                    : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                  ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                  : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                   }`}
               >
                 <ChevronRight
                   className={`h-5 w-5 transition-colors ${aiPriorityExpanded
-                      ? 'text-white'
-                      : 'text-gray-600 dark:text-gray-400'
+                    ? 'text-white'
+                    : 'text-gray-600 dark:text-gray-400'
                     }`}
                 />
               </div>
@@ -975,36 +975,49 @@ const MainApp = () => {
         return (
           <div key="pinned" className="mb-10">
             <div
-              className="flex justify-between items-center mb-4 cursor-pointer group"
+              className="mb-4 cursor-pointer group"
               onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
             >
-              <div>
-                <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-                  Pinned Homeworks
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Button
-                  variant="default"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowPinHomeworkModal(true);
-                  }}
-                  className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
-                  title="Select homework to pin"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Pin Homework
-                </Button>
-                <div
-                  className={`p-2 rounded-lg transition-all duration-500 ${showPinnedHomeworks
-                    ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                    : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                    }`}
-                >
-                  <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                    }`} />
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                      Pinned Homeworks
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
+                  </div>
+                  <div
+                    className={`p-2 rounded-lg transition-all duration-500 sm:hidden ${showPinnedHomeworks
+                      ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                      : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                      }`}
+                  >
+                    <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                      }`} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between sm:justify-end space-x-3">
+                  <Button
+                    variant="default"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowPinHomeworkModal(true);
+                    }}
+                    className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                    title="Select homework to pin"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Pin Homework
+                  </Button>
+                  <div
+                    className={`p-2 rounded-lg transition-all duration-500 hidden sm:block ${showPinnedHomeworks
+                      ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                      : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                      }`}
+                  >
+                    <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                      }`} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1030,14 +1043,25 @@ const MainApp = () => {
                 className="mb-4 cursor-pointer group"
                 onClick={() => handleToggleClasses(!showClasses)}
               >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-                      My Classes
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                        My Classes
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
+                    </div>
+                    <div
+                      className={`p-2 rounded-lg transition-all duration-500 sm:hidden ${showClasses
+                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                        }`}
+                    >
+                      <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                        }`} />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-between sm:justify-end gap-3">
                     <Button
                       variant="default"
                       onClick={(e) => {
@@ -1059,7 +1083,7 @@ const MainApp = () => {
                       <Plus className="mr-2 h-4 w-4" /> Add Homework
                     </Button>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 ${showClasses
+                      className={`p-2 rounded-lg transition-all duration-500 hidden sm:block ${showClasses
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                         : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
@@ -1258,14 +1282,25 @@ const MainApp = () => {
                 className="mb-4 cursor-pointer group"
                 onClick={() => handleToggleTests(!showTests)}
               >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-                      Tests & Exams
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                        Tests & Exams
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
+                    </div>
+                    <div
+                      className={`p-2 rounded-lg transition-all duration-500 sm:hidden ${showTests
+                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                        }`}
+                    >
+                      <ChevronRight className={`h-5 w-5 transition-colors ${showTests ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                        }`} />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-between sm:justify-end space-x-3">
                     <Button
                       variant="default"
                       onClick={(e) => {
@@ -1277,7 +1312,7 @@ const MainApp = () => {
                       <Plus className="mr-2 h-4 w-4" /> Add Test
                     </Button>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 ${showTests
+                      className={`p-2 rounded-lg transition-all duration-500 hidden sm:block ${showTests
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                         : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}

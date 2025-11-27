@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Sparkles, Calendar, BookOpen, Link2, Timer, Users, FileText, LogOut, LogIn, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -25,17 +25,34 @@ export default function DockNav() {
   const { openSearch } = useSearch();
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isVerySmall, setIsVerySmall] = useState(false);
 
-  const items = [
+  // Track screen size for responsive item visibility
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsVerySmall(width < 640);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  const allItems = [
     {
       icon: <IconHouse />,
       label: 'Home',
-      onClick: () => router.push('/dashboard')
+      onClick: () => router.push('/dashboard'),
+      priority: 'essential' // Always show
     },
     {
       icon: <IconMagnifier />,
       label: 'Search',
-      onClick: openSearch
+      onClick: openSearch,
+      priority: 'essential'
     },
     {
       icon: <IconSparkle />,
@@ -46,22 +63,26 @@ export default function DockNav() {
           return;
         }
         setIsAIAssistantOpen(prev => !prev);
-      }
+      },
+      priority: 'essential'
     },
     {
       icon: <IconCalendar />,
       label: 'Calendar',
-      onClick: () => router.push('/calendar')
+      onClick: () => router.push('/calendar'),
+      priority: 'essential'
     },
     {
       icon: <IconBookOpen />,
       label: 'Flashcards',
-      onClick: () => router.push('/flashcards')
+      onClick: () => router.push('/flashcards'),
+      priority: 'important' // Hide on very small screens
     },
     {
       icon: <IconGrid2 />,
       label: "Interactive Quizzes",
-      onClick: () => router.push('/quiz')
+      onClick: () => router.push('/quiz'),
+      priority: 'important'
     },
     {
       icon: <IconPin />,
@@ -72,12 +93,14 @@ export default function DockNav() {
           return;
         }
         router.push('/web-saves');
-      }
+      },
+      priority: 'important'
     },
     {
       icon: <IconProgressBar />,
       label: 'Study Timer',
-      onClick: () => setIsStudyTimerOpen(true)
+      onClick: () => setIsStudyTimerOpen(true),
+      priority: 'important'
     },
     {
       icon: <IconUsers />,
@@ -88,17 +111,20 @@ export default function DockNav() {
           return;
         }
         router.push('/groups');
-      }
+      },
+      priority: 'important'
     },
     {
       icon: <IconBox />,
       label: "Games",
-      onClick: () => router.push('/games')
+      onClick: () => router.push('/games'),
+      priority: 'optional' // Hide on mobile
     },
     {
       icon: <IconFile />,
-      label: "What's New",
-      onClick: () => router.push('/changelog')
+      label: "Changelog",
+      onClick: () => router.push('/changelog'),
+      priority: 'optional'
     },
     {
       icon: <IconGear />,
@@ -109,9 +135,23 @@ export default function DockNav() {
           return;
         }
         router.push('/settings');
-      }
+      },
+      priority: 'essential'
     },
   ];
+
+  // Filter items based on screen size
+  const items = allItems.filter(item => {
+    if (isVerySmall) {
+      // Very small screens: only essential items
+      return item.priority === 'essential';
+    } else if (isMobile) {
+      // Mobile screens: essential + important items
+      return item.priority === 'essential' || item.priority === 'important';
+    }
+    // Desktop: show all items
+    return true;
+  });
 
   return (
     <>

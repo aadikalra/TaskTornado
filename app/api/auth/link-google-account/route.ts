@@ -14,12 +14,15 @@ export async function POST(request: NextRequest) {
 
     const googleAuth = JSON.parse(authCookie.value);
 
-    // Check if user already exists in Supabase
-    const { data: existingUser } = await supabase
-      .from('profiles')
-      .select('id, email')
-      .eq('email', googleAuth.user.email)
-      .single();
+    // Check if user already exists in Supabase Auth by trying to get user by email
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error('Error listing users:', listError);
+      return NextResponse.json({ message: 'Failed to check existing users' }, { status: 500 });
+    }
+
+    const existingUser = users?.find(user => user.email === googleAuth.user.email);
 
     if (existingUser) {
       // User already exists, just return success
@@ -39,6 +42,7 @@ export async function POST(request: NextRequest) {
         picture: googleAuth.user.picture,
         provider: 'google',
         google_id: googleAuth.user.id,
+        full_name: googleAuth.user.name,
       },
       app_metadata: {
         provider: 'google',

@@ -156,3 +156,14 @@
 body[style*="overflow: hidden"] .fixed-padding-adjust {
   padding-right: var(--removed-body-scroll-bar-size, 0px);
 }
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

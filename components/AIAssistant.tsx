@@ -85,7 +85,7 @@ interface InteractiveButton {
 function parseInteractiveButtons(content: string): { content: string; buttons: InteractiveButton[] } {
   const buttonRegex = /```interactive_buttons\n([\s\S]*?)\n```/g;
   const match = buttonRegex.exec(content);
-  
+
   if (!match) {
     return { content, buttons: [] };
   }
@@ -93,11 +93,12 @@ function parseInteractiveButtons(content: string): { content: string; buttons: I
   try {
     const buttonsData = JSON.parse(match[1]);
     const cleanContent = content.replace(buttonRegex, '').trim();
-    
+
     return {
       content: cleanContent,
-      buttons: buttonsData.map((btn: any) => ({
-        id: btn.id || `btn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      buttons: buttonsData.map((btn: any, index: number) => ({
+        // Always generate a unique ID to avoid duplicates from AI copy-pasting examples
+        id: `btn_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
         text: btn.text,
         shortcut: btn.shortcut,
         prompt: btn.prompt,
@@ -419,7 +420,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       // Check if it's a keyboard event and has a key property
       if ('key' in e) {
         const keyboardEvent = e as unknown as KeyboardEvent;
-        
+
         // Check if any button shortcut matches the pressed key
         const matchingButton = lastAssistantMessage.interactiveButtons?.find(
           button => button.shortcut && button.shortcut.toLowerCase() === keyboardEvent.key.toLowerCase()
@@ -1522,7 +1523,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
         content: userInput,
         timestamp: new Date(),
       };
-      
+
       const chatMessages = messages.concat(userMessageForAI).map(msg => ({
         role: msg.role,
         content: msg.content,
@@ -1557,7 +1558,7 @@ When teaching concepts (especially for general learning questions), you can add 
 \`\`\`interactive_buttons
 [
   {
-    "id": "unique_button_id",
+
     "text": "Button text for user",
     "shortcut": "u",
     "prompt": "EXACT user message that should be sent when clicked",
@@ -1651,7 +1652,7 @@ Examples of correct button prompts:
                 if (data.done) {
                   // Final update - parse buttons and remove loading
                   const { content: cleanContent, buttons } = parseInteractiveButtons(accumulatedResponse);
-                  
+
                   setMessages(prev => {
                     const copy = [...prev];
                     const idx = copy.findIndex(m => m.isLoading);
@@ -1678,7 +1679,7 @@ Examples of correct button prompts:
     } catch (error) {
       console.error('Error in AI response:', error);
       setError('Failed to get response. Please try again.');
-      
+
       // Remove loading message
       setMessages(prev => prev.filter(m => !m.isLoading));
     } finally {
@@ -1972,7 +1973,7 @@ When teaching concepts (especially for general learning questions), you can add 
 \`\`\`interactive_buttons
 [
   {
-    "id": "unique_button_id",
+
     "text": "Button text for user",
     "shortcut": "u",
     "prompt": "EXACT user message that should be sent when clicked",
@@ -2147,7 +2148,7 @@ Examples of how to handle different types:
                         if (idx !== -1) {
                           const finalContent = accumulatedResponse || copy[idx].content;
                           const { content: cleanContent, buttons } = parseInteractiveButtons(finalContent);
-                          
+
                           copy[idx] = {
                             ...copy[idx],
                             content: cleanContent,
@@ -2290,7 +2291,7 @@ Examples of how to handle different types:
           onClick={toggleAIAssistant}
           className={cn(
             'p-3 rounded-full shadow-lg transition-all duration-300',
-            'bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800',
+            'bg-linear-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800',
             'text-white',
             'flex items-center justify-center',
             'relative',
@@ -2580,7 +2581,7 @@ Examples of how to handle different types:
                           ) : (
                             <Markdown>{msg.content}</Markdown>
                           )}
-                          
+
                           {/* Interactive Buttons */}
                           {msg.role === 'assistant' && msg.interactiveButtons && msg.interactiveButtons.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
@@ -2590,7 +2591,7 @@ Examples of how to handle different types:
                                   onClick={() => handleInteractiveButtonClick(button)}
                                   variant={
                                     button.style === 'primary' ? 'default' :
-                                    button.style === 'outline' ? 'outline' : 'secondary'
+                                      button.style === 'outline' ? 'outline' : 'secondary'
                                   }
                                   size="sm"
                                   className="text-xs h-7 px-3"

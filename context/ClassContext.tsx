@@ -182,95 +182,94 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     setError(null);
 
     try {
-      if (!isGoogleUser) {
-        // Use Supabase API for regular users
-        console.log('Fetching Supabase data...');
-        const [classesData, homeworksData, testsData] = await Promise.all([
-          db.getClasses(user.id),
-          db.getHomework(user.id), // Get all homework
-          db.getTests(user.id) // Get all tests
-        ]);
+      // Fetch data from Supabase for all users (including Google users)
+      // The Google Classroom data is saved to the database, so we need to load it
+      console.log('Fetching data from Supabase database...');
+      const [classesData, homeworksData, testsData] = await Promise.all([
+        db.getClasses(user.id),
+        db.getHomework(user.id), // Get all homework
+        db.getTests(user.id) // Get all tests
+      ]);
 
-        console.log('Fetched classes:', classesData);
-        console.log('Fetched homeworks:', homeworksData);
-        console.log('Fetched tests:', testsData);
-
-        // Only update state if the data has actually changed
-        setClasses(prevClasses => {
-          if (JSON.stringify(prevClasses) === JSON.stringify(classesData)) {
-            return prevClasses;
-          }
-          return classesData as Class[];
-        });
-
-        // Transform homework data to ensure consistent types
-        const transformedHomeworks = homeworksData.map(hw => {
-          // Parse links if it's a string
-          let links: HomeworkLink[] = [];
-          if (hw.links) {
-            try {
-              links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
-              if (!Array.isArray(links)) links = [];
-            } catch (e) {
-              console.error('Error parsing links:', e);
-              links = [];
-            }
-          }
-
-          return {
-            ...hw,
-            links: links,
-            priority: (hw.priority as Priority) || 'medium',
-            dueDate: hw.due_date,
-            classId: hw.class_id,
-            pinned: hw.pinned || false,
-            completed: hw.completed || false
-          };
-        });
-
-        // Transform tests data to ensure consistent types
-        const transformedTests = testsData.map(test => ({
-          ...test,
-          classId: test.class_id,
-          testDate: test.test_date,
-          testTime: test.test_time,
-          testType: test.test_type as TestType,
-          maxScore: test.max_score,
-          studyMaterials: test.study_materials || [],
-          weight: test.weight,
-          location: test.location,
-          duration: test.duration,
-          priority: (test.priority as Priority) || 'medium',
-          status: test.status as TestStatus,
-          score: test.score,
-          grade: test.grade,
-          notes: test.notes
-        }));
+      console.log('Fetched classes:', classesData);
+      console.log('Fetched homeworks:', homeworksData);
+      console.log('Fetched tests:', testsData);
 
         // Only update state if the data has actually changed
-        setHomeworks(prevHomeworks => {
-          if (JSON.stringify(prevHomeworks) === JSON.stringify(transformedHomeworks)) {
-            return prevHomeworks;
-          }
-          return transformedHomeworks;
-        });
+      setClasses(prevClasses => {
+        if (JSON.stringify(prevClasses) === JSON.stringify(classesData)) {
+          return prevClasses;
+        }
+        return classesData as Class[];
+      });
 
-        setTests(prevTests => {
-          if (JSON.stringify(prevTests) === JSON.stringify(transformedTests)) {
-            return prevTests;
+      // Transform homework data to ensure consistent types
+      const transformedHomeworks = homeworksData.map(hw => {
+        // Parse links if it's a string
+        let links: HomeworkLink[] = [];
+        if (hw.links) {
+          try {
+            links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
+            if (!Array.isArray(links)) links = [];
+          } catch (e) {
+            console.error('Error parsing links:', e);
+            links = [];
           }
-          return transformedTests;
-        });
+        }
 
-        // Store class colors in a cookie
-        const colorMap = classesData.reduce((acc, cls) => {
-          if (cls.id && cls.color) {
-            acc[cls.id] = cls.color;
-          }
-          return acc;
-        }, {} as { [key: string]: string });
-        Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
-      }
+        return {
+          ...hw,
+          links: links,
+          priority: (hw.priority as Priority) || 'medium',
+          dueDate: hw.due_date,
+          classId: hw.class_id,
+          pinned: hw.pinned || false,
+          completed: hw.completed || false
+        };
+      });
+
+      // Transform tests data to ensure consistent types
+      const transformedTests = testsData.map(test => ({
+        ...test,
+        classId: test.class_id,
+        testDate: test.test_date,
+        testTime: test.test_time,
+        testType: test.test_type as TestType,
+        maxScore: test.max_score,
+        studyMaterials: test.study_materials || [],
+        weight: test.weight,
+        location: test.location,
+        duration: test.duration,
+        priority: (test.priority as Priority) || 'medium',
+        status: test.status as TestStatus,
+        score: test.score,
+        grade: test.grade,
+        notes: test.notes
+      }));
+
+      // Only update state if the data has actually changed
+      setHomeworks(prevHomeworks => {
+        if (JSON.stringify(prevHomeworks) === JSON.stringify(transformedHomeworks)) {
+          return prevHomeworks;
+        }
+        return transformedHomeworks;
+      });
+
+      setTests(prevTests => {
+        if (JSON.stringify(prevTests) === JSON.stringify(transformedTests)) {
+          return prevTests;
+        }
+        return transformedTests;
+      });
+
+      // Store class colors in a cookie
+      const colorMap = classesData.reduce((acc, cls) => {
+        if (cls.id && cls.color) {
+          acc[cls.id] = cls.color;
+        }
+        return acc;
+      }, {} as { [key: string]: string });
+      Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
 
       hasLoaded.current = true;
     } catch (err) {

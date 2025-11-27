@@ -21,6 +21,63 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
+      version: '1.1.9.1',
+      date: '2025-11-28',
+      title: 'Mobile Layout Improvements',
+      highlight: 'Enhanced mobile experience with better button placement and calendar responsiveness',
+      type: 'minor',
+      short: [
+        'Improved mobile button placement in MainApp sections',
+        'Enhanced calendar responsiveness for smaller screens',
+        'Better navigation layout on mobile devices',
+        'Optimized spacing and sizing for touch interfaces'
+      ],
+      full: [
+        'Redesigned mobile layout for MainApp sections with chevron toggles moved to header line',
+        'Improved button placement in pinned, classes, and tests sections for better mobile UX',
+        'Enhanced calendar grid responsiveness with adaptive sizing and spacing',
+        'Optimized calendar event items for smaller screens with smart text truncation',
+        'Improved calendar header layout with navigation buttons below title on mobile only',
+        'Better touch targets and spacing throughout mobile interface',
+        'Enhanced responsive design consistency across all components',
+        'Optimized text sizes and padding for better readability on small screens'
+      ]
+    },
+    {
+      version: '1.1.9',
+      date: '2025-11-28',
+      title: 'Google Classroom Integration',
+      highlight: 'Complete Google Classroom integration with automatic sync, real-time updates, and seamless data management',
+      type: 'major',
+      short: [
+        'Full Google Classroom OAuth integration',
+        'Automatic sync of classes and assignments',
+        'Real-time connection status detection',
+        'Google Classroom data in AI Assistant @data commands',
+        'Seamless authentication flow',
+        'Enhanced settings UI for Classroom management',
+        'Fixed duplicate button key generation',
+        'Updated UI components for better consistency'
+      ],
+      full: [
+        'Implemented complete Google Classroom OAuth integration with secure authentication flow',
+        'Added automatic syncing of Google Classroom classes and assignments to local database',
+        'Created real-time connection status detection using multiple API validation methods',
+        'Fixed Google Classroom data availability in AI Assistant @data commands by updating ClassContext',
+        'Enhanced GoogleClassroomSection component with robust authentication checking and fallback methods',
+        'Implemented proper cookie-based session management for Google Classroom access tokens',
+        'Added comprehensive error handling and user feedback for Classroom connection issues',
+        'Fixed duplicate React key warning in interactive buttons by adding index to unique ID generation',
+        'Updated deprecated Tailwind classes from bg-gradient-to-br to bg-linear-to-br for modern compliance',
+        'Resolved data loading issue where Google users were not fetching from Supabase database',
+        'Enhanced AI Assistant with proper Google Classroom data context for better homework management',
+        'Improved settings page UI with better connection status indicators and user guidance',
+        'Added comprehensive logging and debugging tools for Google Classroom integration troubleshooting',
+        'Implemented fallback authentication methods using both debug-log and courses APIs',
+        'Enhanced data consistency across all components that rely on ClassContext state'
+      ]
+    },
+    {
       version: '1.1.8',
       date: '2025-11-27',
       title: 'Dictionary Popup & AI Assistant Overhaul',
@@ -434,6 +491,24 @@ export default function ChangelogPage() {
     },
   ];
 
+  // Filter versions based on current date
+  const getVisibleVersions = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day
+    
+    return versions.filter(version => {
+      const versionDate = new Date(version.date + 'T00:00:00');
+      const oneDayBefore = new Date(versionDate);
+      oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+      oneDayBefore.setHours(0, 0, 0, 0);
+      
+      // Show if today is the release date or one day before
+      return today >= oneDayBefore;
+    });
+  };
+
+  const visibleVersions = getVisibleVersions();
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass() + ' py-16'}>
@@ -469,10 +544,16 @@ export default function ChangelogPage() {
 
         {/* Versions */}
         <div className="space-y-12">
-          {versions.map((v, i) => (
+          {visibleVersions.map((v, i) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const versionDate = new Date(v.date + 'T00:00:00');
+            const isFuture = today < versionDate;
+            
+            return (
             <div key={v.version} className="relative">
               {/* FUTURE tag outside the opacity container */}
-              {v.version === '1.1.8' && (
+              {isFuture && (
                 <div className="absolute -top-2.5 -left-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded z-10">
                   FUTURE
                 </div>
@@ -480,17 +561,17 @@ export default function ChangelogPage() {
               
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: v.version === '1.1.8' ? 0.5 : 1, y: 0 }}
+                animate={{ opacity: isFuture ? 0.5 : 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className={`group ${v.version === '1.1.8' ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-4 -mx-4 rounded-xl' : ''}`}
+                className={`group ${isFuture ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-4 -mx-4 rounded-xl' : ''}`}
               >
-              {/* Special styling for version 1.1.8 */}
-              {v.version === '1.1.8' && (
+              {/* Special styling for future versions */}
+              {isFuture && (
                 <div className="absolute inset-0 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl opacity-40 pointer-events-none" />
               )}
 
               {/* Version Header */}
-              <div className={`relative flex items-start justify-between mb-4 pb-4 border-b ${v.version === '1.1.8' ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'}`}>
+              <div className={`relative flex items-start justify-between mb-4 pb-4 border-b ${isFuture ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'}`}>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-3 mb-2">
                     <h2 className="text-xl font-medium text-gray-900 dark:text-white">
@@ -509,7 +590,7 @@ export default function ChangelogPage() {
                         Minor
                       </span>
                     )}
-                    {(v.version === '1.1.8' || v.version === '1.1.7' || v.version === '1.1.6' || v.version === '1.1.5') && (
+                    {(['1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
                       <span className="px-2 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
                         🦃 Thanksgiving
                       </span>
@@ -546,7 +627,7 @@ export default function ChangelogPage() {
 
               {/* Highlight */}
               {v.highlight && (
-                <p className={`relative text-gray-600 dark:text-gray-300 mb-6 leading-relaxed ${v.version === '1.1.8' ? 'text-gray-700 dark:text-gray-200' : ''}`}>
+                <p className={`relative text-gray-600 dark:text-gray-300 mb-6 leading-relaxed ${isFuture ? 'text-gray-700 dark:text-gray-200' : ''}`}>
                   {v.highlight}
                 </p>
               )}
@@ -554,7 +635,7 @@ export default function ChangelogPage() {
               {/* Short list */}
               <ul className="space-y-2">
                 {v.short.map((txt, idx) => (
-                  <li key={idx} className={`relative flex items-start gap-3 text-sm ${v.version === '1.1.8' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                  <li key={idx} className={`relative flex items-start gap-3 text-sm ${isFuture ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
                     <span className="text-gray-400 dark:text-gray-600 mt-0.5">•</span>
                     <span className="leading-relaxed">{txt}</span>
                   </li>
@@ -578,7 +659,7 @@ export default function ChangelogPage() {
                           initial={{ opacity: 0, x: -5 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.02 }}
-                          className={`relative flex items-start gap-3 text-sm ${v.version === '1.1.8' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
+                          className={`relative flex items-start gap-3 text-sm ${isFuture ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
                         >
                           <span className="text-gray-300 dark:text-gray-700 mt-0.5">•</span>
                           <span className="leading-relaxed">{txt}</span>
@@ -590,7 +671,8 @@ export default function ChangelogPage() {
               </AnimatePresence>
               </motion.div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Footer */}
@@ -602,7 +684,7 @@ export default function ChangelogPage() {
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.0
+              Built for students • Public Beta v1.1.9
             </p>
             <div className="flex gap-4">
               <a
