@@ -1,4 +1,6 @@
 /* OpenDyslexic Font for accessibility */
+
+@plugin "tailwind-scrollbar-hide";
 @import url('https://fonts.cdnfonts.com/css/opendyslexic');
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -42,6 +44,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-brand: var(--brand);
+  --color-highlight: var(--highlight);
 }
 
 :root {
@@ -89,6 +93,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --highlight: oklch(0.852 0.199 91.936);
+  --brand: oklch(0.623 0.214 259.815);
 }
 
 .dark {
@@ -123,6 +129,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --highlight: oklch(0.852 0.199 91.936);
+  --brand: oklch(0.707 0.165 254.624);
 }
 
 @layer base {
@@ -162,7 +170,7 @@ body[style*="overflow: hidden"] .fixed-padding-adjust {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }

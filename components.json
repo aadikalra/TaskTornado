@@ -19,6 +19,7 @@
     "@animate-ui": "https://animate-ui.com/r/{name}.json",
     "@supabase": "https://supabase.com/ui/r/{name}.json",
     "@blocks": "https://blocks.so/r/{name}.json",
-    "@react-bits": "https://reactbits.dev/r/{name}.json"
+    "@react-bits": "https://reactbits.dev/r/{name}.json",
+    "@plate": "https://platejs.org/r/{name}.json"
   }
 }

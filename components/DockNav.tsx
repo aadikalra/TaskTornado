@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Sparkles, Calendar, BookOpen, Link2, Timer, Users, FileText, LogOut, LogIn, Settings } from 'lucide-react';
+import { Search, Sparkles, Calendar, BookOpen, Link2, Timer, Users, FileText, LogOut, LogIn, Settings, PenLine } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
 import Dock from './Dock';
@@ -18,6 +18,7 @@ import IconGear from './glass-icons/IconGear';
 import IconProgressBar from './glass-icons/IconProgressBar';
 import IconBox from './glass-icons/IconBox';
 import IconGrid2 from './glass-icons/IconGrid2';
+import IconPen from './glass-icons/IconPen';
 
 export default function DockNav() {
   const router = useRouter();
@@ -97,9 +98,9 @@ export default function DockNav() {
       priority: 'important'
     },
     {
-      icon: <IconProgressBar />,
-      label: 'Study Timer',
-      onClick: () => setIsStudyTimerOpen(true),
+      icon: <IconPen />,
+      label: 'Writing Assist',
+      onClick: () => router.push('/writing-assist'),
       priority: 'important'
     },
     {
@@ -119,6 +120,12 @@ export default function DockNav() {
       label: "Games",
       onClick: () => router.push('/games'),
       priority: 'optional' // Hide on mobile
+    },
+    {
+      icon: <IconProgressBar />,
+      label: 'Study Timer',
+      onClick: () => setIsStudyTimerOpen(true),
+      priority: 'important'
     },
     {
       icon: <IconFile />,

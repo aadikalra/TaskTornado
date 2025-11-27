@@ -55,7 +55,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#f9fafb] dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#f9fafb] dark:bg-gray-900 text-gray-900 dark:text-gray-100`} suppressHydrationWarning>
         <AuthProvider>
           <DarkModeProvider>
             <ClassProvider>
