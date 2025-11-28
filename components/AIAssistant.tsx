@@ -63,6 +63,7 @@ import IconSparkle from './glass-icons/IconSparkle';
 import IconBadgeSparkle from './glass-icons/IconBadgeSparkle';
 import { SplittingText } from './animate-ui/primitives/texts/splitting';
 import { useAuth } from '@/context/AuthContext';
+import { rateLimitService } from '@/lib/services/rateLimitService';
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -437,9 +438,9 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [messages]);
 
-  // Load counters from cookies on mount
+  // Load counters from cookies and sync with database on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && user) {
       const savedQuickCounter = document.cookie
         .split('; ')
         .find(row => row.startsWith('aiQuickMessageCounter='))
@@ -455,42 +456,63 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
         .find(row => row.startsWith('aiCloudMessageCounter='))
         ?.split('=')[1];
 
-      if (savedQuickCounter) {
-        setQuickMessageCounter(parseInt(savedQuickCounter, 10) || 0);
-      }
+      const cookieCounts = {
+        quick: parseInt(savedQuickCounter || '0', 10) || 0,
+        deeper: parseInt(savedDeeperCounter || '0', 10) || 0,
+        cloud: parseInt(savedCloudCounter || '0', 10) || 0
+      };
 
-      if (savedDeeperCounter) {
-        setDeeperMessageCounter(parseInt(savedDeeperCounter, 10) || 0);
-      }
-
-      if (savedCloudCounter) {
-        setCloudMessageCounter(parseInt(savedCloudCounter, 10) || 0);
-      }
+      // Sync with database and use maximum values
+      rateLimitService.syncRateLimits(user.id, cookieCounts).then((syncedCounts) => {
+        setQuickMessageCounter(syncedCounts.quick);
+        setDeeperMessageCounter(syncedCounts.deeper);
+        setCloudMessageCounter(syncedCounts.cloud);
+        
+        // Update cookies with synced values if database was higher
+        if (syncedCounts.quick > cookieCounts.quick) {
+          const expiryDate = new Date();
+          expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
+          document.cookie = `aiQuickMessageCounter=${syncedCounts.quick};expires=${expiryDate.toUTCString()};path=/`;
+        }
+        if (syncedCounts.deeper > cookieCounts.deeper) {
+          const expiryDate = new Date();
+          expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
+          document.cookie = `aiDeeperMessageCounter=${syncedCounts.deeper};expires=${expiryDate.toUTCString()};path=/`;
+        }
+        if (syncedCounts.cloud > cookieCounts.cloud) {
+          const expiryDate = new Date();
+          expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
+          document.cookie = `aiCloudMessageCounter=${syncedCounts.cloud};expires=${expiryDate.toUTCString()};path=/`;
+        }
+      });
     }
-  }, []);
+  }, [user]);
 
-  // Save counters to cookies whenever they change
+  // Save counters to cookies and database whenever they change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && user) {
       if (quickMessageCounter > 0) {
         const expiryDate = new Date();
         expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
         document.cookie = `aiQuickMessageCounter=${quickMessageCounter};expires=${expiryDate.toUTCString()};path=/`;
+        rateLimitService.updateRateLimitData(user.id, 'quick', quickMessageCounter);
       }
 
       if (deeperMessageCounter > 0) {
         const expiryDate = new Date();
         expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
         document.cookie = `aiDeeperMessageCounter=${deeperMessageCounter};expires=${expiryDate.toUTCString()};path=/`;
+        rateLimitService.updateRateLimitData(user.id, 'deeper', deeperMessageCounter);
       }
 
       if (cloudMessageCounter > 0) {
         const expiryDate = new Date();
         expiryDate.setTime(expiryDate.getTime() + (1 * 24 * 60 * 60 * 1000));
         document.cookie = `aiCloudMessageCounter=${cloudMessageCounter};expires=${expiryDate.toUTCString()};path=/`;
+        rateLimitService.updateRateLimitData(user.id, 'cloud', cloudMessageCounter);
       }
     }
-  }, [quickMessageCounter, deeperMessageCounter, cloudMessageCounter]);
+  }, [quickMessageCounter, deeperMessageCounter, cloudMessageCounter, user]);
 
   // Close command menu when clicking outside
   useEffect(() => {

@@ -171,6 +171,24 @@ export default function Navbar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link
+                      href="/discussions"
+                      className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="sr-only">Discussion Boards</span>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
+                    sideOffset={8}
+                  >
+                    Discussion Boards
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
                       href="/flashcards"
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-110"
                     >
@@ -362,6 +380,17 @@ export default function Navbar() {
                 <div className="flex items-center">
                   <Calendar className="w-5 h-5 mr-3" />
                   Calendar
+                </div>
+              </Link>
+
+              <Link
+                href="/discussions"
+                className="block px-4 py-3 text-base font-medium text-gray-800 dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/20 dark:hover:bg-white/10 rounded-lg mx-2 transition-all"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <div className="flex items-center">
+                  <MessageSquare className="w-5 h-5 mr-3" />
+                  Discussion Boards
                 </div>
               </Link>
 

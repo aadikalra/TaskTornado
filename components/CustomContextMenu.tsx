@@ -92,6 +92,7 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     // Academic Tools
     { label: 'Tests', icon: IconProgressBar, action: () => router.push('/tests'), description: 'Manage your tests' },
     { label: 'Calendar', icon: IconCalendar, action: () => router.push('/calendar'), description: 'View your calendar' },
+    { label: 'Discussion Boards', icon: IconUsers, action: () => router.push('/discussions'), description: 'Community forums' },
     { label: 'Flashcards', icon: IconBookOpen, action: () => router.push('/flashcards'), description: 'Study with flashcards' },
     { label: 'Groups', icon: IconUsers, action: () => router.push('/groups'), description: 'Study groups' },
 

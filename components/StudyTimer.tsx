@@ -132,11 +132,11 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
       const formattedTime = formatTime(timeLeft);
       document.title = `${formattedTime} - Study Timer`;
     } else {
-      document.title = 'School Organizer';
+      document.title = 'TaskTornado';
     }
 
     return () => {
-      document.title = 'School Organizer';
+      document.title = 'TaskTornado';
     };
   }, [isRunning, isMinimized, timeLeft]);
 

@@ -21,9 +21,69 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
+      version: '1.2.2',
+      date: '2025-11-30',
+      title: 'Public Discussion Boards',
+      highlight: 'Complete transformation of discussion boards into public, shared communities with enhanced discovery and rich interactions',
+      type: 'major',
+      short: [
+        'Public discussion boards for all users',
+        'Enhanced discovery via search and navbar',
+        'Rich threads with resources and upvotes',
+        'Improved UI for browsing and joining',
+        'Bug fixes for flashcards and data loading'
+      ],
+      full: [
+        'Refactored Discussion Boards from class-specific to public, shared forums accessible to everyone',
+        'Implemented new database schema with public boards and membership tracking',
+        'Added Discussion Boards to global search, context menu, and main navigation bar for better visibility',
+        'Created rich thread interface with support for pinned posts, resolved status, and tags',
+        'Added resource sharing capabilities with URL and file support, plus upvoting system',
+        'Polished UI for board browsing, creation, and joining with member counts and activity stats',
+        'Fixed critical TypeScript errors and null handling in data context',
+        'Resolved syntax error in Flashcards page and runtime date parsing issues',
+        'Improved responsiveness and layout for discussion board components',
+        'Ensured zero-count display for empty states instead of blank spaces'
+      ]
+    },
+    {
+      version: '1.2.1',
+      date: '2025-11-30',
+      title: 'Hybrid Rate Limiting System',
+      highlight: 'Advanced dual-storage rate limiting with database persistence and cross-device synchronization',
+      type: 'major',
+      short: [
+        'Hybrid rate limiting using both cookies and database',
+        'Cross-device synchronization of AI usage limits',
+        'Maximum value logic between cookie and database counts',
+        'Secure RPC functions for database operations',
+        'Midnight reset for both storage systems',
+        'Preserved rate limits during user signout',
+        'Enhanced dock navigation for authenticated users'
+      ],
+      full: [
+        'Implemented hybrid rate limiting system combining browser cookies with Supabase database persistence',
+        'Created RateLimitService with singleton pattern for managing AI usage across quick/deeper/cloud models',
+        'Added database schema updates with model_type column and proper unique constraints',
+        'Developed secure RPC functions (get_rate_limit_by_model, update_rate_limit_by_model) with SECURITY DEFINER',
+        'Implemented maximum value logic: always uses higher count between cookies and database for accurate tracking',
+        'Added real-time synchronization ensuring rate limits persist across multiple devices and sessions',
+        'Enhanced midnight reset system to clear both cookies and database entries simultaneously',
+        'Modified CustomCookieStore.clear() to preserve AI rate limiting cookies during user signout',
+        'Updated useRateLimitReset hook with database clearing capabilities and proper error handling',
+        'Added comprehensive debugging and error handling for rate limit operations',
+        'Fixed database constraint conflicts by updating unique constraints to include model_type',
+        'Improved dock navigation to hide Login/Sign Up buttons when user is authenticated',
+        'Created database migration for rate_limits table with proper RLS policies and indexes',
+        'Enhanced AI Assistant with hybrid rate limiting display and tracking',
+        'Implemented fallback to cookies when database operations fail',
+        'Added detailed logging for rate limit debugging and monitoring'
+      ]
+    },
+    {
       version: '1.2',
       date: '2025-11-29',
-      title: 'Writing Assist - Out of Beta',
+      title: 'Writing Assist',
       highlight: 'Professional AI-powered writing assistant with intelligent autocomplete, auto-save, and rich text editing',
       type: 'major',
       short: [
@@ -628,12 +688,17 @@ export default function ChangelogPage() {
                             Major
                           </span>
                         )}
+                        {(['1.2', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.0.9', '1.0.8', '1.0', '0.9.0', '0.8.5', '0.8.0'].includes(v.version)) && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded">
+                            New Feature
+                          </span>
+                        )}
                         {v.type === 'minor' && (
                           <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
                             Minor
                           </span>
                         )}
-                        {(['1.2', '1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
+                        {(['1.2.2', '1.2.1', '1.2', '1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
                           <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
                             🦃 Thanksgiving
                           </span>
@@ -727,7 +792,7 @@ export default function ChangelogPage() {
         >
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.1.9
+              Built for students • Public Beta v1.2.2
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a

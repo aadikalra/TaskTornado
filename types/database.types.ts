@@ -249,6 +249,281 @@ export type Database = {
         }
         Relationships: []
       }
+      discussion_board_members: {
+        Row: {
+          board_id: string
+          id: string
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          board_id: string
+          id?: string
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          board_id?: string
+          id?: string
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_board_members_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_boards: {
+        Row: {
+          class_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          member_count: number | null
+          name: string
+          thread_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          class_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          member_count?: number | null
+          name: string
+          thread_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          class_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          member_count?: number | null
+          name?: string
+          thread_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_boards_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_post_upvotes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_post_upvotes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_answer: boolean | null
+          thread_id: string
+          updated_at: string | null
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_answer?: boolean | null
+          thread_id: string
+          updated_at?: string | null
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_answer?: boolean | null
+          thread_id?: string
+          updated_at?: string | null
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_posts_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_resource_upvotes: {
+        Row: {
+          created_at: string | null
+          id: string
+          resource_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          resource_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          resource_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_resource_upvotes_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_resources: {
+        Row: {
+          board_id: string
+          created_at: string | null
+          description: string | null
+          file_path: string | null
+          id: string
+          resource_type: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          upvotes: number | null
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          board_id: string
+          created_at?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          resource_type?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          upvotes?: number | null
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          board_id?: string
+          created_at?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          resource_type?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          upvotes?: number | null
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_resources_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_threads: {
+        Row: {
+          board_id: string
+          content: string
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          is_resolved: boolean | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          board_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          is_resolved?: boolean | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          board_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          is_resolved?: boolean | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_threads_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcard_decks: {
         Row: {
           created_at: string | null
@@ -431,68 +706,6 @@ export type Database = {
           },
         ]
       }
-      habit_completions: {
-        Row: {
-          completion_date: string
-          created_at: string
-          habit_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          completion_date: string
-          created_at?: string
-          habit_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          completion_date?: string
-          created_at?: string
-          habit_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "habit_completions_habit_id_fkey"
-            columns: ["habit_id"]
-            isOneToOne: false
-            referencedRelation: "habits"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      habits: {
-        Row: {
-          created_at: string
-          description: string | null
-          frequency_details: Json | null
-          frequency_type: string
-          id: string
-          name: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          frequency_details?: Json | null
-          frequency_type: string
-          id?: string
-          name: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          frequency_details?: Json | null
-          frequency_type?: string
-          id?: string
-          name?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       homework: {
         Row: {
           class_id: string
@@ -599,6 +812,7 @@ export type Database = {
           created_at: string | null
           id: string
           last_request: string | null
+          model_type: string
           request_count: number | null
           request_date: string
           updated_at: string | null
@@ -608,6 +822,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_request?: string | null
+          model_type?: string
           request_count?: number | null
           request_date?: string
           updated_at?: string | null
@@ -617,6 +832,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_request?: string | null
+          model_type?: string
           request_count?: number | null
           request_date?: string
           updated_at?: string | null
@@ -859,6 +1075,10 @@ export type Database = {
         Args: { group_id_param: string }
         Returns: number
       }
+      get_rate_limit_by_model: {
+        Args: { p_model_type: string; p_user_id: string }
+        Returns: number
+      }
       get_recent_group_links: {
         Args: { group_id_param: string; limit_count?: number }
         Returns: {
@@ -903,6 +1123,14 @@ export type Database = {
       is_group_member: {
         Args: { group_id_param: string; user_id_param: string }
         Returns: boolean
+      }
+      reset_daily_rate_limits: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      update_rate_limit_by_model: {
+        Args: { p_count: number; p_model_type: string; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

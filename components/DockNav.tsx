@@ -21,6 +21,7 @@ import IconGrid2 from './glass-icons/IconGrid2';
 import IconPen from './glass-icons/IconPen';
 import IconTabOpen from './glass-icons/IconTabOpen';
 import IconCircleCopyPlus from './glass-icons/IconCircleCopyPlus';
+import IconMessageSquare from './glass-icons/IconMessageSquare';
 
 export default function DockNav() {
   const router = useRouter();
@@ -130,6 +131,18 @@ export default function DockNav() {
       priority: 'important'
     },
     {
+      icon: <IconMessageSquare />,
+      label: 'Discussion Boards',
+      onClick: () => {
+        if (!user) {
+          router.push('/login');
+          return;
+        }
+        router.push('/discussions');
+      },
+      priority: 'important'
+    },
+    {
       icon: <IconBox />,
       label: "Games",
       onClick: () => router.push('/games'),
@@ -167,6 +180,12 @@ export default function DockNav() {
       // Not signed in: only show home, login, signup, changelog
       const itemLabel = item.label;
       return itemLabel === 'Home' || itemLabel === 'Login' || itemLabel === 'Sign Up' || itemLabel === 'Changelog';
+    }
+
+    // Signed in: exclude login and signup items
+    const itemLabel = item.label;
+    if (itemLabel === 'Login' || itemLabel === 'Sign Up') {
+      return false;
     }
 
     if (isVerySmall) {

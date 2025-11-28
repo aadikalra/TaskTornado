@@ -25,14 +25,14 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
-    
+
     // Detect text selection
     const selection = window.getSelection();
     const selectedText = selection?.toString().trim();
     const hasSelection = Boolean(selectedText && selectedText.length > 0);
-    
-    setContextMenu({ 
-      x: event.clientX, 
+
+    setContextMenu({
+      x: event.clientX,
       y: event.clientY,
       hasSelection,
       selectedText: hasSelection ? selectedText : undefined
@@ -58,6 +58,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     '/homework',
     '/flashcards',
     '/web-saves',
+    '/discussions',
     '/settings',
     '/groups',
     '/complete-signup'
@@ -65,7 +66,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   // Keep the navbar logic but don't use it for showing Navbar component
   const shouldShowNavbar = false; // Always hide the top navbar
-  
+
   // Routes that should hide navbar (public routes)
   const isLandingPage = pathname === '/';
   const isAuthPage = false; // Show DockNav on login/signup pages
@@ -85,22 +86,22 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         {/* Always show DockNav on all pages */}
         <DockNav />
         {contextMenu && (
-        <CustomContextMenu 
-          x={contextMenu.x} 
-          y={contextMenu.y} 
-          onClose={closeContextMenu}
-          hasSelection={contextMenu.hasSelection}
-          selectedText={contextMenu.selectedText}
-          onDictionaryOpen={handleDictionaryOpen}
-        />
-      )}
-      {dictionaryWord && (
-        <DictionaryPopup 
-          word={dictionaryWord}
-          isOpen={Boolean(dictionaryWord)}
-          onClose={closeDictionary}
-        />
-      )}
+          <CustomContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={closeContextMenu}
+            hasSelection={contextMenu.hasSelection}
+            selectedText={contextMenu.selectedText}
+            onDictionaryOpen={handleDictionaryOpen}
+          />
+        )}
+        {dictionaryWord && (
+          <DictionaryPopup
+            word={dictionaryWord}
+            isOpen={Boolean(dictionaryWord)}
+            onClose={closeDictionary}
+          />
+        )}
       </div>
     </>
   );

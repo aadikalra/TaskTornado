@@ -42,7 +42,7 @@ export default function FlashcardsPage() {
   useEffect(() => {
     const fetchDecks = async () => {
       if (!user) return;
-      
+
       try {
         const decks = await flashcardService.getDecks(user.id);
         setSavedDecks(decks);
@@ -70,12 +70,13 @@ export default function FlashcardsPage() {
 
   const loadDeck = async (deckId: string) => {
     if (!user) return;
-    
+
     try {
       const deck = await flashcardService.getDeckWithCards(deckId, user.id);
-      
+
       // Convert to the format expected by the FlashcardDeck component
-      const formattedCards = (deck.flashcards || []).map((card) => ({
+      // Convert to the format expected by the FlashcardDeck component
+      const formattedCards = (deck.flashcards || []).map((card: any) => ({
         ...card,
         topic: deck.title,
       }));
@@ -91,18 +92,18 @@ export default function FlashcardsPage() {
 
   const deleteDeck = async (deckId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!user) return;
-    
+
     if (!confirm('Are you sure you want to delete this deck? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       await flashcardService.deleteDeck(deckId, user.id);
       setSavedDecks(prev => prev.filter(deck => deck.id !== deckId));
       toast.success('Deck deleted successfully');
-      
+
       // If the deleted deck is currently selected, clear the selection
       if (selectedDeck?.id === deckId) {
         setSelectedDeck(null);
@@ -117,7 +118,7 @@ export default function FlashcardsPage() {
   const handleSave = (updatedCards: Flashcard[]) => {
     // Update the local state to reflect any changes
     setFlashcards(updatedCards);
-    
+
     // If we're viewing a saved deck, update the selectedDeck state
     if (selectedDeck) {
       setSelectedDeck(prev => ({
@@ -131,8 +132,8 @@ export default function FlashcardsPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <div className={getContainerClass() + ' py-16'}>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
@@ -163,10 +164,10 @@ export default function FlashcardsPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <div className={getContainerClass() + ' py-16'}>
-          
+
           {/* Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
@@ -242,7 +243,7 @@ export default function FlashcardsPage() {
                           Created {deck.created_at ? new Date(deck.created_at).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="sm" onClick={() => loadDeck(deck.id)} className="gap-2">
                           Study
@@ -296,8 +297,8 @@ export default function FlashcardsPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <div className={getContainerClass() + ' py-16'}>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
@@ -322,7 +323,7 @@ export default function FlashcardsPage() {
                 No Flashcards Found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md text-center">
-                {view === 'current' 
+                {view === 'current'
                   ? "It looks like you don't have any flashcards to review. Generate some from the Study Assistant!"
                   : "This flashcard deck is empty."}
               </p>
@@ -380,10 +381,10 @@ export default function FlashcardsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass() + ' py-16'}>
-        
+
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-16"
         >
@@ -399,8 +400,8 @@ export default function FlashcardsPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => view === 'saved' ? setView('saved') : router.back()}
                 className="gap-2"
@@ -409,8 +410,8 @@ export default function FlashcardsPage() {
                 {view === 'saved' ? 'Back to Saved' : 'Back'}
               </Button>
               {savedDecks.length > 0 && view !== 'saved' && (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => setView('saved')}
                   className="gap-2"
