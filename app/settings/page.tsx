@@ -285,24 +285,24 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className={getContainerClass() + ' py-16'}>
+      <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         
-        {/* Header */}
+        {/* Header - Mobile Optimized */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }}
-          className="mb-16"
+          className="mb-8 sm:mb-12 lg:mb-16"
         >
-          <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 sm:mb-3 tracking-tight">
             Settings
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
             Manage your preferences and data
           </p>
         </motion.div>
 
-        {/* Main Content */}
-        <div className="space-y-12">
+        {/* Main Content - Mobile Optimized */}
+        <div className="space-y-8 sm:space-y-12">
           {/* Google Classroom Section */}
           {isGoogleUser && (
             <motion.div
@@ -313,17 +313,17 @@ export default function SettingsPage() {
             </motion.div>
           )}
 
-          {/* Preferences Section */}
+          {/* Preferences Section - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
           >
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Preferences
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Customize your app experience
               </p>
             </div>
@@ -341,17 +341,17 @@ export default function SettingsPage() {
             />
           </motion.div>
 
-          {/* Section Order */}
+          {/* Section Order - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Section Order
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Customize the order of sections on your dashboard
               </p>
             </div>
@@ -363,17 +363,17 @@ export default function SettingsPage() {
             />
           </motion.div>
 
-          {/* Accessibility Section */}
+          {/* Accessibility Section - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
           >
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Accessibility
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Customize for better readability and usability
               </p>
             </div>
@@ -385,17 +385,17 @@ export default function SettingsPage() {
             />
           </motion.div>
 
-          {/* Data Management Section */}
+          {/* Data Management Section - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Data Management
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Manage your classes and homework data
               </p>
             </div>
@@ -409,17 +409,17 @@ export default function SettingsPage() {
             />
           </motion.div>
 
-          {/* Account Section */}
+          {/* Account Section - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
           >
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-              <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Account
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Manage your account settings
               </p>
             </div>
@@ -435,16 +435,16 @@ export default function SettingsPage() {
             />
           </motion.div>
 
-          {/* Warning Notice */}
+          {/* Warning Notice - Mobile Optimized */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg"
+            className="flex items-start gap-3 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg"
           >
-            <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+              <p className="text-xs sm:text-sm font-medium text-yellow-900 dark:text-yellow-100">
                 Destructive actions cannot be undone
               </p>
               <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
@@ -454,25 +454,26 @@ export default function SettingsPage() {
           </motion.div>
         </div>
 
-        {/* Footer */}
+        {/* Footer - Mobile Optimized */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+          className="mt-12 sm:mt-16 lg:mt-20 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-800"
         >
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Built for students • Public Beta v1.1.8
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/')}
-              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white active:scale-95"
             >
               <Home className="h-4 w-4" />
-              <span>Home</span>
+              <span className="hidden sm:inline">Home</span>
+              <span className="sm:hidden">Back</span>
             </Button>
           </div>
         </motion.div>

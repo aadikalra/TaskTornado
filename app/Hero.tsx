@@ -22,14 +22,14 @@ const colors = {
 
 // --- SVG Icon Components ---
 
-const ChronoTaskIcon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" rx="6" fill={colors.darkText} />
-    <circle cx="8" cy="8" r="3" fill={colors.primaryBlue} />
-    <circle cx="16" cy="8" r="3" fill={colors.white} />
-    <circle cx="8" cy="16" r="3" fill={colors.white} />
-    <circle cx="16" cy="16" r="3" fill={colors.darkText} />
-  </svg>
+const TaskTornadoIcon = ({ size = 24, isDarkMode = false }: { size?: number; isDarkMode?: boolean }) => (
+  <img 
+    width={size} 
+    height={size} 
+    src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"} 
+    alt="TaskTornado Logo"
+    style={{ display: 'block' }}
+  />
 );
 
 const CheckmarkIcon = () => (
@@ -257,18 +257,19 @@ const Hero: React.FC = () => {
     checkDimensions();
     window.addEventListener('resize', checkDimensions);
 
-    // Check for dark mode
+    // Check for dark mode (system preference)
     const checkDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
+      setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
     };
 
     checkDarkMode();
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
 
     return () => {
       window.removeEventListener('resize', checkDimensions);
-      observer.disconnect();
+      mediaQuery.removeEventListener('change', handleChange);
     };
   }, []);
 
@@ -375,12 +376,16 @@ const Hero: React.FC = () => {
 
           {/* Hero Section */}
           <div style={styles.heroSection}>
-            <div style={styles.heroIconWrapper}>
-              <ChronoTaskIcon size={48} />
+            <div style={{
+              ...styles.heroIconWrapper,
+              backgroundColor: isDarkMode ? '#275085' : colors.white,
+              boxShadow: isDarkMode ? '0 8px 24px rgba(39, 80, 133, 0.3)' : '0 8px 24px rgba(0, 0, 0, 0.1)'
+            }}>
+              <TaskTornadoIcon size={48} isDarkMode={isDarkMode} />
             </div>
             <h1 style={{
               ...styles.headline,
-              fontSize: isTiny ? (isLarge ? '80px' : '60px') : '11vw',
+              fontSize: isMicro ? '50px' : (isTiny ? '32px' : (isSmall ? '38px' : (isMedium ? '45px' : '55px'))),
               lineHeight: isLarge ? 1.0 : 1.1
             }}>
               {isLarge ? (
@@ -400,7 +405,7 @@ const Hero: React.FC = () => {
                     duration={10000}
                     y={-50}
                     className="inline-block"
-                    style={{ ...styles.headlineGray, display: 'inline-block' }}
+                    style={{ ...styles.headline, ...styles.headlineGray, display: 'inline-block' }}
                   >
                     <RotatingText />
                   </RotatingTextContainer>
@@ -422,24 +427,28 @@ const Hero: React.FC = () => {
                     duration={10000}
                     y={-50}
                     className="inline-block"
-                    style={{ ...styles.headlineGray, display: 'inline-block' }}
+                    style={{ ...styles.headline, ...styles.headlineGray, display: 'inline-block' }}
                   >
                     <RotatingText />
                   </RotatingTextContainer>
                 </>
               )}
             </h1>
-            <p style={styles.subline}>
-              AI-powered school organizer for homework, deadlines, and study planning.
-            </p>
-            <div style={styles.heroButtons}>
-              <Button
-                variant="default"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 text-base mr-4"
-              >
-                Start Organizing
-              </Button>
-            </div>
+            {isLarge && (
+              <p style={styles.subline}>
+                AI-powered school organizer for homework, deadlines, and study planning.
+              </p>
+            )}
+            {isLarge && (
+              <div style={styles.heroButtons}>
+                <Button
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 text-base mr-4"
+                >
+                  Start Organizing
+                </Button>
+              </div>
+            )}
             {isLarge && (
               <div style={styles.heroStats}>
                 <div style={styles.statItem}>
@@ -551,7 +560,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
   },
   headline: {
-    fontSize: '80px',
     fontWeight: 500,
     margin: 0,
     lineHeight: 1.2,

@@ -16,6 +16,7 @@ import {
   Calendar,
   XCircle
 } from 'lucide-react';
+import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 
 // Simple Google icon component
 const GoogleIcon = ({ className }: { className?: string }) => (
@@ -42,6 +43,8 @@ export default function GoogleClassroomSection() {
   const [isAuthorizing, setIsAuthorizing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isUnsyncing, setIsUnsyncing] = useState(false);
+  const [showBetaModal, setShowBetaModal] = useState(false);
+  const [betaAccessGranted, setBetaAccessGranted] = useState(false);
 
   // Check for success/error messages from URL parameters
   const success = searchParams.get('success');
@@ -168,6 +171,11 @@ export default function GoogleClassroomSection() {
   };
 
   const handleAuthorize = async () => {
+    if (!betaAccessGranted) {
+      setShowBetaModal(true);
+      return;
+    }
+
     setIsAuthorizing(true);
     try {
       const response = await fetch('/api/auth/google-classroom-init');
@@ -183,6 +191,12 @@ export default function GoogleClassroomSection() {
       console.error('Error initiating Classroom auth:', error);
       setIsAuthorizing(false);
     }
+  };
+
+  const handleBetaSuccess = () => {
+    setBetaAccessGranted(true);
+    // Proceed with authorization after successful beta access
+    handleAuthorize();
   };
 
   const handleUnsync = async () => {
@@ -280,187 +294,184 @@ export default function GoogleClassroomSection() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <GoogleIcon className="h-5 w-5" />
-          Google Classroom Integration
-        </CardTitle>
-        <CardDescription>
-          Sync your Google Classroom classes and assignments automatically
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Success/Error Messages */}
-        {success === 'classroom_authorized' && (
-          <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
-            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" />
-            <div>
-              <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                Google Classroom successfully connected!
-              </p>
-              <p className="text-xs text-green-700 dark:text-green-300">
-                Your classes and assignments will now sync automatically.
-              </p>
-            </div>
-          </div>
-        )}
+    <>
+      <Card className="relative">
+        {/* ALPHA Warning Label */}
+        <div className="absolute -top-2 -left-2 z-10">
+          <span className="text-[10px] px-1.5 py-0.5 bg-black dark:bg-white text-white dark:text-black">
+            ALPHA
+          </span>
+        </div>
         
-        {error === 'classroom_auth_failed' && (
-          <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg">
-            <XCircle className="h-5 w-5 text-red-600 dark:text-red-500" />
-            <div>
-              <p className="text-sm font-medium text-red-900 dark:text-red-100">
-                Failed to connect Google Classroom
-              </p>
-              <p className="text-xs text-red-700 dark:text-red-300">
-                {reason === 'access_denied' 
-                  ? 'You denied access to Google Classroom. Please try again and grant the necessary permissions.'
-                  : reason === 'no_code'
-                  ? 'Authorization failed. Please try again.'
-                  : `An error occurred: ${reason}`
-                }
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content - Only show if no success/error messages */}
-        {!success && !error && (
-          <>
-            {isLoading ? (
-              <div className="flex items-center gap-3 p-4">
-                <RefreshCw className="h-5 w-5 animate-spin text-gray-500" />
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Checking authorization status...
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <GoogleIcon className="h-5 w-5" />
+            Google Classroom Integration
+          </CardTitle>
+          <CardDescription>
+            Sync your Google Classroom classes and assignments automatically
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Success/Error Messages */}
+          {success === 'classroom_authorized' && (
+            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" />
+              <div>
+                <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                  Google Classroom successfully connected!
+                </p>
+                <p className="text-xs text-green-700 dark:text-green-300">
+                  Your classes and assignments will now sync automatically.
                 </p>
               </div>
-            ) : authStatus?.isAuthorized ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                      Google Classroom is connected
-                    </p>
-                    <p className="text-xs text-green-700 dark:text-green-300">
-                      {authStatus.coursesCount} courses synced
-                      {authStatus.lastSync && ` • Last sync: ${authStatus.lastSync}`}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                    Connected
-                  </Badge>
+            </div>
+          )}
+          
+          {error === 'classroom_auth_failed' && (
+            <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg">
+              <XCircle className="h-5 w-5 text-red-600 dark:text-red-500" />
+              <div>
+                <p className="text-sm font-medium text-red-900 dark:text-red-100">
+                  Failed to connect Google Classroom
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-300">
+                  {reason === 'access_denied' 
+                    ? 'You denied access to Google Classroom. Please try again and grant the necessary permissions.'
+                    : reason === 'no_code'
+                    ? 'Authorization failed. Please try again.'
+                    : `An error occurred: ${reason}`
+                  }
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content - Only show if no success/error messages */}
+          {!success && !error && (
+            <>
+              {isLoading ? (
+                <div className="flex items-center gap-3 p-4">
+                  <RefreshCw className="h-5 w-5 animate-spin text-gray-500" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Checking authorization status...
+                  </p>
                 </div>
-                
-                <div className="flex gap-2">
+              ) : authStatus?.isAuthorized ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                        Google Classroom is connected
+                      </p>
+                      <p className="text-xs text-green-700 dark:text-green-300">
+                        {authStatus.coursesCount} courses synced
+                        {authStatus.lastSync && ` • Last sync: ${authStatus.lastSync}`}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      Connected
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSync} 
+                      disabled={isSyncing}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {isSyncing ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Syncing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Sync Now
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleUnsync} 
+                      disabled={isUnsyncing}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/20"
+                    >
+                      {isUnsyncing ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Unsyncing...
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Unsync
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => window.open('https://classroom.google.com', '_blank')}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open Classroom
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+                        Google Classroom authorization required
+                      </p>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                        You need to authorize access to your Google Classroom data
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  
                   <Button 
-                    onClick={handleSync} 
-                    disabled={isSyncing}
-                    variant="outline"
-                    size="sm"
+                    onClick={handleAuthorize} 
+                    disabled={isAuthorizing}
+                    className="w-full"
                   >
-                    {isSyncing ? (
+                    {isAuthorizing ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Syncing...
+                        Redirecting...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Sync Now
+                        <GoogleIcon className="h-4 w-4 mr-2" />
+                        Connect Google Classroom
                       </>
                     )}
                   </Button>
-                  
-                  <Button 
-                    onClick={handleUnsync} 
-                    disabled={isUnsyncing}
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/20"
-                  >
-                    {isUnsyncing ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Unsyncing...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Unsync
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => window.open('https://classroom.google.com', '_blank')}
-                    variant="ghost"
-                    size="sm"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open Classroom
-                  </Button>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg">
-                  <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-                      Google Classroom authorization required
-                    </p>
-                    <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                      You need to authorize access to your Google Classroom data
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                    Not Connected
-                  </Badge>
-                </div>
-                
-                <Button 
-                  onClick={handleAuthorize} 
-                  disabled={isAuthorizing}
-                  className="w-full"
-                >
-                  {isAuthorizing ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Redirecting...
-                    </>
-                  ) : (
-                    <>
-                      <GoogleIcon className="h-4 w-4 mr-2" />
-                      Connect Google Classroom
-                    </>
-                  )}
-                </Button>
-                
-                <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                  <p>• This will redirect you to Google for authorization</p>
-                  <p>• You'll be asked to grant access to your Classroom data</p>
-                  <p>• Your classes and assignments will be synced automatically</p>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center gap-1">
-              <BookOpen className="h-3 w-3" />
-              <span>Sync classes & assignments</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              <span>Automatic due date tracking</span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+      
+      {/* Beta Password Modal */}
+      <BetaPasswordModal
+        isOpen={showBetaModal}
+        onClose={() => setShowBetaModal(false)}
+        onSuccess={handleBetaSuccess}
+      />
+    </>
   );
 }

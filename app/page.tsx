@@ -4,11 +4,58 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowUpRight, CheckCircle2, Check, Shield, Zap, BookOpen, CalendarDays, MessageSquare, Terminal, Heart, Sparkles, Brain, Image as ImageIcon, TrendingUp, Clock, Users, ShieldAlert, Bell, ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
-import LandingNavbar from '@/components/LandingNavbar';
+import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
+import DockNav from '@/components/DockNav';
 import Hero from './Hero';
+
+// Sample homework data for demo
+const sampleHomeworkItems = [
+  {
+    id: '1',
+    text: 'Chapter 8 Problems',
+    completed: true,
+    subtext: 'Math',
+    priority: 'high' as const,
+    pinned: false,
+    links: [],
+    tags: [],
+    dueDateIcon: <Clock className="w-3 h-3" />
+  },
+  {
+    id: '2', 
+    text: 'WWII Essay Draft',
+    completed: false,
+    subtext: 'History',
+    priority: 'medium' as const,
+    pinned: false,
+    links: [],
+    tags: [],
+    dueDateIcon: <Clock className="w-3 h-3" />
+  },
+  {
+    id: '3',
+    text: 'Lab Report',
+    completed: false, 
+    subtext: 'Science',
+    priority: 'low' as const,
+    pinned: false,
+    links: [],
+    tags: [],
+    dueDateIcon: <Clock className="w-3 h-3" />
+  }
+];
 
 export default function LandingPage() {
   const [comparisonSet, setComparisonSet] = useState<'chatgpt-notion' | 'gemini-google'>('chatgpt-notion');
+  const [homeworkItems, setHomeworkItems] = useState(sampleHomeworkItems);
+
+  const handleItemToggle = (id: string) => {
+    setHomeworkItems(items => 
+      items.map(item => 
+        item.id === id ? { ...item, completed: !item.completed } : item
+      )
+    );
+  };
 
   const comparisonData: Record<'chatgpt-notion' | 'gemini-google', {
     name: string;
@@ -166,10 +213,10 @@ export default function LandingPage() {
   const currentComparison = comparisonData[comparisonSet];
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans">
-      <LandingNavbar />
+      <DockNav />
 
       {/* Beta Banner */}
-      <div className="bg-[#275085] dark:bg-[#1f3f6b] mt-16">
+      <div className="bg-[#275085] dark:bg-[#1f3f6b]">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 py-3 px-4">
           <motion.div
             initial={{ scale: 0 }}
@@ -178,7 +225,7 @@ export default function LandingPage() {
             className="flex items-center gap-3 text-white"
           >
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">v1.0 Just Released — Public Beta Now Live!</span>
+            <span className="text-sm font-medium">v1 Just Released — Public Beta Now Live!</span>
             <Link
               href="/changelog"
               className="flex items-center gap-1 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-xs font-medium transition-colors"
@@ -253,25 +300,7 @@ export default function LandingPage() {
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">Today's Homework</h3>
                   <span className="text-sm text-gray-500 dark:text-gray-400">3 tasks</span>
                 </div>
-                <div className="space-y-3">
-                  {[
-                    { subject: "Math", task: "Chapter 8 Problems", checked: true },
-                    { subject: "History", task: "WWII Essay Draft", checked: false },
-                    { subject: "Science", task: "Lab Report", checked: false }
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${item.checked ? 'bg-[#275085] border-[#275085]' : 'border-gray-300 dark:border-gray-600'}`}>
-                        {item.checked && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className={`font-medium ${item.checked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                          {item.task}
-                        </p>
-                        <p className="text-xs text-gray-500">{item.subject}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PlayfulHomeworkList items={homeworkItems} onItemToggle={handleItemToggle} />
               </div>
             </motion.div>
           </div>

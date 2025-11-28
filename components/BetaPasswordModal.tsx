@@ -77,6 +77,9 @@ export const BetaPasswordModal = ({ isOpen, onClose, onSuccess }: AlphaPasswordM
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   This feature is <span className="font-medium text-black dark:text-white">not stable</span> and probably will contain errors.
                 </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                  This feature will be out of alpha in a few weeks once extensive stress testing has been completed.
+                </p>
               </div>
 
               <label className="flex items-start gap-3 cursor-pointer">

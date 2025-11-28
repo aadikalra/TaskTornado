@@ -46,53 +46,31 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
       },
       description: `Define "${selectedText.trim()}"`
     }] : []),
-    
+
     // Auth options with fun messages
-    { 
-      label: 'Login', 
-      icon: IconUsers, 
-      action: () => router.push('/login'), 
-      description: '🚀 Unlock your superpowers!' 
+    {
+      label: 'Login',
+      icon: IconUsers,
+      action: () => router.push('/login'),
+      description: '🚀 Unlock your superpowers!'
     },
-    { 
-      label: 'Sign Up', 
-      icon: IconSparkle, 
-      action: () => router.push('/signup'), 
-      description: '✨ Join the adventure!' 
+    {
+      label: 'Sign Up',
+      icon: IconSparkle,
+      action: () => router.push('/signup'),
+      description: '✨ Join the adventure!'
     },
-    
-    // Preview features with encouraging messages
-    { 
-      label: 'Preview Dashboard', 
-      icon: IconHouse, 
-      action: () => {
-        onClose();
-        // Show a fun message instead of navigating
-        alert('🎯 Want to see this amazing dashboard? Sign up to unlock your personal command center!');
-      }, 
-      description: '👀 Sneak peek (login required)' 
-    },
-    { 
-      label: 'Preview Tests', 
-      icon: IconProgressBar, 
-      action: () => {
-        onClose();
-        alert('📚 Ace your tests! Sign up to track your academic journey and crush those exams!');
-      }, 
-      description: '🎓 Test your knowledge (login required)' 
-    },
-    { 
-      label: 'Preview Calendar', 
-      icon: IconCalendar, 
-      action: () => {
-        onClose();
-        alert('📅 Never miss a deadline! Sign up to organize your schedule like a pro!');
-      }, 
-      description: '⏰ Plan your success (login required)' 
-    },
-    
+
     // Static info pages
     { label: 'Changelog', icon: IconFile, action: () => router.push('/changelog'), description: 'What\'s new' },
+    // Preview features with encouraging messages
+    {
+      label: 'You should def sign up! :)',
+      action: () => {
+        onClose();
+      },
+      description: '👀 Sneak peek (login required)'
+    },
   ];
 
   // Menu items for logged in users (existing functionality)
@@ -178,9 +156,11 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white group"
                     title={item.description}
                   >
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      <item.icon />
-                    </div>
+                    {item.icon && (
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <item.icon />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <span className="font-medium">{item.label}</span>
                     </div>

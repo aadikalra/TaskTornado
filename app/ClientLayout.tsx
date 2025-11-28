@@ -68,7 +68,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   
   // Routes that should hide navbar (public routes)
   const isLandingPage = pathname === '/';
-  const isAuthPage = pathname === '/login' || pathname === '/signup';
+  const isAuthPage = false; // Show DockNav on login/signup pages
   const isAIGuidelinesPage = pathname === '/ai-guidelines';
   const isLegalPage = pathname?.startsWith('/legal');
   const is404Page = !isLandingPage && !isAuthPage && !isLegalPage;
@@ -82,8 +82,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         <main className="flex-1 bg-transparent pb-24 md:pb-0">
           {children}
         </main>
-        {/* Always show DockNav on all pages except landing, auth, and legal pages */}
-        {!isLandingPage && !isAuthPage && !isLegalPage && <DockNav />}
+        {/* Always show DockNav on all pages */}
+        <DockNav />
         {contextMenu && (
         <CustomContextMenu 
           x={contextMenu.x} 

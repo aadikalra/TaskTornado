@@ -554,39 +554,39 @@ export default function ChangelogPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className={getContainerClass() + ' py-16'}>
+      <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
 
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 sm:mb-3 tracking-tight">
             Changelog
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
             Product updates and improvements
           </p>
         </motion.div>
 
-        {/* Thanksgiving Message - Minimalist */}
+        {/* Thanksgiving Message - Mobile Optimized */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-12 text-center p-4 border border-gray-200 dark:border-gray-800 rounded-lg"
+          className="mb-8 sm:mb-12 p-3 sm:p-4 border border-gray-200 dark:border-gray-800 rounded-lg text-center"
         >
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">
             🦃 Thanksgiving Special
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             One major release every day until end of November!
           </p>
         </motion.div>
 
         {/* Versions */}
-        <div className="space-y-12">
+        <div className="space-y-8 sm:space-y-12">
           {visibleVersions.map((v, i) => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -595,9 +595,9 @@ export default function ChangelogPage() {
 
             return (
               <div key={v.version} className="relative">
-                {/* FUTURE tag outside the opacity container */}
+                {/* FUTURE tag - Mobile Optimized */}
                 {isFuture && (
-                  <div className="absolute -top-2.5 -left-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded z-10">
+                  <div className="absolute -top-2 -left-1 sm:-top-2.5 sm:-left-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded z-10">
                     FUTURE
                   </div>
                 )}
@@ -606,43 +606,43 @@ export default function ChangelogPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: isFuture ? 0.5 : 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className={`group ${isFuture ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-4 -mx-4 rounded-xl' : ''}`}
+                  className={`group ${isFuture ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl' : ''}`}
                 >
                   {/* Special styling for future versions */}
                   {isFuture && (
                     <div className="absolute inset-0 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl opacity-40 pointer-events-none" />
                   )}
 
-                  {/* Version Header */}
-                  <div className={`relative flex items-start justify-between mb-4 pb-4 border-b ${isFuture ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'}`}>
+                  {/* Version Header - Mobile Optimized */}
+                  <div className={`relative flex flex-col sm:flex-row sm:items-start justify-between mb-4 pb-4 border-b ${isFuture ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'} gap-3`}>
                     <div className="flex-1">
-                      <div className="flex items-baseline gap-3 mb-2">
-                        <h2 className="text-xl font-medium text-gray-900 dark:text-white">
+                      <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-2">
+                        <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white leading-tight">
                           {v.title}
                         </h2>
-                        <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
+                        <span className="text-xs sm:text-sm font-mono text-gray-500 dark:text-gray-400">
                           v{v.version}
                         </span>
                         {v.type === 'major' && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded">
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded">
                             Major
                           </span>
                         )}
                         {v.type === 'minor' && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
                             Minor
                           </span>
                         )}
                         {(['1.2', '1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
                             🦃 Thanksgiving
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-3.5 h-3.5" />
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         {new Date(v.date + 'T00:00:00').toLocaleDateString('en-US', {
-                          month: 'long',
+                          month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                           timeZone: 'UTC'
@@ -652,40 +652,40 @@ export default function ChangelogPage() {
 
                     <button
                       onClick={() => setOpen(open === v.version ? null : v.version)}
-                      className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                      className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-95"
                     >
                       {open === v.version ? (
                         <>
                           Hide
-                          <ChevronUp className="w-4 h-4" />
+                          <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </>
                       ) : (
                         <>
                           Details
-                          <ChevronDown className="w-4 h-4" />
+                          <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </>
                       )}
                     </button>
                   </div>
 
-                  {/* Highlight */}
+                  {/* Highlight - Mobile Optimized */}
                   {v.highlight && (
-                    <p className={`relative text-gray-600 dark:text-gray-300 mb-6 leading-relaxed ${isFuture ? 'text-gray-700 dark:text-gray-200' : ''}`}>
+                    <p className={`relative text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 leading-relaxed ${isFuture ? 'text-gray-700 dark:text-gray-200' : ''}`}>
                       {v.highlight}
                     </p>
                   )}
 
-                  {/* Short list */}
-                  <ul className="space-y-2">
+                  {/* Short list - Mobile Optimized */}
+                  <ul className="space-y-1.5 sm:space-y-2">
                     {v.short.map((txt, idx) => (
-                      <li key={idx} className={`relative flex items-start gap-3 text-sm ${isFuture ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
-                        <span className="text-gray-400 dark:text-gray-600 mt-0.5">•</span>
-                        <span className="leading-relaxed">{txt}</span>
+                      <li key={idx} className={`relative flex items-start gap-2 sm:gap-3 text-xs sm:text-sm ${isFuture ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                        <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
+                        <span className="leading-relaxed wrap-break-word">{txt}</span>
                       </li>
                     ))}
                   </ul>
 
-                  {/* Full list */}
+                  {/* Full list - Mobile Optimized */}
                   <AnimatePresence>
                     {open === v.version && (
                       <motion.div
@@ -695,17 +695,17 @@ export default function ChangelogPage() {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <ul className="mt-6 pt-6 space-y-2 border-t border-gray-100 dark:border-gray-900">
+                        <ul className="mt-4 sm:mt-6 pt-4 sm:pt-6 space-y-1.5 sm:space-y-2 border-t border-gray-100 dark:border-gray-900">
                           {v.full.map((txt, idx) => (
                             <motion.li
                               key={idx}
                               initial={{ opacity: 0, x: -5 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: idx * 0.02 }}
-                              className={`relative flex items-start gap-3 text-sm ${isFuture ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
+                              className={`relative flex items-start gap-2 sm:gap-3 text-xs sm:text-sm ${isFuture ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
                             >
-                              <span className="text-gray-300 dark:text-gray-700 mt-0.5">•</span>
-                              <span className="leading-relaxed">{txt}</span>
+                              <span className="text-gray-300 dark:text-gray-700 mt-0.5 shrink-0">•</span>
+                              <span className="leading-relaxed wrap-break-word">{txt}</span>
                             </motion.li>
                           ))}
                         </ul>
@@ -718,27 +718,27 @@ export default function ChangelogPage() {
           })}
         </div>
 
-        {/* Footer */}
+        {/* Footer - Mobile Optimized */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+          className="mt-16 sm:mt-20 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-800"
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Built for students • Public Beta v1.1.9
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a
                 href="https://forms.gle/wjR1nJdg8vFYeNcd6"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-95"
               >
                 Send Feedback
               </a>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLScaYx0Gg30L_g3HiEE3um0MAE8OKlCN7naJrRTiVjSyBUt0og/viewform?usp=header"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-95"
               >
                 Report Issue
               </a>

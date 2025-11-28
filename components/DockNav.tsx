@@ -19,6 +19,8 @@ import IconProgressBar from './glass-icons/IconProgressBar';
 import IconBox from './glass-icons/IconBox';
 import IconGrid2 from './glass-icons/IconGrid2';
 import IconPen from './glass-icons/IconPen';
+import IconTabOpen from './glass-icons/IconTabOpen';
+import IconCircleCopyPlus from './glass-icons/IconCircleCopyPlus';
 
 export default function DockNav() {
   const router = useRouter();
@@ -46,8 +48,20 @@ export default function DockNav() {
     {
       icon: <IconHouse />,
       label: 'Home',
-      onClick: () => router.push('/dashboard'),
+      onClick: () => router.push(user ? '/dashboard' : '/'),
       priority: 'essential' // Always show
+    },
+    {
+      icon: <IconTabOpen />,
+      label: 'Login',
+      onClick: () => router.push('/login'),
+      priority: 'essential'
+    },
+    {
+      icon: <IconCircleCopyPlus />,
+      label: 'Sign Up',
+      onClick: () => router.push('/signup'),
+      priority: 'essential'
     },
     {
       icon: <IconMagnifier />,
@@ -147,8 +161,14 @@ export default function DockNav() {
     },
   ];
 
-  // Filter items based on screen size
+  // Filter items based on screen size and authentication
   const items = allItems.filter(item => {
+    if (!user) {
+      // Not signed in: only show home, login, signup, changelog
+      const itemLabel = item.label;
+      return itemLabel === 'Home' || itemLabel === 'Login' || itemLabel === 'Sign Up' || itemLabel === 'Changelog';
+    }
+
     if (isVerySmall) {
       // Very small screens: only essential items
       return item.priority === 'essential';
