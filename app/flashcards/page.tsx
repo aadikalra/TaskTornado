@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 
 interface FlashcardDeckType {
 
@@ -37,6 +39,9 @@ export default function FlashcardsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'current' | 'saved'>('current');
   const [selectedDeck, setSelectedDeck] = useState<FlashcardDeckType | null>(null);
+
+  // Route intro popup
+  const { showIntro, dismissIntro } = useRouteIntro('flashcards');
 
   // Fetch saved decks from the database
   useEffect(() => {
@@ -464,6 +469,21 @@ export default function FlashcardsPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Route Intro Popup */}
+      <RouteIntroPopup
+        isOpen={showIntro}
+        onClose={dismissIntro}
+        title="Welcome to Flashcards!"
+        description="Master any subject with interactive flashcards powered by AI"
+        icon={<BookOpen className="h-6 w-6" />}
+        features={[
+          'Create flashcard decks using the AI Study Assistant',
+          'Flip cards to reveal answers and test your knowledge',
+          'Save decks to review anytime',
+          'Track your progress as you study',
+        ]}
+      />
     </div>
   );
 }

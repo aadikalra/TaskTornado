@@ -2,13 +2,15 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, ExternalLink, Loader2, ImageIcon, Home, AlertTriangle } from 'lucide-react';
+import { Plus, X, ExternalLink, Loader2, ImageIcon, Home, AlertTriangle, Bookmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWebSaves } from '@/context/WebSavesContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 
 // Favicon preview component
 const SitePreview = ({ url, title }: { url: string; title?: string | null }) => {
@@ -93,6 +95,7 @@ export default function WebSavesPage() {
   const router = useRouter();
   const { saves, loading, error, addSave, deleteSave } = useWebSaves();
   const { getContainerClass } = useWideLayout();
+  const { showIntro, dismissIntro } = useRouteIntro('web-saves');
 
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -127,8 +130,8 @@ export default function WebSavesPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <div className={getContainerClass() + ' py-16'}>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
@@ -162,8 +165,8 @@ export default function WebSavesPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <div className={getContainerClass() + ' py-16'}>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
@@ -200,10 +203,10 @@ export default function WebSavesPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass() + ' py-16'}>
-        
+
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-16"
         >
@@ -283,7 +286,7 @@ export default function WebSavesPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
@@ -391,9 +394,9 @@ export default function WebSavesPage() {
                         >
                           Cancel
                         </Button>
-                        <Button 
-                          type="submit" 
-                          size="sm" 
+                        <Button
+                          type="submit"
+                          size="sm"
                           disabled={isSubmitting || !url.trim()}
                           className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
                         >
@@ -438,6 +441,21 @@ export default function WebSavesPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Route Intro Popup */}
+      <RouteIntroPopup
+        isOpen={showIntro}
+        onClose={dismissIntro}
+        title="Welcome to Web Saves!"
+        description="Save and organize important links for quick access"
+        icon={<Bookmark className="h-6 w-6" />}
+        features={[
+          'Save important links with custom titles',
+          'Organize research and study resources',
+          'Quick access to frequently visited sites',
+          'Automatic favicon preview for easy recognition',
+        ]}
+      />
     </div>
   );
 }

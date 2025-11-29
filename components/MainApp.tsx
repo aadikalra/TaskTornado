@@ -1833,10 +1833,20 @@ const MainApp = () => {
             />
           )}
         </AnimatePresence>
-      </main >
+      </main>
       {!areAnimationsPaused && <ReindeerAnimation />}
       <StopAnimationsButton areAnimationsPaused={areAnimationsPaused} onToggle={toggleAnimations} />
-    </div >
+      
+      {/* Onboarding Modal */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingModal 
+            isOpen={showOnboarding} 
+            onClose={() => setShowOnboarding(false)} 
+          />
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

@@ -40,7 +40,6 @@ const getTestTypeIcon = (testType: string) => {
 // Default search route shortcuts
 const routeSearchItems = [
   { title: 'Dashboard', href: '/dashboard', icon: Home, keywords: ['home', 'dashboard', 'overview'] },
-  { title: 'Homework', href: '/homework', icon: FileText, keywords: ['homework', 'assignments', 'tasks'] },
   { title: 'Tests', href: '/tests', icon: GraduationCap, keywords: ['tests', 'exams', 'quiz'] },
   { title: 'Interactive Quizzes', href: '/quiz', icon: FileText, keywords: ['quiz', 'quizzes', 'interactive'] },
   { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events'] },
@@ -133,9 +132,8 @@ export function SearchResults() {
 
   if (!query.trim()) {
     return (
-      <div className="mt-6 flex flex-col items-center text-center py-10
-                      bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl mx-4 shadow-sm">
-        <Search className="h-8 w-8 text-gray-300 dark:text-gray-500" />
+      <div className="flex flex-col items-center text-center py-8">
+        <Search className="h-8 w-8 text-gray-300 dark:text-gray-600" />
         <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm">
           Search assignments, tests, or pages
         </p>
@@ -170,8 +168,7 @@ export function SearchResults() {
 
   if (!hasResults) {
     return (
-      <div className="py-10 text-center mx-4 rounded-xl shadow-sm
-                      bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm">
+      <div className="py-8 text-center">
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           No results for “{query}”
         </p>
@@ -182,11 +179,11 @@ export function SearchResults() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="max-h-104 overflow-y-auto mx-4 mt-4"
+        className="pb-2"
       >
 
         {/* ROUTES */}

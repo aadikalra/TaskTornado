@@ -47,16 +47,16 @@ export function SearchBar() {
           >
             <div className="relative">
               {/* Main Search Container */}
-              <div className="bg-white dark:bg-gray-950 rounded-2xl border border-neutral-300 dark:border-neutral-800 shadow-sm overflow-hidden">
+              <div className="relative">
                 {/* Search Input */}
-                <div className="relative">
+                <div className="relative z-20">
                   <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
                   <input
                     id="global-search-input"
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="w-full rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 py-3 pl-12 pr-12 text-base outline-none focus:border-neutral-500 dark:focus:border-neutral-600 transition text-gray-900 dark:text-white placeholder-neutral-500 dark:placeholder-neutral-400"
+                    className="w-full rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-3 pl-12 pr-12 text-base outline-none focus:border-neutral-500 dark:focus:border-neutral-600 transition text-gray-900 dark:text-white placeholder-neutral-500 dark:placeholder-neutral-400 shadow-sm"
                     placeholder="Search..."
                     autoComplete="off"
                     autoFocus
@@ -72,27 +72,34 @@ export function SearchBar() {
                   )}
                 </div>
 
-                {/* Search Results */}
-                {query && (
+                {/* Search Results Dropdown */}
+                <AnimatePresence>
+                  {query && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl overflow-hidden z-10"
+                    >
+                      <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        <SearchResults />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Empty State / Tips - Only show when focused and no query, or maybe just remove if not needed */}
+                {!query && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.15, delay: 0.05 }}
-                    className="border-t border-neutral-200 dark:border-neutral-800"
+                    className="mt-4 px-4 text-center"
                   >
-                    <SearchResults />
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Search for homework, tests, classes, and pages
+                    </p>
                   </motion.div>
-                )}
-
-                {/* Empty State / Tips */}
-                {!query && (
-                  <div className="px-4 py-6">
-                    <div className="text-center space-y-2">
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Search for homework, tests, classes, and pages
-                      </p>
-                    </div>
-                  </div>
                 )}
               </div>
 

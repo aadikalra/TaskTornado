@@ -55,6 +55,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { ResourceType } from '@/context/DiscussionBoardsContext';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 
 export function ClassDiscussionBoards() {
     const { user } = useAuth();
@@ -90,6 +92,8 @@ export function ClassDiscussionBoards() {
         fetchResourcesByBoard,
         fetchAllBoards,
     } = useDiscussionBoards();
+
+    const { showIntro, dismissIntro } = useRouteIntro('discussions');
 
     const [view, setView] = useState<'boards' | 'threads' | 'resources'>('boards');
     const [searchQuery, setSearchQuery] = useState('');
@@ -1049,6 +1053,21 @@ export function ClassDiscussionBoards() {
                     </motion.div>
                 </div>
             </div>
+
+            {/* Route Intro Popup */}
+            <RouteIntroPopup
+                isOpen={showIntro}
+                onClose={dismissIntro}
+                title="Welcome to Discussion Boards!"
+                description="Join public forums and collaborate with students worldwide"
+                icon={<MessageSquare className="h-6 w-6" />}
+                features={[
+                    'Join or create public discussion boards',
+                    'Ask questions and share knowledge',
+                    'Upvote helpful answers and resources',
+                    'Organize discussions with tags and threads',
+                ]}
+            />
         </div>
     );
 }

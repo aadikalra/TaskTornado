@@ -70,7 +70,7 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
 
           // Convert Google Classroom assignment to homework format
           let dueDate: string;
-          
+
           // Handle different due date formats from Google Classroom
           if (assignment.dueDate) {
             if (typeof assignment.dueDate === 'string') {
@@ -125,10 +125,10 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
 async function checkGoogleUserAndLogClassroom(user: User) {
   try {
     // Check if user is from Google using auth metadata instead of profiles table
-    const isGoogleUser = user.app_metadata?.provider === 'google' || 
-                       user.user_metadata?.provider === 'google' ||
-                       user.email?.endsWith('@gmail.com') || 
-                       user.user_metadata?.email_verified;
+    const isGoogleUser = user.app_metadata?.provider === 'google' ||
+      user.user_metadata?.provider === 'google' ||
+      user.email?.endsWith('@gmail.com') ||
+      user.user_metadata?.email_verified;
 
     if (isGoogleUser) {
       console.log('🎓 Google user detected - Checking Classroom API authorization...');
@@ -231,11 +231,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       // Clear the classroom-auth cookie
       document.cookie = 'classroom-auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      
+
       // Clear any other Google Classroom related cookies
       document.cookie = 'classroom-sync=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+      // Clear all route intro cookies
+      const cookies = document.cookie.split(';');
+      cookies.forEach(cookie => {
+        const cookieName = cookie.split('=')[0].trim();
+        if (cookieName.startsWith('route-intro-')) {
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      });
     }
-    
+
     // Sign out from Supabase
     await supabase.auth.signOut();
   };
@@ -248,10 +257,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     full_name,
-    isGoogleUser: user?.app_metadata?.provider === 'google' || 
-               user?.user_metadata?.provider === 'google' ||
-               user?.email?.endsWith('@gmail.com') || 
-               user?.user_metadata?.email_verified || false,
+    isGoogleUser: user?.app_metadata?.provider === 'google' ||
+      user?.user_metadata?.provider === 'google' ||
+      user?.email?.endsWith('@gmail.com') ||
+      user?.user_metadata?.email_verified || false,
   };
 
   return (

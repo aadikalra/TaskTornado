@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 
 export default function QuizPage() {
     const router = useRouter();
@@ -17,6 +19,7 @@ export default function QuizPage() {
     const { getContainerClass } = useWideLayout();
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { showIntro, dismissIntro } = useRouteIntro('quiz');
 
     // Check for quiz in localStorage
     useEffect(() => {
@@ -212,6 +215,21 @@ export default function QuizPage() {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Route Intro Popup */}
+            <RouteIntroPopup
+                isOpen={showIntro}
+                onClose={dismissIntro}
+                title="Welcome to Interactive Quizzes!"
+                description="Test your knowledge with AI-generated multiple-choice quizzes"
+                icon={<HelpCircle className="h-6 w-6" />}
+                features={[
+                    'Generate quizzes using the AI Study Assistant',
+                    'Answer multiple-choice questions',
+                    'Get instant feedback on your answers',
+                    'Track your score and review explanations',
+                ]}
+            />
         </div>
     );
 }

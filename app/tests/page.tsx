@@ -10,12 +10,15 @@ import Link from 'next/link';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 
 export default function TestsPage() {
   const { user, loading: authLoading } = useAuth();
   const { tests, classes, loading: classLoading, deleteTest, deleteClass } = useClassContext();
   const router = useRouter();
   const { getContainerClass } = useWideLayout();
+  const { showIntro, dismissIntro } = useRouteIntro('tests');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -150,6 +153,21 @@ export default function TestsPage() {
           onDeleteTest={deleteTest}
         />
       </main>
+
+      {/* Route Intro Popup */}
+      <RouteIntroPopup
+        isOpen={showIntro}
+        onClose={dismissIntro}
+        title="Welcome to Tests & Exams!"
+        description="Manage your test schedule and track your academic performance"
+        icon={<GraduationCap className="h-6 w-6" />}
+        features={[
+          'Track upcoming tests and completed exams',
+          'View stats including ALPHA/BETA tests',
+          'Organize tests by status and type',
+          'Monitor your success rate and progress',
+        ]}
+      />
     </div>
   );
 }

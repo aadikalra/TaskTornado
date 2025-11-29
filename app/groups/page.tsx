@@ -10,6 +10,8 @@ import { Plus, MessageSquare, Users, Link as LinkIcon, ArrowRight, Home, AlertTr
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function GroupsPage() {
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const { showIntro, dismissIntro } = useRouteIntro('groups');
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +48,8 @@ export default function GroupsPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <div className={getContainerClass() + ' py-16'}>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
@@ -91,10 +94,10 @@ export default function GroupsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass() + ' py-16'}>
-        
+
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-16"
         >
@@ -267,7 +270,7 @@ export default function GroupsPage() {
       <dialog id="create-group-dialog" className="relative z-50">
         <div className="fixed inset-0 bg-black/50" onClick={closeCreateGroupDialog} />
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800"
@@ -334,6 +337,21 @@ export default function GroupsPage() {
           </motion.div>
         </div>
       </dialog>
+
+      {/* Route Intro Popup */}
+      <RouteIntroPopup
+        isOpen={showIntro}
+        onClose={dismissIntro}
+        title="Welcome to Group Chats!"
+        description="Collaborate with classmates in real-time group conversations"
+        icon={<Users className="h-6 w-6" />}
+        features={[
+          'Create or join group chats for your classes',
+          'Collaborate with classmates in real-time',
+          'Share notes, resources, and study tips',
+          'Stay organized with multiple group conversations',
+        ]}
+      />
     </div>
   );
 }

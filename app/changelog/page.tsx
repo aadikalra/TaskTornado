@@ -1,9 +1,10 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { Input } from '@/components/ui/input';
 
 type Version = {
   version: string;
@@ -17,9 +18,35 @@ type Version = {
 
 export default function ChangelogPage() {
   const [open, setOpen] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hoveredVersion, setHoveredVersion] = useState<string | null>(null);
   const { getContainerClass } = useWideLayout();
 
   const versions: Version[] = [
+    {
+      version: '1.2.3',
+      date: '2025-12-01',
+      title: 'UX Polish & Route Intros',
+      highlight: 'Enhanced user onboarding with route introductions, modernized search experience, and improved changelog navigation',
+      type: 'minor',
+      short: [
+        'Interactive route introduction popups',
+        'Redesigned search bar with floating results',
+        'Changelog search and sticky table of contents',
+        'Smoother animations and visual polish',
+        'Improved mobile responsiveness'
+      ],
+      full: [
+        'Implemented "Route Intro" system to guide users through key features on their first visit to major pages (Tests, Quiz, Groups, etc.)',
+        'Redesigned the global search bar with a modern, detached floating results dropdown for a cleaner aesthetic',
+        'Enhanced the Changelog page with real-time search filtering and a sticky table of contents for easy navigation',
+        'Added smooth sliding animations to the Changelog table of contents for a premium feel',
+        'Cleaned up SearchResults component to remove redundant styling and improve integration',
+        'Added intro popups to Writing Assist and Discussion Boards to better explain their capabilities',
+        'Fixed visual consistency in search results with proper spacing and shadow effects',
+        'Optimized animations across the application for a more fluid user experience'
+      ]
+    },
     {
       version: '1.2.2',
       date: '2025-11-30',
@@ -612,175 +639,290 @@ export default function ChangelogPage() {
 
   const visibleVersions = getVisibleVersions();
 
+  // Filter versions based on search query
+  const filteredVersions = useMemo(() => {
+    if (!searchQuery.trim()) return visibleVersions;
+    const query = searchQuery.toLowerCase();
+    return visibleVersions.filter(v =>
+      v.version.toLowerCase().includes(query) ||
+      v.title.toLowerCase().includes(query) ||
+      v.highlight.toLowerCase().includes(query) ||
+      v.short.some(s => s.toLowerCase().includes(query)) ||
+      v.full.some(f => f.toLowerCase().includes(query))
+    );
+  }, [visibleVersions, searchQuery]);
+
+  const scrollToVersion = (version: string) => {
+    const element = document.getElementById(`version-${version}`);
+    if (element) {
+      const offset = 100; // Adjust for sticky header/spacing
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8"
-        >
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 sm:mb-3 tracking-tight">
-            Changelog
-          </h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-            Product updates and improvements
-          </p>
-        </motion.div>
+        {/* Header & Search */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 sm:mb-3 tracking-tight">
+              Changelog
+            </h1>
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+              Product updates and improvements
+            </p>
+          </motion.div>
 
-        {/* Thanksgiving Message - Mobile Optimized */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8 sm:mb-12 p-3 sm:p-4 border border-gray-200 dark:border-gray-800 rounded-lg text-center"
-        >
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">
-            🦃 Thanksgiving Special
-          </p>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-            One major release every day until end of November!
-          </p>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-full md:w-72"
+          >
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search updates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+              />
+            </div>
+          </motion.div>
+        </div>
 
-        {/* Versions */}
-        <div className="space-y-8 sm:space-y-12">
-          {visibleVersions.map((v, i) => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const versionDate = new Date(v.date + 'T00:00:00');
-            const isFuture = today < versionDate;
+        <div className="flex flex-col lg:flex-row gap-12 relative">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Thanksgiving Message */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-8 sm:mb-12 p-3 sm:p-4 border border-gray-200 dark:border-gray-800 rounded-lg text-center bg-gray-50/50 dark:bg-gray-900/50"
+            >
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">
+                🦃 Thanksgiving Special
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                One major release every day until end of November!
+              </p>
+            </motion.div>
 
-            return (
-              <div key={v.version} className="relative">
-                {/* FUTURE tag - Mobile Optimized */}
-                {isFuture && (
-                  <div className="absolute -top-2 -left-1 sm:-top-2.5 sm:-left-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded z-10">
-                    FUTURE
-                  </div>
-                )}
+            {/* Versions List */}
+            <div className="space-y-8 sm:space-y-12">
+              {filteredVersions.length === 0 ? (
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  No updates found matching "{searchQuery}"
+                </div>
+              ) : (
+                filteredVersions.map((v, i) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const versionDate = new Date(v.date + 'T00:00:00');
+                  const isFuture = today < versionDate;
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: isFuture ? 0.5 : 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className={`group ${isFuture ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl' : ''}`}
-                >
-                  {/* Special styling for future versions */}
-                  {isFuture && (
-                    <div className="absolute inset-0 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl opacity-40 pointer-events-none" />
-                  )}
-
-                  {/* Version Header - Mobile Optimized */}
-                  <div className={`relative flex flex-col sm:flex-row sm:items-start justify-between mb-4 pb-4 border-b ${isFuture ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'} gap-3`}>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-2">
-                        <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white leading-tight">
-                          {v.title}
-                        </h2>
-                        <span className="text-xs sm:text-sm font-mono text-gray-500 dark:text-gray-400">
-                          v{v.version}
-                        </span>
-                        {v.type === 'major' && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded">
-                            Major
-                          </span>
-                        )}
-                        {(['1.2', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.0.9', '1.0.8', '1.0', '0.9.0', '0.8.5', '0.8.0'].includes(v.version)) && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded">
-                            New Feature
-                          </span>
-                        )}
-                        {v.type === 'minor' && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
-                            Minor
-                          </span>
-                        )}
-                        {(['1.2.2', '1.2.1', '1.2', '1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
-                            🦃 Thanksgiving
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        {new Date(v.date + 'T00:00:00').toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          timeZone: 'UTC'
-                        })}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setOpen(open === v.version ? null : v.version)}
-                      className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-95"
-                    >
-                      {open === v.version ? (
-                        <>
-                          Hide
-                          <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </>
-                      ) : (
-                        <>
-                          Details
-                          <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </>
+                  return (
+                    <div key={v.version} id={`version-${v.version}`} className="relative scroll-mt-24">
+                      {/* FUTURE tag */}
+                      {isFuture && (
+                        <div className="absolute -top-2 -left-1 sm:-top-2.5 sm:-left-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded z-10">
+                          FUTURE
+                        </div>
                       )}
-                    </button>
-                  </div>
 
-                  {/* Highlight - Mobile Optimized */}
-                  {v.highlight && (
-                    <p className={`relative text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 leading-relaxed ${isFuture ? 'text-gray-700 dark:text-gray-200' : ''}`}>
-                      {v.highlight}
-                    </p>
-                  )}
-
-                  {/* Short list - Mobile Optimized */}
-                  <ul className="space-y-1.5 sm:space-y-2">
-                    {v.short.map((txt, idx) => (
-                      <li key={idx} className={`relative flex items-start gap-2 sm:gap-3 text-xs sm:text-sm ${isFuture ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
-                        <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                        <span className="leading-relaxed wrap-break-word">{txt}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Full list - Mobile Optimized */}
-                  <AnimatePresence>
-                    {open === v.version && (
                       <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: isFuture ? 0.5 : 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`group ${isFuture ? 'relative bg-blue-50/30 dark:bg-blue-950/20 p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl' : ''}`}
                       >
-                        <ul className="mt-4 sm:mt-6 pt-4 sm:pt-6 space-y-1.5 sm:space-y-2 border-t border-gray-100 dark:border-gray-900">
-                          {v.full.map((txt, idx) => (
-                            <motion.li
-                              key={idx}
-                              initial={{ opacity: 0, x: -5 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.02 }}
-                              className={`relative flex items-start gap-2 sm:gap-3 text-xs sm:text-sm ${isFuture ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
-                            >
-                              <span className="text-gray-300 dark:text-gray-700 mt-0.5 shrink-0">•</span>
+                        {/* Special styling for future versions */}
+                        {isFuture && (
+                          <div className="absolute inset-0 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl opacity-40 pointer-events-none" />
+                        )}
+
+                        {/* Version Header */}
+                        <div className={`relative flex flex-col sm:flex-row sm:items-start justify-between mb-4 pb-4 border-b ${isFuture ? 'border-gray-300 dark:border-gray-700' : 'border-gray-200 dark:border-gray-800'} gap-3`}>
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-2">
+                              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white leading-tight">
+                                {v.title}
+                              </h2>
+                              <span className="text-xs sm:text-sm font-mono text-gray-500 dark:text-gray-400">
+                                v{v.version}
+                              </span>
+                              {v.type === 'major' && (
+                                <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded">
+                                  Major
+                                </span>
+                              )}
+                              {(['1.2', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.0.9', '1.0.8', '1.0', '0.9.0', '0.8.5', '0.8.0'].includes(v.version)) && (
+                                <span className="px-1.5 py-0.5 text-xs font-medium bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded">
+                                  New Feature
+                                </span>
+                              )}
+                              {v.type === 'minor' && (
+                                <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
+                                  Minor
+                                </span>
+                              )}
+                              {(['1.2.2', '1.2.1', '1.2', '1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
+                                <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
+                                  🦃 Thanksgiving
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                              <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              {new Date(v.date + 'T00:00:00').toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                timeZone: 'UTC'
+                              })}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setOpen(open === v.version ? null : v.version)}
+                            className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-95"
+                          >
+                            {open === v.version ? (
+                              <>
+                                Hide
+                                <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              </>
+                            ) : (
+                              <>
+                                Details
+                                <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Highlight */}
+                        {v.highlight && (
+                          <p className={`relative text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 leading-relaxed ${isFuture ? 'text-gray-700 dark:text-gray-200' : ''}`}>
+                            {v.highlight}
+                          </p>
+                        )}
+
+                        {/* Short list */}
+                        <ul className="space-y-1.5 sm:space-y-2">
+                          {v.short.map((txt, idx) => (
+                            <li key={idx} className={`relative flex items-start gap-2 sm:gap-3 text-xs sm:text-sm ${isFuture ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                              <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
                               <span className="leading-relaxed wrap-break-word">{txt}</span>
-                            </motion.li>
+                            </li>
                           ))}
                         </ul>
+
+                        {/* Full list */}
+                        <AnimatePresence>
+                          {open === v.version && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <ul className="mt-4 sm:mt-6 pt-4 sm:pt-6 space-y-1.5 sm:space-y-2 border-t border-gray-100 dark:border-gray-900">
+                                {v.full.map((txt, idx) => (
+                                  <motion.li
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -5 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.02 }}
+                                    className={`relative flex items-start gap-2 sm:gap-3 text-xs sm:text-sm ${isFuture ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-500'}`}
+                                  >
+                                    <span className="text-gray-300 dark:text-gray-700 mt-0.5 shrink-0">•</span>
+                                    <span className="leading-relaxed wrap-break-word">{txt}</span>
+                                  </motion.li>
+                                ))}
+                              </ul>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Sticky Table of Contents (Desktop) */}
+          <div className="hidden lg:block w-64 shrink-0">
+            <div className="sticky top-24 space-y-6">
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Hash className="w-4 h-4" />
+                  Version History
+                </h3>
+                <div
+                  className="relative border-l border-gray-200 dark:border-gray-800 ml-2 space-y-1"
+                  onMouseLeave={() => setHoveredVersion(null)}
+                >
+                  {filteredVersions.map((v) => (
+                    <button
+                      key={v.version}
+                      onClick={() => scrollToVersion(v.version)}
+                      onMouseEnter={() => setHoveredVersion(v.version)}
+                      className="group relative flex items-center justify-between w-full text-left pl-4 py-1.5 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                    >
+                      {hoveredVersion === v.version && (
+                        <motion.div
+                          layoutId="toc-active-line"
+                          className="absolute left-[-1px] top-0 bottom-0 w-[2px] bg-gray-900 dark:bg-white"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                        />
+                      )}
+                      <span>v{v.version}</span>
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            );
-          })}
+
+              {/* Stats or Summary */}
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                  Overview
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Total Releases</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{versions.length}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Major Updates</span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {versions.filter(v => v.type === 'major').length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Latest</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{versions[0].version}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer - Mobile Optimized */}

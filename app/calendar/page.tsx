@@ -22,6 +22,8 @@ import CalendarTestItem from '@/components/CalendarTestItem';
 import { getClassIcon } from '@/lib/icon-map';
 import { Button } from '@/components/ui/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useRouteIntro } from '@/hooks/use-route-intro';
+import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 // Touch device detection
 const isTouchDevice = () => {
   if (typeof window === 'undefined') return false;
@@ -186,6 +188,9 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Route intro popup
+  const { showIntro, dismissIntro } = useRouteIntro('calendar');
 
   // Set up mobile detection
   useEffect(() => {
@@ -712,6 +717,21 @@ export default function CalendarPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Route Intro Popup */}
+      <RouteIntroPopup
+        isOpen={showIntro}
+        onClose={dismissIntro}
+        title="Welcome to Calendar!"
+        description="Visualize your schedule and stay organized with your interactive calendar"
+        icon={<CalendarIcon className="h-6 w-6" />}
+        features={[
+          'View all your homework, tests, and school events in one place',
+          'Navigate between months to plan ahead',
+          'Hover over items to see more details',
+          'Swipe left/right on mobile to change months',
+        ]}
+      />
     </div>
   );
 }
