@@ -24,7 +24,7 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
-      version: '1.2.3',
+      version: '2.0.1',
       date: '2025-12-01',
       title: 'UX Polish & Route Intros',
       highlight: 'Enhanced user onboarding with route introductions, modernized search experience, and improved changelog navigation',
@@ -48,7 +48,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.2.2',
+      version: '2.0',
       date: '2025-11-30',
       title: 'Public Discussion Boards',
       highlight: 'Complete transformation of discussion boards into public, shared communities with enhanced discovery and rich interactions',
@@ -74,7 +74,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.2.1',
+      version: '1.9.9',
       date: '2025-11-30',
       title: 'Hybrid Rate Limiting System',
       highlight: 'Advanced dual-storage rate limiting with database persistence and cross-device synchronization',
@@ -108,7 +108,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.2',
+      version: '1.9.8',
       date: '2025-11-29',
       title: 'Writing Assist',
       highlight: 'Professional AI-powered writing assistant with intelligent autocomplete, auto-save, and rich text editing',
@@ -151,7 +151,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.9.1',
+      version: '1.9.7.1',
       date: '2025-11-28',
       title: 'Mobile Layout Improvements',
       highlight: 'Enhanced mobile experience with better button placement and calendar responsiveness',
@@ -174,7 +174,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.9',
+      version: '1.9.7',
       date: '2025-11-28',
       title: 'Google Classroom Integration',
       highlight: 'Complete Google Classroom integration with automatic sync, real-time updates, and seamless data management',
@@ -208,7 +208,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.8',
+      version: '1.9.6',
       date: '2025-11-27',
       title: 'Dictionary Popup & AI Assistant Overhaul',
       highlight: 'Interactive dictionary lookup, advanced AI features with persistent storage, and enhanced UI polish',
@@ -245,7 +245,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.7',
+      version: '1.9.5',
       date: '2025-11-26',
       title: 'AI Worthiness & Timer Redesign',
       highlight: 'Smart game validation and minimalist study timer experience',
@@ -281,7 +281,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.6',
+      version: '1.9.4',
       date: '2025-11-25',
       title: 'Interactive Quiz & Enhanced AI Experience',
       highlight: 'New interactive quiz feature, upgraded AI models, improved navigation and search capabilities',
@@ -308,7 +308,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.5',
+      version: '1.9.3',
       date: '2025-11-24',
       title: 'Global UI Refactor & Layout Unification',
       highlight: 'Massive refactor focused on layout standardization, wide-layout support, and visual consistency',
@@ -336,7 +336,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.1',
+      version: '1.9.2',
       date: '2025-11-23',
       title: 'Changelog Redesign',
       highlight: 'Enhanced changelog page with better organization',
@@ -354,7 +354,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.1.0',
+      version: '1.9.1',
       date: '2025-11-23',
       title: 'Landing Page & Dashboard Major Redesign',
       highlight: 'UI overhaul of homepage and dashboard',
@@ -376,7 +376,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.0.9',
+      version: '1.9.0',
       date: '2025-11-21',
       title: 'Game Center & Task Tower Game',
       highlight: 'First gamified study tools',
@@ -395,7 +395,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.0.8',
+      version: '1.8.9',
       date: '2025-11-20',
       title: 'AI Assistant Redesign & Snake',
       highlight: 'AIAssistant: Personalities, improved grading',
@@ -415,7 +415,7 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.0.7',
+      version: '1.8.8',
       date: '2025-11-17',
       title: 'Dashboard Performance Optimization',
       highlight: 'Faster, leaner dashboard page',
@@ -433,10 +433,10 @@ export default function ChangelogPage() {
       ]
     },
     {
-      version: '1.0',
+      version: '1.4',
       date: '2025-10-29',
-      title: 'Public BETA!!',
-      highlight: 'Complete /tests hub with stats, drag-and-drop calendar, AI priority, and full CRUD',
+      title: 'Complete Test Management Hub',
+      highlight: 'Centralized test management with statistics, filtering, and calendar integration',
       type: 'major',
       short: [
         'Statistical overview dashboard (Total, Upcoming, Completed, Missed)',
@@ -444,8 +444,7 @@ export default function ChangelogPage() {
         'Drag-and-drop rescheduling from calendar view',
         'Three card views: default, compact, timeline',
         'AI-powered priority highlighting & caching',
-        'Supabase backend with rich text editing',
-        'Mark as taken modal with score tracking',
+        'Supabase backend with rich text editing'
       ],
       full: [
         'Built new /tests page as central hub for managing all tests with statistical overview',
@@ -457,22 +456,51 @@ export default function ChangelogPage() {
         'Built CompactTestList for space-efficient viewing of test schedules',
         'Added PriorityTestCard with AI-powered priority highlighting',
         'Implemented Supabase migrations for tests table with comprehensive fields',
-        'Created CRUD operations in lib/supabase/db.ts for full test management',
-        'Added AI priority caching in localStorage to optimize performance',
-        'Enhanced dark mode support across all test components and modals',
-        'Added global search integration for tests with class-based filtering',
-        'Created dedicated test detail and edit pages with rich text editing',
+        'Created CRUD operations in lib/supabase/db.ts for full test management'
+      ]
+    },
+    {
+      version: '1.3',
+      date: '2025-10-28',
+      title: 'Test Completion & AI Integration',
+      highlight: 'Mark as taken modal, AI priority caching, and enhanced calendar integration',
+      type: 'major',
+      short: [
+        'Mark as taken modal with score tracking',
+        'AI priority caching in localStorage',
+        'Enhanced dark mode support across test components',
+        'Global search integration for tests',
+        'Dedicated test detail and edit pages',
+        'Tiptap rich text editor integration'
+      ],
+      full: [
         'Added MarkTestAsTakenModal for easy test completion with score tracking',
         'Integrated test management into ClassContext with real-time updates',
         'Added Tiptap rich text editor for test descriptions and study materials',
         'Enhanced calendar view with test type indicators and detailed tooltips',
-        'Started building Writing Assist - AI-powered writing helper with rich text editing',
-        'Optimized performance with efficient state management and data fetching',
+        'Added AI priority caching in localStorage to optimize performance',
+        'Enhanced dark mode support across all test components and modals',
+        'Added global search integration for tests with class-based filtering',
+        'Created dedicated test detail and edit pages with rich text editing',
         'Fixed date-offset issues in test scheduling',
-        'Standardized test status to use "taken" instead of "completed"',
-        'Improved UI consistency with updated component library',
-        'Integrated AI assistant command menu with @ detection for seamless feature access',
-        'Added Vercel Analytics for page view and visitor tracking',
+        'Standardized test status to use "taken" instead of "completed"'
+      ]
+    },
+    {
+      version: '1.2',
+      date: '2025-10-27',
+      title: 'Navigation & UI Overhaul',
+      highlight: 'Complete navbar redesign, Vercel Analytics, and AI assistant integration',
+      type: 'major',
+      short: [
+        'Complete navbar overhaul with sticky design',
+        'Dark mode support across all pages',
+        'Vercel Analytics integration',
+        'AI assistant command menu with @ detection',
+        'Hero section with interactive DotGrid background',
+        'Improved 404 page navigation'
+      ],
+      full: [
         'Complete navbar overhaul with sticky design, dark mode support, and functional links',
         'Optimized navbar spacing, imports, and responsive design for better UX',
         'Enhanced dark mode implementation across all pages and components',
@@ -481,10 +509,24 @@ export default function ChangelogPage() {
         'Created Hero.tsx with interactive DotGrid background and floating cards',
         'Deployed to Render, Vercel, and Netlify for backups and redundancy',
         'Pushed all updates to GitHub repository for version control',
-        'Updated AI guidelines with new Cloud Mode (Kimi-k2) and refined model options',
-        'Refined color schemes, animations, and visual consistency',
-        'Redesigned Hero section in landing page with optimized structure and animations',
-        'Optimized overall app structure for better performance and maintainability',
+        'Integrated AI assistant command menu with @ detection for seamless feature access'
+      ]
+    },
+    {
+      version: '1.1',
+      date: '2025-10-26',
+      title: 'Performance & Visual Polish',
+      highlight: 'Lighthouse optimization, animate-ui integration, and OAuth authentication',
+      type: 'major',
+      short: [
+        '90+ Lighthouse scores across all pages',
+        'Animate-ui icons for enhanced interactions',
+        'OAuth authentication with Google Classroom',
+        'Real-time coursework syncing',
+        'Toast notifications and confetti animations',
+        'Color-coded class celebrations'
+      ],
+      full: [
         'Achieved 90+ scores in Google Lighthouse across all pages (Performance, Accessibility, SEO)',
         'Converted numerous icons to animate-ui for enhanced animations and interactions',
         'Implemented OAuth authentication and account linking with Google Classroom for secure access',
@@ -492,7 +534,36 @@ export default function ChangelogPage() {
         'Integrated data syncing to save assignments and grades to local database for seamless management',
         'Added toast notifications for due soon alerts and completed homework celebrations',
         'Integrated confetti animations for homework completion with class-specific colors',
+        'Updated AI guidelines with new Cloud Mode (Kimi-k2) and refined model options',
+        'Refined color schemes, animations, and visual consistency'
+      ]
+    },
+    {
+      version: '1.0',
+      date: '2025-10-25',
+      title: 'Public BETA Launch',
+      highlight: 'Official public beta release with core academic management features',
+      type: 'major',
+      short: [
+        'Public beta launch of TaskTornado',
+        'Core academic management system',
+        'Class and homework tracking',
+        'Basic AI assistant integration',
+        'Calendar and scheduling features',
+        'User authentication system'
       ],
+      full: [
+        'Official public beta launch of TaskTornado academic management platform',
+        'Core class management with color-coded subjects and icons',
+        'Homework tracking with due dates and completion status',
+        'Basic AI assistant for homework help and academic guidance',
+        'Calendar integration for assignment and test scheduling',
+        'User authentication and account management system',
+        'Responsive design for mobile and desktop devices',
+        'Dark mode support throughout the application',
+        'Basic search functionality for homework and classes',
+        'Foundation for advanced features and future updates'
+      ]
     },
     {
       version: '0.9.3',
@@ -703,7 +774,7 @@ export default function ChangelogPage() {
         <div className="flex flex-col lg:flex-row gap-12 relative">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Thanksgiving Message */}
+            {/* Development Completion Message */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -711,10 +782,10 @@ export default function ChangelogPage() {
               className="mb-8 sm:mb-12 p-3 sm:p-4 border border-gray-200 dark:border-gray-800 rounded-lg text-center bg-gray-50/50 dark:bg-gray-900/50"
             >
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">
-                🦃 Thanksgiving Special
+                🎯 Development Complete
               </p>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                One major release every day until end of November!
+                TaskTornado is now feature-complete. Future updates will focus on patches and bug fixes.
               </p>
             </motion.div>
 
@@ -766,7 +837,7 @@ export default function ChangelogPage() {
                                   Major
                                 </span>
                               )}
-                              {(['1.2', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.0.9', '1.0.8', '1.0', '0.9.0', '0.8.5', '0.8.0'].includes(v.version)) && (
+                              {(['2.0', '2.0.1', '1.9.9', '1.9.8', '1.9.7', '1.9.6', '1.9.5', '1.9.4', '1.9.3', '1.9.0', '1.8.9', '1.8.8', '1.4', '1.3', '1.2', '1.1', '1.0', '0.9.0', '0.8.5', '0.8.0'].includes(v.version)) && (
                                 <span className="px-1.5 py-0.5 text-xs font-medium bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded">
                                   New Feature
                                 </span>
@@ -774,11 +845,6 @@ export default function ChangelogPage() {
                               {v.type === 'minor' && (
                                 <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400 rounded">
                                   Minor
-                                </span>
-                              )}
-                              {(['1.2.2', '1.2.1', '1.2', '1.1.9.1', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5'].includes(v.version)) && (
-                                <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
-                                  🦃 Thanksgiving
                                 </span>
                               )}
                             </div>
@@ -934,7 +1000,7 @@ export default function ChangelogPage() {
         >
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.2.2
+              Built for students • Public Beta v2.0.1
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a

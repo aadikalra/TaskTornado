@@ -168,12 +168,12 @@ export default function Dock({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const responsiveBaseSize = isMobile ? baseItemSize * 0.8 : baseItemSize;
-  const responsiveMagnification = isMobile ? magnification * 0.8 : magnification;
+  const responsiveBaseSize = isMobile ? baseItemSize * 1.2 : baseItemSize;
+  const responsiveMagnification = isMobile ? magnification * 1.2 : magnification;
   const responsiveDistance = isMobile ? distance * 0.8 : distance;
   const responsiveGap = isMobile ? '0.5rem' : '1rem';
   const responsivePadding = isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem';
-  const responsiveHeight = isMobile ? 56 : 68;
+  const responsiveHeight = isMobile ? 72 : 68;
 
   return (
     <motion.div
