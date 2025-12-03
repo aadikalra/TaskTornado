@@ -81,12 +81,18 @@ const PriorityHomeworkCard = () => {
         setIsLoading(true);
         setError(null);
 
-        // Filter out completed homeworks and format them for the AI
+        // Filter and format homeworks for the AI
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
 
-        const incompleteHomeworks = homeworks
-          .filter(hw => !hw.completed)
+        // Separate overdue, due today, and upcoming homeworks
+        const overdueHomeworks = homeworks
+          .filter(hw => {
+            if (hw.completed) return false;
+            const hwDate = new Date(hw.dueDate);
+            hwDate.setHours(0, 0, 0, 0);
+            return hwDate < today; // Past due date
+          })
           .map(hw => ({
             id: hw.id,
             title: hw.title,
@@ -95,10 +101,56 @@ const PriorityHomeworkCard = () => {
             description: hw.description || '',
             links: hw.links || [],
             created_at: hw.created_at || new Date().toISOString(),
-            isOverdue: new Date(hw.dueDate) < today,
+            isOverdue: true,
+            daysOverdue: Math.floor((today.getTime() - new Date(hw.dueDate).getTime()) / (1000 * 60 * 60 * 24)),
           }));
 
-        if (incompleteHomeworks.length === 0) {
+        const dueTodayHomeworks = homeworks
+          .filter(hw => {
+            if (hw.completed) return false;
+            const hwDate = new Date(hw.dueDate);
+            hwDate.setHours(0, 0, 0, 0);
+            return hwDate.getTime() === today.getTime(); // Due today
+          })
+          .map(hw => ({
+            id: hw.id,
+            title: hw.title,
+            className: classes.find(c => c.id === hw.classId)?.name || 'Unknown Class',
+            dueDate: new Date(hw.dueDate).toISOString(),
+            description: hw.description || '',
+            links: hw.links || [],
+            created_at: hw.created_at || new Date().toISOString(),
+            isOverdue: false,
+            isDueToday: true,
+          }));
+
+        const upcomingHomeworks = homeworks
+          .filter(hw => {
+            if (hw.completed) return false;
+            const hwDate = new Date(hw.dueDate);
+            hwDate.setHours(0, 0, 0, 0);
+            return hwDate > today; // Future due date
+          })
+          .map(hw => ({
+            id: hw.id,
+            title: hw.title,
+            className: classes.find(c => c.id === hw.classId)?.name || 'Unknown Class',
+            dueDate: new Date(hw.dueDate).toISOString(),
+            description: hw.description || '',
+            links: hw.links || [],
+            created_at: hw.created_at || new Date().toISOString(),
+            isOverdue: false,
+            isDueToday: false,
+          }));
+
+        // Priority order: overdue > due today > upcoming
+        const homeworksToProcess = overdueHomeworks.length > 0 ? 
+          overdueHomeworks : 
+          dueTodayHomeworks.length > 0 ? 
+            dueTodayHomeworks : 
+            upcomingHomeworks;
+
+        if (homeworksToProcess.length === 0) {
           setPriorityHomework(null);
           setIsLoading(false);
           return;
@@ -113,19 +165,34 @@ const PriorityHomeworkCard = () => {
           role: 'user',
           content: `Current date and time: ${currentDateTime}
           
-Given the following list of incomplete homework assignments, please determine which one should be completed first based on due date, time needed, and importance. 
+Given the following list of homework assignments, please determine which one should be completed first.
+${overdueHomeworks.length > 0 ? 
+  `NOTE: These assignments are OVERDUE and should be prioritized immediately. The most overdue assignment should be selected first.` : 
+  dueTodayHomeworks.length > 0 ?
+  `NOTE: These assignments are DUE TODAY and should be prioritized immediately. Select the most important one.` :
+  `These are upcoming assignments that should be prioritized based on due date and importance.`}
+
 Consider the following factors:
-1. Proximity to due date (sooner is higher priority, overdue is highest)
+${overdueHomeworks.length > 0 ? 
+  `1. How overdue the assignment is (more days overdue = higher priority)
+2. Assignment complexity and estimated time to complete
+3. Class importance (prioritize core subjects)` :
+  dueTodayHomeworks.length > 0 ?
+  `1. Assignment complexity and estimated time to complete
+2. Class importance (prioritize core subjects)
+3. Any other relevant factors` :
+  `1. Proximity to due date (sooner is higher priority)
 2. Estimated time to complete (shorter tasks might be good to knock out quickly)
-3. Class importance (prioritize core subjects)
-4. Any other relevant factors
+3. Class importance (prioritize core subjects)`}
 
-Note: Each homework item includes an "isOverdue" field - if true, this assignment is past its due date and should be marked as highest priority.
-
-If an assignment is overdue, please mark it as 'overdue' or 'most overdue' in the reason field.
+${overdueHomeworks.length > 0 ? 
+  `Each assignment includes "daysOverdue" - the number of days past the due date. Pick the one with the highest daysOverdue.` : 
+  dueTodayHomeworks.length > 0 ?
+  `All assignments are due today. Pick the most important/urgent one.` :
+  `Any other relevant factors`}
 
 Here's the homework data in JSON format:
-${JSON.stringify(incompleteHomeworks, null, 2)}
+${JSON.stringify(homeworksToProcess, null, 2)}
 
 Please respond with a JSON object in this exact format:
 {
@@ -133,7 +200,7 @@ Please respond with a JSON object in this exact format:
   "title": "Homework Title",
   "className": "Class Name",
   "dueDate": "ISO date string",
-  "reason": "Brief explanation of why this should be done first (include 'overdue' or 'most overdue' if applicable)",
+  "reason": "Brief explanation of why this should be done first${overdueHomeworks.length > 0 ? ' (mention how overdue it is)' : dueTodayHomeworks.length > 0 ? ' (mention it\'s due today)' : ''}",
   "priority": "high|medium|low"
 }`
         }], 'gemma-3n-e4b-it');
@@ -218,6 +285,11 @@ Please respond with a JSON object in this exact format:
     determinePriorityHomework();
   }, [homeworks, classes, chat, homeworksKey, lastUpdated]);
 
+  // Don't show anything if there are no incomplete homeworks (overdue or upcoming)
+  if (homeworks.filter(hw => !hw.completed).length === 0) {
+    return null;
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -282,13 +354,28 @@ Please respond with a JSON object in this exact format:
             const homework = homeworks.find(hw => hw.id === priorityHomework.id);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const isOverdue = homework && new Date(homework.dueDate) < today;
+            const hwDate = new Date(homework?.dueDate || '');
+            hwDate.setHours(0, 0, 0, 0);
+            const isOverdue = hwDate < today;
+            const isDueToday = hwDate.getTime() === today.getTime();
 
             if (isOverdue) {
+              const daysOverdue = Math.floor((today.getTime() - hwDate.getTime()) / (1000 * 60 * 60 * 24));
               return (
                 <>
                   <AlertTriangle className="w-3 h-3 text-red-500" />
-                  <span className="text-xs font-medium text-red-600 dark:text-red-400">Overdue</span>
+                  <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                    {daysOverdue === 1 ? '1 day overdue' : `${daysOverdue} days overdue`}
+                  </span>
+                </>
+              );
+            }
+
+            if (isDueToday) {
+              return (
+                <>
+                  <AlertTriangle className="w-3 h-3 text-orange-500" />
+                  <span className="text-xs font-medium text-orange-600 dark:text-orange-400">Due Today</span>
                 </>
               );
             }

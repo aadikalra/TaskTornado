@@ -251,7 +251,7 @@ export default function GroupsPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.1.8
+              Built for students • Public Beta v2.0.2
             </p>
             <Button
               variant="ghost"

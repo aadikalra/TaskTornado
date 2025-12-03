@@ -257,22 +257,22 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async (confirmed: boolean) => {
     if (!confirmed) return;
-    
+
     setIsDeleting(true);
     try {
       // TODO: Implement actual account deletion API call
       // For now, just simulate the process
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Clear all local data
       clearAllClasses();
       clearAllHomeworks();
-      
+
       // Sign out and redirect
       if (signOut) {
         signOut();
       }
-      
+
       router.push('/');
     } catch (error) {
       console.error('Error deleting account:', error);
@@ -286,10 +286,10 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        
+
         {/* Header - Mobile Optimized */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 sm:mb-12 lg:mb-16"
         >
@@ -463,7 +463,7 @@ export default function SettingsPage() {
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v1.1.8
+              Built for students • Public Beta v2.0.2
             </p>
             <Button
               variant="ghost"

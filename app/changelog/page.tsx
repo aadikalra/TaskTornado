@@ -24,6 +24,32 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
+      version: '2.0.2',
+      date: '2025-12-02',
+      title: 'AI Homework Priority Fix & Alignment Improvements',
+      highlight: 'Fixed AI homework priority card with proper overdue/due-today handling and improved UI alignment',
+      type: 'minor',
+      short: [
+        'Fixed AI homework priority card spinning issue',
+        'Added proper overdue/due-today priority logic',
+        'Improved UI alignment across components',
+        'Enhanced priority display with day counters',
+        'Better date handling for homework assignments'
+      ],
+      full: [
+        'Fixed AI homework priority card that was stuck spinning by implementing proper three-tier priority system',
+        'Added overdue homework detection with day counters (e.g., "3 days overdue")',
+        'Implemented due today priority logic with orange "Due Today" indicators',
+        'Enhanced AI prompts to handle different scenarios (overdue/due today/upcoming) with specific instructions',
+        'Improved date comparison logic using getTime() for accurate due date detection',
+        'Fixed UI alignment issues in priority card display components',
+        'Added proper fallback logic for homework processing (overdue > due today > upcoming)',
+        'Enhanced visual indicators with color-coded priority badges (red for overdue, orange for due today)',
+        'Improved error handling and data validation in AI response parsing',
+        'Optimized component performance with better filtering and caching logic'
+      ]
+    },
+    {
       version: '2.0.1',
       date: '2025-12-01',
       title: 'UX Polish & Route Intros',
@@ -1000,7 +1026,7 @@ export default function ChangelogPage() {
         >
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v2.0.1
+              Built for students • Public Beta v2.0.2
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a

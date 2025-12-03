@@ -978,8 +978,8 @@ const MainApp = () => {
               className="mb-4 cursor-pointer group"
               onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
             >
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex justify-between items-center md:justify-start">
                   <div>
                     <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                       Pinned Homeworks
@@ -987,7 +987,7 @@ const MainApp = () => {
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
                   </div>
                   <div
-                    className={`p-2 rounded-lg transition-all duration-500 sm:hidden ${showPinnedHomeworks
+                    className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showPinnedHomeworks
                       ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                       : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                       }`}
@@ -996,7 +996,7 @@ const MainApp = () => {
                       }`} />
                   </div>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end space-x-3">
+                <div className="flex items-center gap-3">
                   <Button
                     variant="default"
                     onClick={(e) => {
@@ -1010,7 +1010,7 @@ const MainApp = () => {
                     Pin Homework
                   </Button>
                   <div
-                    className={`p-2 rounded-lg transition-all duration-500 hidden sm:block ${showPinnedHomeworks
+                    className={`p-2 rounded-lg transition-all duration-500 hidden md:block ${showPinnedHomeworks
                       ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                       : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                       }`}
@@ -1043,8 +1043,8 @@ const MainApp = () => {
                 className="mb-4 cursor-pointer group"
                 onClick={() => handleToggleClasses(!showClasses)}
               >
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div className="flex justify-between items-center md:justify-start">
                     <div>
                       <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                         My Classes
@@ -1052,7 +1052,7 @@ const MainApp = () => {
                       <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
                     </div>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 sm:hidden ${showClasses
+                      className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showClasses
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                         : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
@@ -1061,7 +1061,7 @@ const MainApp = () => {
                         }`} />
                     </div>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <div className="flex items-center gap-3">
                     <Button
                       variant="default"
                       onClick={(e) => {
@@ -1083,7 +1083,7 @@ const MainApp = () => {
                       <Plus className="mr-2 h-4 w-4" /> Add Homework
                     </Button>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 hidden sm:block ${showClasses
+                      className={`p-2 rounded-lg transition-all duration-500 hidden md:block ${showClasses
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                         : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
@@ -1282,8 +1282,8 @@ const MainApp = () => {
                 className="mb-4 cursor-pointer group"
                 onClick={() => handleToggleTests(!showTests)}
               >
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div className="flex justify-between items-center md:justify-start">
                     <div>
                       <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                         Tests & Exams
@@ -1291,7 +1291,7 @@ const MainApp = () => {
                       <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
                     </div>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 sm:hidden ${showTests
+                      className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showTests
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                         : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
@@ -1300,7 +1300,7 @@ const MainApp = () => {
                         }`} />
                     </div>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-end space-x-3">
+                  <div className="flex items-center gap-3">
                     <Button
                       variant="default"
                       onClick={(e) => {
@@ -1312,7 +1312,7 @@ const MainApp = () => {
                       <Plus className="mr-2 h-4 w-4" /> Add Test
                     </Button>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 hidden sm:block ${showTests
+                      className={`p-2 rounded-lg transition-all duration-500 hidden md:block ${showTests
                         ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
                         : 'rotate-0 bg-gray-100 dark:bg-gray-900'
                         }`}
@@ -1836,13 +1836,13 @@ const MainApp = () => {
       </main>
       {!areAnimationsPaused && <ReindeerAnimation />}
       <StopAnimationsButton areAnimationsPaused={areAnimationsPaused} onToggle={toggleAnimations} />
-      
+
       {/* Onboarding Modal */}
       <AnimatePresence>
         {showOnboarding && (
-          <OnboardingModal 
-            isOpen={showOnboarding} 
-            onClose={() => setShowOnboarding(false)} 
+          <OnboardingModal
+            isOpen={showOnboarding}
+            onClose={() => setShowOnboarding(false)}
           />
         )}
       </AnimatePresence>
