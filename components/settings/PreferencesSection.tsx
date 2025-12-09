@@ -4,6 +4,7 @@ import { Sparkles, Trophy, Award, Brain, Check, Maximize2 } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
+import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
@@ -32,111 +33,142 @@ export default function PreferencesSection({
   useWideLayout,
   onToggleWideLayout
 }: PreferencesSectionProps) {
+  const [showBetaModal, setShowBetaModal] = useState(false);
+  const [betaAccessGranted, setBetaAccessGranted] = useState(false);
+
+  const handleAIPriorityToggle = (checked: boolean) => {
+    if (checked && !betaAccessGranted) {
+      setShowBetaModal(true);
+      return;
+    }
+    onToggleAIPriority(checked);
+  };
+
+  const handleBetaSuccess = () => {
+    setBetaAccessGranted(true);
+    onToggleAIPriority(true);
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-        <div className="flex items-start gap-3">
-          <div className="mt-1">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              AI Priority Recommendation
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Show the AI-powered homework recommendation card on the dashboard.
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={showAIPriority}
-          onCheckedChange={onToggleAIPriority}
-        />
-      </div>
-
-      <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-        <div className="flex items-start gap-3">
-          <div className="mt-1">
-            <Trophy className="h-5 w-5 text-amber-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              Level Display
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Show your current level and XP progress on the dashboard.
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={showLevelDisplay}
-          onCheckedChange={onToggleLevelDisplay}
-        />
-      </div>
-
-      <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-        <div className="flex items-start gap-3">
-          <div className="mt-1">
-            <Award className="h-5 w-5 text-blue-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              Subject Mastery
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Show your top performing subjects and completion rates.
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={showSubjectMastery}
-          onCheckedChange={onToggleSubjectMastery}
-        />
-      </div>
-
-      <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-        <div className="flex items-start gap-3">
-          <div className="mt-1">
-            <Maximize2 className="h-5 w-5 text-green-500" />
-          </div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              Full Width Mode
-            </h3>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-              Recommended
+    <>
+      <div className="space-y-4">
+        <div className="relative flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+          {/* ALPHA Badge */}
+          <div className="absolute -top-2 -left-2 z-10">
+            <span className="text-[10px] px-1.5 py-0.5 bg-black dark:bg-white text-white dark:text-black">
+              ALPHA
             </span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-            Use the full width of your screen for the settings page layout.
-          </p>
-        </div>
-        <Switch
-          checked={useWideLayout}
-          onCheckedChange={onToggleWideLayout}
-        />
-      </div>
-
-      <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-        <div className="flex items-start gap-3 flex-1">
-          <div className="mt-1">
-            <Brain className="h-5 w-5 text-indigo-500" />
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <Sparkles className="h-5 w-5 text-purple-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                AI Priority Recommendation
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+                Show the AI-powered homework recommendation card on the dashboard.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              AI Assistant Personality
-            </h3>
+          <Switch
+            checked={showAIPriority}
+            onCheckedChange={handleAIPriorityToggle}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <Trophy className="h-5 w-5 text-amber-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                Level Display
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+                Show your current level and XP progress on the dashboard.
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={showLevelDisplay}
+            onCheckedChange={onToggleLevelDisplay}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <Award className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                Subject Mastery
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+                Show your top performing subjects and completion rates.
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={showSubjectMastery}
+            onCheckedChange={onToggleSubjectMastery}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              <Maximize2 className="h-5 w-5 text-green-500" />
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                Full Width Mode
+              </h3>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                Recommended
+              </span>
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Choose how the AI assistant communicates with you.
+              Use the full width of your screen for the settings page layout.
             </p>
           </div>
+          <Switch
+            checked={useWideLayout}
+            onCheckedChange={onToggleWideLayout}
+          />
         </div>
-        <CustomPersonalitySelect
-          value={aiPersonality}
-          onValueChange={onPersonalityChange}
-        />
+
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+          <div className="flex items-start gap-3 flex-1">
+            <div className="mt-1">
+              <Brain className="h-5 w-5 text-indigo-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                AI Assistant Personality
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+                Choose how the AI assistant communicates with you.
+              </p>
+            </div>
+          </div>
+          <CustomPersonalitySelect
+            value={aiPersonality}
+            onValueChange={onPersonalityChange}
+          />
+        </div>
       </div>
-    </div>
+
+      {/* Beta Password Modal */}
+      <BetaPasswordModal
+        isOpen={showBetaModal}
+        onClose={() => setShowBetaModal(false)}
+        onSuccess={handleBetaSuccess}
+      />
+    </>
   );
 }
 

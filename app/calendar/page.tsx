@@ -188,6 +188,7 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedDay, setExpandedDay] = useState<Date | null>(null);
 
   // Route intro popup
   const { showIntro, dismissIntro } = useRouteIntro('calendar');
@@ -602,7 +603,7 @@ export default function CalendarPage() {
                   <TooltipProvider>
                     <div className="space-y-0.5 sm:space-y-1">
                       {/* Homework */}
-                      {calendarDay.homeworks.slice(0, 2).map((hw) => {
+                      {calendarDay.homeworks.slice(0, 3).map((hw) => {
                         const classItem = classes.find(c => c.id === hw.classId);
                         return (
                           <Tooltip key={hw.id}>
@@ -632,7 +633,7 @@ export default function CalendarPage() {
                       })}
 
                       {/* Tests */}
-                      {calendarDay.tests.slice(0, 1).map((test) => {
+                      {calendarDay.tests.slice(0, 4).map((test) => {
                         const classItem = classes.find(c => c.id === test.classId);
                         const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
                         return (
@@ -644,15 +645,52 @@ export default function CalendarPage() {
                                 <span className="truncate xs:hidden sm:hidden">{test.title.slice(0, 8)}...</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="w-64 p-2">
-                              <div className="space-y-1">
-                                <h4 className="font-medium">{test.title}</h4>
+                            <TooltipContent className="w-72 p-3">
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-base">{test.title}</h4>
                                 {classItem && (
                                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                                     <ClassIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                                     <span className="truncate">{classItem.name}</span>
                                   </div>
                                 )}
+                                <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                  {test.testType && (
+                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                      <span className="font-medium mr-2">Type:</span>
+                                      <span className="capitalize">{test.testType}</span>
+                                    </div>
+                                  )}
+                                  {test.testTime && (
+                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                      <Clock className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                      <span>{format(new Date(test.testTime), 'h:mm a')}</span>
+                                    </div>
+                                  )}
+                                  {test.location && (
+                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                      <span className="font-medium mr-2">Location:</span>
+                                      <span>{test.location}</span>
+                                    </div>
+                                  )}
+                                  {test.duration && (
+                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                      <span className="font-medium mr-2">Duration:</span>
+                                      <span>{test.duration} minutes</span>
+                                    </div>
+                                  )}
+                                  {test.weight !== null && test.weight !== undefined && (
+                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                      <span className="font-medium mr-2">Weight:</span>
+                                      <span>{test.weight}%</span>
+                                    </div>
+                                  )}
+                                  {test.notes && (
+                                    <div className="pt-1.5 border-t border-gray-200 dark:border-gray-700">
+                                      <p className="text-sm text-gray-600 dark:text-gray-400">{test.notes}</p>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </TooltipContent>
                           </Tooltip>
@@ -660,7 +698,7 @@ export default function CalendarPage() {
                       })}
 
                       {/* School Events */}
-                      {calendarDay.events.slice(0, 1).map((event) => (
+                      {calendarDay.events.slice(0, 2).map((event) => (
                         <Tooltip key={event.id}>
                           <TooltipTrigger asChild>
                             <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-green-100 dark:bg-green-900/30 rounded text-[10px] sm:text-xs text-green-700 dark:text-green-300 truncate cursor-pointer">
@@ -681,11 +719,23 @@ export default function CalendarPage() {
                       ))}
 
                       {/* Show more indicator */}
-                      {calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length > 3 && (
-                        <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 text-center">
-                          +{calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length - 3} more
-                        </div>
-                      )}
+                      {(() => {
+                        const totalItems = calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length;
+                        const displayedItems = Math.min(calendarDay.homeworks.length, 3) + Math.min(calendarDay.tests.length, 4) + Math.min(calendarDay.events.length, 2);
+                        const remaining = totalItems - displayedItems;
+
+                        if (remaining > 0) {
+                          return (
+                            <button
+                              onClick={() => setExpandedDay(calendarDay.date)}
+                              className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-center w-full py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                            >
+                              +{remaining} more
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   </TooltipProvider>
                 </motion.div>
@@ -693,6 +743,184 @@ export default function CalendarPage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Expanded Day Modal */}
+        {expandedDay && (() => {
+          const expandedDayData = days.find(d => isSameDay(d.date, expandedDay));
+          if (!expandedDayData) return null;
+
+          return (
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setExpandedDay(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-light text-gray-900 dark:text-white">
+                        {format(expandedDay, 'MMMM d, yyyy')}
+                      </h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {expandedDayData.homeworks.length + expandedDayData.tests.length + expandedDayData.events.length} items
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setExpandedDay(null)}
+                      className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    >
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                  {/* Homework Section */}
+                  {expandedDayData.homeworks.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-blue-500" />
+                        Homework ({expandedDayData.homeworks.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {expandedDayData.homeworks.map((hw) => {
+                          const classItem = classes.find(c => c.id === hw.classId);
+                          return (
+                            <div
+                              key={hw.id}
+                              className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                            >
+                              <h4 className="font-medium text-gray-900 dark:text-white">{hw.title}</h4>
+                              {classItem && (
+                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+                                  {classItem.name}
+                                </div>
+                              )}
+                              {hw.description && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{hw.description}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tests Section */}
+                  {expandedDayData.tests.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                        <GraduationCap className="h-5 w-5 text-red-500" />
+                        Tests & Exams ({expandedDayData.tests.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {expandedDayData.tests.map((test) => {
+                          const classItem = classes.find(c => c.id === test.classId);
+                          const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
+                          return (
+                            <div
+                              key={test.id}
+                              className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
+                            >
+                              <h4 className="font-medium text-gray-900 dark:text-white">{test.title}</h4>
+                              {classItem && (
+                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  <ClassIcon className="h-3.5 w-3.5 mr-1.5" />
+                                  {classItem.name}
+                                </div>
+                              )}
+                              <div className="mt-3 space-y-1.5">
+                                {test.testType && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <span className="font-medium mr-2">Type:</span>
+                                    <span className="capitalize">{test.testType}</span>
+                                  </div>
+                                )}
+                                {test.testTime && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <Clock className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                    <span>{format(new Date(test.testTime), 'h:mm a')}</span>
+                                  </div>
+                                )}
+                                {test.location && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <span className="font-medium mr-2">Location:</span>
+                                    <span>{test.location}</span>
+                                  </div>
+                                )}
+                                {test.duration && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <span className="font-medium mr-2">Duration:</span>
+                                    <span>{test.duration} minutes</span>
+                                  </div>
+                                )}
+                                {test.weight !== null && test.weight !== undefined && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <span className="font-medium mr-2">Weight:</span>
+                                    <span>{test.weight}%</span>
+                                  </div>
+                                )}
+                                {test.notes && (
+                                  <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-700">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{test.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* School Events Section */}
+                  {expandedDayData.events.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                        <CalendarDays className="h-5 w-5 text-green-500" />
+                        School Events ({expandedDayData.events.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {expandedDayData.events.map((event) => (
+                          <div
+                            key={event.id}
+                            className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+                          >
+                            <h4 className="font-medium text-gray-900 dark:text-white">{event.title}</h4>
+                            {event.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{event.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {expandedDayData.homeworks.length === 0 &&
+                    expandedDayData.tests.length === 0 &&
+                    expandedDayData.events.length === 0 && (
+                      <div className="text-center py-12">
+                        <CalendarIcon className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400">No items for this day</p>
+                      </div>
+                    )}
+                </div>
+              </motion.div>
+            </div>
+          );
+        })()}
 
         {/* Footer */}
         <motion.div

@@ -24,6 +24,38 @@ export default function ChangelogPage() {
 
   const versions: Version[] = [
     {
+      version: '2.0.3',
+      date: '2025-12-05',
+      title: 'Calendar & Test UI Enhancements',
+      highlight: 'Interactive calendar with expandable day view, enhanced test tooltips, and improved test editing experience',
+      type: 'minor',
+      short: [
+        'Clickable "+X more" indicators on calendar days',
+        'Expandable day modal showing all events',
+        'Enhanced test tooltips with detailed information',
+        'Replaced basic date input with modern calendar picker',
+        'Added custom shadcn-style time picker component',
+        'Fixed save button visibility with bottom padding',
+        'Improved overall form layout and user experience'
+      ],
+      full: [
+        'Added clickable "+X more" indicators on calendar days that show hidden events',
+        'Implemented expandable day modal that displays all homework, tests, and school events for a selected day',
+        'Enhanced test tooltips to show comprehensive information including test type, time, location, duration, weight, and notes',
+        'Updated test cards in expanded day modal to display the same detailed information',
+        'Improved calendar user experience with better event visibility and organization',
+        'Replaced the basic HTML date input with a modern calendar picker component using Popover and Calendar from shadcn/ui',
+        'Created a custom TestTimePicker component with hour/minute/period selection columns and quick pick options (Morning Block, Lunch Time, After School, Evening)',
+        'Added bottom padding (pb-24) to the edit test page to prevent the save button from being hidden behind the bottom navbar',
+        'Enhanced the time picker with features like clear functionality, 12-hour format with AM/PM selection, and intuitive scrollable columns',
+        'Improved the overall form layout with better spacing and consistent styling that matches the rest of the application',
+        'Added helpful placeholder text and descriptions to guide users through the time selection process',
+        'Fixed TypeScript type issues in the time picker component for better type safety',
+        'Ensured the new components are fully responsive and work well on both desktop and mobile devices',
+        'Added smooth animations and transitions to the expandable day modal for a premium feel'
+      ]
+    },
+    {
       version: '2.0.2',
       date: '2025-12-02',
       title: 'AI Homework Priority Fix & Alignment Improvements',
@@ -815,6 +847,56 @@ export default function ChangelogPage() {
               </p>
             </motion.div>
 
+            {/* In Progress Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mb-8 sm:mb-12"
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                {/* Bug Fixes */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 sm:p-6">
+                  <div className="flex items-baseline gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <h3 className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+                      Bug Fixes
+                    </h3>
+                    <span className="px-2 py-0.5 text-xs font-medium bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded">
+                      In Progress
+                    </span>
+                  </div>
+                  <ul className="space-y-1.5 sm:space-y-2">
+                    <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
+                      <span className="leading-relaxed">Insufficient bottom padding on some pages causing content to be hidden behind navigation</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* New Features */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 sm:p-6">
+                  <div className="flex items-baseline gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <h3 className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+                      New Features
+                    </h3>
+                    <span className="px-2 py-0.5 text-xs font-medium bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded">
+                      In Progress
+                    </span>
+                  </div>
+                  <ul className="space-y-1.5 sm:space-y-2">
+                    <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
+                      <span className="leading-relaxed">Migrating changelog data to an API service for better maintainability and dynamic updates</span>
+                    </li>
+                    <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
+                      <span className="leading-relaxed">Subtasks feature for breaking down homework and assignments into manageable steps</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+
             {/* Versions List */}
             <div className="space-y-8 sm:space-y-12">
               {filteredVersions.length === 0 ? (
@@ -977,7 +1059,7 @@ export default function ChangelogPage() {
                       {hoveredVersion === v.version && (
                         <motion.div
                           layoutId="toc-active-line"
-                          className="absolute left-[-1px] top-0 bottom-0 w-[2px] bg-gray-900 dark:bg-white"
+                          className="absolute -left-px top-0 bottom-0 w-[2px] bg-gray-900 dark:bg-white"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}

@@ -185,13 +185,7 @@ const EnhancedTestCard = ({
               <CheckCircle2 className="h-3 w-3" />
               {displayScore}
             </div>
-          ) : (
-            // Placeholder to keep layout stable if no score, or maybe show time
-             <div className={`text-gray-400 flex items-center gap-1 ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                <Clock className="h-3 w-3" />
-                <span className="opacity-60">--:--</span>
-             </div>
-          )}
+          ) : null}
 
           {/* Action Buttons (Absolute on mobile, hover on desktop) */}
           <div className={`

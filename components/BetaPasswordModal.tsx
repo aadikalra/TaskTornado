@@ -56,7 +56,7 @@ export const BetaPasswordModal = ({ isOpen, onClose, onSuccess }: AlphaPasswordM
                     ALPHA Access
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-500">
-                    Unstable feature ahead
+                    Experimental Feature Preview
                   </p>
                 </div>
               </div>
@@ -75,10 +75,10 @@ export const BetaPasswordModal = ({ isOpen, onClose, onSuccess }: AlphaPasswordM
                   Google sign-in is currently in alpha testing.
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  This feature is <span className="font-medium text-black dark:text-white">not stable</span> and probably will contain errors.
+                  This feature is <span className="font-medium text-black dark:text-white">not stable</span> and may contain errors.
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-                  This feature will be out of alpha in a few weeks once extensive stress testing has been completed.
+                  We're actively working on improvements and plan to release a stable version soon after thorough testing.
                 </p>
               </div>
 
@@ -89,7 +89,7 @@ export const BetaPasswordModal = ({ isOpen, onClose, onSuccess }: AlphaPasswordM
                   className="data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=unchecked]:border-gray-300 dark:data-[state=unchecked]:border-gray-700 data-[state=unchecked]:border-2 mt-0.5"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  I understand this is an ALPHA feature and probably will contain errors, bugs, or instability. I acknowledge that this feature is not yet ready for production use.
+                  I understand this is an experimental feature that may contain bugs or unexpected behavior. I acknowledge it's still in active development.
                 </span>
               </label>
 

@@ -17,13 +17,14 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO } from 'date-fns';
-import { Calendar as CalendarIcon, X, Save, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, X, Save, ArrowLeft, Clock } from 'lucide-react';
 import Link from 'next/link';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { TestTimePicker } from '@/components/TestTimePicker';
 
 type StudyMaterial = string | { url: string; title?: string };
 type Priority = 'low' | 'medium' | 'high' | 'critical';
@@ -171,7 +172,7 @@ export default function EditTestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
       <div className="max-w-4xl mx-auto p-6">
         <div className="relative flex items-center justify-center mb-8 py-2">
           <Link href="/dashboard" className="absolute left-0 inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
@@ -353,25 +354,38 @@ export default function EditTestPage() {
 
               <div className="space-y-2">
                 <Label>Test Date *</Label>
-                <div className="relative">
-                  <Input
-                    type="date"
-                    value={testDate ? format(testDate, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => setTestDate(e.target.value ? new Date(e.target.value) : undefined)}
-                    required
-                  />
-                  <CalendarIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {testDate ? format(testDate, 'PPP') : 'Pick a date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={testDate}
+                      onSelect={(date) => setTestDate(date || new Date())}
+                      initialFocus
+                      required
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="time">Time (Optional)</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={testTime}
-                  onChange={(e) => setTestTime(e.target.value)}
+                <TestTimePicker
+                  value={testTime || undefined}
+                  onChange={(value) => setTestTime(value)}
+                  placeholder="Add specific time"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Pick an exact time or leave blank if unknown.
+                </p>
               </div>
 
               <div className="space-y-2">
