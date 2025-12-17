@@ -64,6 +64,7 @@ import IconBadgeSparkle from './glass-icons/IconBadgeSparkle';
 import { SplittingText } from './animate-ui/primitives/texts/splitting';
 import { useAuth } from '@/context/AuthContext';
 import { rateLimitService } from '@/lib/services/rateLimitService';
+import { Toast, ToastContainer } from './Toast';
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -214,7 +215,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [commandFilter, setCommandFilter] = useState('');
 
   // Model selection state
-  const [selectedModel, setSelectedModel] = useState<'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud'>('gemma-3n-e4b-it');
+  const [selectedModel, setSelectedModel] = useState<'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'deepseek-v3.1:671b'>('gemma-3n-e4b-it');
 
   // Resize state and refs
   const [panelSize, setPanelSize] = useState({ width: 500, height: 600 });
@@ -246,6 +247,10 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [activeCommand, setActiveCommand] = useState<
     'data' | 'control' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | null
   >(null);
+
+  // Toast state
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const dataToastShownRef = useRef(false);
 
   // AI Personality setting
   type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
@@ -297,6 +302,11 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       deleteCookie('ai-assistant-messages');
       localStorage.removeItem('ai-assistant-input');
     }
+  };
+
+  const addToast = (toast: Omit<Toast, 'id'>) => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { ...toast, id }]);
   };
 
   /* ---------------------------------------------------------------------- */
@@ -352,27 +362,43 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     if (inputLower.includes('@data')) {
       setActiveCommand('data');
       setShowHomeworkEffect(true);
+      if (!dataToastShownRef.current) {
+        addToast({
+          type: 'info',
+          title: 'Smart Model Recommended',
+          message: 'For the best response with @data, consider switching to Deep or Cloud model.',
+          duration: 6000
+        });
+        dataToastShownRef.current = true;
+      }
     } else if (inputLower.includes('@control')) {
       setActiveCommand('control');
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     } else if (inputLower.includes('@resources')) {
       setActiveCommand('resources');
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     } else if (inputLower.includes('@flashcards')) {
       setActiveCommand('flashcards');
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     } else if (inputLower.includes('@quiz')) {
       setActiveCommand('quiz');
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     } else if (inputLower.includes('@therapist')) {
       setActiveCommand('therapist');
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     } else if (inputLower.includes('@grade')) {
       setActiveCommand('grade');
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     } else {
       setActiveCommand(null);
       setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
     }
   }, [input]);
 
@@ -467,7 +493,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
         setQuickMessageCounter(syncedCounts.quick);
         setDeeperMessageCounter(syncedCounts.deeper);
         setCloudMessageCounter(syncedCounts.cloud);
-        
+
         // Update cookies with synced values if database was higher
         if (syncedCounts.quick > cookieCounts.quick) {
           const expiryDate = new Date();
@@ -1507,7 +1533,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
     const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? 100 :
-      selectedModel === 'gemini-2.5-flash-lite' ? 10 :
+      selectedModel === 'gemini-2.5-flash-lite' ? 30 :
         20;
 
     if (currentCounter >= maxLimit) {
@@ -1523,7 +1549,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
       setQuickMessageCounter(prev => prev + 1);
     } else if (selectedModel === 'gemini-2.5-flash-lite') {
       setDeeperMessageCounter(prev => prev + 1);
-    } else if (selectedModel === 'kimi-k2:1t-cloud') {
+    } else if (selectedModel === 'deepseek-v3.1:671b') {
       setCloudMessageCounter(prev => prev + 1);
     }
 
@@ -1727,7 +1753,7 @@ Examples of correct button prompts:
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
     const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? 100 :
-      selectedModel === 'gemini-2.5-flash-lite' ? 10 :
+      selectedModel === 'gemini-2.5-flash-lite' ? 30 :
         20;
 
     if (currentCounter >= maxLimit) {
@@ -1911,7 +1937,7 @@ Examples of correct button prompts:
       setQuickMessageCounter(prev => prev + 1);
     } else if (selectedModel === 'gemini-2.5-flash-lite') {
       setDeeperMessageCounter(prev => prev + 1);
-    } else if (selectedModel === 'kimi-k2:1t-cloud') {
+    } else if (selectedModel === 'deepseek-v3.1:671b') {
       setCloudMessageCounter(prev => prev + 1);
     }
 
@@ -2448,7 +2474,7 @@ Examples of how to handle different types:
                         animate={{
                           width: `${Math.min(100, (
                             selectedModel === 'gemma-3n-e4b-it' ? (quickMessageCounter / 100) * 100 :
-                              selectedModel === 'gemini-2.5-flash-lite' ? (deeperMessageCounter / 10) * 100 :
+                              selectedModel === 'gemini-2.5-flash-lite' ? (deeperMessageCounter / 30) * 100 :
                                 (cloudMessageCounter / 20) * 100
                           ))}%`
                         }}
@@ -2514,20 +2540,19 @@ Examples of how to handle different types:
               )}
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in-95 duration-500">
-                  <div className="mb-6 p-4 rounded-full bg-primary/5 ring-1 ring-primary/10 shadow-[0_0_30px_-10px_rgba(var(--primary),0.2)]">
-                    <IconSparkle />
-
+                  <div className="p-4 rounded-full ring-1 ring-primary/10 shadow-[0_0_30px_-10px_rgba(var(--primary),0.2)] transition-all duration-300 hover:animate-[spin_3s_linear_infinite]">
+                    <IconBadgeSparkle size="55px" />
                   </div>
 
                   <div className="relative max-w-[450px]">
                     <SplittingText
-                      text={`How may I help you today, ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Student'}?`}
+                      text={`Hey ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}! What can I help you with?`}
                       aria-hidden="true"
                       className="block text-xl font-semibold text-center text-neutral-200 dark:text-neutral-800"
                       disableAnimation
                     />
                     <SplittingText
-                      text={`How may I help you today, ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Student'}?`}
+                      text={`Hey ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}! What can I help you with?`}
                       className="block text-xl font-semibold text-center absolute inset-0"
                       type="chars"
                       inView
@@ -2535,14 +2560,6 @@ Examples of how to handle different types:
                       animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
                       transition={{ duration: 0.4, ease: 'easeOut' }}
                     />
-                  </div>
-
-
-                  {/* Simple instruction */}
-                  <div className="w-full max-w-5xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-3xl p-4 shadow-2xl shadow-black/5">
-                    <div className="text-center text-sm text-muted-foreground">
-                      Type <span className="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">@</span> to see all available commands
-                    </div>
                   </div>
                 </div>
               ) : (
@@ -2788,20 +2805,20 @@ Examples of how to handle different types:
                         placeholder={
                           (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                            (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
+                            (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)
                             ? `Daily limit reached for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode - try again tomorrow`
                             : "Ask me anything..."
                         }
                         disabled={
                           (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                           (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                          (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
+                          (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)
                         }
                         className={cn(
                           `min-h-[60px] w-full resize-none border-0 bg-transparent p-3 pr-24 pb-10 focus-visible:ring-0 focus-visible:ring-offset-0`,
                           ((selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                            (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)) &&
+                            (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)) &&
                           'opacity-50 cursor-not-allowed',
                           activeCommand === 'data'
                             ? 'text-yellow-700 dark:text-yellow-200'
@@ -2837,7 +2854,7 @@ Examples of how to handle different types:
 
                         <Select
                           value={selectedModel}
-                          onValueChange={(value) => setSelectedModel(value as 'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'kimi-k2:1t-cloud')}
+                          onValueChange={(value) => setSelectedModel(value as 'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'deepseek-v3.1:671b')}
                         >
                           <SelectTrigger className="w-fit border-none bg-transparent! p-0 text-sm text-muted-foreground hover:text-foreground focus:ring-0 shadow-none h-auto">
                             <SelectValue>
@@ -2861,7 +2878,7 @@ Examples of how to handle different types:
                                         WebkitTextFillColor: "transparent",
                                       }}
                                     >
-                                      SMARTEST
+                                      MAX
                                     </span>
                                   </div>
                                 </div>
@@ -2885,7 +2902,7 @@ Examples of how to handle different types:
                                 Deeper analysis
                               </span>
                             </SelectItem>
-                            <SelectItem value="kimi-k2:1t-cloud">
+                            <SelectItem value="deepseek-v3.1:671b">
                               <div className="flex items-center gap-1">
                                 <span>Cloud</span>
                                 <div className="flex h-[14px] items-center gap-1.5 rounded border border-border px-1 py-0">
@@ -2897,7 +2914,7 @@ Examples of how to handle different types:
                                       WebkitTextFillColor: "transparent",
                                     }}
                                   >
-                                    SMARTEST
+                                    MAX
                                   </span>
                                 </div>
                               </div>
@@ -2995,7 +3012,7 @@ Examples of how to handle different types:
                           (!input.trim() && selectedImages.length === 0) ||
                           (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
                           (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                          (selectedModel === 'kimi-k2:1t-cloud' && cloudMessageCounter >= 20)
+                          (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)
                         }
                         className={cn(
                           `p-1.5 rounded-full transition-colors duration-200`,
@@ -3033,6 +3050,8 @@ Examples of how to handle different types:
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ToastContainer toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
     </>
   );
 }

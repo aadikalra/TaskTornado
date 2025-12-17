@@ -1128,7 +1128,15 @@ const MainApp = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {classes.map((cls: any, index: number) => (
+                  {classes
+                    .filter((cls: any) => {
+                      // Only show classes that have homework assignments
+                      const classHomeworks = homeworks.filter((hw: any) => 
+                        hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null)
+                      );
+                      return classHomeworks.length > 0;
+                    })
+                    .map((cls: any, index: number) => (
                     <motion.div
                       key={cls.id}
                       layout
@@ -1144,7 +1152,7 @@ const MainApp = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center w-full gap-2">
                           <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0"
+                            className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0"
                             style={{ backgroundColor: getClassColor(index) }}
                           >
                             {(() => {

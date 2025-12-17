@@ -234,19 +234,23 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     if (showLogoutConfirm) {
-      if (signOut) {
-        signOut();
-      }
       setIsLoggingOut(true);
+
+      // Sign out first
+      if (signOut) {
+        await signOut();
+      }
+
+      // Then show countdown and redirect
       let countdownValue = 3;
       const interval = setInterval(() => {
         countdownValue -= 1;
         setCountdown(countdownValue);
         if (countdownValue === 0) {
           clearInterval(interval);
-          router.push('/');
+          router.push('/login');
         }
       }, 1000);
     } else {
@@ -463,7 +467,7 @@ export default function SettingsPage() {
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v2.0.2
+              Built for students • Public Beta v2.0.3
             </p>
             <Button
               variant="ghost"

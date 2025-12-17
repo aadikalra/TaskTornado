@@ -106,8 +106,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Check if this is a cloud model (ends with -cloud)
-    const isCloudModel = model.endsWith('-cloud');
+    // Check if this is an Ollama model (ends with -cloud OR contains : which is Ollama's tag format)
+    const isCloudModel = model.endsWith('-cloud') || model.includes(':');
 
     // Check if API key is configured for the appropriate service
     if (isCloudModel) {
@@ -400,8 +400,11 @@ export async function POST(req: NextRequest) {
       };
 
       // Prepare the request body for Ollama Cloud with streaming
+      // Strip the -cloud suffix as Ollama expects the base model name
+      const ollamaModelName = model.replace(/-cloud$/, '');
+
       const ollamaRequestBody = {
-        model: model,
+        model: ollamaModelName,
         messages: messages ? convertToOllamaMessages(messages) : [{ role: 'user', content: prompt }],
         options: {
           temperature: 0.7,
@@ -409,6 +412,13 @@ export async function POST(req: NextRequest) {
         },
         stream: true, // Enable streaming
       };
+
+      console.log('Ollama Cloud request:', {
+        originalModel: model,
+        ollamaModel: ollamaModelName,
+        messageCount: ollamaRequestBody.messages.length,
+        stream: ollamaRequestBody.stream
+      });
 
       // Forward the streaming request to Ollama Cloud
       let response;

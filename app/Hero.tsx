@@ -452,8 +452,8 @@ const Hero: React.FC = () => {
             {isLarge && (
               <div style={styles.heroStats}>
                 <div style={styles.statItem}>
-                  <span style={styles.statNumber}>10k+</span>
-                  <span style={styles.statLabel}>Students Organized</span>
+                  <span style={styles.statNumber}>50+</span>
+                  <span style={styles.statLabel}>Active Students</span>
                 </div>
                 <div style={styles.statDivider} />
                 <div style={styles.statItem}>

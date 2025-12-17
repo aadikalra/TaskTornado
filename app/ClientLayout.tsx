@@ -8,6 +8,7 @@ import { CustomContextMenu } from '@/components/CustomContextMenu';
 import { DictionaryPopup } from '@/components/DictionaryPopup';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
+import { useToast } from '@/context/ToastContext';
 
 // Dynamically import DockNav with no SSR to avoid hydration issues
 const DockNav = dynamic(() => import('@/components/DockNav'), {
@@ -20,8 +21,27 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
+  const { error } = useToast();
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
+
+  // Block Cmd+Option+U (View Page Source)
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Cmd+Option+U (Mac) or Ctrl+Alt+U (Windows/Linux)
+      if ((event.metaKey || event.ctrlKey) && event.altKey && event.key.toLowerCase() === 'u') {
+        event.preventDefault();
+        event.stopPropagation();
+        error('Not Allowed');
+        return false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [error]);
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();

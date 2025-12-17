@@ -144,10 +144,10 @@ const PriorityHomeworkCard = () => {
           }));
 
         // Priority order: overdue > due today > upcoming
-        const homeworksToProcess = overdueHomeworks.length > 0 ? 
-          overdueHomeworks : 
-          dueTodayHomeworks.length > 0 ? 
-            dueTodayHomeworks : 
+        const homeworksToProcess = overdueHomeworks.length > 0 ?
+          overdueHomeworks :
+          dueTodayHomeworks.length > 0 ?
+            dueTodayHomeworks :
             upcomingHomeworks;
 
         if (homeworksToProcess.length === 0) {
@@ -157,123 +157,67 @@ const PriorityHomeworkCard = () => {
         }
 
 
-        // Get current date and time in ISO format
+        // Get current date for priority calculation
         const currentDateTime = new Date().toISOString();
 
-        // Call the AI with Gemma 3n model
-        const response = await chat([{
-          role: 'user',
-          content: `Current date and time: ${currentDateTime}
-          
-Given the following list of homework assignments, please determine which one should be completed first.
-${overdueHomeworks.length > 0 ? 
-  `NOTE: These assignments are OVERDUE and should be prioritized immediately. The most overdue assignment should be selected first.` : 
-  dueTodayHomeworks.length > 0 ?
-  `NOTE: These assignments are DUE TODAY and should be prioritized immediately. Select the most important one.` :
-  `These are upcoming assignments that should be prioritized based on due date and importance.`}
+        // Sort homeworks to determine priority
+        let selectedHomework = null;
+        
+        if (overdueHomeworks.length > 0) {
+          // Sort by days overdue (most overdue first)
+          selectedHomework = overdueHomeworks.sort((a, b) => b.daysOverdue - a.daysOverdue)[0];
+        } else if (dueTodayHomeworks.length > 0) {
+          // For due today, sort by class importance (core subjects first)
+          const coreSubjects = ['Math', 'English', 'Science', 'History'];
+          selectedHomework = dueTodayHomeworks.sort((a, b) => {
+            const aIsCore = coreSubjects.some(subject => a.className.includes(subject));
+            const bIsCore = coreSubjects.some(subject => b.className.includes(subject));
+            if (aIsCore && !bIsCore) return -1;
+            if (!aIsCore && bIsCore) return 1;
+            return 0;
+          })[0];
+        } else if (upcomingHomeworks.length > 0) {
+          // Sort by due date (soonest first)
+          selectedHomework = upcomingHomeworks.sort((a, b) => 
+            new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+          )[0];
+        }
 
-Consider the following factors:
-${overdueHomeworks.length > 0 ? 
-  `1. How overdue the assignment is (more days overdue = higher priority)
-2. Assignment complexity and estimated time to complete
-3. Class importance (prioritize core subjects)` :
-  dueTodayHomeworks.length > 0 ?
-  `1. Assignment complexity and estimated time to complete
-2. Class importance (prioritize core subjects)
-3. Any other relevant factors` :
-  `1. Proximity to due date (sooner is higher priority)
-2. Estimated time to complete (shorter tasks might be good to knock out quickly)
-3. Class importance (prioritize core subjects)`}
+        if (!selectedHomework) {
+          setPriorityHomework(null);
+          setIsLoading(false);
+          return;
+        }
 
-${overdueHomeworks.length > 0 ? 
-  `Each assignment includes "daysOverdue" - the number of days past the due date. Pick the one with the highest daysOverdue.` : 
-  dueTodayHomeworks.length > 0 ?
-  `All assignments are due today. Pick the most important/urgent one.` :
-  `Any other relevant factors`}
+        // Create priority homework object
+        const priorityHomework = {
+          id: selectedHomework.id,
+          title: selectedHomework.title,
+          className: selectedHomework.className,
+          dueDate: selectedHomework.dueDate,
+          reason: overdueHomeworks.length > 0 
+            ? `This assignment is ${('daysOverdue' in selectedHomework ? selectedHomework.daysOverdue : 0)} day${('daysOverdue' in selectedHomework && selectedHomework.daysOverdue === 1) ? '' : 's'} overdue and should be completed immediately.`
+            : dueTodayHomeworks.length > 0
+              ? 'This assignment is due today and should be prioritized.'
+              : 'This is the most urgent upcoming assignment based on the due date.',
+          priority: (overdueHomeworks.length > 0 ? 'high' : dueTodayHomeworks.length > 0 ? 'high' : 'medium') as 'high' | 'medium' | 'low'
+        };
 
-Here's the homework data in JSON format:
-${JSON.stringify(homeworksToProcess, null, 2)}
-
-Please respond with a JSON object in this exact format:
-{
-  "id": "homework-id",
-  "title": "Homework Title",
-  "className": "Class Name",
-  "dueDate": "ISO date string",
-  "reason": "Brief explanation of why this should be done first${overdueHomeworks.length > 0 ? ' (mention how overdue it is)' : dueTodayHomeworks.length > 0 ? ' (mention it\'s due today)' : ''}",
-  "priority": "high|medium|low"
-}`
-        }], 'gemma-3n-e4b-it');
-
-        // Try to parse the JSON response
-        try {
-          // Safely extract the response content
-          let responseContent = '';
-
-          if (typeof response === 'string') {
-            responseContent = response;
-          } else if (response && typeof response === 'object') {
-            // Handle different possible response structures
-            if ('response' in response && typeof response.response === 'string') {
-              responseContent = response.response;
-            } else if ('message' in response &&
-              response.message &&
-              typeof response.message === 'object' &&
-              'content' in response.message) {
-              responseContent = String(response.message.content);
-            } else {
-              // Try to stringify if it's an object
-              try {
-                responseContent = JSON.stringify(response);
-              } catch (e) {
-                console.error('Could not stringify response:', response);
-                throw new Error('Invalid response format from AI');
-              }
-            }
-          }
-
-          if (!responseContent) {
-            throw new Error('Empty response from AI');
-          }
-
-          // Extract JSON from markdown code blocks if present
-          let jsonStr = responseContent.trim();
-          const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-          if (jsonMatch) {
-            jsonStr = jsonMatch[1];
-          }
-
-          const result = JSON.parse(jsonStr);
-
-          // Cache the result
-          const newPriorityHomework = {
-            id: result.id,
-            title: result.title,
-            className: result.className,
-            dueDate: result.dueDate,
-            reason: result.reason,
-            priority: result.priority || 'medium' as const
+        // Cache the result
+        if (typeof window !== 'undefined') {
+          const cacheData = {
+            data: priorityHomework,
+            timestamp: Date.now()
           };
 
-          // Save to cache
-          if (typeof window !== 'undefined') {
-            const cacheData = {
-              data: newPriorityHomework,
-              timestamp: Date.now()
-            };
-
-            try {
-              localStorage.setItem(homeworksKey, JSON.stringify(cacheData));
-            } catch (err) {
-              console.error('Error saving to cache:', err);
-            }
+          try {
+            localStorage.setItem(homeworksKey, JSON.stringify(cacheData));
+          } catch (err) {
+            console.error('Error saving to cache:', err);
           }
-
-          setPriorityHomework(newPriorityHomework);
-        } catch (e) {
-          console.error('Error parsing AI response:', e, 'Response:', response);
-          throw new Error('Failed to parse AI response. The AI might not have returned valid JSON.');
         }
+
+        setPriorityHomework(priorityHomework);
       } catch (err) {
         console.error('Error determining priority homework:', err);
         setError('Failed to determine priority homework');
@@ -283,7 +227,7 @@ Please respond with a JSON object in this exact format:
     };
 
     determinePriorityHomework();
-  }, [homeworks, classes, chat, homeworksKey, lastUpdated]);
+  }, [homeworks, classes, homeworksKey, lastUpdated]);
 
   // Don't show anything if there are no incomplete homeworks (overdue or upcoming)
   if (homeworks.filter(hw => !hw.completed).length === 0) {

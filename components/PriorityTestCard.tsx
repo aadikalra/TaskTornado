@@ -140,7 +140,7 @@ Please respond with a JSON object in this exact format:
   "reason": "Brief explanation of why this should be studied first",
   "priority": "high|medium|low"
 }`
-        }], 'gemma-3n-e4b-it');
+        }], 'gpt-oss:20b');
 
         // Try to parse the JSON response
         try {
@@ -173,6 +173,8 @@ Please respond with a JSON object in this exact format:
             throw new Error('Empty response from AI');
           }
 
+          console.log('Raw AI response (test):', responseContent);
+
           // Extract JSON from markdown code blocks if present
           let jsonStr = responseContent.trim();
           const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -180,7 +182,42 @@ Please respond with a JSON object in this exact format:
             jsonStr = jsonMatch[1];
           }
 
-          const result = JSON.parse(jsonStr);
+          // Try to find JSON object in the response using multiple strategies
+          if (!jsonStr.startsWith('{')) {
+            // Look for a JSON object anywhere in the response
+            const objectMatch = jsonStr.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
+            if (objectMatch) {
+              jsonStr = objectMatch[0];
+            }
+          }
+
+          // Clean control characters and fix common JSON issues
+          jsonStr = jsonStr
+            .trim()
+            // Remove control characters
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+            // Fix escaped newlines that might be in the response
+            .replace(/\\n/g, ' ')
+            .replace(/\\t/g, ' ')
+            // Remove any trailing commas before closing braces/brackets
+            .replace(/,(\s*[}\]])/g, '$1')
+            // Fix common issues with quotes
+            .replace(/'/g, '"')
+            // Remove any text before the first {
+            .replace(/^[^{]*/, '')
+            // Remove any text after the last }
+            .replace(/[^}]*$/, '');
+
+          console.log('Cleaned JSON string (test):', jsonStr);
+
+          let result;
+          try {
+            result = JSON.parse(jsonStr);
+          } catch (parseError) {
+            console.error('JSON parse error (test):', parseError);
+            console.error('Failed to parse:', jsonStr);
+            throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+          }
 
           // Cache the result
           const newPriorityTest = {

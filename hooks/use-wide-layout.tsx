@@ -26,7 +26,9 @@ export function useWideLayout() {
   const [useWideLayout, setUseWideLayout] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('useWideLayout');
-      return saved !== null ? saved === 'true' : false; // default to false
+      if (saved !== null) return saved === 'true';
+      // Enable wide layout by default on non-phone devices
+      return window.innerWidth >= 768; // 768px is the Tailwind 'md' breakpoint
     }
     return false;
   });

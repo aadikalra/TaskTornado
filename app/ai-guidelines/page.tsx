@@ -98,7 +98,7 @@ const aiModels = [
   },
   {
     name: 'Cloud Mode',
-    model: 'Kimi-k2',
+    model: 'Kimi-k2:1t-cloud',
     icon: Cloud,
     description: 'Most advanced AI model for comprehensive assistance',
     limit: '20 messages per day',

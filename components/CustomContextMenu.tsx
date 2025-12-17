@@ -16,6 +16,7 @@ import IconBox from './glass-icons/IconBox';
 import IconFile from './glass-icons/IconFile';
 import IconProgressBar from './glass-icons/IconProgressBar';
 import IconSparkle from './glass-icons/IconSparkle';
+import IconMessageSquare from './glass-icons/IconMessageSquare';
 
 interface CustomContextMenuProps {
   x: number;
@@ -90,9 +91,8 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     { label: 'Dashboard', icon: IconHouse, action: () => router.push('/dashboard'), description: 'Your personal dashboard' },
 
     // Academic Tools
-    { label: 'Tests', icon: IconProgressBar, action: () => router.push('/tests'), description: 'Manage your tests' },
     { label: 'Calendar', icon: IconCalendar, action: () => router.push('/calendar'), description: 'View your calendar' },
-    { label: 'Discussion Boards', icon: IconUsers, action: () => router.push('/discussions'), description: 'Community forums' },
+    { label: 'Discussion Boards', icon: IconMessageSquare, action: () => router.push('/discussions'), description: 'Community forums' },
     { label: 'Flashcards', icon: IconBookOpen, action: () => router.push('/flashcards'), description: 'Study with flashcards' },
     { label: 'Groups', icon: IconUsers, action: () => router.push('/groups'), description: 'Study groups' },
 

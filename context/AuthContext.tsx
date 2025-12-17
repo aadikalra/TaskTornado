@@ -227,26 +227,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    // Clear Google Classroom authentication cookies
     if (typeof window !== 'undefined') {
-      // Clear the classroom-auth cookie
-      document.cookie = 'classroom-auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-      // Clear any other Google Classroom related cookies
-      document.cookie = 'classroom-sync=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-      // Clear all route intro cookies
       const cookies = document.cookie.split(';');
+
+      // Define cookies that should be preserved (user preferences and rate limiting)
+      const preservedCookies = [
+        'aiQuickMessageCounter',
+        'aiDeeperMessageCounter',
+        'aiCloudMessageCounter',
+        'showAIPriority',
+        'showLevelDisplay',
+        'showSubjectMastery',
+        'useDyslexicFont',
+        'reduceMotion',
+        'aiPersonality',
+        'sectionOrder',
+        'useWideLayout',
+      ];
+
+      // Clear cookies selectively
       cookies.forEach(cookie => {
         const cookieName = cookie.split('=')[0].trim();
+
+        // Skip preserved cookies
+        if (preservedCookies.includes(cookieName)) {
+          return;
+        }
+
+        // Clear Google Classroom cookies
+        if (cookieName === 'classroom-auth' || cookieName === 'classroom-sync') {
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          return;
+        }
+
+        // Clear route intro cookies
         if (cookieName.startsWith('route-intro-')) {
           document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          return;
+        }
+
+        // Clear Supabase auth cookies
+        if (cookieName.startsWith('sb-') && cookieName.includes('auth')) {
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          return;
+        }
+      });
+
+      // Clear localStorage items related to Supabase auth only
+      const localStorageKeys = Object.keys(localStorage);
+      localStorageKeys.forEach(key => {
+        // Only clear Supabase auth items, preserve other localStorage
+        if ((key.startsWith('sb-') || key.includes('supabase')) && key.includes('auth')) {
+          localStorage.removeItem(key);
+        }
+        // Also clear remember-me since user is signing out
+        if (key === 'remember-me') {
+          localStorage.removeItem(key);
         }
       });
     }
 
-    // Sign out from Supabase
-    await supabase.auth.signOut();
+    // Sign out from Supabase with global scope to clear all sessions
+    await supabase.auth.signOut({ scope: 'global' });
+
+    // Force clear the user state
+    setUser(null);
+    setSession(null);
+    setFullName(null);
   };
 
   const value = {

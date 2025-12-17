@@ -1,8 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { Input } from '@/components/ui/input';
 
@@ -20,735 +20,40 @@ export default function ChangelogPage() {
   const [open, setOpen] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredVersion, setHoveredVersion] = useState<string | null>(null);
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { getContainerClass } = useWideLayout();
 
-  const versions: Version[] = [
-    {
-      version: '2.0.3',
-      date: '2025-12-05',
-      title: 'Calendar & Test UI Enhancements',
-      highlight: 'Interactive calendar with expandable day view, enhanced test tooltips, and improved test editing experience',
-      type: 'minor',
-      short: [
-        'Clickable "+X more" indicators on calendar days',
-        'Expandable day modal showing all events',
-        'Enhanced test tooltips with detailed information',
-        'Replaced basic date input with modern calendar picker',
-        'Added custom shadcn-style time picker component',
-        'Fixed save button visibility with bottom padding',
-        'Improved overall form layout and user experience'
-      ],
-      full: [
-        'Added clickable "+X more" indicators on calendar days that show hidden events',
-        'Implemented expandable day modal that displays all homework, tests, and school events for a selected day',
-        'Enhanced test tooltips to show comprehensive information including test type, time, location, duration, weight, and notes',
-        'Updated test cards in expanded day modal to display the same detailed information',
-        'Improved calendar user experience with better event visibility and organization',
-        'Replaced the basic HTML date input with a modern calendar picker component using Popover and Calendar from shadcn/ui',
-        'Created a custom TestTimePicker component with hour/minute/period selection columns and quick pick options (Morning Block, Lunch Time, After School, Evening)',
-        'Added bottom padding (pb-24) to the edit test page to prevent the save button from being hidden behind the bottom navbar',
-        'Enhanced the time picker with features like clear functionality, 12-hour format with AM/PM selection, and intuitive scrollable columns',
-        'Improved the overall form layout with better spacing and consistent styling that matches the rest of the application',
-        'Added helpful placeholder text and descriptions to guide users through the time selection process',
-        'Fixed TypeScript type issues in the time picker component for better type safety',
-        'Ensured the new components are fully responsive and work well on both desktop and mobile devices',
-        'Added smooth animations and transitions to the expandable day modal for a premium feel'
-      ]
-    },
-    {
-      version: '2.0.2',
-      date: '2025-12-02',
-      title: 'AI Homework Priority Fix & Alignment Improvements',
-      highlight: 'Fixed AI homework priority card with proper overdue/due-today handling and improved UI alignment',
-      type: 'minor',
-      short: [
-        'Fixed AI homework priority card spinning issue',
-        'Added proper overdue/due-today priority logic',
-        'Improved UI alignment across components',
-        'Enhanced priority display with day counters',
-        'Better date handling for homework assignments'
-      ],
-      full: [
-        'Fixed AI homework priority card that was stuck spinning by implementing proper three-tier priority system',
-        'Added overdue homework detection with day counters (e.g., "3 days overdue")',
-        'Implemented due today priority logic with orange "Due Today" indicators',
-        'Enhanced AI prompts to handle different scenarios (overdue/due today/upcoming) with specific instructions',
-        'Improved date comparison logic using getTime() for accurate due date detection',
-        'Fixed UI alignment issues in priority card display components',
-        'Added proper fallback logic for homework processing (overdue > due today > upcoming)',
-        'Enhanced visual indicators with color-coded priority badges (red for overdue, orange for due today)',
-        'Improved error handling and data validation in AI response parsing',
-        'Optimized component performance with better filtering and caching logic'
-      ]
-    },
-    {
-      version: '2.0.1',
-      date: '2025-12-01',
-      title: 'UX Polish & Route Intros',
-      highlight: 'Enhanced user onboarding with route introductions, modernized search experience, and improved changelog navigation',
-      type: 'minor',
-      short: [
-        'Interactive route introduction popups',
-        'Redesigned search bar with floating results',
-        'Changelog search and sticky table of contents',
-        'Smoother animations and visual polish',
-        'Improved mobile responsiveness'
-      ],
-      full: [
-        'Implemented "Route Intro" system to guide users through key features on their first visit to major pages (Tests, Quiz, Groups, etc.)',
-        'Redesigned the global search bar with a modern, detached floating results dropdown for a cleaner aesthetic',
-        'Enhanced the Changelog page with real-time search filtering and a sticky table of contents for easy navigation',
-        'Added smooth sliding animations to the Changelog table of contents for a premium feel',
-        'Cleaned up SearchResults component to remove redundant styling and improve integration',
-        'Added intro popups to Writing Assist and Discussion Boards to better explain their capabilities',
-        'Fixed visual consistency in search results with proper spacing and shadow effects',
-        'Optimized animations across the application for a more fluid user experience'
-      ]
-    },
-    {
-      version: '2.0',
-      date: '2025-11-30',
-      title: 'Public Discussion Boards',
-      highlight: 'Complete transformation of discussion boards into public, shared communities with enhanced discovery and rich interactions',
-      type: 'major',
-      short: [
-        'Public discussion boards for all users',
-        'Enhanced discovery via search and navbar',
-        'Rich threads with resources and upvotes',
-        'Improved UI for browsing and joining',
-        'Bug fixes for flashcards and data loading'
-      ],
-      full: [
-        'Refactored Discussion Boards from class-specific to public, shared forums accessible to everyone',
-        'Implemented new database schema with public boards and membership tracking',
-        'Added Discussion Boards to global search, context menu, and main navigation bar for better visibility',
-        'Created rich thread interface with support for pinned posts, resolved status, and tags',
-        'Added resource sharing capabilities with URL and file support, plus upvoting system',
-        'Polished UI for board browsing, creation, and joining with member counts and activity stats',
-        'Fixed critical TypeScript errors and null handling in data context',
-        'Resolved syntax error in Flashcards page and runtime date parsing issues',
-        'Improved responsiveness and layout for discussion board components',
-        'Ensured zero-count display for empty states instead of blank spaces'
-      ]
-    },
-    {
-      version: '1.9.9',
-      date: '2025-11-30',
-      title: 'Hybrid Rate Limiting System',
-      highlight: 'Advanced dual-storage rate limiting with database persistence and cross-device synchronization',
-      type: 'major',
-      short: [
-        'Hybrid rate limiting using both cookies and database',
-        'Cross-device synchronization of AI usage limits',
-        'Maximum value logic between cookie and database counts',
-        'Secure RPC functions for database operations',
-        'Midnight reset for both storage systems',
-        'Preserved rate limits during user signout',
-        'Enhanced dock navigation for authenticated users'
-      ],
-      full: [
-        'Implemented hybrid rate limiting system combining browser cookies with Supabase database persistence',
-        'Created RateLimitService with singleton pattern for managing AI usage across quick/deeper/cloud models',
-        'Added database schema updates with model_type column and proper unique constraints',
-        'Developed secure RPC functions (get_rate_limit_by_model, update_rate_limit_by_model) with SECURITY DEFINER',
-        'Implemented maximum value logic: always uses higher count between cookies and database for accurate tracking',
-        'Added real-time synchronization ensuring rate limits persist across multiple devices and sessions',
-        'Enhanced midnight reset system to clear both cookies and database entries simultaneously',
-        'Modified CustomCookieStore.clear() to preserve AI rate limiting cookies during user signout',
-        'Updated useRateLimitReset hook with database clearing capabilities and proper error handling',
-        'Added comprehensive debugging and error handling for rate limit operations',
-        'Fixed database constraint conflicts by updating unique constraints to include model_type',
-        'Improved dock navigation to hide Login/Sign Up buttons when user is authenticated',
-        'Created database migration for rate_limits table with proper RLS policies and indexes',
-        'Enhanced AI Assistant with hybrid rate limiting display and tracking',
-        'Implemented fallback to cookies when database operations fail',
-        'Added detailed logging for rate limit debugging and monitoring'
-      ]
-    },
-    {
-      version: '1.9.8',
-      date: '2025-11-29',
-      title: 'Writing Assist',
-      highlight: 'Professional AI-powered writing assistant with intelligent autocomplete, auto-save, and rich text editing',
-      type: 'major',
-      short: [
-        'Writing Assist officially out of beta',
-        'Full-featured AI writing assistant with Gemini 2.0 Flash',
-        'Intelligent autocomplete powered by Gemma 3',
-        'Auto-save functionality with localStorage persistence',
-        'Rich text editor with comprehensive formatting options',
-        'AI-powered writing improvements and grammar fixes',
-        'Study-focused default templates and examples',
-        'Seamless integration with dock navigation'
-      ],
-      full: [
-        'Launched Writing Assist as a complete, production-ready feature accessible from dock navigation',
-        'Implemented Plate editor with full rich text editing capabilities including headings, lists, tables, images, code blocks, and more',
-        'Integrated Google AI (Gemini 2.0 Flash) for intelligent writing assistance via Cmd+J or Space shortcuts',
-        'Added AI-powered features: improve writing, fix grammar, summarize, generate content, and add comments',
-        'Implemented intelligent autocomplete using Gemma 3 model with 500ms debounce for real-time suggestions',
-        'Fixed autocomplete API to return proper text field format, resolving "response does not contain text field" errors',
-        'Created auto-save system that persists content to localStorage with 2-second debounce after changes',
-        'Auto-save loads previous work on page refresh, ensuring no work is lost between sessions',
-        'Replaced Lexical editor with modern Plate editor for better performance and feature set',
-        'Added study-focused default content showcasing Biology notes, formulas, tables, and study tips',
-        'Created custom glass icon (IconPen) for Writing Assist in dock navigation',
-        'Positioned Writing Assist strategically in dock between Web Saves and Group Chats',
-        'Implemented full-screen editor layout with responsive padding (p-4 on mobile, p-8 on desktop)',
-        'Added comprehensive AI system prompts for natural text continuation and writing assistance',
-        'Integrated markdown support with autoformatting shortcuts (*, #, etc.) for efficient writing',
-        'Added support for collaborative features including suggestions, comments, and annotations',
-        'Implemented drag-and-drop media uploads and file attachments for rich content creation',
-        'Added table of contents generation and navigation for long documents',
-        'Enhanced editor with ghost text rendering for autocomplete suggestions',
-        'Configured proper API routes for both main AI commands and copilot autocomplete',
-        'Added console logging for debugging auto-save and AI API interactions',
-        'Optimized performance with efficient state management and debounced operations',
-        'Created seamless user experience with keyboard shortcuts: Tab (accept), Escape (reject), Ctrl+Space (trigger)',
-        'Removed ALPHA warning modal for clean, production-ready interface'
-      ]
-    },
-    {
-      version: '1.9.7.1',
-      date: '2025-11-28',
-      title: 'Mobile Layout Improvements',
-      highlight: 'Enhanced mobile experience with better button placement and calendar responsiveness',
-      type: 'minor',
-      short: [
-        'Improved mobile button placement in MainApp sections',
-        'Enhanced calendar responsiveness for smaller screens',
-        'Better navigation layout on mobile devices',
-        'Optimized spacing and sizing for touch interfaces'
-      ],
-      full: [
-        'Redesigned mobile layout for MainApp sections with chevron toggles moved to header line',
-        'Improved button placement in pinned, classes, and tests sections for better mobile UX',
-        'Enhanced calendar grid responsiveness with adaptive sizing and spacing',
-        'Optimized calendar event items for smaller screens with smart text truncation',
-        'Improved calendar header layout with navigation buttons below title on mobile only',
-        'Better touch targets and spacing throughout mobile interface',
-        'Enhanced responsive design consistency across all components',
-        'Optimized text sizes and padding for better readability on small screens'
-      ]
-    },
-    {
-      version: '1.9.7',
-      date: '2025-11-28',
-      title: 'Google Classroom Integration',
-      highlight: 'Complete Google Classroom integration with automatic sync, real-time updates, and seamless data management',
-      type: 'major',
-      short: [
-        'Full Google Classroom OAuth integration',
-        'Automatic sync of classes and assignments',
-        'Real-time connection status detection',
-        'Google Classroom data in AI Assistant @data commands',
-        'Seamless authentication flow',
-        'Enhanced settings UI for Classroom management',
-        'Fixed duplicate button key generation',
-        'Updated UI components for better consistency'
-      ],
-      full: [
-        'Implemented complete Google Classroom OAuth integration with secure authentication flow',
-        'Added automatic syncing of Google Classroom classes and assignments to local database',
-        'Created real-time connection status detection using multiple API validation methods',
-        'Fixed Google Classroom data availability in AI Assistant @data commands by updating ClassContext',
-        'Enhanced GoogleClassroomSection component with robust authentication checking and fallback methods',
-        'Implemented proper cookie-based session management for Google Classroom access tokens',
-        'Added comprehensive error handling and user feedback for Classroom connection issues',
-        'Fixed duplicate React key warning in interactive buttons by adding index to unique ID generation',
-        'Updated deprecated Tailwind classes from bg-gradient-to-br to bg-linear-to-br for modern compliance',
-        'Resolved data loading issue where Google users were not fetching from Supabase database',
-        'Enhanced AI Assistant with proper Google Classroom data context for better homework management',
-        'Improved settings page UI with better connection status indicators and user guidance',
-        'Added comprehensive logging and debugging tools for Google Classroom integration troubleshooting',
-        'Implemented fallback authentication methods using both debug-log and courses APIs',
-        'Enhanced data consistency across all components that rely on ClassContext state'
-      ]
-    },
-    {
-      version: '1.9.6',
-      date: '2025-11-27',
-      title: 'Dictionary Popup & AI Assistant Overhaul',
-      highlight: 'Interactive dictionary lookup, advanced AI features with persistent storage, and enhanced UI polish',
-      type: 'major',
-      short: [
-        'Dictionary popup for instant word definitions',
-        'Enhanced right-click context menu with "Define" option',
-        'Advanced AI Assistant with persistent conversation storage',
-        'Interactive teaching buttons with keyboard shortcuts',
-        'Command detection system for special AI modes',
-        'Model-specific message limits and usage tracking',
-        'Redesigned dashboard loading spinner with new 3 dots animation',
-        'Console log cleanup for better performance'
-      ],
-      full: [
-        'Created DictionaryPopup.tsx component from scratch (143 lines) with single-word text selection detection',
-        'Integrated Dictionary API (dictionaryapi.dev) for comprehensive word definitions including phonetics, parts of speech, examples',
-        'Added ESC key binding and smooth animations for better user experience',
-        'Enhanced ClientLayout.tsx (+40 lines) to detect selected text and pass it to context menu',
-        'Redesigned CustomContextMenu.tsx (+49, -31 lines) with onDictionaryOpen handler and "Define" menu option for single-word selections',
-        'Updated menu items with better icons (Trophy for Tests, BookOpen for Define) and reorganized navigation structure',
-        'Overhauled AI Assistant with persistent storage using cookies (4KB limit, last 10 messages) and localStorage for input recovery',
-        'Implemented interactive teaching buttons system with JSON parsing, keyboard shortcuts, and usage tracking for quick/deeper/cloud modes',
-        'Added advanced command detection system with / commands for quiz, flashcards, therapist, grade modes and real-time filtering',
-        'Enhanced system prompt with detailed Socratic questioning methodology, homework detection, and therapist mode guidelines',
-        'Improved streaming response handling with TextDecoder for real-time processing and dynamic loading messages',
-        'Added model-specific message limits: Quick mode (Gemma): 100 messages, Deep mode (Gemini): 10 messages, Cloud mode (Kimi): 10 messages',
-        'Enhanced UI with "New Chat" button, close button, SplittingText component, and shimmering loading states',
-        'Redesigned dashboard loading spinner in DashboardClient.tsx (+13, -2 lines) with gradient background and bouncing animation',
-        'Updated loading spinner colors to red-500 across authentication components for better visual consistency',
-        'Cleaned up console logs by commenting out debug statements in calendar/page.tsx, MainApp.tsx, and PlayfulHomeworkList.tsx',
-        'Enhanced performance with dual persistence approach using cookies for cross-session messages and localStorage for input recovery',
-        'Improved accessibility with markdown rendering, proper error handling, and comprehensive keyboard shortcuts'
-      ]
-    },
-    {
-      version: '1.9.5',
-      date: '2025-11-26',
-      title: 'AI Worthiness & Timer Redesign',
-      highlight: 'Smart game validation and minimalist study timer experience',
-      type: 'major',
-      short: [
-        'AI worthiness check for game access',
-        'Students must prove they deserve to play games',
-        '5-minute block system for unworthy attempts',
-        'Intelligent evaluation using Gemma 3 model',
-        'Fair but strict judgment criteria',
-        'Enhanced game access control and responsibility',
-        'Minimalist study timer redesign',
-        'Clean and focused timer interface',
-        'Improved timer visual hierarchy'
-      ],
-      full: [
-        'Implemented AI-powered worthiness check system for all games',
-        'Students must explain why they deserve to play before accessing games',
-        'AI evaluates responses based on homework completion, intent, and honesty',
-        'Uses Gemma 3 model for intelligent and contextual judgment',
-        '5-minute temporary block for students judged unworthy',
-        'Persistent blocking system remembers failed attempts across sessions',
-        'Fair criteria: rewards completed homework, legitimate study breaks, and honesty',
-        'Blocks procrastination, avoidance, and dishonest behavior',
-        'Seamless integration with existing game unlock system',
-        'Enhanced user accountability and responsible gaming habits',
-        'Redesigned study timer with minimalistic approach',
-        'Clean, focused interface with larger time display and simplified controls',
-        'Removed visual clutter while maintaining core functionality',
-        'Improved typography and spacing for better readability',
-        'Streamlined input fields and circular control buttons',
-        'Enhanced progress visualization with subtle progress bar'
-      ]
-    },
-    {
-      version: '1.9.4',
-      date: '2025-11-25',
-      title: 'Interactive Quiz & Enhanced AI Experience',
-      highlight: 'New interactive quiz feature, upgraded AI models, improved navigation and search capabilities',
-      type: 'major',
-      short: [
-        'Interactive quiz feature with engaging study tools',
-        'Upgraded AI quick models for more intelligent help',
-        'Faster AI response times and improved performance',
-        'Enhanced right-click menu for better navigation',
-        'Delete account feature for user control',
-        'Improved search bar with route searching capabilities'
-      ],
-      full: [
-        'Added comprehensive interactive quiz feature with multiple question types and instant feedback',
-        'Upgraded AI quick models to provide more intelligent and contextual assistance',
-        'Optimized AI response times for faster help and improved user experience',
-        'Redesigned right-click context menu with improved navigation options and better organization',
-        'Implemented secure delete account feature with proper data removal and confirmation flow',
-        'Enhanced search bar to support route searching in addition to content search',
-        'Improved search algorithm for better results and faster query processing',
-        'Added keyboard shortcuts and accessibility improvements to navigation menus',
-        'Enhanced user control with comprehensive account management options',
-        'Optimized performance across all AI-powered features for smoother interactions'
-      ]
-    },
-    {
-      version: '1.9.3',
-      date: '2025-11-24',
-      title: 'Global UI Refactor & Layout Unification',
-      highlight: 'Massive refactor focused on layout standardization, wide-layout support, and visual consistency',
-      type: 'major',
-      short: [
-        'Complete UI overhaul giving the app a fresh new look',
-        'Added useWideLayout hook across entire app for unified layout system',
-        'Replaced gradient utilities (bg-gradient-to-*) with cleaner bg-linear syntax',
-        'Major UI modernization with better spacing and cleaner headers',
-        'Settings page completely redesigned with delete account flow',
-        'Removed redundant JSX wrappers and simplified animations',
-        'Significant line reduction and cleanup across multiple pages'
-      ],
-      full: [
-        'Injected useWideLayout hook into almost all pages: About Creator, AI Guidelines, Changelog, Settings, Legal pages, Flashcards, Games, Groups, Calendar, and more',
-        'Replaced hardcoded container classes (max-w-4xl, max-w-6xl, max-w-7xl) with unified getContainerClass() system',
-        'Standardized gradient syntax across entire app from bg-gradient-to-* to bg-linear-to-r and bg-linear-to-br',
-        'Modernized UI across nearly every page with better spacing (space-y-*), cleaner headers, and simpler motion animations',
-        'Removed cluttered Cards around sections and converted to non-card layouts with modern headers',
-        'Completely redesigned Settings page with delete account flow, wide layout toggle, and motion-div grouped sections',
-        'Added Maximize2 icon import and fixed missing state variables in Settings',
-        'Removed redundant JSX wrappers, old transition variants, excessive borders, and outdated container divs',
-        'Achieved significant line reduction in Calendar, Flashcards, Games, Groups, and Legal pages',
-        'Simplified animations and improved visual consistency throughout the application'
-      ]
-    },
-    {
-      version: '1.9.2',
-      date: '2025-11-23',
-      title: 'Changelog Redesign',
-      highlight: 'Enhanced changelog page with better organization',
-      type: 'minor',
-      short: [
-        'Improved changelog layout and organization',
-        'Better version hierarchy and readability',
-        'Enhanced visual presentation of updates'
-      ],
-      full: [
-        'Redesigned changelog page for improved user experience',
-        'Better organization of version information and features',
-        'Enhanced readability and visual hierarchy',
-        'Improved presentation of release notes and updates'
-      ]
-    },
-    {
-      version: '1.9.1',
-      date: '2025-11-23',
-      title: 'Landing Page & Dashboard Major Redesign',
-      highlight: 'UI overhaul of homepage and dashboard',
-      type: 'major',
-      short: [
-        'Modern landing page UI',
-        'More visually clear onboarding and navigation',
-        'Dashboard now redirects unauthenticated users',
-        'Games: visual polish, progress stats',
-        'Accessibility: OpenDyslexic font, better color contrast'
-      ],
-      full: [
-        'Redesigned main landing page and dashboard for improved first impression and clarity',
-        'Implemented a redirect to login if the user is not authenticated in dashboard',
-        'Added dynamic homework completion stats to game unlock logic',
-        'Enhanced accessibility through OpenDyslexic font and color variable upgrades in CSS',
-        'Expanded UI animations and game center visuals',
-        'Numerous style and component improvements to unify the look'
-      ]
-    },
-    {
-      version: '1.9.0',
-      date: '2025-11-21',
-      title: 'Game Center & Task Tower Game',
-      highlight: 'First gamified study tools',
-      type: 'major',
-      short: [
-        'Snake and Task Tower games for productivity',
-        'New Game Center UI, stats on homework progress',
-        'Bug fixes across homework, group chat, UI components'
-      ],
-      full: [
-        'Introduced two games: Snake (difficulty scales with unfinished homework) and Task Tower (a Tetris-style game, organizing tasks)',
-        'Created a new Game Center page that houses and unlocks games based on homework completion percent',
-        'Enhanced visual feedback and unlock thresholds (75%+ homework for games unlock)',
-        'Resolved major lingering bugs affecting homework pinning, group links, and component rendering',
-        'Improved DockNav and sidebar navigation, refactored many components for maintainability'
-      ]
-    },
-    {
-      version: '1.8.9',
-      date: '2025-11-20',
-      title: 'AI Assistant Redesign & Snake',
-      highlight: 'AIAssistant: Personalities, improved grading',
-      type: 'major',
-      short: [
-        'AIAssistant supports personalities (friendly, nerdy, etc)',
-        'Grading improvements and UI polish',
-        'Snake game introduced (study break unlock)',
-        'More theme and landing page polish'
-      ],
-      full: [
-        'Refactored AIAssistant to support custom personalities (via cookies): professional, friendly, candid, quirky, efficient, nerdy, cynical, default',
-        'Improved AI-powered grading and feedback accuracy for test/quiz entry',
-        'Reworked landing page for visual impact (rotating headlines, decorative floating cards)',
-        'Introduced Snake game as a reward for keeping up with homework',
-        'Polished settings and main app view, improved accessibility of controls'
-      ]
-    },
-    {
-      version: '1.8.8',
-      date: '2025-11-17',
-      title: 'Dashboard Performance Optimization',
-      highlight: 'Faster, leaner dashboard page',
-      type: 'minor',
-      short: [
-        'Dashboard loads faster',
-        'Reduced redundant API calls',
-        'Better initial data loading for classes/homework'
-      ],
-      full: [
-        'Refactored dashboard and context logic to only fetch data if necessary, reducing load times',
-        'Moved Google Classroom integration to only apply for Google-auth users',
-        'Optimized component tree for DashboardClient and main dashboard, minimized SSR waits',
-        'Improved gamification state and logic for faster updates'
-      ]
-    },
-    {
-      version: '1.4',
-      date: '2025-10-29',
-      title: 'Complete Test Management Hub',
-      highlight: 'Centralized test management with statistics, filtering, and calendar integration',
-      type: 'major',
-      short: [
-        'Statistical overview dashboard (Total, Upcoming, Completed, Missed)',
-        'Advanced filtering by status, type (ALPHA/BETA/Exam/Quiz), priority',
-        'Drag-and-drop rescheduling from calendar view',
-        'Three card views: default, compact, timeline',
-        'AI-powered priority highlighting & caching',
-        'Supabase backend with rich text editing'
-      ],
-      full: [
-        'Built new /tests page as central hub for managing all tests with statistical overview',
-        'Added statistical cards for Total, Upcoming, Completed, and Missed tests with ALPHA/BETA indicators',
-        'Implemented advanced filtering by status, type (ALPHA/BETA/Exam/Quiz), and priority levels',
-        'Added drag-and-drop rescheduling of tests directly from the calendar view',
-        'Created EnhancedTestCard with three view modes: default, compact, and timeline',
-        'Developed StatusGroupedTestList for organizing tests by status (Upcoming/Taken)',
-        'Built CompactTestList for space-efficient viewing of test schedules',
-        'Added PriorityTestCard with AI-powered priority highlighting',
-        'Implemented Supabase migrations for tests table with comprehensive fields',
-        'Created CRUD operations in lib/supabase/db.ts for full test management'
-      ]
-    },
-    {
-      version: '1.3',
-      date: '2025-10-28',
-      title: 'Test Completion & AI Integration',
-      highlight: 'Mark as taken modal, AI priority caching, and enhanced calendar integration',
-      type: 'major',
-      short: [
-        'Mark as taken modal with score tracking',
-        'AI priority caching in localStorage',
-        'Enhanced dark mode support across test components',
-        'Global search integration for tests',
-        'Dedicated test detail and edit pages',
-        'Tiptap rich text editor integration'
-      ],
-      full: [
-        'Added MarkTestAsTakenModal for easy test completion with score tracking',
-        'Integrated test management into ClassContext with real-time updates',
-        'Added Tiptap rich text editor for test descriptions and study materials',
-        'Enhanced calendar view with test type indicators and detailed tooltips',
-        'Added AI priority caching in localStorage to optimize performance',
-        'Enhanced dark mode support across all test components and modals',
-        'Added global search integration for tests with class-based filtering',
-        'Created dedicated test detail and edit pages with rich text editing',
-        'Fixed date-offset issues in test scheduling',
-        'Standardized test status to use "taken" instead of "completed"'
-      ]
-    },
-    {
-      version: '1.2',
-      date: '2025-10-27',
-      title: 'Navigation & UI Overhaul',
-      highlight: 'Complete navbar redesign, Vercel Analytics, and AI assistant integration',
-      type: 'major',
-      short: [
-        'Complete navbar overhaul with sticky design',
-        'Dark mode support across all pages',
-        'Vercel Analytics integration',
-        'AI assistant command menu with @ detection',
-        'Hero section with interactive DotGrid background',
-        'Improved 404 page navigation'
-      ],
-      full: [
-        'Complete navbar overhaul with sticky design, dark mode support, and functional links',
-        'Optimized navbar spacing, imports, and responsive design for better UX',
-        'Enhanced dark mode implementation across all pages and components',
-        'Fixed build issues, duplicate variables, and improved component performance',
-        'Added Back to Home button and improved 404 page navigation',
-        'Created Hero.tsx with interactive DotGrid background and floating cards',
-        'Deployed to Render, Vercel, and Netlify for backups and redundancy',
-        'Pushed all updates to GitHub repository for version control',
-        'Integrated AI assistant command menu with @ detection for seamless feature access'
-      ]
-    },
-    {
-      version: '1.1',
-      date: '2025-10-26',
-      title: 'Performance & Visual Polish',
-      highlight: 'Lighthouse optimization, animate-ui integration, and OAuth authentication',
-      type: 'major',
-      short: [
-        '90+ Lighthouse scores across all pages',
-        'Animate-ui icons for enhanced interactions',
-        'OAuth authentication with Google Classroom',
-        'Real-time coursework syncing',
-        'Toast notifications and confetti animations',
-        'Color-coded class celebrations'
-      ],
-      full: [
-        'Achieved 90+ scores in Google Lighthouse across all pages (Performance, Accessibility, SEO)',
-        'Converted numerous icons to animate-ui for enhanced animations and interactions',
-        'Implemented OAuth authentication and account linking with Google Classroom for secure access',
-        'Added fetching and displaying of Google Classroom courses and coursework with real-time updates',
-        'Integrated data syncing to save assignments and grades to local database for seamless management',
-        'Added toast notifications for due soon alerts and completed homework celebrations',
-        'Integrated confetti animations for homework completion with class-specific colors',
-        'Updated AI guidelines with new Cloud Mode (Kimi-k2) and refined model options',
-        'Refined color schemes, animations, and visual consistency'
-      ]
-    },
-    {
-      version: '1.0',
-      date: '2025-10-25',
-      title: 'Public BETA Launch',
-      highlight: 'Official public beta release with core academic management features',
-      type: 'major',
-      short: [
-        'Public beta launch of TaskTornado',
-        'Core academic management system',
-        'Class and homework tracking',
-        'Basic AI assistant integration',
-        'Calendar and scheduling features',
-        'User authentication system'
-      ],
-      full: [
-        'Official public beta launch of TaskTornado academic management platform',
-        'Core class management with color-coded subjects and icons',
-        'Homework tracking with due dates and completion status',
-        'Basic AI assistant for homework help and academic guidance',
-        'Calendar integration for assignment and test scheduling',
-        'User authentication and account management system',
-        'Responsive design for mobile and desktop devices',
-        'Dark mode support throughout the application',
-        'Basic search functionality for homework and classes',
-        'Foundation for advanced features and future updates'
-      ]
-    },
-    {
-      version: '0.9.3',
-      date: '2025-10-01',
-      title: 'Dark Mode Complete',
-      highlight: 'Full dark mode across entire app',
-      type: 'Alpha',
-      short: [
-        'Dark mode for all pages & components',
-        'Improved contrast & accessibility',
-        'Fixed navbar visibility issues',
-        'Enhanced logout flow',
-        'Recurring homework support',
-      ],
-      full: [
-        'Complete dark mode implementation across entire application',
-        'Changelog page dark mode with proper contrast and styling',
-        'Dark mode support for login and signup pages',
-        'Fixed navbar visibility issues on different pages',
-        'Fixed React hook ordering issues for better stability',
-        'Enhanced logout confirmation with home page redirect',
-        'Improved component performance and error handling',
-        'Better accessibility with improved dark mode contrast',
-        'Added recurring homework functionality',
-      ],
-    },
-    {
-      version: '0.9.2',
-      date: '2025-10-01',
-      title: 'Modern Navigation',
-      highlight: 'Floating pill navbar with hover effects',
-      type: 'Alpha',
-      short: [
-        'Redesigned sticky navbar',
-        'Interactive resource hover cards',
-        'Mobile-responsive navigation',
-        'Customer feedback integration',
-        'Issue reporting system',
-      ],
-      full: [
-        'Redesigned floating pill-shaped navbar with modern aesthetics',
-        'Interactive hover card for Resources in the navbar',
-        'Improved responsive design and mobile navigation experience',
-        'Instant hover response for better user interaction',
-        'Refined color scheme and professional visual hierarchy',
-        'Optimized spacing and proportions for cleaner layout',
-        'Complete changelog page redesign with beta status indicators',
-        'Added customer feedback form integration (Google Forms)',
-        'Implemented issue reporting system with direct form links',
-      ],
-    },
-    {
-      version: '0.9.0',
-      date: '2025-10-01',
-      title: 'Professional AI Assistant',
-      highlight: 'Quick Mode (Gemma 3) + Deep Mode (Gemini 2.5)',
-      type: 'major',
-      short: [
-        'Tabbed AI interface with usage limits',
-        '30 msg/day Quick Mode, 10 msg/day Deep Mode',
-        'Real-time usage tracking',
-        'Cookie-based message counters',
-        'Glassmorphism navbar design',
-      ],
-      full: [
-        'Complete dark mode implementation across entire application',
-        'Professional AI Assistant with Animate UI tabs interface',
-        'Quick Mode: Gemma 3 12B model with 30 messages/day limit',
-        'Deep Mode: Gemini 2.5 Flash-Lite with 10 messages/day limit',
-        'Persistent message counters with browser cookie storage',
-        'Hard limit enforcement preventing overuse with visual feedback',
-        'Real-time usage tracking displayed in AI Assistant header',
-        'Enhanced glass morphism navbar with liquid effects',
-      ],
-    },
-    {
-      version: '0.8.5',
-      date: '2025-08-29',
-      title: 'Point Scholar & Notifications',
-      highlight: 'Gamification + intelligent alerts',
-      type: 'major',
-      short: [
-        'Point Scholar achievement system',
-        'Class-themed confetti celebrations',
-        'Overdue homework alerts',
-        'Study groups collaboration',
-        'Mobile-responsive calendar',
-      ],
-      full: [
-        'Advanced homework management with full CRUD operations',
-        'Study groups functionality for collaborative learning',
-        'Comprehensive calendar integration with proper date handling',
-        'Mobile-responsive design improvements across all pages',
-        'Enhanced animations and micro-interactions',
-        'Point Scholar gamification program with achievement tracking',
-        'Intelligent notification system for homework completion',
-        '"Good job on [subject]!" celebration notifications',
-        'Overdue homework alerts with class-specific warnings',
-        'Color-coded confetti animations matching class themes',
-        'New class enrollment notifications with homework suggestions',
-        'Progress tracking with visual achievement badges',
-      ],
-    },
-    {
-      version: '0.8.0',
-      date: '2025-08-20',
-      title: 'Intelligent Onboarding',
-      highlight: '5-step auto class setup',
-      type: 'major',
-      short: [
-        'Grade-based class suggestions',
-        'Math acceleration detection',
-        '40+ elective options',
-        'One-click class creation',
-        'Smart preview & color-coding',
-      ],
-      full: [
-        'Comprehensive 5-step onboarding flow for new users',
-        'Grade-based class suggestions (8th-12th grade)',
-        'Intelligent math acceleration detection and placement',
-        'Comprehensive elective selection system (40+ options)',
-        'Automatic class creation with proper color-coding',
-        'Smart class preview with real-time updates',
-        'One-click class setup for instant productivity',
-      ],
-    },
-  ];
+  // Fetch version data from API
+  useEffect(() => {
+    const fetchVersions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('https://api.npoint.io/9eb23a1980287e881d97');
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch changelog data: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.versions || !Array.isArray(data.versions)) {
+          throw new Error('Invalid data format received from API');
+        }
+
+        setVersions(data.versions);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        console.error('Error fetching changelog data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVersions();
+  }, []);
 
   // Filter versions based on current date
   const getVisibleVersions = () => {
@@ -868,7 +173,7 @@ export default function ChangelogPage() {
                   <ul className="space-y-1.5 sm:space-y-2">
                     <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                      <span className="leading-relaxed">Insufficient bottom padding on some pages causing content to be hidden behind navigation</span>
+                      <span className="leading-relaxed">None at the moment</span>
                     </li>
                   </ul>
                 </div>
@@ -884,10 +189,7 @@ export default function ChangelogPage() {
                     </span>
                   </div>
                   <ul className="space-y-1.5 sm:space-y-2">
-                    <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                      <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                      <span className="leading-relaxed">Migrating changelog data to an API service for better maintainability and dynamic updates</span>
-                    </li>
+
                     <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
                       <span className="leading-relaxed">Subtasks feature for breaking down homework and assignments into manageable steps</span>
@@ -899,7 +201,20 @@ export default function ChangelogPage() {
 
             {/* Versions List */}
             <div className="space-y-8 sm:space-y-12">
-              {filteredVersions.length === 0 ? (
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">Loading changelog...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <AlertCircle className="h-8 w-8 text-red-500 mb-4" />
+                  <p className="text-red-500 dark:text-red-400 mb-2">Failed to load changelog</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-md">
+                    {error}
+                  </p>
+                </div>
+              ) : filteredVersions.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   No updates found matching "{searchQuery}"
                 </div>
@@ -1091,7 +406,9 @@ export default function ChangelogPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Latest</span>
-                    <span className="font-medium text-gray-900 dark:text-white">{versions[0].version}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {versions.length > 0 ? versions[0].version : '-'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1108,7 +425,7 @@ export default function ChangelogPage() {
         >
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v2.0.2
+              Built for students • Public Beta v2.0.3
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a
