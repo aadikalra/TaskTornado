@@ -140,6 +140,30 @@ export default function LandingPage() {
           tasktornado: "✓ <2 minutes to get started",
           tool1: "✓ Instant but limited",
           tool2: "✗ Hours of template setup"
+        },
+        {
+          feature: "Discussion Boards",
+          tasktornado: "✓ Instantly ask peers for help",
+          tool1: "✗ No peer interaction",
+          tool2: "✗ Requires elaborate setup"
+        },
+        {
+          feature: "Group Chats",
+          tasktornado: "✓ Integrated group chats",
+          tool1: "✗ Solo use only",
+          tool2: "✓ Possible but complex"
+        },
+        {
+          feature: "Web Saves",
+          tasktornado: "✓ Save & organize links",
+          tool1: "✗ Can't save external info",
+          tool2: "✓ Great web clipper"
+        },
+        {
+          feature: "Educational Games",
+          tasktornado: "✓ Stress-relief games",
+          tool1: "✗ No games",
+          tool2: "✗ No games"
         }
       ]
     },
@@ -205,6 +229,30 @@ export default function LandingPage() {
           tasktornado: "✓ 2 minutes to get started",
           tool1: "✓ Instant but limited",
           tool2: "✓ 5-10 minutes setup"
+        },
+        {
+          feature: "Discussion Boards",
+          tasktornado: "✓ Instantly ask peers for help",
+          tool1: "✗ No peer interaction",
+          tool2: "✗ No social features"
+        },
+        {
+          feature: "Group Chats",
+          tasktornado: "✓ Integrated group chats",
+          tool1: "✗ Solo use only",
+          tool2: "✗ No group logic"
+        },
+        {
+          feature: "Web Saves",
+          tasktornado: "✓ Save & organize links",
+          tool1: "✗ No bookmarking",
+          tool2: "✗ No link saving"
+        },
+        {
+          feature: "Educational Games",
+          tasktornado: "✓ Stress-relief games",
+          tool1: "✗ No games",
+          tool2: "✗ No games"
         }
       ]
     }
