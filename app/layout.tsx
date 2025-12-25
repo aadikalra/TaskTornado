@@ -33,13 +33,13 @@ export const metadata = {
   authors: [{ name: 'TaskTornado Team' }],
   icons: {
     icon: [
-      { url: '/TaskTornadoChristmas.png', type: 'image/png' },
+      { url: '/TaskTornado.svg', type: 'image/svg+xml' },
     ],
     apple: [
-      { url: '/TaskTornadoChristmas.png', type: 'image/png' },
+      { url: '/TaskTornado.svg', type: 'image/svg+xml' },
     ],
     shortcut: [
-      { url: '/TaskTornadoChristmas.png', type: 'image/png' },
+      { url: '/TaskTornado.svg', type: 'image/svg+xml' },
     ],
   },
 };

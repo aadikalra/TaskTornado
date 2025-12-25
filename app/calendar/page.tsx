@@ -18,6 +18,7 @@ import { useClassContext, type Homework, type Test } from '@/context/ClassContex
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
+import { getFullVersionString } from '@/config/version';
 import CalendarTestItem from '@/components/CalendarTestItem';
 import { getClassIcon } from '@/lib/icon-map';
 import { Button } from '@/components/ui/button';
@@ -528,15 +529,6 @@ export default function CalendarPage() {
                 Next
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/'}
-                className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              >
-                <Home className="h-4 w-4" />
-                <span>Home</span>
-              </Button>
             </div>
           </div>
         </motion.div>
@@ -931,7 +923,7 @@ export default function CalendarPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v2.0.3
+              Built for students • Public Beta {getFullVersionString()}
             </p>
             <Button
               variant="ghost"

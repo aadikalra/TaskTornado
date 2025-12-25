@@ -65,32 +65,32 @@ export default function AccountSection({
   return (
     <>
       {isLoggingOut ? (
-        <div className="p-4 rounded-lg border border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-950/20">
+        <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-            <span className="text-sm text-blue-900 dark:text-blue-100 font-medium">
+            <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+            <span className="text-sm text-gray-900 dark:text-white font-medium">
               Redirecting in {countdown}...
             </span>
           </div>
         </div>
       ) : (
-        <div className="p-4 rounded-lg border border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-950/20">
+        <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:bg-red-50/30 dark:hover:bg-red-950/10 hover:border-red-200/50 dark:hover:border-red-900/30 transition-colors">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <LogOut className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                <LogOut className="h-4 w-4 text-red-400/70 dark:text-red-500/50" />
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
                   Sign Out
                 </h3>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                 Sign out of your account. You'll need to sign in again to access your data.
               </p>
               <Button
-                variant={showLogoutConfirm ? 'destructive' : 'outline'}
+                variant={showLogoutConfirm ? 'default' : 'outline'}
                 size="sm"
                 onClick={onSignOut}
-                className="w-full sm:w-auto"
+                className={`w-full sm:w-auto ${showLogoutConfirm ? 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600' : ''}`}
               >
                 {showLogoutConfirm ? 'Click to Confirm' : 'Sign Out'}
               </Button>
@@ -100,11 +100,11 @@ export default function AccountSection({
       )}
 
       {/* Delete Account Section */}
-      <div className="mt-4 p-4 rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20">
+      <div className="mt-4 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:bg-red-50/30 dark:hover:bg-red-950/10 hover:border-red-200/50 dark:hover:border-red-900/30 transition-colors">
         {isDeleting ? (
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-            <span className="text-sm text-red-900 dark:text-red-100 font-medium">
+            <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+            <span className="text-sm text-gray-900 dark:text-white font-medium">
               Deleting your account...
             </span>
           </div>
@@ -112,22 +112,22 @@ export default function AccountSection({
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <h3 className="text-sm font-semibold text-red-900 dark:text-red-100">
+                <Trash2 className="h-4 w-4 text-red-400/70 dark:text-red-500/50" />
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
                   Delete Account
                 </h3>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Permanently delete your account and all associated data. This action cannot be undone.
               </p>
               {showDeleteConfirm && (
-                <div className="flex items-start gap-2 p-2 bg-red-100 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800 mb-3">
-                  <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-3 bg-red-50/50 dark:bg-red-950/20 rounded-lg border border-red-200/50 dark:border-red-900/30 mb-3">
+                  <AlertTriangle className="h-4 w-4 text-red-500/70 dark:text-red-500/50 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-medium text-red-800 dark:text-red-200">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white">
                       This will permanently delete:
                     </p>
-                    <ul className="text-xs text-red-700 dark:text-red-300 mt-1 list-disc list-inside">
+                    <ul className="text-xs text-gray-600 dark:text-gray-400 mt-1 list-disc list-inside">
                       <li>All your classes and homework data</li>
                       <li>Your account profile and preferences</li>
                       <li>Any saved study groups or flashcards</li>
@@ -139,7 +139,7 @@ export default function AccountSection({
                 variant="outline"
                 size="sm"
                 onClick={handleDeleteClick}
-                className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/20 dark:hover:text-red-300"
+                className="w-full sm:w-auto"
               >
                 Delete Account
               </Button>
@@ -157,7 +157,7 @@ export default function AccountSection({
               Delete Account
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
               <div className="flex items-start gap-2">

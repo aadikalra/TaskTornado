@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowUpRight, CheckCircle2, Check, Shield, Zap, BookOpen, CalendarDays, MessageSquare, Terminal, Heart, Sparkles, Brain, Image as ImageIcon, TrendingUp, Clock, Users, ShieldAlert, Bell, ChevronDown } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, Check, Shield, Zap, BookOpen, CalendarDays, MessageSquare, Terminal, Heart, Sparkles, Brain, Image as ImageIcon, TrendingUp, Clock, Users, ShieldAlert, Bell, ChevronDown, UserRound } from 'lucide-react';
 import React, { useState } from 'react';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
 import DockNav from '@/components/DockNav';
@@ -22,7 +22,7 @@ const sampleHomeworkItems = [
     dueDateIcon: <Clock className="w-3 h-3" />
   },
   {
-    id: '2', 
+    id: '2',
     text: 'WWII Essay Draft',
     completed: false,
     subtext: 'History',
@@ -35,7 +35,7 @@ const sampleHomeworkItems = [
   {
     id: '3',
     text: 'Lab Report',
-    completed: false, 
+    completed: false,
     subtext: 'Science',
     priority: 'low' as const,
     pinned: false,
@@ -50,8 +50,8 @@ export default function LandingPage() {
   const [homeworkItems, setHomeworkItems] = useState(sampleHomeworkItems);
 
   const handleItemToggle = (id: string) => {
-    setHomeworkItems(items => 
-      items.map(item => 
+    setHomeworkItems(items =>
+      items.map(item =>
         item.id === id ? { ...item, completed: !item.completed } : item
       )
     );
@@ -216,7 +216,7 @@ export default function LandingPage() {
       <DockNav />
 
       {/* Beta Banner */}
-      <div className="bg-[#275085] dark:bg-[#1f3f6b]">
+      {/* <div className="bg-[#275085] dark:bg-[#1f3f6b]">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 py-3 px-4">
           <motion.div
             initial={{ scale: 0 }}
@@ -225,7 +225,7 @@ export default function LandingPage() {
             className="flex items-center gap-3 text-white"
           >
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">v1 Just Released — Public Beta Now Live!</span>
+            <span className="text-sm font-medium">v2.0.4 Just Released — Public Beta Now Live!</span>
             <Link
               href="/changelog"
               className="flex items-center gap-1 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-xs font-medium transition-colors"
@@ -235,7 +235,7 @@ export default function LandingPage() {
             </Link>
           </motion.div>
         </div>
-      </div>
+      </div> */}
 
       {/* 1. HERO SECTION */}
       <Hero />
@@ -640,29 +640,87 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Visual - Terminal Style */}
+            {/* Visual - AI Assistant Preview */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <div className="bg-gray-900 dark:bg-black rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
-                <div className="flex items-center gap-2 px-4 py-3 bg-gray-800 dark:bg-gray-900 border-b border-gray-700">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="ml-2 text-xs text-gray-400">AI Command Center</span>
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                {/* Header */}
+                <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-4 flex justify-between items-center border-b border-gray-200/50 dark:border-gray-800/50">
+                  <div className="flex items-center space-x-3">
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        Study Assistant
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">AI-powered help</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-6 font-mono text-sm space-y-3">
-                  <div className="text-green-400">$ @homework What's due this week?</div>
-                  <div className="text-gray-300 pl-4">→ You have 3 assignments due:</div>
-                  <div className="text-gray-400 pl-4">  • Math Ch. 8 - Due Friday</div>
-                  <div className="text-gray-400 pl-4">  • History Essay - Due Thursday</div>
-                  <div className="text-gray-400 pl-4">  • Science Lab - Due Monday</div>
-                  <div className="text-green-400 mt-4">$ @control mark math as done</div>
-                  <div className="text-gray-300 pl-4">✓ Math homework marked complete</div>
-                  <div className="text-green-400 animate-pulse">_</div>
+
+                {/* Messages */}
+                <div className="p-4 space-y-4 bg-gray-50 dark:bg-gray-950 min-h-[350px]">
+                  {/* User Message */}
+                  <div className="flex items-start gap-3 justify-end">
+                    <div className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-slate-600 dark:bg-slate-700 text-white rounded-tr-sm shadow-sm">
+                      @homework What's due this week?
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-primary/5 dark:bg-primary/20">
+                      <UserRound className="h-4 w-4 text-[#275085] dark:text-[#4a7ba7]" />
+                    </div>
+                  </div>
+
+                  {/* AI Response */}
+                  <div className="flex items-start gap-3 justify-start">
+                    <div className="p-1.5 rounded-lg bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+                      <Brain className="h-4 w-4 text-[#275085] dark:text-[#4a7ba7]" />
+                    </div>
+                    <div className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-white dark:bg-gray-800/70 text-gray-900 dark:text-gray-100 rounded-tl-sm shadow-sm border border-gray-100 dark:border-gray-700/50">
+                      <p className="mb-2">You have 3 assignments due:</p>
+                      <ul className="space-y-1 ml-4">
+                        <li className="text-gray-700 dark:text-gray-300">• Math Ch. 8 - Due Friday</li>
+                        <li className="text-gray-700 dark:text-gray-300">• History Essay - Due Thursday</li>
+                        <li className="text-gray-700 dark:text-gray-300">• Science Lab - Due Monday</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* User Message 2 */}
+                  <div className="flex items-start gap-3 justify-end">
+                    <div className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-slate-600 dark:bg-slate-700 text-white rounded-tr-sm shadow-sm">
+                      @control mark math as done
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-primary/5 dark:bg-primary/20">
+                      <UserRound className="h-4 w-4 text-[#275085] dark:text-[#4a7ba7]" />
+                    </div>
+                  </div>
+
+                  {/* AI Response 2 */}
+                  <div className="flex items-start gap-3 justify-start">
+                    <div className="p-1.5 rounded-lg bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+                      <Brain className="h-4 w-4 text-[#275085] dark:text-[#4a7ba7]" />
+                    </div>
+                    <div className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-white dark:bg-gray-800/70 text-gray-900 dark:text-gray-100 rounded-tl-sm shadow-sm border border-gray-100 dark:border-gray-700/50">
+                      ✓ Math homework marked complete
+                    </div>
+                  </div>
+                </div>
+
+                {/* Input Area */}
+                <div className="border-t border-gray-100/50 dark:border-gray-800/50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Ask me anything..."
+                      className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#275085]"
+                      disabled
+                    />
+                    <button className="px-4 py-2 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#1f3f6b] dark:hover:bg-[#275085] text-white rounded-lg transition-colors text-sm font-medium">
+                      Send
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>

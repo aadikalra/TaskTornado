@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Brain, BookOpen, BarChart3, Clock } from 'lucide-react';
 import { Checkbox } from '@/components/animate-ui/radix/checkbox';
 import { FolderContent } from './(landing)/folderContent';
@@ -23,10 +24,10 @@ const colors = {
 // --- SVG Icon Components ---
 
 const TaskTornadoIcon = ({ size = 24, isDarkMode = false }: { size?: number; isDarkMode?: boolean }) => (
-  <img 
-    width={size} 
-    height={size} 
-    src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"} 
+  <img
+    width={size}
+    height={size}
+    src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
     alt="TaskTornado Logo"
     style={{ display: 'block' }}
   />
@@ -183,6 +184,7 @@ const AIFeatureCard = ({ icon, title, description }: { icon: React.ReactNode; ti
 );
 
 const Hero: React.FC = () => {
+  const router = useRouter();
   const [isFloatingChecked, setIsFloatingChecked] = React.useState(true);
   const [isDesktop, setIsDesktop] = React.useState(true);
   const [isMedium, setIsMedium] = React.useState(true);
@@ -444,6 +446,7 @@ const Hero: React.FC = () => {
                 <Button
                   variant="default"
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 text-base mr-4"
+                  onClick={() => router.push('/dashboard')}
                 >
                   Start Organizing
                 </Button>

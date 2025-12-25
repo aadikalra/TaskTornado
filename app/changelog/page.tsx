@@ -5,6 +5,7 @@ import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight, Loader2, Al
 import { useState, useMemo, useEffect } from 'react';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { Input } from '@/components/ui/input';
+import { getFullVersionString, BUILD_VERSION } from '@/config/version';
 
 type Version = {
   version: string;
@@ -55,21 +56,43 @@ export default function ChangelogPage() {
     fetchVersions();
   }, []);
 
-  // Filter versions based on current date
+  // Show all versions (no date filtering)
   const getVisibleVersions = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to start of day
-
-    return versions.filter(version => {
-      const versionDate = new Date(version.date + 'T00:00:00');
-      const oneDayBefore = new Date(versionDate);
-      oneDayBefore.setDate(oneDayBefore.getDate() - 1);
-      oneDayBefore.setHours(0, 0, 0, 0);
-
-      // Show if today is the release date or one day before
-      return today >= oneDayBefore;
-    });
+    return versions;
   };
+
+  // Version comparison utility
+  const compareVersions = (version1: string, version2: string): number => {
+    const v1Parts = version1.split('.').map(Number);
+    const v2Parts = version2.split('.').map(Number);
+    
+    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+      const v1Part = v1Parts[i] || 0;
+      const v2Part = v2Parts[i] || 0;
+      
+      if (v1Part > v2Part) return 1;
+      if (v1Part < v2Part) return -1;
+    }
+    return 0;
+  };
+
+  // Check if current build is outdated (only compare with released versions, not future ones)
+  const isOutdated = useMemo(() => {
+    if (versions.length === 0) return false;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Find the latest released version (not future)
+    const latestReleasedVersion = versions.find(version => {
+      const versionDate = new Date(version.date + 'T00:00:00');
+      return today >= versionDate;
+    });
+    
+    if (!latestReleasedVersion) return false;
+    
+    return compareVersions(latestReleasedVersion.version, BUILD_VERSION) > 0;
+  }, [versions]);
 
   const visibleVersions = getVisibleVersions();
 
@@ -77,12 +100,12 @@ export default function ChangelogPage() {
   const filteredVersions = useMemo(() => {
     if (!searchQuery.trim()) return visibleVersions;
     const query = searchQuery.toLowerCase();
-    return visibleVersions.filter(v =>
+    return visibleVersions.filter((v: Version) =>
       v.version.toLowerCase().includes(query) ||
       v.title.toLowerCase().includes(query) ||
       v.highlight.toLowerCase().includes(query) ||
-      v.short.some(s => s.toLowerCase().includes(query)) ||
-      v.full.some(f => f.toLowerCase().includes(query))
+      v.short.some((s: string) => s.toLowerCase().includes(query)) ||
+      v.full.some((f: string) => f.toLowerCase().includes(query))
     );
   }, [visibleVersions, searchQuery]);
 
@@ -101,7 +124,7 @@ export default function ChangelogPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+      <div className="px-4 pt-4 pb-16 sm:px-6 sm:pt-6 sm:pb-20 lg:px-8 lg:pt-8 lg:pb-24">
 
         {/* Header & Search */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-12">
@@ -134,24 +157,31 @@ export default function ChangelogPage() {
           </motion.div>
         </div>
 
+        {/* Outdated Build Alert */}
+        {isOutdated && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
+                  Update Available
+                </h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  You're using build {getFullVersionString()}, but a newer version is available. 
+                  Please update to get the latest features and improvements.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-12 relative">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Development Completion Message */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-8 sm:mb-12 p-3 sm:p-4 border border-gray-200 dark:border-gray-800 rounded-lg text-center bg-gray-50/50 dark:bg-gray-900/50"
-            >
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">
-                🎯 Development Complete
-              </p>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                TaskTornado is now feature-complete. Future updates will focus on patches and bug fixes.
-              </p>
-            </motion.div>
-
             {/* In Progress Section */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -189,10 +219,9 @@ export default function ChangelogPage() {
                     </span>
                   </div>
                   <ul className="space-y-1.5 sm:space-y-2">
-
                     <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                      <span className="leading-relaxed">Subtasks feature for breaking down homework and assignments into manageable steps</span>
+                      <span className="leading-relaxed">TaskTornado is now feature-complete. Future updates will focus on patches and bug fixes.</span>
                     </li>
                   </ul>
                 </div>
@@ -425,7 +454,7 @@ export default function ChangelogPage() {
         >
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v2.0.3
+              Built for students • Public Beta {getFullVersionString()}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <a

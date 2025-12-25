@@ -55,7 +55,7 @@ export default function PreferencesSection({
         <div className="relative flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
           {/* ALPHA Badge */}
           <div className="absolute -top-2 -left-2 z-10">
-            <span className="text-[10px] px-1.5 py-0.5 bg-black dark:bg-white text-white dark:text-black">
+            <span className="text-[10px] px-1.5 py-0.5 bg-black dark:bg-white text-white dark:text-black rounded-xl">
               ALPHA
             </span>
           </div>
@@ -127,9 +127,9 @@ export default function PreferencesSection({
               <h3 className="text-sm font-medium text-gray-900 dark:text-white">
                 Full Width Mode
               </h3>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+              {/* <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                 Recommended
-              </span>
+              </span> */}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
               Use the full width of your screen for the settings page layout.

@@ -11,6 +11,7 @@ import { useWideLayout } from '@/hooks/use-wide-layout';
 import WorthinessCheckModal from '@/components/WorthinessCheckModal';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
+import { getFullVersionString } from '@/config/version';
 
 export default function GamesPage() {
     const router = useRouter();
@@ -283,7 +284,7 @@ export default function GamesPage() {
                 >
                     <div className="flex items-center justify-between">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Built for students • Public Beta v2.0.3
+                            Built for students • Public Beta {getFullVersionString()}
                         </p>
                         <Button
                             variant="ghost"

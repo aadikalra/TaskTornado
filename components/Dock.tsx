@@ -75,7 +75,7 @@ function DockItem({
         alignItems: 'center',
         justifyContent: 'center',
       }}
-      className={`${className} rounded-full bg-white/90 dark:bg-slate-800/90 border border-gray-300/80 dark:border-slate-600/80 shadow-[0_2px_8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)] cursor-pointer outline-none box-border`}
+      className={`${className} rounded-full bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/50 dark:border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] cursor-pointer outline-none box-border hover:bg-white/40 dark:hover:bg-slate-800/40 transition-colors`}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
@@ -189,7 +189,7 @@ export default function Dock({
           isHovered.set(0);
           mouseX.set(Infinity);
         }}
-        className={`${className} flex items-end w-fit mb-2 sm:mb-4 rounded-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-gray-300/80 dark:border-slate-700/80 box-border pointer-events-auto shadow-[0_4px_20px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_2px_4px_rgba(0,0,0,0.2)] overflow-visible max-w-full`}
+        className={`${className} flex items-end w-fit mb-2 sm:mb-4 rounded-full bg-white/25 dark:bg-slate-900/25 backdrop-blur-3xl border border-white/40 dark:border-white/15 box-border pointer-events-auto shadow-[0_12px_48px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_48px_rgba(0,0,0,0.7),0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1px_1px_rgba(0,0,0,0.2)] overflow-visible max-w-full`}
         style={{
           height: `${responsiveHeight}px`,
           display: 'flex',

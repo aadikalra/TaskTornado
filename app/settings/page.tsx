@@ -17,6 +17,7 @@ import {
   AccountSection
 } from '@/components/settings';
 import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection';
+import { getFullVersionString } from '@/config/version';
 
 // Cookie utilities
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -53,9 +54,9 @@ export default function SettingsPage() {
   const [showAIPriority, setShowAIPriority] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('showAIPriority');
-      return saved !== null ? saved === 'true' : true; // default to true
+      return saved !== null ? saved === 'true' : false; // default to false
     }
-    return true;
+    return false;
   });
 
   const handleToggleAIPriority = (checked: boolean) => {
@@ -288,196 +289,174 @@ export default function SettingsPage() {
   const userName = full_name || "User"; // Use actual user name or fallback to "User"
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-7xl mx-auto">
 
-        {/* Header - Mobile Optimized */}
+        {/* Header - Minimalist */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 sm:mb-12 lg:mb-16"
+          className="mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 sm:mb-3 tracking-tight">
+          <h1 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
             Settings
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-            Manage your preferences and data
-          </p>
         </motion.div>
 
-        {/* Main Content - Mobile Optimized */}
-        <div className="space-y-8 sm:space-y-12">
-          {/* Google Classroom Section */}
-          {isGoogleUser && (
+        {/* Main Content - Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+
+          {/* Left Column */}
+          <div className="space-y-8">
+            {/* Google Classroom Section */}
+            {isGoogleUser && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <GoogleClassroomSection />
+              </motion.div>
+            )}
+
+            {/* Preferences Section */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
             >
-              <GoogleClassroomSection />
-            </motion.div>
-          )}
-
-          {/* Preferences Section - Mobile Optimized */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-          >
-            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
+              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
                 Preferences
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Customize your app experience
-              </p>
-            </div>
-            <PreferencesSection
-              showAIPriority={showAIPriority}
-              onToggleAIPriority={handleToggleAIPriority}
-              showLevelDisplay={showLevelDisplay}
-              onToggleLevelDisplay={handleToggleLevelDisplay}
-              showSubjectMastery={showSubjectMastery}
-              onToggleSubjectMastery={handleToggleSubjectMastery}
-              aiPersonality={aiPersonality}
-              onPersonalityChange={handlePersonalityChange}
-              useWideLayout={isWideLayout}
-              onToggleWideLayout={toggleWideLayout}
-            />
-          </motion.div>
+              <PreferencesSection
+                showAIPriority={showAIPriority}
+                onToggleAIPriority={handleToggleAIPriority}
+                showLevelDisplay={showLevelDisplay}
+                onToggleLevelDisplay={handleToggleLevelDisplay}
+                showSubjectMastery={showSubjectMastery}
+                onToggleSubjectMastery={handleToggleSubjectMastery}
+                aiPersonality={aiPersonality}
+                onPersonalityChange={handlePersonalityChange}
+                useWideLayout={isWideLayout}
+                onToggleWideLayout={toggleWideLayout}
+              />
+            </motion.div>
 
-          {/* Section Order - Mobile Optimized */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
+            {/* Section Order */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
                 Section Order
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Customize the order of sections on your dashboard
-              </p>
-            </div>
-            <SectionOrderSection
-              sectionOrder={sectionOrder}
-              onMoveUp={moveSectionUp}
-              onMoveDown={moveSectionDown}
-              onOrderChange={handleSectionOrderChange}
-            />
-          </motion.div>
+              <SectionOrderSection
+                sectionOrder={sectionOrder}
+                onMoveUp={moveSectionUp}
+                onMoveDown={moveSectionDown}
+                onOrderChange={handleSectionOrderChange}
+              />
+            </motion.div>
+          </div>
 
-          {/* Accessibility Section - Mobile Optimized */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
+          {/* Right Column */}
+          <div className="space-y-8">
+            {/* Accessibility Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
                 Accessibility
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Customize for better readability and usability
-              </p>
-            </div>
-            <AccessibilitySection
-              reduceMotion={reduceMotion}
-              onToggleReduceMotion={handleToggleReduceMotion}
-              useDyslexicFont={useDyslexicFont}
-              onToggleDyslexicFont={handleToggleDyslexicFont}
-            />
-          </motion.div>
+              <AccessibilitySection
+                reduceMotion={reduceMotion}
+                onToggleReduceMotion={handleToggleReduceMotion}
+                useDyslexicFont={useDyslexicFont}
+                onToggleDyslexicFont={handleToggleDyslexicFont}
+              />
+            </motion.div>
 
-          {/* Data Management Section - Mobile Optimized */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
+            {/* Data Management Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
                 Data Management
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Manage your classes and homework data
-              </p>
-            </div>
-            <DataManagementSection
-              classes={classes}
-              homeworks={homeworks}
-              showClassConfirm={showClassConfirm}
-              showHomeworkConfirm={showHomeworkConfirm}
-              onClearClasses={handleClearClasses}
-              onClearHomeworks={handleClearHomeworks}
-            />
-          </motion.div>
+              <DataManagementSection
+                classes={classes}
+                homeworks={homeworks}
+                showClassConfirm={showClassConfirm}
+                showHomeworkConfirm={showHomeworkConfirm}
+                onClearClasses={handleClearClasses}
+                onClearHomeworks={handleClearHomeworks}
+              />
+            </motion.div>
 
-          {/* Account Section - Mobile Optimized */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
-            <div className="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">
+            {/* Account Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
                 Account
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Manage your account settings
-              </p>
-            </div>
-            <AccountSection
-              isLoggingOut={isLoggingOut}
-              showLogoutConfirm={showLogoutConfirm}
-              countdown={countdown}
-              onSignOut={handleSignOut}
-              showDeleteConfirm={showDeleteConfirm}
-              isDeleting={isDeleting}
-              onDeleteAccountWithConfirmation={handleDeleteAccount}
-              userName={userName}
-            />
-          </motion.div>
-
-          {/* Warning Notice - Mobile Optimized */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-start gap-3 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg"
-          >
-            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-yellow-900 dark:text-yellow-100">
-                Destructive actions cannot be undone
-              </p>
-              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                Make sure you have a backup of any important data before proceeding with delete operations.
-              </p>
-            </div>
-          </motion.div>
+              <AccountSection
+                isLoggingOut={isLoggingOut}
+                showLogoutConfirm={showLogoutConfirm}
+                countdown={countdown}
+                onSignOut={handleSignOut}
+                showDeleteConfirm={showDeleteConfirm}
+                isDeleting={isDeleting}
+                onDeleteAccountWithConfirmation={handleDeleteAccount}
+                userName={userName}
+              />
+            </motion.div>
+          </div>
         </div>
 
-        {/* Footer - Mobile Optimized */}
+        {/* Warning Notice - Minimalist */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 flex items-start gap-3 p-4 bg-yellow-50/50 dark:bg-yellow-950/10 rounded-xl"
+        >
+          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-100">
+              Destructive actions cannot be undone
+            </p>
+            <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">
+              Make sure you have a backup of any important data.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Footer - Minimalist */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="mt-12 sm:mt-16 lg:mt-20 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-800"
+          className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800"
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta v2.0.3
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Built for students • Public Beta {getFullVersionString()}
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/')}
-              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white active:scale-95"
+              className="gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
               <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Home</span>
-              <span className="sm:hidden">Back</span>
+              Home
             </Button>
           </div>
         </motion.div>

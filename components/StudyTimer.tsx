@@ -4,14 +4,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
-import { Play, Pause, RotateCcw, Minimize2, Maximize2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Minimize2, Maximize2, CheckCircle2, Circle, ChevronRight, Trash2, X, Check } from 'lucide-react';
 import { Timer } from './animate-ui/icons/timer';
+import { useData } from '@/context/DataContext';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 
 interface TimerProps {
   trigger?: React.ReactNode;
   onComplete?: () => void;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+}
+
+type TimerStep = 'task-selection' | 'timer' | 'completion-check' | 'progress-tracking' | 'productivity-reflection' | 'next-session-suggestion';
+
+interface TimerSession {
+  taskId: string | null;
+  taskTitle: string;
+  duration: number;
+  startTime: Date | null;
+  endTime: Date | null;
 }
 
 export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpenChange }: TimerProps) {
@@ -27,6 +40,24 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
   const [timeLeft, setTimeLeft] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
 
+  // New state for productive timers feature
+  const [currentStep, setCurrentStep] = useState<TimerStep>('task-selection');
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [customTaskName, setCustomTaskName] = useState('');
+  const [taskCompleted, setTaskCompleted] = useState<boolean | null>(null);
+  const [progressPercentage, setProgressPercentage] = useState(50);
+  const [focusQuality, setFocusQuality] = useState(5);
+  const [productivityNotes, setProductivityNotes] = useState('');
+  const [suggestedNextDuration, setSuggestedNextDuration] = useState(25);
+  const [currentSession, setCurrentSession] = useState<TimerSession>({
+    taskId: null,
+    taskTitle: '',
+    duration: 0,
+    startTime: null,
+    endTime: null
+  });
+
+  const { homework, deleteHomework } = useData();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -75,6 +106,12 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             setTotalTime(totalSeconds);
             setTimeLeft(totalSeconds);
           }
+
+          // Restore session data if exists
+          if (timerData.currentSession) {
+            setCurrentSession(timerData.currentSession);
+            setCurrentStep('timer');
+          }
         }
       } catch {
         // Silent fail
@@ -85,12 +122,21 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
   useEffect(() => {
     if (totalTime > 0) {
       const timeoutId = setTimeout(() => {
-        const timerState = { hours, minutes, seconds, isRunning, isPaused, timeLeft, totalTime };
+        const timerState = {
+          hours,
+          minutes,
+          seconds,
+          isRunning,
+          isPaused,
+          timeLeft,
+          totalTime,
+          currentSession
+        };
         setCookie('studyTimer', JSON.stringify(timerState));
       }, 500);
       return () => clearTimeout(timeoutId);
     }
-  }, [hours, minutes, seconds, isRunning, isPaused, timeLeft, totalTime]);
+  }, [hours, minutes, seconds, isRunning, isPaused, timeLeft, totalTime, currentSession]);
 
   useEffect(() => {
     const totalSeconds = hours * 3600 + minutes * 60 + seconds;
@@ -120,8 +166,18 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setIsPaused(false);
-      audioRef.current?.play().catch(() => {});
-      clearTimerCookie();
+      audioRef.current?.play().catch(() => { });
+
+      // Update session end time
+      setCurrentSession(prev => ({
+        ...prev,
+        endTime: new Date()
+      }));
+
+      // Move to completion check
+      setCurrentStep('completion-check');
+      setIsMinimized(false);
+
       onComplete?.();
     }
   }, [timeLeft, isRunning, onComplete]);
@@ -130,7 +186,8 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
   useEffect(() => {
     if (isRunning && isMinimized) {
       const formattedTime = formatTime(timeLeft);
-      document.title = `${formattedTime} - Study Timer`;
+      const taskName = currentSession.taskTitle || 'Study Timer';
+      document.title = `${formattedTime} - ${taskName}`;
     } else {
       document.title = 'TaskTornado';
     }
@@ -138,7 +195,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     return () => {
       document.title = 'TaskTornado';
     };
-  }, [isRunning, isMinimized, timeLeft]);
+  }, [isRunning, isMinimized, timeLeft, currentSession.taskTitle]);
 
   const clearTimerCookie = () => {
     if (typeof document !== 'undefined') {
@@ -146,11 +203,28 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     }
   };
 
+  const handleTaskSelection = (taskId: string | null, taskTitle: string) => {
+    setSelectedTask(taskId);
+    setCurrentSession({
+      taskId,
+      taskTitle,
+      duration: totalTime,
+      startTime: null,
+      endTime: null
+    });
+    setCurrentStep('timer');
+  };
+
   const startTimer = () => {
     if (totalTime > 0) {
       setIsRunning(true);
       setIsPaused(false);
       setTimeLeft(totalTime);
+      setCurrentSession(prev => ({
+        ...prev,
+        startTime: new Date(),
+        duration: totalTime
+      }));
     }
   };
 
@@ -161,6 +235,90 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     setIsPaused(false);
     setTimeLeft(totalTime);
     clearTimerCookie();
+  };
+
+  const endTimerEarly = () => {
+    setIsRunning(false);
+    setIsPaused(false);
+    audioRef.current?.play().catch(() => { });
+
+    // Update session end time
+    setCurrentSession(prev => ({
+      ...prev,
+      endTime: new Date()
+    }));
+
+    // Move to completion check
+    setCurrentStep('completion-check');
+    setIsMinimized(false);
+
+    onComplete?.();
+  };
+
+  const handleCompletionCheck = (completed: boolean) => {
+    setTaskCompleted(completed);
+    if (completed) {
+      setCurrentStep('productivity-reflection');
+    } else {
+      setCurrentStep('progress-tracking');
+    }
+  };
+
+  const handleProgressTracking = () => {
+    // Calculate suggested next duration based on unit rate of work
+    const remainingWork = 100 - progressPercentage;
+    const timeSpentMinutes = currentSession.duration / 60;
+
+    // Calculate work rate: percentage completed per minute
+    const workRate = progressPercentage / timeSpentMinutes;
+
+    // Calculate time needed for remaining work at the same rate
+    const estimatedRemainingTime = Math.ceil(remainingWork / workRate);
+
+    // Suggest a reasonable session duration (cap at 120 minutes, minimum 1 minute)
+    const suggested = Math.min(Math.max(1, estimatedRemainingTime), 120);
+    setSuggestedNextDuration(suggested);
+
+    setCurrentStep('productivity-reflection');
+  };
+
+  const handleProductivityReflection = () => {
+    setCurrentStep('next-session-suggestion');
+  };
+
+  const handleStartNewSession = () => {
+    // Reset for new session
+    setMinutes(suggestedNextDuration);
+    setHours(0);
+    setSeconds(0);
+    setTaskCompleted(null);
+    setProgressPercentage(50);
+    setFocusQuality(5);
+    setProductivityNotes('');
+    setCurrentStep('task-selection');
+  };
+
+  const handleFinishSession = () => {
+    // Reset everything
+    setCurrentStep('task-selection');
+    setSelectedTask(null);
+    setCustomTaskName('');
+    setTaskCompleted(null);
+    setProgressPercentage(50);
+    setFocusQuality(5);
+    setProductivityNotes('');
+    setMinutes(25);
+    setHours(0);
+    setSeconds(0);
+    setCurrentSession({
+      taskId: null,
+      taskTitle: '',
+      duration: 0,
+      startTime: null,
+      endTime: null
+    });
+    clearTimerCookie();
+    setIsOpen(false);
   };
 
   const formatTime = (totalSeconds: number) => {
@@ -178,16 +336,16 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
   // Floating pill component
   const FloatingPill = () => {
     if (!isMinimized || !isRunning) return null;
-    
+
     return (
       <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-2 bg-background/95 backdrop-blur-xl border border-border rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200"
-           onClick={() => setIsMinimized(false)}>
+        onClick={() => setIsMinimized(false)}>
         <Timer className="w-4 h-4 text-foreground" />
         <span className="text-sm font-medium text-foreground tabular-nums">
           {formatTime(timeLeft)}
         </span>
         <div className="w-1 h-4 bg-muted rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-foreground transition-all duration-1000 ease-linear"
             style={{ height: `${progress}%` }}
           />
@@ -197,21 +355,122 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     );
   };
 
-  return (
-    <>
-      <Dialog open={isOpen && !isMinimized} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          {trigger || (
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-              <Timer className="w-4 h-4" />
-              Timer
-            </Button>
-          )}
-        </DialogTrigger>
+  // Render different steps
+  const renderContent = () => {
+    switch (currentStep) {
+      case 'task-selection':
+        return (
+          <div className="py-6 space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-foreground mb-2">What are you working on?</h3>
+              <p className="text-sm text-muted-foreground">Select a task to focus on</p>
+            </div>
 
-        <DialogContent className="sm:max-w-xs border-0 shadow-2xl bg-background/95 backdrop-blur-xl">
-          <DialogTitle className="sr-only">Study Timer</DialogTitle>
-          <div className="py-8 space-y-8">
+            <div className="space-y-2 max-h-64 overflow-y-auto px-4">
+              {/* Custom task option */}
+              <div className="space-y-2 mb-4">
+                <Input
+                  placeholder="Enter custom task name..."
+                  value={customTaskName}
+                  onChange={(e) => setCustomTaskName(e.target.value)}
+                  className="text-sm"
+                />
+                {customTaskName && (
+                  <Button
+                    onClick={() => handleTaskSelection(null, customTaskName)}
+                    className="w-full justify-start gap-2 text-left"
+                    variant="outline"
+                  >
+                    <Circle className="w-4 h-4" />
+                    <span className="truncate">{customTaskName}</span>
+                  </Button>
+                )}
+              </div>
+
+              {/* Homework tasks */}
+              {homework.filter(hw => !hw.completed).slice(0, 5).map((task) => (
+                <Button
+                  key={task.id}
+                  onClick={() => handleTaskSelection(task.id, task.title)}
+                  className="w-full justify-start gap-2 text-left"
+                  variant="outline"
+                >
+                  <Circle className="w-4 h-4" />
+                  <span className="truncate">{task.title}</span>
+                </Button>
+              ))}
+
+              {homework.filter(hw => !hw.completed).length === 0 && !customTaskName && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No pending tasks. Enter a custom task above.
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'timer':
+        const presetDurations = [
+          { label: '5', minutes: 5 },
+          { label: '10', minutes: 10 },
+          { label: '15', minutes: 15 },
+          { label: '25', minutes: 25 },
+          { label: '30', minutes: 30 },
+          { label: '45', minutes: 45 },
+          { label: '60', minutes: 60 },
+        ];
+
+        const setPresetDuration = (mins: number) => {
+          setMinutes(mins);
+          setHours(0);
+          setSeconds(0);
+        };
+
+        const currentTotalMinutes = hours * 60 + minutes + (seconds > 0 ? 1 : 0);
+
+        const handleChangeTask = () => {
+          setCurrentStep('task-selection');
+        };
+
+        const handleRemoveTask = () => {
+          setCurrentSession({
+            taskId: null,
+            taskTitle: '',
+            duration: totalTime,
+            startTime: null,
+            endTime: null
+          });
+          setSelectedTask(null);
+          setCustomTaskName('');
+        };
+
+        return (
+          <div className="py-6 space-y-6">
+            {/* Task name - now clickable */}
+            {currentSession.taskTitle && (
+              <div className="px-4">
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={handleChangeTask}
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Working on</p>
+                    <p className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors max-w-[200px] truncate">
+                      {currentSession.taskTitle}
+                    </p>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                  <button
+                    onClick={handleRemoveTask}
+                    className="p-1 rounded-full hover:bg-muted transition-colors"
+                    title="Remove task"
+                  >
+                    <span className="text-muted-foreground hover:text-foreground text-sm">×</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Timer Display */}
             <div className="text-center">
               <div className="text-7xl font-extralight tracking-tight text-foreground tabular-nums">
@@ -222,50 +481,99 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             {/* Progress Bar */}
             <div className="px-4">
               <div className="w-full h-0.5 bg-muted rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-foreground/60 transition-all duration-1000 ease-linear"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
 
-            {/* Time Input */}
+            {/* Duration Selection - Only show when not running */}
             {!isRunning && (
-              <div className="flex justify-center gap-6 px-4">
-                {[
-                  { value: hours, setter: setHours, max: 23, label: 'h' },
-                  { value: minutes, setter: setMinutes, max: 59, label: 'm' },
-                  { value: seconds, setter: setSeconds, max: 59, label: 's' },
-                ].map(({ value, setter, max, label }) => (
-                  <div key={label} className="flex flex-col items-center gap-1">
-                    <Input
-                      type="number"
-                      min="0"
-                      max={max}
-                      value={value || ''}
-                      onChange={(e) => setter(Math.max(0, Math.min(max, parseInt(e.target.value) || 0)))}
-                      className="w-14 h-10 text-center text-lg font-light border-0 bg-muted/50 rounded-lg focus-visible:ring-1 focus-visible:ring-foreground/20"
-                    />
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
+              <div className="px-4 space-y-4">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Duration</p>
+                </div>
+
+                {/* Preset Duration Buttons */}
+                <div className="grid grid-cols-4 gap-2">
+                  {presetDurations.map((preset) => (
+                    <Button
+                      key={preset.minutes}
+                      onClick={() => setPresetDuration(preset.minutes)}
+                      variant="outline"
+                      className={`h-12 text-sm font-medium transition-all ${currentTotalMinutes === preset.minutes
+                        ? 'bg-foreground text-background border-foreground hover:bg-foreground/90 hover:text-background'
+                        : 'hover:bg-muted'
+                        }`}
+                    >
+                      {preset.label}
+                      <span className="text-[10px] ml-1 opacity-60">min</span>
+                    </Button>
+                  ))}
+
+                  {/* Custom time button */}
+                  <Button
+                    onClick={() => {
+                      const customMins = parseInt(prompt('Enter custom duration in minutes (1-180):', '25') || '25');
+                      if (customMins && customMins > 0 && customMins <= 180) {
+                        setPresetDuration(customMins);
+                      }
+                    }}
+                    variant="outline"
+                    className="h-12 text-sm font-medium hover:bg-muted"
+                  >
+                    <span className="text-lg">+</span>
+                  </Button>
+                </div>
+
+                {/* Quick adjust buttons */}
+                <div className="flex items-center justify-center gap-3">
+                  <Button
+                    onClick={() => {
+                      const newMins = Math.max(1, currentTotalMinutes - 5);
+                      setPresetDuration(newMins);
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-full"
+                  >
+                    <span className="text-lg">−</span>
+                  </Button>
+
+                  <div className="text-center min-w-[80px]">
+                    <p className="text-sm font-medium text-foreground">{currentTotalMinutes} min</p>
                   </div>
-                ))}
+
+                  <Button
+                    onClick={() => {
+                      const newMins = Math.min(180, currentTotalMinutes + 5);
+                      setPresetDuration(newMins);
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-full"
+                  >
+                    <span className="text-lg">+</span>
+                  </Button>
+                </div>
               </div>
             )}
 
             {/* Controls */}
             <div className="flex justify-center gap-3">
               {!isRunning ? (
-                <Button 
-                  onClick={startTimer} 
+                <Button
+                  onClick={startTimer}
                   disabled={totalTime === 0}
                   size="lg"
-                  className="w-14 h-14 rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30"
+                  className="w-14 h-14 rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 shadow-lg hover:shadow-xl transition-all"
                 >
                   <Play className="w-5 h-5 ml-0.5" />
                 </Button>
               ) : (
                 <>
-                  <Button 
+                  <Button
                     onClick={pauseTimer}
                     variant="ghost"
                     size="lg"
@@ -273,15 +581,24 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                   >
                     {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={resetTimer}
                     variant="ghost"
                     size="lg"
                     className="w-12 h-12 rounded-full hover:bg-muted"
                   >
-                    <RotateCcw className="w-4 h-4" />
+                    <X className="w-4 h-4" />
                   </Button>
-                  <Button 
+                  <Button
+                    onClick={endTimerEarly}
+                    variant="ghost"
+                    size="lg"
+                    className="w-12 h-12 rounded-full hover:bg-muted"
+                    title="End early"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
                     onClick={() => setIsMinimized(true)}
                     variant="ghost"
                     size="lg"
@@ -302,6 +619,179 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
               </div>
             )}
           </div>
+        );
+
+      case 'completion-check':
+        return (
+          <div className="py-6 space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-foreground mb-2">Timer Complete!</h3>
+              <p className="text-sm text-muted-foreground">Did you finish the task?</p>
+            </div>
+
+            <div className="px-4 space-y-3">
+              <Button
+                onClick={() => handleCompletionCheck(true)}
+                className="w-full justify-start gap-3 h-auto py-3"
+                variant="outline"
+              >
+                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                <div className="text-left">
+                  <p className="font-medium">Yes, I completed it</p>
+                  <p className="text-xs text-muted-foreground">Task is done!</p>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => handleCompletionCheck(false)}
+                className="w-full justify-start gap-3 h-auto py-3"
+                variant="outline"
+              >
+                <Circle className="w-5 h-5 shrink-0" />
+                <div className="text-left">
+                  <p className="font-medium">No, still in progress</p>
+                  <p className="text-xs text-muted-foreground">Let me track my progress</p>
+                </div>
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'progress-tracking':
+        return (
+          <div className="py-6 space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-foreground mb-2">Track Your Progress</h3>
+              <p className="text-sm text-muted-foreground">How much of the task did you complete?</p>
+            </div>
+
+            <div className="px-6 space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Progress</span>
+                  <span className="text-2xl font-medium text-foreground">{progressPercentage}%</span>
+                </div>
+                <Slider
+                  value={[progressPercentage]}
+                  onValueChange={(value: number[]) => setProgressPercentage(value[0])}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              <Button onClick={handleProgressTracking} className="w-full">
+                Continue
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'productivity-reflection':
+        return (
+          <div className="py-6 space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-foreground mb-2">Productivity Reflection</h3>
+              <p className="text-sm text-muted-foreground">How was your focus quality?</p>
+            </div>
+
+            <div className="px-6 space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Focus Quality</span>
+                  <span className="text-lg font-medium text-foreground">{focusQuality}/10</span>
+                </div>
+                <Slider
+                  value={[focusQuality]}
+                  onValueChange={(value: number[]) => setFocusQuality(value[0])}
+                  min={1}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Poor</span>
+                  <span>Good</span>
+                  <span>Excellent</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm text-muted-foreground">Notes (optional)</label>
+                <Textarea
+                  placeholder="Any thoughts on this session?"
+                  value={productivityNotes}
+                  onChange={(e) => setProductivityNotes(e.target.value)}
+                  className="min-h-20 text-sm"
+                />
+              </div>
+
+              <Button onClick={handleProductivityReflection} className="w-full">
+                Continue
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'next-session-suggestion':
+        return (
+          <div className="py-6 space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-foreground mb-2">Great Work!</h3>
+              <p className="text-sm text-muted-foreground">Ready for another session?</p>
+            </div>
+
+            <div className="px-6 space-y-4">
+              {!taskCompleted && (
+                <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                  <p className="text-sm font-medium text-foreground">Suggested Next Session</p>
+                  <p className="text-2xl font-semibold text-foreground">{suggestedNextDuration} minutes</p>
+                  <p className="text-xs text-muted-foreground">
+                    Based on {progressPercentage}% completion, you have about {100 - progressPercentage}% remaining
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Button onClick={handleStartNewSession} className="w-full">
+                  Start Another Session
+                </Button>
+                <Button onClick={handleFinishSession} variant="outline" className="w-full">
+                  Finish for Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen && !isMinimized} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+              <Timer className="w-4 h-4" />
+              Timer
+            </Button>
+          )}
+        </DialogTrigger>
+
+        <DialogContent className="sm:max-w-md border-0 shadow-2xl bg-background/95 backdrop-blur-xl">
+          <DialogTitle className="sr-only">Study Timer</DialogTitle>
+          {renderContent()}
 
           <audio
             ref={audioRef}

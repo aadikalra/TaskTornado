@@ -17,7 +17,7 @@ export const db = {
       .select('*')
       .eq('user_id', userId)
       .order('name', { ascending: true });
-    
+
     if (error) throw error;
     return data || [];
   },
@@ -29,7 +29,7 @@ export const db = {
       .eq('id', classId)
       .eq('user_id', userId)
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -40,7 +40,7 @@ export const db = {
       .insert([{ ...classData }])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -52,7 +52,7 @@ export const db = {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -64,14 +64,14 @@ export const db = {
       .delete()
       .eq('class_id', id)
       .eq('user_id', userId);
-    
+
     // Then delete the class
     const { error } = await supabase
       .from('classes')
       .delete()
       .eq('id', id)
       .eq('user_id', userId);
-    
+
     if (error) throw error;
   },
 
@@ -81,13 +81,13 @@ export const db = {
       .from('homework')
       .delete()
       .eq('user_id', userId);
-    
+
     // Then delete all classes for this user
     const { error } = await supabase
       .from('classes')
       .delete()
       .eq('user_id', userId);
-    
+
     if (error) throw error;
   },
 
@@ -97,7 +97,7 @@ export const db = {
       .from('homework')
       .delete()
       .eq('user_id', userId);
-    
+
     if (error) throw error;
   },
 
@@ -116,23 +116,23 @@ export const db = {
     if (filters.classId) {
       query = query.eq('class_id', filters.classId);
     }
-    
+
     if (filters.completed !== undefined) {
       query = query.eq('completed', filters.completed);
     }
-    
+
     if (filters.dueAfter) {
       query = query.gte('due_date', filters.dueAfter.toISOString());
     }
-    
+
     if (filters.dueBefore) {
       query = query.lte('due_date', filters.dueBefore.toISOString());
     }
-    
+
     query = query.order('due_date', { ascending: true });
-    
+
     const { data, error } = await query;
-    
+
     if (error) throw error;
     return (data || []) as Database['public']['Tables']['homework']['Row'][]
   },
@@ -141,7 +141,7 @@ export const db = {
     const today = new Date();
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + daysAhead);
-    
+
     return db.getHomework(userId, {
       completed: false,
       dueAfter: today,
@@ -155,7 +155,7 @@ export const db = {
       .insert([{ ...homeworkData }])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -167,7 +167,7 @@ export const db = {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -178,7 +178,7 @@ export const db = {
       .delete()
       .eq('id', id)
       .eq('user_id', userId);
-    
+
     if (error) throw error;
   },
 
@@ -190,7 +190,7 @@ export const db = {
       .eq('user_id', userId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -280,12 +280,12 @@ export const db = {
   getUserProfile: async (userId: string) => {
     // Get user from Supabase Auth
     const { data: { users }, error } = await supabase.auth.admin.listUsers();
-    
+
     if (error) throw error;
-    
+
     const user = users?.find(u => u.id === userId);
     if (!user) throw new Error('User not found');
-    
+
     return {
       id: user.id,
       email: user.email,
@@ -294,10 +294,10 @@ export const db = {
       created_at: user.created_at,
       last_sign_in_at: user.last_sign_in_at,
       email_confirmed_at: user.email_confirmed_at,
-      is_google_user: user.app_metadata?.provider === 'google' || 
-                     user.user_metadata?.provider === 'google' ||
-                     user.email?.endsWith('@gmail.com') ||
-                     user.user_metadata?.email_verified
+      is_google_user: user.app_metadata?.provider === 'google' ||
+        user.user_metadata?.provider === 'google' ||
+        user.email?.endsWith('@gmail.com') ||
+        user.user_metadata?.email_verified
     };
   },
 
@@ -306,7 +306,7 @@ export const db = {
     const { data, error } = await supabase.auth.admin.updateUserById(userId, {
       user_metadata: updates
     });
-    
+
     if (error) throw error;
     return data.user;
   }
