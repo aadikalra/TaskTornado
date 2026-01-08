@@ -41,6 +41,7 @@ import IconPin from './glass-icons/IconPin';
 import IconSparkle from './glass-icons/IconSparkle';
 import IconUsers from './glass-icons/IconUsers';
 import IconFile from './glass-icons/IconFile';
+import { useAI } from '@/context/AIContext';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -60,7 +61,7 @@ export default function Navbar() {
   // State hooks
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const { isAIAssistantOpen, setAIAssistantOpen } = useAI();
   const [isMinimalistTimerOpen, setIsMinimalistTimerOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -135,7 +136,7 @@ export default function Navbar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => setIsAIAssistantOpen(true)}
+                      onClick={() => setAIAssistantOpen(true)}
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300  hover:scale-110 group"
                     >
                       <IconSparkle />
@@ -352,7 +353,7 @@ export default function Navbar() {
 
               <button
                 onClick={() => {
-                  setIsAIAssistantOpen(true);
+                  setAIAssistantOpen(true);
                   setIsMenuOpen(false);
                 }}
                 className="w-full flex items-center px-4 py-3 text-base font-medium text-gray-800 dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/20 dark:hover:bg-white/10 rounded-lg mx-2 transition-all"
@@ -494,7 +495,7 @@ export default function Navbar() {
         </nav>
       </TooltipProvider>
 
-      <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setIsAIAssistantOpen(false)} />
+      <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setAIAssistantOpen(false)} />
       <MinimalistTimer
         isVisible={isMinimalistTimerOpen}
         onClose={() => setIsMinimalistTimerOpen(false)}

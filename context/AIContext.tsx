@@ -28,6 +28,10 @@ type AIContextType = {
   generateText: (prompt: string, model?: string) => Promise<string>;
   chat: (messages: AIMessage[], model?: string) => Promise<AIResponse>;
   clearError: () => void;
+  isAIAssistantOpen: boolean;
+  setAIAssistantOpen: (open: boolean) => void;
+  aiInput: string;
+  setAIInput: (input: string) => void;
 };
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -35,6 +39,21 @@ const AIContext = createContext<AIContextType | undefined>(undefined);
 export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAIAssistantOpen, setAIAssistantOpen] = useState(false);
+  const [aiInput, setAIInput] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedInput = localStorage.getItem('ai-assistant-input');
+      return savedInput || '';
+    }
+    return '';
+  });
+
+  // Sync aiInput with localStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ai-assistant-input', aiInput);
+    }
+  }, [aiInput]);
 
   const makeRequest = useCallback(async (endpoint: string, body: any) => {
     setIsLoading(true);
@@ -246,6 +265,10 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       generateText,
       chat,
       clearError,
+      isAIAssistantOpen,
+      setAIAssistantOpen,
+      aiInput,
+      setAIInput,
     }}>
       {children}
     </AIContext.Provider>

@@ -12,9 +12,9 @@ import {
 } from 'date-fns';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical, School, Sun, Flag, Snowflake, FlagTriangleRight, Bird, CalendarDays, Clock, AlertTriangle, AlertCircle, Menu, Home, GraduationCap, BookOpen } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
+import { useClassContext, type Homework, type Test, type Class } from '@/context/ClassContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
@@ -184,7 +184,7 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
   }, [onSwipeLeft, onSwipeRight, onTouchStart, onTouchMove, onTouchEnd]);
 };
 export default function CalendarPage() {
-  const { homeworks, classes, tests, updateHomeworkDueDate, updateTestDueDate, deleteTest } = useClassContext();
+  const { homeworks, classes, tests, updateHomeworkDueDate, updateTestDueDate, deleteTest, loading } = useClassContext();
   const { getContainerClass } = useWideLayout();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -231,11 +231,10 @@ export default function CalendarPage() {
     handleDrop,
     handleDragEnd
   } = useDragAndDrop(updateHomeworkDueDate, updateTestDueDate);
-  // Get the start and end of the current month view
+
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
 
-  // Get all days in the month
   // Define the type for calendar day items
   interface CalendarDay {
     day: number;
@@ -247,184 +246,97 @@ export default function CalendarPage() {
     isToday: boolean;
   }
 
-  const daysInMonth = eachDayOfInterval({
-    start: monthStart,
-    end: monthEnd,
-  });
+  // Optimize by pre-indexing items by date
+  const { homeworkByDate, testsByDate } = useMemo(() => {
+    const hwMap: Record<string, Homework[]> = {};
+    const testMap: Record<string, Test[]> = {};
 
-  // Debug: Log all tests and their dates
-  console.log('All tests:', tests.map(test => ({
-    id: test.id,
-    title: test.title,
-    testDate: test.testDate,
-    parsedDate: new Date(test.testDate).toISOString()
-  })));
-  const firstDayOfMonth = monthStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
-  // Generate calendar days with empty slots for the start of the month
-  const days: CalendarDay[] = [];
-  const firstDayOfWeek = monthStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  // For Sunday-first format, use the day directly
-  const sundayFirstOffset = firstDayOfWeek;
-
-  // Add days from previous month to complete the first week
-  if (sundayFirstOffset > 0) {
-    const prevMonthEnd = new Date(monthStart);
-    prevMonthEnd.setDate(0); // Last day of previous month
-    for (let i = sundayFirstOffset - 1; i >= 0; i--) {
-      const prevDate = new Date(prevMonthEnd);
-      prevDate.setDate(prevMonthEnd.getDate() - i);
-      const prevDayHomeworks = homeworks.filter(hw => {
-        const hwDate = new Date(hw.dueDate);
-        // Normalize both dates to start of day for comparison
-        const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
-        const normalizedPrevDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-
-        return normalizedHwDate.getTime() === normalizedPrevDate.getTime();
-      });
-      const prevDayTests = tests.filter(test => {
-        try {
-          const testDate = new Date(test.testDate);
-          if (isNaN(testDate.getTime())) {
-            return false;
-          }
-
-          const normalizedTestDate = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate());
-          const normalizedPrevDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-
-          return normalizedTestDate.getTime() === normalizedPrevDate.getTime();
-        } catch (error) {
-          return false;
+    homeworks.forEach((hw: Homework) => {
+      try {
+        const date = new Date(hw.dueDate);
+        if (!isNaN(date.getTime())) {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          if (!hwMap[dateStr]) hwMap[dateStr] = [];
+          hwMap[dateStr].push(hw);
         }
+      } catch (e) { }
+    });
+
+    tests.forEach((test: Test) => {
+      try {
+        const date = new Date(test.testDate);
+        if (!isNaN(date.getTime())) {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          if (!testMap[dateStr]) testMap[dateStr] = [];
+          testMap[dateStr].push(test);
+        }
+      } catch (e) { }
+    });
+
+    return { homeworkByDate: hwMap, testsByDate: testMap };
+  }, [homeworks, tests]);
+
+  const days = useMemo(() => {
+    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const firstDayOfWeek = monthStart.getDay();
+    const result: CalendarDay[] = [];
+
+    // Add days from previous month
+    if (firstDayOfWeek > 0) {
+      const prevMonthEnd = new Date(monthStart);
+      prevMonthEnd.setDate(0);
+      for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+        const prevDate = new Date(prevMonthEnd);
+        prevDate.setDate(prevMonthEnd.getDate() - i);
+        const dateStr = format(prevDate, 'yyyy-MM-dd');
+        result.push({
+          day: prevDate.getDate(),
+          date: prevDate,
+          homeworks: homeworkByDate[dateStr] || [],
+          tests: testsByDate[dateStr] || [],
+          events: getEventsForDate(prevDate, schoolYear2025_2026),
+          isCurrentMonth: false,
+          isToday: isDateToday(prevDate),
+        });
+      }
+    }
+
+    // Add current month days
+    daysInMonth.forEach(day => {
+      const dateStr = format(day, 'yyyy-MM-dd');
+      result.push({
+        day: day.getDate(),
+        date: day,
+        homeworks: homeworkByDate[dateStr] || [],
+        tests: testsByDate[dateStr] || [],
+        events: getEventsForDate(day, schoolYear2025_2026),
+        isCurrentMonth: true,
+        isToday: isDateToday(day),
       });
-      days.push({
-        day: prevDate.getDate(),
-        date: prevDate,
-        homeworks: prevDayHomeworks,
-        tests: prevDayTests,
-        events: getEventsForDate(prevDate, schoolYear2025_2026),
+    });
+
+    // Add next month days
+    const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const lastDayOfWeek = lastDayOfMonth.getDay();
+    const daysInLastWeek = 6 - lastDayOfWeek;
+
+    for (let i = 1; i <= daysInLastWeek; i++) {
+      const nextDate = new Date(monthEnd);
+      nextDate.setDate(monthEnd.getDate() + i);
+      const dateStr = format(nextDate, 'yyyy-MM-dd');
+      result.push({
+        day: nextDate.getDate(),
+        date: nextDate,
+        homeworks: homeworkByDate[dateStr] || [],
+        tests: testsByDate[dateStr] || [],
+        events: getEventsForDate(nextDate, schoolYear2025_2026),
         isCurrentMonth: false,
-        isToday: isDateToday(prevDate),
+        isToday: isDateToday(nextDate),
       });
     }
-  }
 
-  // Add days for the current month
-  daysInMonth.forEach(day => {
-    const dayHomeworks = homeworks.filter(hw => {
-      const hwDate = new Date(hw.dueDate);
-      // Normalize both dates to start of day for comparison
-      const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
-      const normalizedDay = new Date(day.getFullYear(), day.getMonth(), day.getDate());
-
-      const matches = normalizedHwDate.getTime() === normalizedDay.getTime();
-
-      console.log('HOMEWORK FILTERING:', {
-        day: day.getDate(),
-        hwId: hw.id,
-        hwTitle: hw.title,
-        hwDueDate: hw.dueDate,
-        hwDateParsed: hwDate.toISOString(),
-        normalizedHwDate: normalizedHwDate.toISOString().split('T')[0],
-        normalizedDay: normalizedDay.toISOString().split('T')[0],
-        normalizedHwDay: normalizedHwDate.getDate(),
-        normalizedDayValue: normalizedDay.getDate(),
-        matches: matches
-      });
-
-      return normalizedHwDate.getTime() === normalizedDay.getTime();
-    });
-
-    const dayTests = tests.filter(test => {
-      try {
-        const testDate = new Date(test.testDate);
-        // Check if the date is valid
-        if (isNaN(testDate.getTime())) {
-          console.log('❌ Invalid test date:', test.testDate, 'for test:', test.title);
-          return false;
-        }
-
-        // Normalize both dates to start of day for comparison
-        const normalizedTestDate = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate());
-        const normalizedDay = new Date(day.getFullYear(), day.getMonth(), day.getDate());
-
-        const matches = normalizedTestDate.getTime() === normalizedDay.getTime();
-
-        // console.log('TEST FILTERING:', {
-        //   day: day.getDate(),
-        //   testId: test.id,
-        //   testTitle: test.title,
-        //   testDate: test.testDate,
-        //   testDateParsed: testDate.toISOString(),
-        //   normalizedTestDate: normalizedTestDate.toISOString().split('T')[0],
-        //   normalizedDay: normalizedDay.toISOString().split('T')[0],
-        //   normalizedTestDay: normalizedTestDate.getDate(),
-        //   normalizedDayValue: normalizedDay.getDate(),
-        //   matches: matches
-        // });
-
-        return matches;
-      } catch (error) {
-        console.error('❌ Error parsing test date:', test.testDate, 'for test:', test.title, error);
-        return false;
-      }
-    });
-
-    days.push({
-      day: day.getDate(),
-      date: day,
-      homeworks: dayHomeworks,
-      tests: dayTests,
-      events: getEventsForDate(day, schoolYear2025_2026),
-      isCurrentMonth: true,
-      isToday: isDateToday(day),
-    });
-  });
-
-  // Add days from next month to complete the last week
-  const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-  const lastDayOfWeek = lastDayOfMonth.getDay();
-  // For Sunday-first format, calculate days needed to fill the last week
-  const daysInLastWeek = 6 - lastDayOfWeek;
-
-  for (let i = 1; i <= daysInLastWeek; i++) {
-    const nextDate = new Date(monthEnd);
-    nextDate.setDate(monthEnd.getDate() + i);
-    const nextDayHomeworks = homeworks.filter(hw => {
-      const hwDate = new Date(hw.dueDate);
-      // Normalize both dates to start of day for comparison
-      const normalizedHwDate = new Date(hwDate.getFullYear(), hwDate.getMonth(), hwDate.getDate());
-      const normalizedNextDate = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
-
-      return normalizedHwDate.getTime() === normalizedNextDate.getTime();
-    });
-
-    const nextDayTests = tests.filter(test => {
-      try {
-        const testDate = new Date(test.testDate);
-        if (isNaN(testDate.getTime())) {
-          return false;
-        }
-
-        const normalizedTestDate = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate());
-        const normalizedNextDate = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
-
-        return normalizedTestDate.getTime() === normalizedNextDate.getTime();
-      } catch (error) {
-        return false;
-      }
-    });
-
-    days.push({
-      day: nextDate.getDate(),
-      date: nextDate,
-      homeworks: nextDayHomeworks,
-      tests: nextDayTests,
-      events: getEventsForDate(nextDate, schoolYear2025_2026),
-      isCurrentMonth: false,
-      isToday: isDateToday(nextDate),
-    });
-  }
+    return result;
+  }, [currentMonth, homeworkByDate, testsByDate]);
 
   // Get due date status for homework items
   const getDueDateStatus = (dueDate: Date) => {
@@ -486,6 +398,12 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass('max-w-6xl') + ' py-16'}>
+        {loading && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-gray-500 bg-white/80 dark:bg-gray-900/80 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-800 backdrop-blur-sm z-50">
+            <div className="h-3 w-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            Loading updates...
+          </div>
+        )}
 
         {/* Header */}
         <motion.div
@@ -596,7 +514,7 @@ export default function CalendarPage() {
                     <div className="space-y-0.5 sm:space-y-1">
                       {/* Homework */}
                       {calendarDay.homeworks.slice(0, 3).map((hw) => {
-                        const classItem = classes.find(c => c.id === hw.classId);
+                        const classItem = classes.find((c: Class) => c.id === hw.classId);
                         return (
                           <Tooltip key={hw.id}>
                             <TooltipTrigger asChild>
@@ -626,7 +544,7 @@ export default function CalendarPage() {
 
                       {/* Tests */}
                       {calendarDay.tests.slice(0, 4).map((test) => {
-                        const classItem = classes.find(c => c.id === test.classId);
+                        const classItem = classes.find((c: Class) => c.id === test.classId);
                         const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
                         return (
                           <Tooltip key={test.id}>
@@ -786,7 +704,7 @@ export default function CalendarPage() {
                       </h3>
                       <div className="space-y-2">
                         {expandedDayData.homeworks.map((hw) => {
-                          const classItem = classes.find(c => c.id === hw.classId);
+                          const classItem = classes.find((c: Class) => c.id === hw.classId);
                           return (
                             <div
                               key={hw.id}

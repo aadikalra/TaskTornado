@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { format, addDays } from 'date-fns';
+import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
 import { Database } from '@/types/database.types';
@@ -138,6 +139,7 @@ const ClassContext = createContext<ClassContextType | undefined>(undefined);
 
 export const ClassProvider = ({ children, initialClasses, initialHomeworks, initialTests }: { children: React.ReactNode; initialClasses?: Class[]; initialHomeworks?: Homework[]; initialTests?: Test[] }) => {
   const { user, isGoogleUser } = useAuth();
+  const pathname = usePathname();
   const [classes, setClasses] = useState<Class[]>(initialClasses ?? []);
   const [homeworks, setHomeworks] = useState<Homework[]>(initialHomeworks ?? []);
   const [tests, setTests] = useState<Test[]>(initialTests ?? []);
@@ -155,7 +157,6 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
   const needsClassData = useCallback(() => {
     if (typeof window === 'undefined') return false;
 
-    const path = window.location.pathname;
     const routesThatNeedClassData = [
       '/homework',
       '/classes',
@@ -163,11 +164,13 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       '/calendar',
       '/settings',
       '/snake',
-      '/games'
+      '/games',
+      '/flashcards',
+      '/study-assistant'
     ];
 
-    return routesThatNeedClassData.some(route => path.startsWith(route));
-  }, []);
+    return routesThatNeedClassData.some(route => pathname.startsWith(route));
+  }, [pathname]);
 
   // Fetch data from Supabase or Google Classroom API
   const fetchData = useCallback(async () => {
@@ -191,17 +194,9 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         db.getTests(user.id) // Get all tests
       ]);
 
-      console.log('Fetched classes:', classesData);
-      console.log('Fetched homeworks:', homeworksData);
-      console.log('Fetched tests:', testsData);
+      console.log('Fetched data from Supabase successfully');
 
-        // Only update state if the data has actually changed
-      setClasses(prevClasses => {
-        if (JSON.stringify(prevClasses) === JSON.stringify(classesData)) {
-          return prevClasses;
-        }
-        return classesData as Class[];
-      });
+      setClasses(classesData as Class[]);
 
       // Transform homework data to ensure consistent types
       const transformedHomeworks = homeworksData.map(hw => {
@@ -247,20 +242,8 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         notes: test.notes
       }));
 
-      // Only update state if the data has actually changed
-      setHomeworks(prevHomeworks => {
-        if (JSON.stringify(prevHomeworks) === JSON.stringify(transformedHomeworks)) {
-          return prevHomeworks;
-        }
-        return transformedHomeworks;
-      });
-
-      setTests(prevTests => {
-        if (JSON.stringify(prevTests) === JSON.stringify(transformedTests)) {
-          return prevTests;
-        }
-        return transformedTests;
-      });
+      setHomeworks(transformedHomeworks);
+      setTests(transformedTests);
 
       // Store class colors in a cookie
       const colorMap = classesData.reduce((acc, cls) => {
@@ -547,7 +530,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         testsSubscription.unsubscribe().catch(console.error);
       }
     };
-  }, [user?.id, needsClassData]); // Only depend on user.id and needsClassData to prevent unnecessary re-renders
+  }, [user?.id, needsClassData, pathname]); // Added pathname to dependencies
 
   const deleteHomework = async (id: string) => {
     if (!user) throw new Error('User not authenticated');

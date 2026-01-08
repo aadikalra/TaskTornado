@@ -25,6 +25,9 @@ type EnhancedTestCardProps = {
   classIcon: any;
   onDelete: () => void;
   variant?: 'default' | 'compact';
+  layoutId?: string;
+  onClick?: () => void;
+  className?: string;
 };
 
 const EnhancedTestCard = ({
@@ -33,13 +36,16 @@ const EnhancedTestCard = ({
   classIcon: ClassIconComponent,
   onDelete,
   variant = 'default',
+  layoutId,
+  onClick,
+  className,
 }: EnhancedTestCardProps) => {
-  
+
   const isCompact = variant === 'compact';
 
   const testTypeConfig = useMemo(() => {
     const type = test.testType?.toLowerCase() || '';
-    
+
     const configs = {
       alpha: {
         icon: Target,
@@ -113,17 +119,18 @@ const EnhancedTestCard = ({
 
   return (
     <motion.div
+      layoutId={layoutId}
+      onClick={onClick}
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -2, scale: 1.005 }}
-      className={`
-        group relative w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all
-        dark:border-gray-800 dark:bg-gray-900 dark:shadow-none hover:shadow-md
-      `}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+      className={`group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-200 ${className || ''}`}
     >
-      <div className={`flex ${isCompact ? 'p-3 gap-3' : 'p-5 gap-4'} items-start`}>
+      {/* Background decoration */}
+      <div className={`flex ${isCompact ? 'p-3 gap-3' : 'p-4 gap-4'} items-start`}>
         {/* Left Icon Section */}
         <div className={`
           shrink-0 flex items-center justify-center rounded-lg
@@ -153,7 +160,7 @@ const EnhancedTestCard = ({
 
           {/* Metadata Row */}
           <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-500 dark:text-gray-400 ${isCompact ? 'mt-1 text-xs' : 'mt-3 text-sm'}`}>
-            
+
             {/* Class Info */}
             {classInfo && (
               <div className="flex items-center gap-1.5 transition-colors hover:text-gray-700 dark:hover:text-gray-200">
@@ -174,7 +181,7 @@ const EnhancedTestCard = ({
 
         {/* Right Side: Score or Hover Actions */}
         <div className="shrink-0 flex flex-col items-end justify-start gap-2">
-          
+
           {/* Score Display (Visible always if exists) */}
           {hasScore ? (
             <div className={`

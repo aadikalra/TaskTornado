@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   X,
   Plus,
+  Star,
 } from 'lucide-react';
 import { useClassContext, type Homework } from '@/context/ClassContext';
 import { format, differenceInCalendarDays } from 'date-fns';

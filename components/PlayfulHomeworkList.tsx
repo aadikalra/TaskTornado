@@ -2,7 +2,7 @@ import * as React from 'react';
 import { memo, useCallback } from 'react';
 import { motion, type Transition } from 'framer-motion';
 import Link from 'next/link';
-import { Check, Trash2, Edit, Link as LinkIcon, School, Flame, AlertTriangle, Minus } from 'lucide-react';
+import { Check, Trash2, Edit, Link as LinkIcon, School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
   AlertDialog,
@@ -231,15 +231,37 @@ const PlayfulHomeworkListComponent = ({
               <div className="flex justify-between items-start w-full">
                 <div className="flex items-center gap-2">
                   {!item.completed && (
-                    <div className="flex items-center">
-                      {getPriorityIndicator(item.priority)}
+                    <div className="flex items-center gap-1">
+                      {item.pinned ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPinToggle?.(item.id, false);
+                          }}
+                          className="cursor-pointer hover:scale-110 transition-transform"
+                          title="Click to unpin this homework"
+                        >
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPinToggle?.(item.id, true);
+                          }}
+                          className="cursor-pointer hover:scale-110 transition-transform"
+                          title="Click to pin this homework"
+                        >
+                          {getPriorityIndicator(item.priority)}
+                        </button>
+                      )}
                     </div>
                   )}
                   <div className="flex flex-col">
                     <label
                       htmlFor={`checkbox-${item.id}`}
                       onClick={() => handleToggle(item.id)}
-                      className={`text-sm font-medium cursor-pointer ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
+                      className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
                         }`}
                     >
                       {item.text}

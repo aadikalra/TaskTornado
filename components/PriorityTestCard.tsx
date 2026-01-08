@@ -4,10 +4,12 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useAI } from '@/context/AIContext';
 import { Clock, AlertTriangle, BookOpen, Loader2, GraduationCap, Calendar, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { iconMap } from '@/lib/icon-map';
 import { useToast } from '@/context/ToastContext';
 import { Button } from '@/components/animate-ui/components/buttons/button';
+import { TestDetailModal } from './TestDetailModal';
 
 interface PriorityTest {
   id: string;
@@ -21,13 +23,14 @@ interface PriorityTest {
 }
 
 const PriorityTestCard = () => {
-  const { tests, classes, updateTest } = useClassContext();
+  const { tests, classes, updateTest, deleteTest } = useClassContext();
   const { chat } = useAI();
   const { success } = useToast();
   const [priorityTest, setPriorityTest] = useState<PriorityTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number>(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Create a unique key for localStorage based on the current tests
   const testsKey = useMemo(() => {
@@ -314,90 +317,111 @@ Please respond with a JSON object in this exact format:
     }
   };
 
+
+
   return (
-    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex flex-col h-full">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-            <ClassIcon className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-              {priorityTest.className}
-            </h3>
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <Calendar className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
-              <span>{priorityTest.testType} • {formattedTestDate}</span>
+    <>
+      <motion.div
+        layoutId={`test-card-${testClass?.id}`}
+        style={{ opacity: isModalOpen ? 0 : 1 }}
+        className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-3 flex flex-col h-full cursor-pointer hover:shadow-md transition-all duration-200"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+              <ClassIcon className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                {priorityTest.className}
+              </h3>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <Calendar className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
+                <span>{priorityTest.testType} • {formattedTestDate}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-900">
-          {(() => {
-            const priorityConfig = {
-              high: { icon: AlertTriangle, color: 'text-red-600 dark:text-red-400' },
-              medium: { icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
-              low: { icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
-            }[priorityTest.priority];
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-900">
+            {(() => {
+              const priorityConfig = {
+                high: { icon: AlertTriangle, color: 'text-red-600 dark:text-red-400' },
+                medium: { icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
+                low: { icon: BookOpen, color: 'text-blue-600 dark:text-blue-400' },
+              }[priorityTest.priority];
 
-            const Icon = priorityConfig.icon;
+              const Icon = priorityConfig.icon;
 
-            return (
-              <>
-                <Icon className={`w-3 h-3 ${priorityConfig.color}`} />
-                <span className={`text-xs font-medium ${priorityConfig.color}`}>
-                  {priorityTest.priority.charAt(0).toUpperCase() + priorityTest.priority.slice(1)}
-                </span>
-              </>
-            );
-          })()}
-        </div>
-      </div>
-
-      <div className="flex-1 space-y-3">
-        <div>
-          <h4 className="text-base font-medium text-gray-900 dark:text-white mb-2">
-            {priorityTest.title}
-          </h4>
-          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            {priorityTest.reason}
-          </p>
-        </div>
-
-        {/* Display study materials if available */}
-        {priorityTest.studyMaterials && priorityTest.studyMaterials.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {priorityTest.studyMaterials.slice(0, 3).map((material, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800"
-              >
-                📚 {material}
-              </span>
-            ))}
-            {priorityTest.studyMaterials.length > 3 && (
-              <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                +{priorityTest.studyMaterials.length - 3} more
-              </span>
-            )}
+              return (
+                <>
+                  <Icon className={`w-3 h-3 ${priorityConfig.color}`} />
+                  <span className={`text-xs font-medium ${priorityConfig.color}`}>
+                    {priorityTest.priority.charAt(0).toUpperCase() + priorityTest.priority.slice(1)}
+                  </span>
+                </>
+              );
+            })()}
           </div>
-        )}
-      </div>
-
-      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-900 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <Sparkles className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
-          <span>AI Recommended</span>
         </div>
-        <Button
-          onClick={handleStartStudying}
-          size="sm"
-          className="text-xs bg-[#264f84] hover:bg-[#1f3f6b] dark:bg-blue-600 dark:hover:bg-blue-700"
-        >
-          Start Studying
-        </Button>
-      </div>
-    </div>
+
+        <div className="flex-1 space-y-3">
+          <div>
+            <h4 className="text-base font-medium text-gray-900 dark:text-white mb-2">
+              {priorityTest.title}
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              {priorityTest.reason}
+            </p>
+          </div>
+
+          {/* Display study materials if available */}
+          {priorityTest.studyMaterials && priorityTest.studyMaterials.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {priorityTest.studyMaterials.slice(0, 3).map((material, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800"
+                >
+                  📚 {material}
+                </span>
+              ))}
+              {priorityTest.studyMaterials.length > 3 && (
+                <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  +{priorityTest.studyMaterials.length - 3} more
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-900 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <Sparkles className="w-3 h-3 text-[#264f84] dark:text-blue-400" />
+            <span>AI Recommended</span>
+          </div>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleStartStudying();
+            }}
+            size="sm"
+            className="text-xs bg-[#264f84] hover:bg-[#1f3f6b] dark:bg-blue-600 dark:hover:bg-blue-700"
+          >
+            Start Studying
+          </Button>
+        </div>
+      </motion.div>
+
+      <TestDetailModal
+        test={testClass || null}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDelete={deleteTest}
+        classInfo={classData || undefined}
+        layoutId={testClass ? `test-card-${testClass.id}` : undefined}
+      />
+    </>
   );
 };
 

@@ -147,7 +147,36 @@ import {
   Book,
   MapPin,
   Pin,
-  PinOff
+  PinOff,
+  Dumbbell,
+  Music2,
+  Languages,
+  FlaskConical,
+  Microscope,
+  Sigma,
+  Variable,
+  FunctionSquare,
+  Binary,
+  Heart,
+  Stethoscope,
+  Dna,
+  Landmark,
+  Mountain,
+  Telescope,
+  Microchip,
+  CircuitBoard,
+  Brush,
+  Theater,
+  Quote,
+  Shapes,
+  Gamepad,
+  Music4,
+  Coffee,
+  Sun,
+  Moon,
+  Star,
+  ZapOff,
+  ArrowRight
 } from "lucide-react";
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -175,7 +204,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
 import { HomeworkPinList } from '@/components/HomeworkPinList';
 import { RecurringOptions } from './RecurringOptions';
-import { iconMap } from '@/lib/icon-map';
+import { iconMap, IconName } from '@/lib/icon-map';
 import { RecurringHomework, RecurringFrequency, Class, Homework, Test } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useGamification } from '@/context/GamificationContext';
@@ -187,7 +216,7 @@ import { ReindeerAnimation } from './ReindeerAnimation';
 import { Snowfall } from './Snowfall';
 import { StopAnimationsButton } from './StopAnimationsButton';
 
-type LucideIconName = keyof typeof import('lucide-react');
+type LucideIconName = IconName;
 type Priority = 'low' | 'medium' | 'high';
 
 const MainApp = () => {
@@ -269,6 +298,14 @@ const MainApp = () => {
       return saved !== null ? saved === 'true' : true; // default to true
     }
     return true;
+  });
+
+  const [useNaturalLanguageDates, setUseNaturalLanguageDates] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('useNaturalLanguageDates');
+      return saved !== null ? saved === 'true' : false; // default to false
+    }
+    return false;
   });
 
   const [showAIPriority, setShowAIPriority] = useState(() => {
@@ -366,119 +403,95 @@ const MainApp = () => {
     setCookie('expandedClasses', JSON.stringify(newState));
   };
 
-  // Available icons with their display names
-  const availableIcons = [
-    { name: 'BookOpen', component: BookOpen, category: 'General' },
-    { name: 'Book', component: Book, category: 'General' },
-    { name: 'Calculator', component: Calculator, category: 'Math & Science' },
-    { name: 'Code', component: Code, category: 'Computer Science' },
-    { name: 'GraduationCap', component: GraduationCap, category: 'General' },
-    { name: 'Layers', component: Layers, category: 'General' },
-    { name: 'Library', component: Library, category: 'General' },
-    { name: 'PenTool', component: PenTool, category: 'Art' },
-    { name: 'Ruler', component: Ruler, category: 'Math' },
-    { name: 'School', component: School, category: 'General' },
-    { name: 'Atom', component: Atom, category: 'Science' },
-    { name: 'Award', component: Award, category: 'General' },
-    { name: 'Brain', component: Brain, category: 'Science' },
-    { name: 'Briefcase', component: Briefcase, category: 'Business' },
-    { name: 'Compass', component: Compass, category: 'Geography' },
-    { name: 'Cpu', component: Cpu, category: 'Computer Science' },
-    { name: 'Database', component: Database, category: 'Computer Science' },
-    { name: 'FileText', component: FileText, category: 'General' },
-    { name: 'Film', component: Film, category: 'Media' },
-    { name: 'Gamepad2', component: Gamepad2, category: 'Gaming' },
-    { name: 'GitBranch', component: GitBranch, category: 'Computer Science' },
-    { name: 'Globe2', component: Globe2, category: 'Geography' },
-    { name: 'History', component: History, category: 'History' },
-    { name: 'Image', component: Image, category: 'Art' },
-    { name: 'Laptop', component: Laptop, category: 'Computer Science' },
-    { name: 'Lightbulb', component: Lightbulb, category: 'General' },
-    { name: 'Map', component: Map, category: 'Geography' },
-    { name: 'Mic2', component: Mic2, category: 'Languages' },
-    { name: 'Music', component: Music, category: 'Music' },
-    { name: 'Palette', component: Palette, category: 'Art' },
-    { name: 'Pen', component: Pen, category: 'General' },
-    { name: 'PieChart', component: PieChart, category: 'Math' },
-    { name: 'Presentation', component: Presentation, category: 'General' },
-    { name: 'Rocket', component: Rocket, category: 'Science' },
-    { name: 'Search', component: Search, category: 'General' },
-    { name: 'Settings', component: Settings, category: 'General' },
-    { name: 'Shield', component: Shield, category: 'General' },
-    { name: 'Smartphone', component: Smartphone, category: 'Technology' },
-    { name: 'Speaker', component: Speaker, category: 'Languages' },
-    { name: 'Target', component: Target, category: 'General' },
-    { name: 'Terminal', component: Terminal, category: 'Computer Science' },
-    { name: 'TrendingUp', component: TrendingUp, category: 'Business' },
-    { name: 'Type', component: Type, category: 'Languages' },
-    { name: 'Video', component: Video, category: 'Media' },
-    { name: 'Wifi', component: Wifi, category: 'Technology' },
-    { name: 'Zap', component: Zap, category: 'General' },
-    { name: 'BookKey', component: BookKey, category: 'General' },
-    { name: 'BookLock', component: BookLock, category: 'General' },
-    { name: 'BookPlus', component: BookPlus, category: 'General' },
-    { name: 'BookType', component: BookType, category: 'Languages' },
-    { name: 'BookUp2', component: BookUp2, category: 'General' },
-    { name: 'BookUser', component: BookUser, category: 'General' },
-    { name: 'BookX', component: BookX, category: 'General' },
-    { name: 'BrainCircuit', component: BrainCircuit, category: 'Science' },
-    { name: 'BrainCog', component: BrainCog, category: 'Science' },
-    { name: 'CalendarCheck', component: CalendarCheck, category: 'General' },
-    { name: 'CalendarDays', component: CalendarDays, category: 'General' },
-    { name: 'CalendarHeart', component: CalendarHeart, category: 'General' },
-    { name: 'CalendarPlus', component: CalendarPlus, category: 'General' },
-    { name: 'Camera', component: Camera, category: 'Media' },
-    { name: 'Cast', component: Cast, category: 'Media' },
-    { name: 'CheckSquare', component: CheckSquare, category: 'General' },
-    { name: 'Cloud', component: Cloud, category: 'Technology' },
-    { name: 'Code2', component: Code2, category: 'Computer Science' },
-    { name: 'CreditCard', component: CreditCard, category: 'Business' },
-    { name: 'Crop', component: Crop, category: 'Art' },
-    { name: 'Crosshair', component: Crosshair, category: 'General' },
-    { name: 'DollarSign', component: DollarSign, category: 'Business' },
-    { name: 'Download', component: Download, category: 'General' },
-    { name: 'Edit', component: Edit, category: 'General' },
-    { name: 'FileArchive', component: FileArchive, category: 'General' },
-    { name: 'FileAudio', component: FileAudio, category: 'Media' },
-    { name: 'FileCode', component: FileCode, category: 'Computer Science' },
-    { name: 'FileJson', component: FileJson, category: 'Computer Science' },
-    { name: 'FileVideo', component: FileVideo, category: 'Media' },
-    { name: 'FileVolume2', component: FileVolume2, category: 'Media' },
-    { name: 'FileWarning', component: FileWarning, category: 'General' },
-    { name: 'Filter', component: Filter, category: 'General' },
-    { name: 'Flag', component: Flag, category: 'General' },
-    { name: 'Folder', component: Folder, category: 'General' },
-    { name: 'FolderOpen', component: FolderOpen, category: 'General' },
-    { name: 'Gift', component: Gift, category: 'General' },
-    { name: 'GitCommit', component: GitCommit, category: 'Computer Science' },
-    { name: 'Github', component: Github, category: 'Computer Science' },
-    { name: 'Gitlab', component: Gitlab, category: 'Computer Science' },
-    { name: 'GitPullRequest', component: GitPullRequest, category: 'Computer Science' },
-    { name: 'GitCompare', component: GitCompare, category: 'Computer Science' },
-    { name: 'GitFork', component: GitFork, category: 'Computer Science' },
-    { name: 'GitMerge', component: GitMerge, category: 'Computer Science' },
-    { name: 'GitPullRequestClosed', component: GitPullRequestClosed, category: 'Computer Science' },
-    { name: 'Gavel', component: Gavel, category: 'Law' },
-    { name: 'GitGraph', component: GitGraph, category: 'Computer Science' },
-    { name: 'GitCommitVertical', component: GitCommitVertical, category: 'Computer Science' },
-    { name: 'GitCompareArrows', component: GitCompareArrows, category: 'Computer Science' },
-    { name: 'GitBranchPlus', component: GitBranchPlus, category: 'Computer Science' }
-  ];
+  // Available icons with their display names and semantic tags
+  const availableIcons = useMemo(() => [
+    { name: 'BookOpen', component: BookOpen, category: 'General', tags: ['reading', 'study', 'learning', 'education', 'homework', 'textbook'] },
+    { name: 'Book', component: Book, category: 'General', tags: ['reading', 'note', 'subject', 'library'] },
+    { name: 'Calculator', component: Calculator, category: 'Math & Science', tags: ['math', 'numbers', 'statistics', 'accounting', 'arithmetic'] },
+    { name: 'Code', component: Code, category: 'Computer Science', tags: ['programming', 'coding', 'software', 'development', 'it', 'tech', 'web'] },
+    { name: 'GraduationCap', component: GraduationCap, category: 'General', tags: ['degree', 'graduation', 'success', 'school', 'university', 'academic'] },
+    { name: 'Languages', component: Languages, category: 'Languages', tags: ['translation', 'foreign', 'speech', 'communication', 'global', 'linguistics'] },
+    { name: 'Dumbbell', component: Dumbbell, category: 'Fitness', tags: ['gym', 'pe', 'sports', 'health', 'exercise', 'physical', 'training'] },
+    { name: 'Microscope', component: Microscope, category: 'Science', tags: ['lab', 'biology', 'research', 'experiment', 'medicine', 'investigation'] },
+    { name: 'FlaskConical', component: FlaskConical, category: 'Science', tags: ['chemistry', 'science', 'lab', 'experiment', 'liquid'] },
+    { name: 'Atom', component: Atom, category: 'Science', tags: ['physics', 'science', 'energy', 'nuclear', 'lab', 'quantum'] },
+    { name: 'Sigma', component: Sigma, category: 'Math', tags: ['math', 'sum', 'calculation', 'advanced', 'greek', 'formulas'] },
+    { name: 'Variable', component: Variable, category: 'Math', tags: ['algebra', 'math', 'equation', 'letters', 'x', 'y'] },
+    { name: 'Binary', component: Binary, category: 'Computer Science', tags: ['data', 'it', 'low-level', 'coding', '01'] },
+    { name: 'Palette', component: Palette, category: 'Art', tags: ['design', 'painting', 'drawing', 'creativity', 'color', 'arts'] },
+    { name: 'Brush', component: Brush, category: 'Art', tags: ['painting', 'design', 'drawing', 'art'] },
+    { name: 'Theater', component: Theater, category: 'Art', tags: ['drama', 'acting', 'performance', 'stage', 'play', 'arts'] },
+    { name: 'Music2', component: Music2, category: 'Music', tags: ['notes', 'melody', 'audio', 'song', 'music'] },
+    { name: 'Music4', component: Music4, category: 'Music', tags: ['instruments', 'notes', 'rhythm', 'band', 'orchestra'] },
+    { name: 'Globe2', component: Globe2, category: 'Geography', tags: ['world', 'earth', 'travel', 'social studies', 'geography'] },
+    { name: 'History', component: History, category: 'History', tags: ['past', 'time', 'museum', 'tradition', 'historical'] },
+    { name: 'Landmark', component: Landmark, category: 'History', tags: ['government', 'politics', 'museum', 'architecture', 'civics'] },
+    { name: 'Briefcase', component: Briefcase, category: 'Business', tags: ['work', 'professional', 'career', 'management', 'economics'] },
+    { name: 'Stethoscope', component: Stethoscope, category: 'Science', tags: ['medicine', 'doctor', 'health', 'hospital', 'nursing'] },
+    { name: 'Telescope', component: Telescope, category: 'Science', tags: ['astronomy', 'space', 'ufo', 'research', 'stars'] },
+    { name: 'Mountain', component: Mountain, category: 'Geography', tags: ['nature', 'outdoors', 'environment', 'climbing', 'earth'] },
+    { name: 'Star', component: Star, category: 'General', tags: ['favorite', 'important', 'success', 'brilliant', 'rating'] },
+    { name: 'Heart', component: Heart, category: 'General', tags: ['love', 'passion', 'biology', 'empathy', 'health'] },
+    { name: 'Quote', component: Quote, category: 'Languages', tags: ['literature', 'writing', 'english', 'speech', 'referencing'] },
+    { name: 'Shapes', component: Shapes, category: 'Math', tags: ['geometry', 'basics', 'design', 'patterns'] },
+    { name: 'Gamepad', component: Gamepad, category: 'Gaming', tags: ['fun', 'play', 'video games', 'leisure'] },
+    { name: 'Coffee', component: Coffee, category: 'General', tags: ['energy', 'break', 'morning', 'cafe', 'teacher'] },
+    { name: 'School', component: School, category: 'General', tags: ['building', 'education', 'campus'] },
+    { name: 'Award', component: Award, category: 'General', tags: ['trophy', 'prize', 'achievement', 'win'] },
+    { name: 'Brain', component: Brain, category: 'Science', tags: ['psychology', 'mind', 'intellect', 'thinking'] },
+    { name: 'Compass', component: Compass, category: 'Geography', tags: ['direction', 'map', 'navigation'] },
+    { name: 'Cpu', component: Cpu, category: 'Computer Science', tags: ['hardware', 'processor', 'tech'] },
+    { name: 'Database', component: Database, category: 'Computer Science', tags: ['storage', 'data', 'backend'] },
+    { name: 'FileText', component: FileText, category: 'General', tags: ['document', 'writing', 'assignment'] },
+    { name: 'Film', component: Film, category: 'Media', tags: ['video', 'cinema', 'movie'] },
+    { name: 'Gamepad2', component: Gamepad2, category: 'Gaming', tags: ['fun', 'play', 'video games'] },
+    { name: 'GitBranch', component: GitBranch, category: 'Computer Science', tags: ['coding', 'version control', 'tech'] },
+    { name: 'Image', component: Image, category: 'Art', tags: ['picture', 'photo', 'design'] },
+    { name: 'Laptop', component: Laptop, category: 'Computer Science', tags: ['computer', 'work', 'it'] },
+    { name: 'Lightbulb', component: Lightbulb, category: 'General', tags: ['idea', 'innovation', 'thought'] },
+    { name: 'Map', component: Map, category: 'Geography', tags: ['navigation', 'places', 'travel'] },
+    { name: 'Mic2', component: Mic2, category: 'Languages', tags: ['speech', 'recording', 'audio'] },
+    { name: 'Music', component: Music, category: 'Music', tags: ['sound', 'audio', 'song'] },
+    { name: 'Pen', component: Pen, category: 'General', tags: ['writing', 'note', 'draw'] },
+    { name: 'PieChart', component: PieChart, category: 'Math', tags: ['data', 'statistics', 'graph'] },
+    { name: 'Presentation', component: Presentation, category: 'General', tags: ['slides', 'lecture', 'teaching'] },
+    { name: 'Rocket', component: Rocket, category: 'Science', tags: ['space', 'launch', 'speed'] },
+    { name: 'Search', component: Search, category: 'General', tags: ['find', 'lookup', 'research'] },
+    { name: 'Settings', component: Settings, category: 'General', tags: ['config', 'options', 'tools'] },
+    { name: 'Shield', component: Shield, category: 'General', tags: ['security', 'protection', 'safety'] },
+    { name: 'Smartphone', component: Smartphone, category: 'Technology', tags: ['mobile', 'phone', 'app'] },
+    { name: 'Speaker', component: Speaker, category: 'Languages', tags: ['audio', 'sound', 'announcement'] },
+    { name: 'Target', component: Target, category: 'General', tags: ['goal', 'focus', 'objective'] },
+    { name: 'Terminal', component: Terminal, category: 'Computer Science', tags: ['coding', 'cli', 'tech'] },
+    { name: 'TrendingUp', component: TrendingUp, category: 'Business', tags: ['growth', 'stats', 'finance'] },
+    { name: 'Type', component: Type, category: 'Languages', tags: ['font', 'text', 'writing'] },
+    { name: 'Video', component: Video, category: 'Media', tags: ['record', 'camera', 'cinema'] },
+    { name: 'Wifi', component: Wifi, category: 'Technology', tags: ['internet', 'connection', 'online'] },
+    { name: 'Zap', component: Zap, category: 'General', tags: ['energy', 'quick', 'flash'] }
+  ], []);
 
-  // Filter icons based on search query
-  const filteredIcons = availableIcons.filter(icon =>
-    icon.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    icon.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter icons based on search query with semantic tag support
+  const filteredIcons = useMemo(() => {
+    const lowerQuery = searchQuery.toLowerCase();
+    if (!lowerQuery) return availableIcons;
+
+    return availableIcons.filter(icon =>
+      icon.name.toLowerCase().includes(lowerQuery) ||
+      icon.category.toLowerCase().includes(lowerQuery) ||
+      icon.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    );
+  }, [searchQuery, availableIcons]);
 
   // Group icons by category
-  const groupedIcons = filteredIcons.reduce((acc, icon) => {
-    if (!acc[icon.category]) {
-      acc[icon.category] = [];
-    }
-    acc[icon.category].push(icon);
-    return acc;
-  }, {} as Record<string, typeof availableIcons>);
+  const groupedIcons = useMemo(() => {
+    return filteredIcons.reduce((acc, icon) => {
+      if (!acc[icon.category]) {
+        acc[icon.category] = [];
+      }
+      acc[icon.category].push(icon);
+      return acc;
+    }, {} as Record<string, typeof availableIcons>);
+  }, [filteredIcons]);
 
   const [newHomework, setNewHomework] = useState({
     title: '',
@@ -492,6 +505,69 @@ const MainApp = () => {
   const [recurringConfig, setRecurringConfig] = useState<RecurringHomework>({
     frequency: 'weekly'
   });
+
+  const [isSuggestingIcons, setIsSuggestingIcons] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+
+  const handleAISuggest = useCallback(async () => {
+    if (!newClassName.trim()) return;
+    setIsSuggestingIcons(true);
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Based on the school class name "${newClassName}", identify the 6 most relevant Lucide icon names from this list: ${availableIcons.map(i => i.name).join(', ')}. Return ONLY a JSON array of strings. No explanation.`,
+          action: 'generate',
+          model: 'gemini-2.5-flash-lite'
+        })
+      });
+
+      const reader = response.body?.getReader();
+      let text = '';
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.response) text += data.response;
+              } catch (e) { }
+            }
+          }
+        }
+      }
+
+      const match = text.match(/\[.*\]/s);
+      if (match) {
+        const iconNames = JSON.parse(match[0]);
+        const suggestions = availableIcons.filter(icon =>
+          iconNames.some((name: string) => name.toLowerCase() === icon.name.toLowerCase())
+        );
+        setAiSuggestions(suggestions);
+      }
+    } catch (error) {
+      console.error('AI Suggestion error:', error);
+    } finally {
+      setIsSuggestingIcons(false);
+    }
+  }, [newClassName, availableIcons]);
+
+  // Auto-suggest icons when class name changes
+  useEffect(() => {
+    if (newClassName.trim().length < 3) {
+      if (aiSuggestions.length > 0) setAiSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleAISuggest();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [newClassName, handleAISuggest]);
 
   useEffect(() => {
     setIsClient(true);
@@ -971,70 +1047,6 @@ const MainApp = () => {
           </div>
         );
 
-      case 'pinned':
-        return (
-          <div key="pinned" className="mb-10">
-            <div
-              className="mb-4 cursor-pointer group"
-              onClick={() => handleTogglePinnedHomeworks(!showPinnedHomeworks)}
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="flex justify-between items-center md:justify-start">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-                      Pinned Homeworks
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Quick access to your important assignments</p>
-                  </div>
-                  <div
-                    className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showPinnedHomeworks
-                      ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                      : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                      }`}
-                  >
-                    <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                      }`} />
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="default"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowPinHomeworkModal(true);
-                    }}
-                    className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
-                    title="Select homework to pin"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Pin Homework
-                  </Button>
-                  <div
-                    className={`p-2 rounded-lg transition-all duration-500 hidden md:block ${showPinnedHomeworks
-                      ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                      : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                      }`}
-                  >
-                    <ChevronRight className={`h-5 w-5 transition-colors ${showPinnedHomeworks ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                      }`} />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className={`overflow-hidden transition-all duration-400 ease-in-out ${showPinnedHomeworks
-                ? 'max-h-[2000px] opacity-100'
-                : 'max-h-0 opacity-0'
-                }`}
-            >
-              <HomeworkPinList
-                triggerSelectModal={showPinHomeworkModal}
-                onTriggerComplete={() => setShowPinHomeworkModal(false)}
-              />
-            </div>
-          </div>
-        );
-
       case 'classes':
         return (
           <div key="classes" className="mb-10">
@@ -1111,171 +1123,190 @@ const MainApp = () => {
                 }`}
             >
               {classes.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[#264f84] bg-opacity-10 dark:bg-opacity-20 mb-4">
-                    <BookOpen className="h-6 w-6 text-[#264f84]" />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white dark:bg-gray-950 rounded-[32px] p-6 text-center border border-gray-100 dark:border-gray-800"
+                >
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
+                    <Layers className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No classes yet</h3>
-                  <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                    Get started by adding your first class to organize your schoolwork
+                  <h3 className="text-xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">No classes yet</h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-sm">
+                    Get started by adding your first class to organize your schoolwork.
                   </p>
-                  <Button
-                    onClick={() => setShowAddClass(true)}
-                    className="w-full bg-[#264f84] hover:bg-[#1f3f6b] text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
-                  >
-                    <Plus className="mr-1.5 h-4 w-4" /> Add Class
-                  </Button>
-                </div>
+                </motion.div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {classes
-                    .filter((cls: any) => {
-                      // Only show classes that have homework assignments
-                      const classHomeworks = homeworks.filter((hw: any) => 
-                        hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null)
-                      );
-                      return classHomeworks.length > 0;
-                    })
                     .map((cls: any, index: number) => (
-                    <motion.div
-                      key={cls.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.2,
-                        delay: index * 0.05,
-                        layout: { type: "spring", stiffness: 300, damping: 30 }
-                      }}
-                      className="group bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center w-full gap-2">
-                          <div
-                            className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0"
-                            style={{ backgroundColor: getClassColor(index) }}
-                          >
-                            {(() => {
-                              const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? Book;
-                              return <IconComponent className="h-4 w-4" />;
-                            })()}
+                      <motion.div
+                        key={cls.id}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          duration: 0.2,
+                          delay: index * 0.05,
+                          layout: { type: "spring", stiffness: 300, damping: 30 }
+                        }}
+                        className="group bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center w-full gap-3">
+                            <div className="w-8 h-8 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center justify-center">
+                              {(() => {
+                                const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
+                                return <IconComponent className="w-4 h-4" style={{ color: getClassColor(index) }} />;
+                              })()}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {cls.name}
+                              </h3>
+                            </div>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteClass(cls.id);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                              aria-label="Delete class"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
 
-                          <h3 className="flex-1 min-w-0 font-medium text-gray-900 dark:text-gray-100 truncate">
-                            {cls.name}
-                          </h3>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteClass(cls.id);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
-                            aria-label="Delete class"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
 
-                      </div>
+                        {/* Divider */}
+                        <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
 
-                      {/* Divider */}
-                      <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+                        <div className="space-y-2 mt-2">
+                          <PlayfulHomeworkList
+                            items={(() => {
+                              const classHomeworks = homeworks
+                                .filter((hw: any) => hw.classId === cls.id)
+                                .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null) // Show recurring instances and regular homework
+                                .sort((a: any, b: any) => {
+                                  // Sort by completion status first (uncompleted first)
+                                  if (a.completed !== b.completed) {
+                                    return a.completed ? 1 : -1;
+                                  }
+                                  // Then sort by due date
+                                  return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                                })
+                                .map((hw: any) => {
+                                  // console.log('Homework item for class', cls.name, ':', {
+                                  //   id: hw.id,
+                                  //   classId: hw.classId,
+                                  //   className: cls.name,
+                                  //   title: hw.title,
+                                  //   completed: hw.completed,
+                                  //   dueDate: hw.dueDate
+                                  // });
+                                  return {
+                                    id: hw.id,
+                                    text: hw.title,
+                                    completed: hw.completed,
+                                    subtext: new Date(hw.dueDate),
+                                    priority: hw.priority || 'medium',
+                                    classId: cls.id,
+                                    classColor: getClassColor(index),
+                                    dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
+                                    links: hw.links,
+                                    onDelete: () => deleteHomework(hw.id),
+                                    className: cls.name,
+                                    pinned: hw.pinned || false,
+                                    // Add recurring homework information
+                                    recurring: hw.recurring_frequency ? {
+                                      frequency: hw.recurring_frequency as RecurringFrequency,
+                                      endDate: hw.recurring_end_date ? new Date(hw.recurring_end_date) : undefined,
+                                      maxOccurrences: hw.recurring_max_occurrences || undefined,
+                                      parentRecurringId: hw.recurring_id || undefined,
+                                    } : undefined,
+                                    isRecurringInstance: hw.is_recurring_instance || false,
+                                    parentRecurringId: hw.parent_recurring_id || undefined,
+                                    recurringFrequency: hw.recurring_frequency || undefined,
+                                  };
+                                });
 
-                      <div className="space-y-2 mt-2">
-                        <PlayfulHomeworkList
-                          items={(() => {
-                            const classHomeworks = homeworks
-                              .filter((hw: any) => hw.classId === cls.id)
-                              .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null) // Show recurring instances and regular homework
-                              .sort((a: any, b: any) => {
-                                // Sort by completion status first (uncompleted first)
-                                if (a.completed !== b.completed) {
-                                  return a.completed ? 1 : -1;
-                                }
-                                // Then sort by due date
-                                return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-                              })
-                              .map((hw: any) => {
-                                // console.log('Homework item for class', cls.name, ':', {
-                                //   id: hw.id,
-                                //   classId: hw.classId,
-                                //   className: cls.name,
-                                //   title: hw.title,
-                                //   completed: hw.completed,
-                                //   dueDate: hw.dueDate
-                                // });
-                                return {
-                                  id: hw.id,
-                                  text: hw.title,
-                                  completed: hw.completed,
-                                  subtext: new Date(hw.dueDate),
-                                  priority: hw.priority || 'medium',
-                                  classId: cls.id,
-                                  classColor: getClassColor(index),
-                                  dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
-                                  links: hw.links,
-                                  onDelete: () => deleteHomework(hw.id),
-                                  className: cls.name,
-                                  pinned: hw.pinned || false,
-                                  // Add recurring homework information
-                                  recurring: hw.recurring_frequency ? {
-                                    frequency: hw.recurring_frequency as RecurringFrequency,
-                                    endDate: hw.recurring_end_date ? new Date(hw.recurring_end_date) : undefined,
-                                    maxOccurrences: hw.recurring_max_occurrences || undefined,
-                                    parentRecurringId: hw.recurring_id || undefined,
-                                  } : undefined,
-                                  isRecurringInstance: hw.is_recurring_instance || false,
-                                  parentRecurringId: hw.parent_recurring_id || undefined,
-                                  recurringFrequency: hw.recurring_frequency || undefined,
-                                };
+                              // Show all items if expanded, otherwise show only first 3
+                              return expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
+                            })()}
+                            onItemToggle={handleHomeworkToggle}
+                            onPinToggle={togglePinHomework}
+                            className="space-y-2"
+                          />
+
+                          {(() => {
+                            const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
+                            const totalCount = classHomeworks.length;
+
+                            if (totalCount > 3) {
+                              return (
+                                <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
+                                  {expandedClasses[cls.id] ? (
+                                    <button
+                                      onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
+                                      className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                    >
+                                      Hide
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
+                                      className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                    >
+                                      +{totalCount - 3} more assignments
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            }
+
+                            return null;
+                          })()}
+
+                          {(() => {
+                            const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
+                            const classHasNoHomework = classHomeworks.length === 0;
+
+                            if (classHasNoHomework) {
+                              const upcomingClassTests = tests.filter((t: any) => {
+                                if (t.classId !== cls.id) return false;
+                                const testDate = new Date(t.testDate);
+                                const now = new Date();
+                                now.setHours(0, 0, 0, 0);
+                                const diffTime = testDate.getTime() - now.getTime();
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                // Show tests within the next 14 days
+                                return diffDays >= 0 && diffDays <= 14;
                               });
 
-                            // Show all items if expanded, otherwise show only first 3
-                            return expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
+                              if (upcomingClassTests.length > 0) {
+                                return (
+                                  <div className="text-center py-2">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      {upcomingClassTests.length} {upcomingClassTests.length === 1 ? 'test' : 'tests'} in the next 14 days
+                                    </p>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div className="text-center py-2">
+                                  <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
+                                </div>
+                              );
+                            }
+                            return null;
                           })()}
-                          onItemToggle={handleHomeworkToggle}
-                          onPinToggle={togglePinHomework}
-                          className="space-y-2"
-                        />
-
-                        {(() => {
-                          const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
-                          const totalCount = classHomeworks.length;
-
-                          if (totalCount > 3) {
-                            return (
-                              <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
-                                {expandedClasses[cls.id] ? (
-                                  <button
-                                    onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
-                                    className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                  >
-                                    Hide
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
-                                    className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                  >
-                                    +{totalCount - 3} more assignments
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          }
-
-                          return null;
-                        })()}
-
-                        {homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null)).length === 0 && (
-                          <div className="text-center py-2">
-                            <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
+                        </div>
+                      </motion.div>
+                    ))}
                 </div>
               )}
             </div>
@@ -1340,21 +1371,19 @@ const MainApp = () => {
               >
                 {/* Tests by Class */}
                 {classesWithTests.length === 0 ? (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
-                      <CalendarIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white dark:bg-gray-950 rounded-[32px] p-6 text-center border border-gray-100 dark:border-gray-800"
+                  >
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
+                      <CalendarIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No tests scheduled</h3>
-                    <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    <h3 className="text-xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
+                    <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-sm">
                       Start by adding your first test to keep track of your exam schedule
                     </p>
-                    <Button
-                      onClick={() => setShowAddTest(true)}
-                      className="bg-[#264f84] hover:bg-[#1f3f6b] text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
-                    >
-                      <Plus className="mr-1.5 h-4 w-4" /> Add Test
-                    </Button>
-                  </div>
+                  </motion.div>
                 ) : (
                   <StatusGroupedTestList
                     tests={filteredTests}
@@ -1463,6 +1492,15 @@ const MainApp = () => {
                     ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                     : (nextDueHomework || nextUpcomingTest);
                   const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                  const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
+
+                  if (useNaturalLanguageDates && daysUntil !== null) {
+                    if (daysUntil === 0) return 'Today';
+                    if (daysUntil === 1) return 'Tomorrow';
+                    if (daysUntil < 7) return format(itemDate, 'EEEE');
+                    return format(itemDate, 'MMM d');
+                  }
+
                   return `${daysUntil}d`;
                 })()
               ) : '-'}
@@ -1521,6 +1559,75 @@ const MainApp = () => {
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleAddClass()}
                     />
                   </div>
+
+                  {/* AI Suggestions */}
+                  <AnimatePresence>
+                    {newClassName.trim().length >= 3 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-[#264f84] dark:text-blue-400 flex items-center gap-1.5">
+                              <Sparkles className="h-3 w-3" />
+                              Semantic Suggestions
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleAISuggest();
+                              }}
+                              disabled={isSuggestingIcons}
+                              className="text-[10px] text-gray-500 hover:text-[#264f84] transition-colors flex items-center gap-1"
+                            >
+                              {isSuggestingIcons ? (
+                                <Loader2 className="h-2 w-2 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-2 w-2" />
+                              )}
+                              {isSuggestingIcons ? 'Analyzing...' : 'Refresh Suggestions'}
+                            </button>
+                          </div>
+                          <div className="flex gap-2 p-2 bg-blue-50/30 dark:bg-blue-900/10 rounded-lg border border-blue-100/50 dark:border-blue-900/20 overflow-x-auto min-h-[52px]">
+                            {aiSuggestions.map((icon) => (
+                              <button
+                                key={`suggest-${icon.name}`}
+                                type="button"
+                                onClick={() => setNewClassIcon(icon.name)}
+                                className={`p-2.5 rounded-lg transition-all shrink-0 ${newClassIcon === icon.name
+                                  ? 'bg-[#264f84] text-white shadow-sm scale-110'
+                                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                  }`}
+                                title={icon.name}
+                              >
+                                {(() => {
+                                  const Icon = icon.component;
+                                  return <Icon className="h-5 w-5" />;
+                                })()}
+                              </button>
+                            ))}
+                            {aiSuggestions.length === 0 && !isSuggestingIcons && (
+                              <div className="flex items-center justify-center w-full min-h-[36px]">
+                                <span className="text-[10px] text-gray-400 italic">
+                                  Type more to get AI suggestions...
+                                </span>
+                              </div>
+                            )}
+                            {isSuggestingIcons && aiSuggestions.length === 0 && (
+                              <div className="flex gap-2">
+                                {[1, 2, 3, 4, 5, 6].map(i => (
+                                  <div key={i} className="w-10 h-10 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg" />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Icon Selection */}
                   <div>

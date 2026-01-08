@@ -7,7 +7,7 @@ import {
   Search, BookOpen, GraduationCap, FileText, Presentation, Target,
   Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield,
   PenTool, Bookmark, HelpCircle, Scroll, User, History,
-  CreditCard, Gamepad2, Trophy, MessageSquare
+  CreditCard, Gamepad2, Trophy, MessageSquare, Video
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -45,6 +45,7 @@ const routeSearchItems = [
   { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events'] },
   { title: 'Discussion Boards', href: '/discussions', icon: MessageSquare, keywords: ['discussion', 'boards', 'forums', 'community', 'threads'] },
   { title: 'Settings', href: '/settings', icon: Settings, keywords: ['settings', 'preferences'] },
+  { title: 'Tutorials', href: '/tutorials', icon: Video, keywords: ['tutorials', 'guides', 'help', 'learn', 'how to'] },
 
   { title: 'Flashcards', href: '/flashcards', icon: CreditCard, keywords: ['flashcards'] },
   { title: 'Groups', href: '/groups', icon: Users, keywords: ['groups'] },

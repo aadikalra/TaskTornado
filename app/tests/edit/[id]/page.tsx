@@ -174,19 +174,15 @@ export default function EditTestPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
       <div className="max-w-4xl mx-auto p-6">
-        <div className="relative flex items-center justify-center mb-8 py-2">
-          <Link href="/dashboard" className="absolute left-0 inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center">Edit Test</h1>
+        <div className="flex items-center justify-center mb-8 py-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Test</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Test Title *</Label>
+                <Label htmlFor="title">Test Title</Label>
                 <Input
                   id="title"
                   value={title}
@@ -329,15 +325,9 @@ export default function EditTestPage() {
                 />
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label>Created At</Label>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {format(createdAt, 'PPPpp')}
-                </div>
-              </div>
 
               <div className="space-y-2">
-                <Label htmlFor="class">Class *</Label>
+                <Label htmlFor="class">Class</Label>
                 <Select value={classId} onValueChange={setClassId} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a class" />
@@ -353,7 +343,7 @@ export default function EditTestPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Test Date *</Label>
+                <Label>Test Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -377,15 +367,12 @@ export default function EditTestPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="time">Time (Optional)</Label>
+                <Label htmlFor="time">Test Time</Label>
                 <TestTimePicker
                   value={testTime || undefined}
                   onChange={(value) => setTestTime(value)}
-                  placeholder="Add specific time"
+                  placeholder="Select time (optional)"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Pick an exact time or leave blank if unknown.
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -395,15 +382,12 @@ export default function EditTestPage() {
                     <SelectValue placeholder="Select test type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Quiz">Quiz</SelectItem>
-                    <SelectItem value="Test">Test</SelectItem>
-                    <SelectItem value="Exam">Exam</SelectItem>
-                    <SelectItem value="Midterm">Midterm</SelectItem>
-                    <SelectItem value="Final">Final</SelectItem>
-                    <SelectItem value="Project">Project</SelectItem>
-                    <SelectItem value="Presentation">Presentation</SelectItem>
                     <SelectItem value="ALPHA">ALPHA</SelectItem>
                     <SelectItem value="BETA">BETA</SelectItem>
+                    <SelectItem value="Quiz">Quiz</SelectItem>
+                    <SelectItem value="Midterm">Midterm</SelectItem>
+                    <SelectItem value="Final">Final</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

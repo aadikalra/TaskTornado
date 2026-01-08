@@ -116,6 +116,19 @@ export default function SettingsPage() {
     setCookie('reduceMotion', checked.toString());
   };
 
+  const [useNaturalLanguageDates, setUseNaturalLanguageDates] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('useNaturalLanguageDates');
+      return saved !== null ? saved === 'true' : false; // default to false
+    }
+    return false;
+  });
+
+  const handleToggleNaturalLanguageDates = (checked: boolean) => {
+    setUseNaturalLanguageDates(checked);
+    setCookie('useNaturalLanguageDates', checked.toString());
+  };
+
   // AI Personality setting
   type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
@@ -338,6 +351,8 @@ export default function SettingsPage() {
                 onPersonalityChange={handlePersonalityChange}
                 useWideLayout={isWideLayout}
                 onToggleWideLayout={toggleWideLayout}
+                useNaturalLanguageDates={useNaturalLanguageDates}
+                onToggleNaturalLanguageDates={handleToggleNaturalLanguageDates}
               />
             </motion.div>
 

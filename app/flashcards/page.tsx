@@ -14,6 +14,7 @@ import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { getFullVersionString } from '@/config/version';
+import { useAI } from '@/context/AIContext';
 
 interface FlashcardDeckType {
 
@@ -43,6 +44,12 @@ export default function FlashcardsPage() {
 
   // Route intro popup
   const { showIntro, dismissIntro } = useRouteIntro('flashcards');
+  const { setAIAssistantOpen, setAIInput } = useAI();
+
+  const openFlashcardAssistant = () => {
+    setAIInput('@flashcard ');
+    setAIAssistantOpen(true);
+  };
 
   // Fetch saved decks from the database
   useEffect(() => {
@@ -191,11 +198,9 @@ export default function FlashcardsPage() {
                   <ArrowLeft className="h-4 w-4" />
                   Back to Current
                 </Button>
-                <Button asChild>
-                  <Link href="/study-assistant" className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create New
-                  </Link>
+                <Button onClick={openFlashcardAssistant} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create New
                 </Button>
               </div>
             </div>
@@ -218,11 +223,9 @@ export default function FlashcardsPage() {
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
                   Create your first flashcard deck using the Study Assistant!
                 </p>
-                <Button asChild>
-                  <Link href="/study-assistant" className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Go to Study Assistant
-                  </Link>
+                <Button onClick={openFlashcardAssistant} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Go to Study Assistant
                 </Button>
               </div>
             ) : (
@@ -320,8 +323,9 @@ export default function FlashcardsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
+            className="flex items-center justify-center min-h-[60vh]"
           >
-            <div className="text-center py-16">
+            <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
                 <BookOpen className="h-8 w-8 text-gray-400" />
               </div>
@@ -340,15 +344,13 @@ export default function FlashcardsPage() {
                       <ArrowLeft className="h-4 w-4" />
                       Back to Saved
                     </Button>
-                    <Button asChild>
-                      <Link href="/study-assistant" className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Create New
-                      </Link>
+                    <Button onClick={openFlashcardAssistant} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Create New
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={() => router.push('/study-assistant')} className="gap-2">
+                  <Button onClick={openFlashcardAssistant} className="gap-2">
                     <Plus className="h-4 w-4" />
                     Go to Study Assistant
                   </Button>
@@ -426,11 +428,9 @@ export default function FlashcardsPage() {
                   Saved
                 </Button>
               )}
-              <Button asChild>
-                <Link href="/study-assistant" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  New
-                </Link>
+              <Button onClick={openFlashcardAssistant} className="gap-2">
+                <Plus className="h-4 w-4" />
+                New
               </Button>
             </div>
           </div>

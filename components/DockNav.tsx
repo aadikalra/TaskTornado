@@ -22,12 +22,13 @@ import IconPen from './glass-icons/IconPen';
 import IconTabOpen from './glass-icons/IconTabOpen';
 import IconCircleCopyPlus from './glass-icons/IconCircleCopyPlus';
 import IconMessageSquare from './glass-icons/IconMessageSquare';
+import { useAI } from '@/context/AIContext';
 
 export default function DockNav() {
   const router = useRouter();
   const { user, signOut } = useAuth() || {};
   const { openSearch } = useSearch();
-  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const { isAIAssistantOpen, setAIAssistantOpen } = useAI();
   const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isVerySmall, setIsVerySmall] = useState(false);
@@ -78,7 +79,7 @@ export default function DockNav() {
           router.push('/login');
           return;
         }
-        setIsAIAssistantOpen(prev => !prev);
+        setAIAssistantOpen(!isAIAssistantOpen);
       },
       priority: 'essential'
     },
@@ -207,7 +208,7 @@ export default function DockNav() {
         baseItemSize={50}
         magnification={70}
       />
-      <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setIsAIAssistantOpen(false)} />
+      <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setAIAssistantOpen(false)} />
       <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} />
     </>
   );

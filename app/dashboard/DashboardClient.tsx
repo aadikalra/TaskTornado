@@ -1,5 +1,3 @@
-// app/dashboard/DashboardClient.tsx
-
 'use client';
 
 import dynamic from 'next/dynamic';
@@ -26,19 +24,21 @@ function GamificationProviderWrapper() {
 const MainApp = dynamic(() => import('@/components/MainApp'), {
   ssr: false,
   loading: () => (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="flex space-x-2">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="w-4 h-4 bg-gradient-to-r from-[#275085] to-[#4a7ba7] rounded-full animate-bounce"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gradient-to-b dark:from-gray-900 dark:to-gray-800">
+      <div className="relative flex items-center justify-center">
+        {/* Subtle background pulse */}
+        <div className="absolute w-16 h-16 bg-[#275085]/20 rounded-full animate-ping opacity-75" />
+        
+        {/* Static track ring */}
+        <div className="w-12 h-12 rounded-full border-[3px] border-gray-200 dark:border-gray-700" />
+        
+        {/* Spinning gradient arc */}
+        <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-[3px] border-t-[#275085] border-r-[#4a7ba7] border-b-transparent border-l-transparent animate-spin" />
       </div>
-      <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm animate-pulse">
-        Loading...
-      </p>
+      
+      <span className="mt-6 text-xs font-medium text-gray-400 tracking-[0.2em] uppercase animate-pulse">
+        Loading
+      </span>
     </div>
   ),
 });
@@ -50,11 +50,10 @@ export default function DashboardClient({
 }: DashboardClientProps) {
   return (
     <ToastProvider>
-      {/* THIS IS THE CHANGE: Pass the initial data into your provider */}
       <ClassProvider
         initialClasses={initialClasses}
         initialHomeworks={initialHomeworks}
-        initialTests={initialTests} // Pass tests as well
+        initialTests={initialTests}
       >
         <GamificationProviderWrapper />
       </ClassProvider>

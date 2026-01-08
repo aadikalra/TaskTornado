@@ -37,6 +37,7 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EnhancedTestCard from './EnhancedTestCard';
+import { TestDetailModal } from './TestDetailModal';
 
 type StatusGroupedTestListProps = {
   tests: Test[];
@@ -58,6 +59,13 @@ const StatusGroupedTestList = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filter, setFilter] = useState<FilterOption>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleTestClick = (test: Test) => {
+    setSelectedTest(test);
+    setIsModalOpen(true);
+  };
 
   const classesById = useMemo(() => {
     const map = new Map<string, Class>();
@@ -232,6 +240,8 @@ const StatusGroupedTestList = ({
         </div>
       </div>
 
+
+
       <div className="space-y-3">
         {items.map((test, index) => {
           const classInfo = classesById.get(test.classId);
@@ -251,7 +261,7 @@ const StatusGroupedTestList = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.02 }}
-              className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-[#264f84] dark:hover:border-blue-400 transition-all duration-200"
+              className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-all duration-200"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -503,20 +513,6 @@ const StatusGroupedTestList = ({
         <div className="space-y-8">
           {groupedTests.upcoming.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#264f84] dark:bg-blue-600">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                    Upcoming Tests
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {groupedTests.upcoming.length} test{groupedTests.upcoming.length !== 1 ? 's' : ''} scheduled
-                  </p>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {groupedTests.upcoming.map((test, index) => {
                   const classInfo = classesById.get(test.classId);
@@ -535,6 +531,9 @@ const StatusGroupedTestList = ({
                         classIcon={IconComponent}
                         onDelete={() => onDeleteTest(test.id)}
                         variant="compact"
+                        layoutId={`test-card-${test.id}`}
+                        onClick={() => handleTestClick(test)}
+                        className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
                       />
                     </motion.div>
                   );
@@ -545,20 +544,6 @@ const StatusGroupedTestList = ({
 
           {groupedTests.taken.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-600 dark:bg-gray-700">
-                  <Clock className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                    Completed Tests
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {groupedTests.taken.length} test{groupedTests.taken.length !== 1 ? 's' : ''} taken
-                  </p>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {groupedTests.taken.map((test, index) => {
                   const classInfo = classesById.get(test.classId);
@@ -577,6 +562,9 @@ const StatusGroupedTestList = ({
                         classIcon={IconComponent}
                         onDelete={() => onDeleteTest(test.id)}
                         variant="compact"
+                        layoutId={`test-card-${test.id}`}
+                        onClick={() => handleTestClick(test)}
+                        className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
                       />
                     </motion.div>
                   );
@@ -588,21 +576,61 @@ const StatusGroupedTestList = ({
       ) : (
         <div className="space-y-8">
           {groupedTests.upcoming.length > 0 && (
-            <Section
-              title="Upcoming Tests"
-              items={groupedTests.upcoming}
-              icon={Calendar}
-              color="border-blue-200 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100"
-            />
+            <div className="space-y-4">
+              {groupedTests.upcoming.map((test, index) => {
+                const classInfo = classesById.get(test.classId);
+                const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
+
+                return (
+                  <motion.div
+                    key={test.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                  >
+                    <EnhancedTestCard
+                      test={test}
+                      classInfo={classInfo}
+                      classIcon={IconComponent}
+                      onDelete={() => onDeleteTest(test.id)}
+                      variant="default"
+                      layoutId={`test-card-${test.id}`}
+                      onClick={() => handleTestClick(test)}
+                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
 
           {groupedTests.taken.length > 0 && (
-            <Section
-              title="Completed Tests"
-              items={groupedTests.taken}
-              icon={Clock}
-              color="border-emerald-200 dark:border-emerald-800 bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-900/30 dark:to-emerald-800/20 text-emerald-900 dark:text-emerald-100"
-            />
+            <div className="space-y-4">
+              {groupedTests.taken.map((test, index) => {
+                const classInfo = classesById.get(test.classId);
+                const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
+
+                return (
+                  <motion.div
+                    key={test.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                  >
+                    <EnhancedTestCard
+                      test={test}
+                      classInfo={classInfo}
+                      classIcon={IconComponent}
+                      onDelete={() => onDeleteTest(test.id)}
+                      variant="default"
+                      layoutId={`test-card-${test.id}`}
+                      onClick={() => handleTestClick(test)}
+                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
@@ -647,6 +675,14 @@ const StatusGroupedTestList = ({
           </div>
         </motion.div>
       )}
+      <TestDetailModal
+        test={selectedTest}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDelete={onDeleteTest}
+        classInfo={selectedTest ? classesById.get(selectedTest.classId) : undefined}
+        layoutId={selectedTest ? `test-card-${selectedTest.id}` : undefined}
+      />
     </div>
   );
 };

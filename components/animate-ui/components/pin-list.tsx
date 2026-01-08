@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pin, PinOff, List } from 'lucide-react';
+import { Pin, PinOff, List, Star } from 'lucide-react';
 import {
   motion,
   LayoutGroup,
@@ -99,6 +99,7 @@ function PinList({
                 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2"
                 {...labelMotionProps}
               >
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                 <Pin className="w-4 h-4 text-yellow-500" />
                 {labels.pinned}
               </motion.h2>
@@ -128,7 +129,10 @@ function PinList({
                       />
                     </div>
                     <div>
-                      <div className="text-sm font-semibold">{item.name}</div>
+                      <div className="text-sm font-semibold flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                        {item.name}
+                      </div>
                       <div className="text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center gap-1">
                         {item.urgencyIndicator}
                         {item.info}

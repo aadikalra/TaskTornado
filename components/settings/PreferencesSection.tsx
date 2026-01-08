@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Trophy, Award, Brain, Check, Maximize2 } from 'lucide-react';
+import { Sparkles, Trophy, Award, Brain, Check, Maximize2, Calendar as CalendarIcon } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
@@ -19,6 +19,8 @@ interface PreferencesSectionProps {
   onPersonalityChange: (value: AIPersonality) => void;
   useWideLayout: boolean;
   onToggleWideLayout: (checked: boolean) => void;
+  useNaturalLanguageDates: boolean;
+  onToggleNaturalLanguageDates: (checked: boolean) => void;
 }
 
 export default function PreferencesSection({
@@ -31,7 +33,9 @@ export default function PreferencesSection({
   aiPersonality,
   onPersonalityChange,
   useWideLayout,
-  onToggleWideLayout
+  onToggleWideLayout,
+  useNaturalLanguageDates,
+  onToggleNaturalLanguageDates
 }: PreferencesSectionProps) {
   const [showBetaModal, setShowBetaModal] = useState(false);
   const [betaAccessGranted, setBetaAccessGranted] = useState(false);
@@ -138,6 +142,26 @@ export default function PreferencesSection({
           <Switch
             checked={useWideLayout}
             onCheckedChange={onToggleWideLayout}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+          <div className="flex items-start gap-4">
+            <div className="mt-1">
+              <CalendarIcon className="h-5 w-5 text-orange-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                Natural Language Dates
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+                Show dates like "next Monday" instead of "3d" on the dashboard.
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={useNaturalLanguageDates}
+            onCheckedChange={onToggleNaturalLanguageDates}
           />
         </div>
 

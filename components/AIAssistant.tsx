@@ -163,15 +163,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
   const setIsOpen = onClose || setInternalIsOpen;
 
-  // State management
-  const [input, setInput] = useState(() => {
-    // Restore input from localStorage on initial load
-    if (typeof window !== 'undefined') {
-      const savedInput = localStorage.getItem('ai-assistant-input');
-      return savedInput || '';
-    }
-    return '';
-  });
+  // State management moved to AIContext for global sync
+  const { aiInput: input, setAIInput: setInput } = useAI();
 
   const [messages, setMessages] = useState<Message[]>(() => {
     // Restore messages from cookies on initial load
@@ -232,7 +225,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Safeguard destructuring
-  const { chat, error: aiError, setError: setAIError = () => { } } = aiContext || {};
+  const { chat, error: aiError, setError: setAIError = () => { }, setAIInput } = aiContext || {};
 
   const {
     homeworks = [],
@@ -313,12 +306,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   /* Effects                               */
   /* ---------------------------------------------------------------------- */
 
-  // Save input to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ai-assistant-input', input);
-    }
-  }, [input]);
+  // Save input to localStorage moved to AIContext
+
 
   // Save messages to cookies whenever they change
   useEffect(() => {
@@ -379,7 +368,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       setActiveCommand('resources');
       setShowHomeworkEffect(false);
       dataToastShownRef.current = false;
-    } else if (inputLower.includes('@flashcards')) {
+    } else if (inputLower.includes('@flashcards') || inputLower.includes('@flashcard')) {
       setActiveCommand('flashcards');
       setShowHomeworkEffect(false);
       dataToastShownRef.current = false;
@@ -1089,19 +1078,19 @@ If the image contains relative dates like "tomorrow" or "Friday", calculate the 
   /* @flashcards command handling                  */
   /* ---------------------------------------------------------------------- */
   const handleFlashcardsCommand = async (userInput: string) => {
-    const topic = userInput.split('@flashcards')[1]?.trim() || 'general knowledge';
+    const topic = userInput.split(/@flashcards|@flashcard/i)[1]?.trim() || 'general knowledge';
 
     if (!topic) {
       return `# Flashcard Generator
 
 I'll help you create study flashcards! Just type:
 
-@flashcards [your topic or notes]
+@flashcards [your topic or notes] (or @flashcard)
 
 For example:
-- @flashcards French vocabulary for food
+- @flashcard French vocabulary for food
 - @flashcards World War 2 key events
-- @flashcards Photosynthesis process`;
+- @flashcard Photosynthesis process`;
     }
 
     // First, let the user know we're working on it
@@ -1523,7 +1512,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
     // Check if it's a special command
     const isRequestingData = userInput.toLowerCase().includes('@data');
     const isControlCommand = userInput.toLowerCase().startsWith('@control');
-    const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards');
+    const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards') || userInput.toLowerCase().includes('@flashcard');
     const isQuizCommand = userInput.toLowerCase().includes('@quiz');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
     const isGradeCommand = userInput.toLowerCase().includes('@grade');
@@ -1741,7 +1730,7 @@ Examples of correct button prompts:
     const userInput = input.trim();
     const isRequestingData = userInput.toLowerCase().includes('@data');
     const isControlCommand = userInput.toLowerCase().startsWith('@control');
-    const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards');
+    const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards') || userInput.toLowerCase().includes('@flashcard');
     const isQuizCommand = userInput.toLowerCase().includes('@quiz');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
     const isGradeCommand = userInput.toLowerCase().includes('@grade');

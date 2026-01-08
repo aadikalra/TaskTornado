@@ -6,11 +6,37 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe, FlaskConical, Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe, FlaskConical, Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle, ChevronRight, Loader2, Rocket } from 'lucide-react';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import { X } from '@/components/animate-ui/icons/x';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
 import { AnimateIcon } from './animate-ui/animate-icon';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Hook to detect dark mode
+const useDarkMode = () => {
+  const [isDark, setIsDark] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+
+    // Initial check
+    checkDarkMode();
+
+    // Listen for changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+};
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -113,12 +139,14 @@ const classColors = ['#E53E3E', '#3182CE', '#D69E2E', '#38A169', '#805AD5', '#D5
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
   const { classes, addClass } = useClassContext();
+  const isDarkMode = useDarkMode();
   const [currentStep, setCurrentStep] = React.useState<OnboardingStep>('grade');
   const [selectedGrade, setSelectedGrade] = React.useState<string>('');
   const [isMathAccelerated, setIsMathAccelerated] = React.useState<boolean>(false);
   const [mathAccelerationLevel, setMathAccelerationLevel] = React.useState<number>(0);
   const [selectedElectives, setSelectedElectives] = React.useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = React.useState<string>('');
+  const [electiveSearch, setElectiveSearch] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const suggestedClasses = selectedGrade ? gradeClassMappings[selectedGrade] || [] : [];
@@ -132,6 +160,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
       setMathAccelerationLevel(0);
       setSelectedElectives([]);
       setSelectedLanguage('');
+      setElectiveSearch('');
     }
   }, [isOpen]);
 
@@ -315,405 +344,430 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
   if (!isOpen) return null;
 
+  const contentVariants = {
+    initial: { opacity: 0, x: 10 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -10 },
+  };
+
   const renderStepContent = () => {
-    switch (currentStep) {
-      case 'grade':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                What grade are you in?
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                We'll suggest some classes based on your grade level.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {['7', '8', '9', '10', '11', '12'].map((grade) => (
-                <button
-                  key={grade}
-                  onClick={() => handleGradeSelect(grade)}
-                  className={`p-4 rounded-lg border-2 transition-all ${selectedGrade === grade
-                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                >
-                  <div className="text-lg font-semibold">Grade {grade}</div>
-                </button>
-              ))}
-            </div>
-
-            {selectedGrade && (
-              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                  Suggested Classes:
-                </h3>
-                <div className="space-y-2">
-                  {(() => {
-                    const adjustedMathClass = getAdjustedMathClass();
-                    return suggestedClasses.map((classInfo) => {
-                      const displayClass = classInfo.name.startsWith('Math') ? adjustedMathClass! : classInfo;
-                      return (
-                        <div key={displayClass.name} className="flex items-center gap-2">
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: classColors[displayClass.colorIndex] }}
-                          />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {displayClass.name}
-                          </span>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'language':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Language Requirement
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                8th graders must take a language. Choose Spanish or Mandarin.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {languageOptions.map((language) => (
-                <button
-                  key={language}
-                  onClick={() => handleLanguageSelect(language)}
-                  className={`p-4 rounded-lg border-2 transition-all ${selectedLanguage === language
-                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                >
-                  <div className="text-lg font-semibold">{language}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'math-acceleration':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Math Acceleration
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Are you taking math at an accelerated level?
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={() => setIsMathAccelerated(true)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${isMathAccelerated
-                  ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-              >
-                <div className="text-lg font-semibold">Yes, I'm math accelerated</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  (Taking Math {parseInt(selectedGrade) + 1} or higher)
-                </div>
-              </button>
-
-              <button
-                onClick={() => setIsMathAccelerated(false)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${!isMathAccelerated
-                  ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-              >
-                <div className="text-lg font-semibold">No, regular math level</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  (Taking Math {selectedGrade} as expected)
-                </div>
-              </button>
-            </div>
-          </div>
-        );
-
-      case 'math-acceleration-level':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Math Acceleration Level
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                How many grades are you advanced in math?
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {[1, 2, 3, 4].map((level) => (
-                <button
-                  key={level}
-                  onClick={() => setMathAccelerationLevel(level)}
-                  className={`p-4 rounded-lg border-2 transition-all ${mathAccelerationLevel === level
-                    ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                >
-                  <div className="text-lg font-semibold">{level} grade{level > 1 ? 's' : ''}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {parseInt(selectedGrade) + level}th grade math
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {mathAccelerationLevel > 0 && (
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                  Math Class Assignment:
-                </h3>
-                <div className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <span className="text-blue-800 dark:text-blue-200">
-                    Math {parseInt(selectedGrade) + mathAccelerationLevel}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'electives':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Choose Your Electives
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                {selectedGrade === '8'
-                  ? 'Select 1 elective you\'re taking this year.'
-                  : 'Select 2 electives you\'re taking this year.'
-                }
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-              {electiveOptions.map((elective) => {
-                const IconComponent = getElectiveIcon(elective.icon);
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          variants={contentVariants}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="space-y-4"
+        >
+          {(() => {
+            switch (currentStep) {
+              case 'grade':
                 return (
-                  <button
-                    key={elective.name}
-                    onClick={() => handleElectiveToggle(elective.name)}
-                    className={`p-3 rounded-lg border transition-all text-left ${selectedElectives.includes(elective.name)
-                      ? 'border-[#264f84] bg-[#264f84]/10 text-[#264f84]'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="w-4 h-4 flex-shrink-0" />
-                      <div className="text-sm font-medium">{elective.name}</div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+                        What grade are you in?
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Select your current grade level to see suggested course maps.
+                      </p>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
 
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedElectives.length}/{selectedGrade === '8' ? '1' : '2'} electives selected
-            </div>
-          </div>
-        );
+                    <div className="grid grid-cols-2 gap-4">
+                      {['7', '8', '9', '10', '11', '12'].map((grade) => (
+                        <button
+                          key={grade}
+                          onClick={() => handleGradeSelect(grade)}
+                          className={`group relative p-4 rounded-xl border duration-200 text-left overflow-hidden ${selectedGrade === grade
+                            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50'
+                            }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xl font-medium">Grade {grade}</span>
+                            <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${selectedGrade === grade ? 'translate-x-0' : '-translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'}`} />
+                          </div>
+                          {selectedGrade === grade && (
+                            <motion.div
+                              layoutId="selection-glow"
+                              className="absolute inset-0 bg-white/10 dark:bg-black/10"
+                              initial={false}
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
 
-      case 'summary':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Ready to Set Up!
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                We'll create these classes for you to get started.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  Core Classes:
-                </h3>
-                <div className="space-y-2">
-                  {(() => {
-                    const adjustedMathClass = getAdjustedMathClass();
-                    return suggestedClasses.map((classInfo) => {
-                      const displayClass = classInfo.name.startsWith('Math') ? adjustedMathClass! : classInfo;
-                      return (
-                        <div key={displayClass.name} className="flex items-center gap-3">
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: classColors[displayClass.colorIndex] }}
-                          />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {displayClass.name}
-                          </span>
+                    {selectedGrade && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-3 border border-gray-100 dark:border-gray-800 rounded-xl bg-gray-50/30 dark:bg-gray-900/30"
+                      >
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
+                          Suggested Path
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {(() => {
+                            const adjustedMathClass = getAdjustedMathClass();
+                            return suggestedClasses.map((classInfo) => {
+                              const displayClass = classInfo.name.startsWith('Math') ? adjustedMathClass! : classInfo;
+                              return (
+                                <div key={displayClass.name} className="flex items-center gap-3">
+                                  <div
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: classColors[displayClass.colorIndex] }}
+                                  />
+                                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {displayClass.name}
+                                  </span>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
+                      </motion.div>
+                    )}
+                  </div>
+                );
 
-              {selectedGrade === '8' && selectedLanguage && (
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                    Language:
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: classColors[suggestedClasses.length] }}
+              case 'language':
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+                        Choose your language
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        8th graders at our school select one language to study.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {languageOptions.map((language) => (
+                        <button
+                          key={language}
+                          onClick={() => handleLanguageSelect(language)}
+                          className={`group relative p-4 rounded-xl border duration-200 text-left overflow-hidden ${selectedLanguage === language
+                            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50'
+                            }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xl font-medium">{language}</span>
+                            <MessageCircle className={`w-5 h-5 ${selectedLanguage === language ? 'text-white/60 dark:text-black/60' : 'text-gray-400'}`} />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+
+              case 'math-acceleration':
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+                        Math Placement
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Are you taking math at an advanced or accelerated level?
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <button
+                        onClick={() => setIsMathAccelerated(true)}
+                        className={`group relative w-full p-4 rounded-xl border duration-200 text-left overflow-hidden ${isMathAccelerated
+                          ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                          : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xl font-medium">Accelerated</span>
+                          <Rocket className={`w-5 h-5 ${isMathAccelerated ? 'text-white/60 dark:text-black/60' : 'text-gray-400'}`} />
+                        </div>
+                        <p className={`text-sm ${isMathAccelerated ? 'text-white/60 dark:text-black/60' : 'text-gray-500'}`}>
+                          Taking Math {parseInt(selectedGrade) + 1} or higher
+                        </p>
+                      </button>
+
+                      <button
+                        onClick={() => setIsMathAccelerated(false)}
+                        className={`group relative w-full p-4 rounded-xl border duration-200 text-left overflow-hidden ${!isMathAccelerated
+                          ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                          : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xl font-medium">Standard</span>
+                          <Calculator className={`w-5 h-5 ${!isMathAccelerated ? 'text-white/60 dark:text-black/60' : 'text-gray-400'}`} />
+                        </div>
+                        <p className={`text-sm ${!isMathAccelerated ? 'text-white/60 dark:text-black/60' : 'text-gray-500'}`}>
+                          Taking Math {selectedGrade}
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                );
+
+              case 'math-acceleration-level':
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+                        Advancement Level
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        How many grades ahead is your math course?
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {[1, 2, 3, 4].map((level) => (
+                        <button
+                          key={level}
+                          onClick={() => setMathAccelerationLevel(level)}
+                          className={`group relative p-4 rounded-xl border duration-200 text-left overflow-hidden ${mathAccelerationLevel === level
+                            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50'
+                            }`}
+                        >
+                          <div className="mb-1">
+                            <span className="text-2xl font-semibold">+{level}</span>
+                          </div>
+                          <p className={`text-xs ${mathAccelerationLevel === level ? 'text-white/60 dark:text-black/60' : 'text-gray-500'}`}>
+                            Math {parseInt(selectedGrade) + level}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+
+              case 'electives':
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+                        Your Electives
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        {selectedGrade === '8'
+                          ? 'Select 1 elective you\'re taking this year.'
+                          : 'Select 2 electives you\'re taking this year.'
+                        }
+                      </p>
+                    </div>
+
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        placeholder="Search electives..."
+                        value={electiveSearch}
+                        onChange={(e) => setElectiveSearch(e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
-                      <MessageCircle className="w-4 h-4 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {selectedLanguage}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      {electiveOptions.filter((elective) =>
+                        elective.name.toLowerCase().includes(electiveSearch.toLowerCase())
+                      ).map((elective) => {
+                        const IconComponent = getElectiveIcon(elective.icon);
+                        const isSelected = selectedElectives.includes(elective.name);
+                        return (
+                          <button
+                            key={elective.name}
+                            onClick={() => handleElectiveToggle(elective.name)}
+                            className={`group flex items-center gap-4 p-3 rounded-lg border duration-200 text-left ${isSelected
+                              ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                              : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50'
+                              }`}
+                          >
+                            <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/10 dark:bg-black/10' : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700'}`}>
+                              <IconComponent className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                              <span className="font-medium text-sm">{elective.name}</span>
+                            </div>
+                            {isSelected && <CheckCircle2 className="w-4 h-4" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Selection
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {selectedElectives.length} of {selectedGrade === '8' ? '1' : '2'}
                       </span>
                     </div>
                   </div>
-                </div>
-              )}
+                );
 
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  Electives:
-                </h3>
-                <div className="space-y-2">
-                  {selectedElectives.map((electiveName, index) => {
-                    const elective = electiveOptions.find(e => e.name === electiveName);
-                    const IconComponent = elective ? getElectiveIcon(elective.icon) : BookOpen;
-                    const colorIndex = selectedGrade === '8' ? suggestedClasses.length + 1 + index : suggestedClasses.length + index;
-                    return (
-                      <div key={electiveName} className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: classColors[colorIndex] }}
-                        />
-                        <IconComponent className="w-4 h-4 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {electiveName}
-                        </span>
+              case 'summary':
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+                        Almost there
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Review your course load before we finalize your workspace.
+                      </p>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="p-4 border border-gray-100 dark:border-gray-800 rounded-xl bg-gray-50/30 dark:bg-gray-900/30 space-y-4">
+                        <div className="space-y-2">
+                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            Core Curriculum
+                          </h3>
+                          <div className="grid grid-cols-1 gap-2">
+                            {(() => {
+                              const adjustedMathClass = getAdjustedMathClass();
+                              const coreClasses = suggestedClasses.map(cls =>
+                                cls.name.startsWith('Math') ? adjustedMathClass! : cls
+                              );
+                              if (selectedGrade === '8' && selectedLanguage) {
+                                coreClasses.push({ name: selectedLanguage, icon: 'MessageCircle', colorIndex: suggestedClasses.length });
+                              }
+                              return coreClasses.map((classInfo, idx) => (
+                                <div key={idx} className="flex items-center gap-3 py-1">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    {classInfo.name}
+                                  </span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            Elective Selection
+                          </h3>
+                          <div className="grid grid-cols-1 gap-2">
+                            {selectedElectives.map((electiveName, idx) => (
+                              <div key={idx} className="flex items-center gap-3 py-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                  {electiveName}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+                    </div>
+                  </div>
+                );
 
-      default:
-        return null;
-    }
+              default:
+                return null;
+            }
+          })()}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+    <div className="fixed inset-0 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl flex items-center justify-center z-[100] sm:p-4 overflow-hidden">
+      <div className="w-full h-full sm:h-auto sm:max-w-2xl bg-white dark:bg-gray-950 sm:rounded-[32px] sm:border sm:border-gray-200 dark:sm:border-gray-800 sm:shadow-2xl overflow-hidden flex flex-col">
+        {/* Header - Compact */}
+        <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#264f84] rounded-lg flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Welcome to TaskTornado!
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Let's set up your classes
-              </p>
-            </div>
+            <img 
+              src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"} 
+              alt="TaskTornado" 
+              className="w-5 h-5"
+            />
+            <h1 className="text-lg font-medium" style={{ color: isDarkMode ? '#ffffff' : '#264f84' }}>
+              TaskTornado
+            </h1>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-full transition-colors"
           >
-            <X animateOnHover />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        {/* Progress Bar - Minimalist */}
+        <div className="px-4 pb-4">
+          <div className="h-[2px] w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gray-900 dark:bg-white"
+              initial={{ width: 0 }}
+              animate={{
+                width: (() => {
+                  const steps = selectedGrade === '8'
+                    ? ['grade', 'language', 'math-acceleration', 'electives', 'summary']
+                    : ['grade', 'math-acceleration', 'electives', 'summary'];
+                  return `${((steps.indexOf(currentStep) + 1) / steps.length) * 100}%`;
+                })()
+              }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            />
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 p-4 overflow-y-auto custom-scrollbar min-h-[300px]">
           {renderStepContent()}
         </div>
 
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
-          <Button
-            onClick={handleBack}
-            disabled={currentStep === 'grade'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${currentStep === 'grade'
-              ? ''
-              : 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
-              }`}
-            variant={currentStep === 'grade' ? 'ghost' : 'default'}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
+        {/* Footer Navigation */}
+        <div className="p-4 pt-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30">
+          <div className="flex items-center justify-between gap-4">
+            <Button
+              onClick={handleBack}
+              disabled={currentStep === 'grade'}
+              variant="ghost"
+              className="px-4 py-3 h-auto rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white disabled:opacity-0"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
 
-          <div className="flex items-center gap-2">
-            {(() => {
-              const steps = selectedGrade === '8'
-                ? ['grade', 'language', 'math-acceleration', 'electives', 'summary']
-                : ['grade', 'math-acceleration', 'electives', 'summary'];
-
-              return steps.map((step, index) => (
-                <div
-                  key={step}
-                  className={`w-2 h-2 rounded-full transition-colors ${step === currentStep
-                    ? 'bg-[#264f84]'
-                    : steps.indexOf(currentStep) > index
-                      ? 'bg-[#264f84]/60'
-                      : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                />
-              ));
-            })()}
+            {currentStep === 'summary' ? (
+              <Button
+                onClick={handleCreateClasses}
+                disabled={isLoading}
+                className="flex-1 sm:flex-none px-6 py-3 h-auto bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:scale-[1.02] shadow-xl hover:shadow-gray-200 dark:hover:shadow-none rounded-lg rounded-br-[32px] font-medium"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Complete Setup
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className={`flex-1 sm:flex-none px-6 py-3 h-auto rounded-lg rounded-br-[32px] font-medium ${canProceed()
+                  ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:scale-[1.02] shadow-xl hover:shadow-gray-200 dark:hover:shadow-none'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                  }`}
+              >
+                Next Step
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
           </div>
-
-          {currentStep === 'summary' ? (
-            <Button
-              onClick={handleCreateClasses}
-              disabled={isLoading}
-              className={`flex items-center gap-2 px-4 py-2 bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isLoading ? (
-                'Creating...'
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Create Classes
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed()}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${canProceed()
-                ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
-                }`}
-            >
-              Next
-              <ArrowRight className="w-4 h-4" animateOnHover />
-            </Button>
-          )}
         </div>
       </div>
     </div>
