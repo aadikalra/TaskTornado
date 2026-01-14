@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, Sparkles, Calendar, BookOpen, Link2, Timer, Users, FileText, LogOut, LogIn, Settings, PenLine } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
@@ -26,6 +26,7 @@ import { useAI } from '@/context/AIContext';
 
 export default function DockNav() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, signOut } = useAuth() || {};
   const { openSearch } = useSearch();
   const { isAIAssistantOpen, setAIAssistantOpen } = useAI();
@@ -51,7 +52,8 @@ export default function DockNav() {
       icon: <IconHouse />,
       label: 'Home',
       onClick: () => router.push(user ? '/dashboard' : '/'),
-      priority: 'essential' // Always show
+      priority: 'essential', // Always show
+      isActive: pathname === '/dashboard' || pathname === '/'
     },
     {
       icon: <IconTabOpen />,
@@ -81,25 +83,29 @@ export default function DockNav() {
         }
         setAIAssistantOpen(!isAIAssistantOpen);
       },
-      priority: 'essential'
+      priority: 'essential',
+      isActive: isAIAssistantOpen
     },
     {
       icon: <IconCalendar />,
       label: 'Calendar',
       onClick: () => router.push('/calendar'),
-      priority: 'essential'
+      priority: 'essential',
+      isActive: pathname === '/calendar'
     },
     {
       icon: <IconBookOpen />,
       label: 'Flashcards',
       onClick: () => router.push('/flashcards'),
-      priority: 'important' // Hide on very small screens
+      priority: 'important', // Hide on very small screens
+      isActive: pathname === '/flashcards'
     },
     {
       icon: <IconGrid2 />,
       label: "Interactive Quizzes",
       onClick: () => router.push('/quiz'),
-      priority: 'important'
+      priority: 'important',
+      isActive: pathname === '/quiz'
     },
     {
       icon: <IconPin />,
@@ -111,13 +117,15 @@ export default function DockNav() {
         }
         router.push('/web-saves');
       },
-      priority: 'important'
+      priority: 'important',
+      isActive: pathname === '/web-saves'
     },
     {
       icon: <IconPen />,
       label: 'Writing Assist',
       onClick: () => router.push('/writing-assist'),
-      priority: 'important'
+      priority: 'important',
+      isActive: pathname === '/writing-assist'
     },
     {
       icon: <IconUsers />,
@@ -129,7 +137,8 @@ export default function DockNav() {
         }
         router.push('/groups');
       },
-      priority: 'important'
+      priority: 'important',
+      isActive: pathname === '/groups'
     },
     {
       icon: <IconMessageSquare />,
@@ -141,25 +150,29 @@ export default function DockNav() {
         }
         router.push('/discussions');
       },
-      priority: 'important'
+      priority: 'important',
+      isActive: pathname === '/discussions'
     },
     {
       icon: <IconBox />,
       label: "Games",
       onClick: () => router.push('/games'),
-      priority: 'optional' // Hide on mobile
+      priority: 'optional', // Hide on mobile
+      isActive: pathname === '/games'
     },
     {
       icon: <IconProgressBar />,
       label: 'Study Timer',
       onClick: () => setIsStudyTimerOpen(true),
+      isActive: isStudyTimerOpen,
       priority: 'important'
     },
     {
       icon: <IconFile />,
       label: "Changelog",
       onClick: () => router.push('/changelog'),
-      priority: 'optional'
+      priority: 'optional',
+      isActive: pathname === '/changelog'
     },
     {
       icon: <IconGear />,
@@ -171,7 +184,8 @@ export default function DockNav() {
         }
         router.push('/settings');
       },
-      priority: 'essential'
+      priority: 'essential',
+      isActive: pathname === '/settings'
     },
   ];
 

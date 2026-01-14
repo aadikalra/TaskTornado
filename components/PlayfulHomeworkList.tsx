@@ -4,6 +4,7 @@ import { motion, type Transition } from 'framer-motion';
 import Link from 'next/link';
 import { Check, Trash2, Edit, Link as LinkIcon, School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,7 @@ export type TodoItem = {
     title?: string;
   }>;
   onDelete?: () => void;
+  onDeleteSeries?: () => void;
   dueDateIcon: React.ReactNode;
   className?: string;
   classIcon?: string;
@@ -308,23 +310,56 @@ const PlayfulHomeworkListComponent = ({
                       </AlertDialogTrigger>
                       <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <AlertDialogHeader>
-                          <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete this homework?</AlertDialogTitle>
+                          <AlertDialogTitle className="text-gray-900 dark:text-gray-100">
+                            {item.isRecurringInstance || item.parentRecurringId || item.recurring ? 'Delete recurring homework?' : 'Delete this homework?'}
+                          </AlertDialogTitle>
                           <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                            This will permanently delete the homework &quot;{item.text}&quot;.
-                            This action cannot be undone.
+                            {item.isRecurringInstance || item.parentRecurringId || item.recurring
+                              ? `Choose how you'd like to delete "${item.text}".`
+                              : `This will permanently delete the homework "${item.text}". This action cannot be undone.`
+                            }
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              item.onDelete?.();
-                            }}
-                            className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
-                          >
-                            Delete Homework
-                          </AlertDialogAction>
+                        <AlertDialogFooter className={item.isRecurringInstance || item.parentRecurringId || item.recurring ? "sm:flex-col gap-2" : ""}>
+                          <div className={cn(
+                            "flex flex-col-reverse sm:flex-row gap-2 w-full",
+                            (item.isRecurringInstance || item.parentRecurringId || item.recurring) ? "sm:justify-between" : "sm:justify-end"
+                          )}>
+                            <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
+
+                            {item.isRecurringInstance || item.parentRecurringId || item.recurring ? (
+                              <div className="flex flex-col sm:flex-row gap-2">
+                                <AlertDialogAction
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    item.onDelete?.();
+                                  }}
+                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                >
+                                  Delete This One
+                                </AlertDialogAction>
+                                <AlertDialogAction
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    item.onDeleteSeries?.();
+                                  }}
+                                  className="bg-red-700 hover:bg-red-800 text-white"
+                                >
+                                  Delete Whole Series
+                                </AlertDialogAction>
+                              </div>
+                            ) : (
+                              <AlertDialogAction
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  item.onDelete?.();
+                                }}
+                                className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
+                              >
+                                Delete Homework
+                              </AlertDialogAction>
+                            )}
+                          </div>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>

@@ -10,12 +10,14 @@ import {
   AnimatePresence
 } from 'motion/react';
 import React, { Children, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export type DockItemData = {
   icon: React.ReactNode;
   label: React.ReactNode;
   onClick: () => void;
   className?: string;
+  isActive?: boolean;
 };
 
 export type DockProps = {
@@ -38,6 +40,7 @@ type DockItemProps = {
   distance: number;
   baseItemSize: number;
   magnification: number;
+  isActive?: boolean;
 };
 
 function DockItem({
@@ -48,7 +51,8 @@ function DockItem({
   spring,
   distance,
   magnification,
-  baseItemSize
+  baseItemSize,
+  isActive
 }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isHovered = useMotionValue(0);
@@ -75,7 +79,11 @@ function DockItem({
         alignItems: 'center',
         justifyContent: 'center',
       }}
-      className={`${className} rounded-full bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/50 dark:border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] cursor-pointer outline-none box-border hover:bg-white/40 dark:hover:bg-slate-800/40 transition-colors`}
+      className={cn(
+        "rounded-[1.25rem] backdrop-blur-xl border cursor-pointer outline-none box-border hover:bg-white/95 dark:hover:bg-slate-800/95", // Squircle shape
+        !isActive && "bg-white/90 dark:bg-slate-800/90 border-white/50 dark:border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)]",
+        className
+      )}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
@@ -85,10 +93,33 @@ function DockItem({
       role="button"
       aria-haspopup="true"
     >
+      {isActive && (
+        <motion.div
+          layoutId="dock-item-active-bg"
+          className="absolute inset-0 bg-[#264f84]/15 dark:bg-blue-50/20 border-2 border-[#264f84]/30 dark:border-blue-400/30 rounded-[1.25rem] shadow-[0_4px_12px_rgba(38,79,132,0.1)]"
+          transition={{
+            type: "spring",
+            stiffness: 350,
+            damping: 30
+          }}
+        />
+      )}
       {Children.map(children, child =>
         React.isValidElement(child)
           ? cloneElement(child as React.ReactElement<{ isHovered?: MotionValue<number> }>, { isHovered })
           : child
+      )}
+      {isActive && (
+        <motion.div
+          layoutId="dock-active-dot"
+          className="absolute -bottom-1.5 w-1 h-1 bg-[#264f84] dark:bg-blue-400 rounded-full"
+          transition={{
+            type: "spring",
+            stiffness: 350,
+            damping: 30,
+            layout: { duration: 0.2 }
+          }}
+        />
       )}
     </motion.div>
   );
@@ -189,7 +220,7 @@ export default function Dock({
           isHovered.set(0);
           mouseX.set(Infinity);
         }}
-        className={`${className} flex items-end w-fit mb-2 sm:mb-4 rounded-full bg-white/25 dark:bg-slate-900/25 backdrop-blur-3xl border border-white/40 dark:border-white/15 box-border pointer-events-auto shadow-[0_12px_48px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_48px_rgba(0,0,0,0.7),0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1px_1px_rgba(0,0,0,0.2)] overflow-visible max-w-full`}
+        className={`${className} flex items-end w-fit mb-2 sm:mb-4 rounded-[1.75rem] bg-white/25 dark:bg-slate-900/25 backdrop-blur-3xl border border-white/40 dark:border-white/15 box-border pointer-events-auto shadow-[0_12px_48px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_48px_rgba(0,0,0,0.7),0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1px_1px_rgba(0,0,0,0.2)] overflow-visible max-w-full`}
         style={{
           height: `${responsiveHeight}px`,
           display: 'flex',
@@ -211,6 +242,7 @@ export default function Dock({
             distance={responsiveDistance}
             magnification={responsiveMagnification}
             baseItemSize={responsiveBaseSize}
+            isActive={item.isActive}
           >
             <DockIcon>{item.icon}</DockIcon>
             <DockLabel>{item.label}</DockLabel>

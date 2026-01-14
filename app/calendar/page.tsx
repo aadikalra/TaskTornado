@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useClassContext, type Homework, type Test, type Class } from '@/context/ClassContext';
+import { useAuth } from '@/context/AuthContext';
+import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
@@ -185,11 +187,21 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
 };
 export default function CalendarPage() {
   const { homeworks, classes, tests, updateHomeworkDueDate, updateTestDueDate, deleteTest, loading } = useClassContext();
+  const { user } = useAuth();
   const { getContainerClass } = useWideLayout();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [expandedDay, setExpandedDay] = useState<Date | null>(null);
+
+  // Process recurring homework when calendar loads
+  useEffect(() => {
+    if (user && !loading) {
+      RecurringHomeworkService.processRecurringHomework(user.id).catch(error => {
+        console.error('Error processing recurring homework for calendar:', error);
+      });
+    }
+  }, [user, loading]);
 
   // Route intro popup
   const { showIntro, dismissIntro } = useRouteIntro('calendar');

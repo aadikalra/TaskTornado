@@ -9,16 +9,13 @@ interface StudyMaterial {
   url: string;
   title?: string;
 }
+import { getClassIcon, iconMap, IconName } from '@/lib/icon-map';
 import { getDueDateLabel, getDueDateIcon } from '@/lib/dateUtils';
 import {
   Calendar,
   Clock,
   Filter,
   Search,
-  SortAsc,
-  SortDesc,
-  Grid3X3,
-  List,
   BookOpen,
   Calculator,
   GraduationCap,
@@ -27,13 +24,11 @@ import {
   Circle,
   AlertTriangle,
   Star,
-  Trash2,
+  CheckCircle2,
   Target,
-  Edit2,
   X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EnhancedTestCard from './EnhancedTestCard';
@@ -45,8 +40,6 @@ type StatusGroupedTestListProps = {
   onDeleteTest: (id: string) => Promise<void>;
 };
 
-type ViewMode = 'grid' | 'list';
-type SortOption = 'date' | 'type' | 'class';
 type FilterOption = 'all' | 'upcoming' | 'taken' | 'alpha' | 'beta' | 'exam' | 'quiz';
 
 const StatusGroupedTestList = ({
@@ -54,9 +47,6 @@ const StatusGroupedTestList = ({
   classes,
   onDeleteTest,
 }: StatusGroupedTestListProps) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortBy, setSortBy] = useState<SortOption>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filter, setFilter] = useState<FilterOption>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
@@ -72,17 +62,6 @@ const StatusGroupedTestList = ({
     classes?.forEach((c) => map.set(c.id, c));
     return map;
   }, [classes]);
-
-  const iconMap: Record<string, any> = {
-    Calculator,
-    GraduationCap,
-    FileText,
-    Presentation,
-    BookOpen,
-    Circle,
-    AlertTriangle,
-    Star,
-  };
 
   const filteredAndSortedTests = useMemo(() => {
     let filtered = tests.filter(test => {
@@ -127,27 +106,11 @@ const StatusGroupedTestList = ({
     });
 
     filtered.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case 'date':
-          comparison = new Date(a.testDate).getTime() - new Date(b.testDate).getTime();
-          break;
-        case 'type':
-          comparison = (a.testType || '').localeCompare(b.testType || '');
-          break;
-        case 'class':
-          const classA = classesById.get(a.classId)?.name || '';
-          const classB = classesById.get(b.classId)?.name || '';
-          comparison = classA.localeCompare(classB);
-          break;
-      }
-
-      return sortOrder === 'asc' ? comparison : -comparison;
+      return new Date(a.testDate).getTime() - new Date(b.testDate).getTime();
     });
 
     return filtered;
-  }, [tests, classesById, filter, sortBy, sortOrder, searchQuery]);
+  }, [tests, classesById, filter, searchQuery]);
 
   const groupedTests = useMemo(() => {
     const groups: Record<'upcoming' | 'taken', Test[]> = { upcoming: [], taken: [] };
@@ -245,7 +208,7 @@ const StatusGroupedTestList = ({
       <div className="space-y-3">
         {items.map((test, index) => {
           const classInfo = classesById.get(test.classId);
-          const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
+          const IconComponent = getClassIcon(classInfo?.icon) || BookOpen;
           const TestTypeIcon = getTestTypeIcon(test.testType);
           const dueDate = new Date(test.testDate);
           const formattedDate = dueDate.toLocaleDateString('en-US', {
@@ -344,31 +307,6 @@ const StatusGroupedTestList = ({
                     </div>
                   )}
                 </div>
-
-                <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/tests/edit/${test.id}`} onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 text-gray-400 hover:text-[#264f84] dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                      title="Edit test"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteTest(test.id);
-                    }}
-                    title="Delete test"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
               </div>
             </motion.div>
           );
@@ -404,8 +342,8 @@ const StatusGroupedTestList = ({
             </div>
           </div>
 
-          {/* Filters and Controls */}
-          <div className="flex flex-wrap gap-2">
+          {/* Filters */}
+          <div className="flex gap-2">
             {/* Filter */}
             <Select value={filter} onValueChange={(value: FilterOption) => setFilter(value)}>
               <SelectTrigger className="w-[145px] h-11 min-h-[2.75rem] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl font-medium">
@@ -422,218 +360,73 @@ const StatusGroupedTestList = ({
                 <SelectItem value="quiz">Quizzes</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Sort */}
-            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="w-[130px] h-11 min-h-[2.75rem] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl font-medium">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">By Date</SelectItem>
-                <SelectItem value="type">By Type</SelectItem>
-                <SelectItem value="class">By Class</SelectItem>
-              </SelectContent>
-            </Select>
-            {/* Sort Order */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="h-11 w-11 p-0 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-750"
-              title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-            >
-              {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-            </Button>
-
-            {/* View Mode */}
-            <div className="flex rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className={`h-9 w-9 p-0 rounded-lg ${viewMode === 'grid'
-                  ? 'bg-[#264f84] dark:bg-blue-500 text-white hover:bg-[#1f3f6b] dark:hover:bg-blue-600'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className={`h-9 w-9 p-0 rounded-lg ${viewMode === 'list'
-                  ? 'bg-[#264f84] dark:bg-blue-500 text-white hover:bg-[#1f3f6b] dark:hover:bg-blue-600'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
 
-        {/* Enhanced Stats */}
-        {(searchQuery || filter !== 'all' || stats.total > 0) && (
-          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <span className="text-sm font-bold text-gray-900 dark:text-white">{stats.total}</span>
-              <span className="text-xs text-gray-600 dark:text-gray-400">total</span>
+              </div>
+
+      {/* Content */}
+      <div className="space-y-8">
+        {groupedTests.upcoming.length > 0 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {groupedTests.upcoming.map((test, index) => {
+                const classInfo = classesById.get(test.classId);
+                const IconComponent = getClassIcon(classInfo?.icon) || BookOpen;
+
+                return (
+                  <motion.div
+                    key={test.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                  >
+                    <EnhancedTestCard
+                      test={test}
+                      classInfo={classInfo}
+                      classIcon={IconComponent}
+                                            variant="compact"
+                      layoutId={`test-card-${test.id}`}
+                      onClick={() => handleTestClick(test)}
+                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
+                    />
+                  </motion.div>
+                );
+              })}
             </div>
-            {stats.upcoming > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{stats.upcoming}</span>
-                <span className="text-xs text-blue-600 dark:text-blue-400">upcoming</span>
-              </div>
-            )}
-            {stats.taken > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{stats.taken}</span>
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">completed</span>
-              </div>
-            )}
-            {stats.alpha > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <span className="text-sm font-bold text-purple-700 dark:text-purple-300">{stats.alpha}</span>
-                <span className="text-xs text-purple-600 dark:text-purple-400">ALPHA</span>
-              </div>
-            )}
-            {stats.beta > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                <span className="text-sm font-bold text-orange-700 dark:text-orange-300">{stats.beta}</span>
-                <span className="text-xs text-orange-600 dark:text-orange-400">BETA</span>
-              </div>
-            )}
+          </div>
+        )}
+
+        {groupedTests.taken.length > 0 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {groupedTests.taken.map((test, index) => {
+                const classInfo = classesById.get(test.classId);
+                const IconComponent = getClassIcon(classInfo?.icon) || BookOpen;
+
+                return (
+                  <motion.div
+                    key={test.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                  >
+                    <EnhancedTestCard
+                      test={test}
+                      classInfo={classInfo}
+                      classIcon={IconComponent}
+                                            variant="compact"
+                      layoutId={`test-card-${test.id}`}
+                      onClick={() => handleTestClick(test)}
+                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Content */}
-      {viewMode === 'grid' ? (
-        <div className="space-y-8">
-          {groupedTests.upcoming.length > 0 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {groupedTests.upcoming.map((test, index) => {
-                  const classInfo = classesById.get(test.classId);
-                  const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
-
-                  return (
-                    <motion.div
-                      key={test.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                    >
-                      <EnhancedTestCard
-                        test={test}
-                        classInfo={classInfo}
-                        classIcon={IconComponent}
-                        onDelete={() => onDeleteTest(test.id)}
-                        variant="compact"
-                        layoutId={`test-card-${test.id}`}
-                        onClick={() => handleTestClick(test)}
-                        className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {groupedTests.taken.length > 0 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {groupedTests.taken.map((test, index) => {
-                  const classInfo = classesById.get(test.classId);
-                  const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
-
-                  return (
-                    <motion.div
-                      key={test.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                    >
-                      <EnhancedTestCard
-                        test={test}
-                        classInfo={classInfo}
-                        classIcon={IconComponent}
-                        onDelete={() => onDeleteTest(test.id)}
-                        variant="compact"
-                        layoutId={`test-card-${test.id}`}
-                        onClick={() => handleTestClick(test)}
-                        className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {groupedTests.upcoming.length > 0 && (
-            <div className="space-y-4">
-              {groupedTests.upcoming.map((test, index) => {
-                const classInfo = classesById.get(test.classId);
-                const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
-
-                return (
-                  <motion.div
-                    key={test.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.03 }}
-                  >
-                    <EnhancedTestCard
-                      test={test}
-                      classInfo={classInfo}
-                      classIcon={IconComponent}
-                      onDelete={() => onDeleteTest(test.id)}
-                      variant="default"
-                      layoutId={`test-card-${test.id}`}
-                      onClick={() => handleTestClick(test)}
-                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
-                    />
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-
-          {groupedTests.taken.length > 0 && (
-            <div className="space-y-4">
-              {groupedTests.taken.map((test, index) => {
-                const classInfo = classesById.get(test.classId);
-                const IconComponent = iconMap[classInfo?.icon || 'BookOpen'] || BookOpen;
-
-                return (
-                  <motion.div
-                    key={test.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.03 }}
-                  >
-                    <EnhancedTestCard
-                      test={test}
-                      classInfo={classInfo}
-                      classIcon={IconComponent}
-                      onDelete={() => onDeleteTest(test.id)}
-                      variant="default"
-                      layoutId={`test-card-${test.id}`}
-                      onClick={() => handleTestClick(test)}
-                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
-                    />
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Empty State */}
       {filteredAndSortedTests.length === 0 && (

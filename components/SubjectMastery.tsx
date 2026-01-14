@@ -29,11 +29,11 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
   if (sortedSubjects.length === 0) {
     return (
       <div className={cn("w-full bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800", className)}>
-         <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-light text-gray-900 dark:text-white tracking-tight">
-              Subject Mastery
-            </h2>
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-light text-gray-900 dark:text-white tracking-tight">
+            Subject Mastery
+          </h2>
+        </div>
         <div className="text-center py-8 border border-dashed border-gray-200 dark:border-gray-800 rounded-lg">
           <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-full mb-3">
             <BarChart2 className="h-4 w-4 text-gray-400" />
@@ -54,7 +54,7 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
       <div className="space-y-1">
         {sortedSubjects.map((subject, index) => (
           <motion.div
-            key={subject.classId}
+            key={subject.classId || `subject-${index}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
@@ -75,9 +75,9 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
                 </span>
               </div>
             </div>
-            
+
             <div className="pl-6">
-               <div className="h-1 w-full bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${subject.masteryLevel}%` }}
@@ -92,14 +92,15 @@ export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps)
 
       {Object.keys(data.subjectMastery).length > maxItems && (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-900 flex justify-center"
+          key="view-all-button"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-900 flex justify-center"
         >
-            <button className="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors flex items-center gap-1">
-                View all <ChevronRight className="w-3 h-3" />
-            </button>
+          <button className="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors flex items-center gap-1">
+            View all <ChevronRight className="w-3 h-3" />
+          </button>
         </motion.div>
       )}
     </div>

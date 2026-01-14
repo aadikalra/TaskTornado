@@ -11,6 +11,11 @@ export default function OnboardingTutorialPage() {
             title="Onboarding: Setting Up Your Academic Success"
             description="A comprehensive guide to personalizing your TaskTornado experience, from grade selection to elective optimization."
             readTime="5 min read"
+            nextTutorial={{
+                title: "Starring Homeworks: Prioritize Your Tasks",
+                href: "/tutorials/starring-homeworks",
+                label: "Next Lesson"
+            }}
         >
             <motion.section
                 initial={{ opacity: 0, y: 20 }}

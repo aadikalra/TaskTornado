@@ -212,9 +212,6 @@ import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { MarkTestAsTakenModal } from '@/components/MarkTestAsTakenModal';
-import { ReindeerAnimation } from './ReindeerAnimation';
-import { Snowfall } from './Snowfall';
-import { StopAnimationsButton } from './StopAnimationsButton';
 
 type LucideIconName = IconName;
 type Priority = 'low' | 'medium' | 'high';
@@ -236,10 +233,12 @@ const MainApp = () => {
     addRecurringHomework,
     toggleHomework,
     togglePinHomework,
-    deleteHomework,
     deleteClass,
+    deleteHomework,
+    deleteRecurringSeries,
     deleteTest,
-    updateTest,
+    updateHomeworkDueDate,
+    updateTestDueDate,
     markTestComplete
   } = useClassContext();
   const [isClient, setIsClient] = useState(false);
@@ -253,11 +252,6 @@ const MainApp = () => {
   const [showAddTest, setShowAddTest] = useState(false);
   const [showMarkTestAsTakenModal, setShowMarkTestAsTakenModal] = useState(false);
   const [testToMark, setTestToMark] = useState<Test | null>(null);
-  const [areAnimationsPaused, setAreAnimationsPaused] = useState(true);
-
-  const toggleAnimations = () => {
-    setAreAnimationsPaused(prevState => !prevState);
-  };
 
   // Initialize section visibility states from cookies with defaults
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
@@ -331,6 +325,12 @@ const MainApp = () => {
     }
     return {};
   });
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string;
+    title: string;
+    isRecurring: boolean;
+    recurringId?: string;
+  } | null>(null);
 
   const [hasShownInitialNotifications, setHasShownInitialNotifications] = useState(false);
 
@@ -713,11 +713,54 @@ const MainApp = () => {
     }
   }, [homeworks, classes, toggleHomework, gamificationData, success]);
 
+  // Handle delete confirmation for recurring homework
+  const handleDeleteClick = (homeworkId: string, title: string, isRecurring: boolean, recurringId?: string) => {
+    if (isRecurring || recurringId) {
+      setDeleteConfirm({
+        id: homeworkId,
+        title,
+        isRecurring: true,
+        recurringId
+      });
+    } else {
+      // Regular homework - delete immediately
+      deleteHomework(homeworkId);
+    }
+  };
+
+  const handleDeleteConfirm = async (deleteSeries: boolean) => {
+    if (!deleteConfirm) return;
+
+    try {
+      if (deleteSeries && deleteConfirm.recurringId) {
+        // Delete entire recurring series
+        await deleteRecurringSeries(deleteConfirm.recurringId);
+      } else {
+        // Delete just this instance
+        await deleteHomework(deleteConfirm.id);
+      }
+    } catch (error) {
+      console.error('Error deleting homework:', error);
+    } finally {
+      setDeleteConfirm(null);
+    }
+  };
+
   // Add debugging for homework display
   useEffect(() => {
     console.log('Available classes:', classes.map((cls: Class) => ({ id: cls.id, name: cls.name })));
     console.log('Total homework items:', homeworks.length);
-    console.log('Homework items:', homeworks.map((hw: Homework) => ({ id: hw.id, classId: hw.classId, title: hw.title })));
+    console.log('Homework items with class details:', homeworks.map((hw: Homework) => {
+      const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
+      return {
+        id: hw.id,
+        classId: hw.classId,
+        className: className,
+        title: hw.title,
+        is_recurring_instance: (hw as any).is_recurring_instance,
+        recurring_id: (hw as any).recurring_id
+      };
+    }));
   }, [classes, homeworks]);
 
   // Award XP for existing completed tests on component mount
@@ -1218,15 +1261,11 @@ const MainApp = () => {
                                     dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
                                     links: hw.links,
                                     onDelete: () => deleteHomework(hw.id),
+                                    onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => deleteRecurringSeries(hw.recurring_id || hw.parent_recurring_id) : undefined,
                                     className: cls.name,
                                     pinned: hw.pinned || false,
                                     // Add recurring homework information
-                                    recurring: hw.recurring_frequency ? {
-                                      frequency: hw.recurring_frequency as RecurringFrequency,
-                                      endDate: hw.recurring_end_date ? new Date(hw.recurring_end_date) : undefined,
-                                      maxOccurrences: hw.recurring_max_occurrences || undefined,
-                                      parentRecurringId: hw.recurring_id || undefined,
-                                    } : undefined,
+                                    recurring: hw.recurring_frequency ? true : undefined as any,
                                     isRecurringInstance: hw.is_recurring_instance || false,
                                     parentRecurringId: hw.parent_recurring_id || undefined,
                                     recurringFrequency: hw.recurring_frequency || undefined,
@@ -1403,7 +1442,6 @@ const MainApp = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
-      {!areAnimationsPaused && <Snowfall />}
       <main className={getContainerClass('max-w-7xl') + ' py-8'}>
         {/* Welcome Section */}
         <motion.div
@@ -1435,9 +1473,19 @@ const MainApp = () => {
           {/* Overdue Items */}
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-red-500 font-medium">Overdue</span>
+              <span className={`text-xs font-medium ${homeworks.filter((hw: any) => {
+                const dueDate = new Date(hw.dueDate);
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                return !hw.completed && dueDate < todayStart;
+              }).length > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
               <div className="relative">
-                <Clock className="w-4 h-4 text-red-500" />
+                <Clock className={`w-4 h-4 ${homeworks.filter((hw: any) => {
+                  const dueDate = new Date(hw.dueDate);
+                  const todayStart = new Date();
+                  todayStart.setHours(0, 0, 0, 0);
+                  return !hw.completed && dueDate < todayStart;
+                }).length > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
                 {homeworks.filter((hw: any) => {
                   const dueDate = new Date(hw.dueDate);
                   const todayStart = new Date();
@@ -1472,7 +1520,19 @@ const MainApp = () => {
           {/* Next Deadline */}
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">
+              <span className={`text-xs font-medium ${(() => {
+                const nextItem = nextDueHomework && nextUpcomingTest
+                  ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                  : (nextDueHomework || nextUpcomingTest);
+                const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+
+                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400'; // Default blue
+                if (daysUntil === 0) return 'text-red-500'; // Overdue/Today - Red
+                if (daysUntil === 1) return 'text-amber-500'; // Tomorrow - Yellow/Amber
+                if (daysUntil <= 3) return 'text-orange-500'; // 2-3 days - Orange
+                return 'text-green-600 dark:text-green-400'; // 4+ days - Green
+              })()
+                }`}>
                 {nextDueHomework || nextUpcomingTest ? (
                   (() => {
                     const nextItem = nextDueHomework && nextUpcomingTest
@@ -1483,7 +1543,19 @@ const MainApp = () => {
                   })()
                 ) : 'Next Due'}
               </span>
-              <CalendarIcon className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+              <CalendarIcon className={`w-4 h-4 ${(() => {
+                const nextItem = nextDueHomework && nextUpcomingTest
+                  ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                  : (nextDueHomework || nextUpcomingTest);
+                const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+
+                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400'; // Default blue
+                if (daysUntil === 0) return 'text-red-500'; // Overdue/Today - Red
+                if (daysUntil === 1) return 'text-amber-500'; // Tomorrow - Yellow/Amber
+                if (daysUntil <= 3) return 'text-orange-500'; // 2-3 days - Orange
+                return 'text-green-600 dark:text-green-400'; // 4+ days - Green
+              })()
+                }`} />
             </div>
             <div className="text-2xl font-light text-gray-900 dark:text-white">
               {nextDueHomework || nextUpcomingTest ? (
@@ -1497,7 +1569,27 @@ const MainApp = () => {
                   if (useNaturalLanguageDates && daysUntil !== null) {
                     if (daysUntil === 0) return 'Today';
                     if (daysUntil === 1) return 'Tomorrow';
-                    if (daysUntil < 7) return format(itemDate, 'EEEE');
+
+                    // Smart natural language for upcoming days
+                    if (daysUntil < 7) {
+                      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                      const currentDay = new Date().getDay();
+                      const testDay = itemDate.getDay();
+
+                      // Get the day name for the item
+                      const itemDayName = dayNames[testDay];
+
+                      // Check if item is in the same week (within 6 days from today)
+                      const daysUntilItem = testDay - currentDay;
+                      const isSameWeek = daysUntilItem > 0 && daysUntilItem <= 6;
+
+                      if (isSameWeek) {
+                        return `This ${itemDayName}`;
+                      } else {
+                        return `Next ${itemDayName}`;
+                      }
+                    }
+
                     return format(itemDate, 'MMM d');
                   }
 
@@ -1949,8 +2041,6 @@ const MainApp = () => {
           )}
         </AnimatePresence>
       </main>
-      {!areAnimationsPaused && <ReindeerAnimation />}
-      <StopAnimationsButton areAnimationsPaused={areAnimationsPaused} onToggle={toggleAnimations} />
 
       {/* Onboarding Modal */}
       <AnimatePresence>
@@ -1959,6 +2049,51 @@ const MainApp = () => {
             isOpen={showOnboarding}
             onClose={() => setShowOnboarding(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-800"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Delete Recurring Homework
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete "<span className="font-medium">{deleteConfirm.title}</span>"?
+              </p>
+
+              <div className="space-y-3 mb-6">
+                <button
+                  onClick={() => handleDeleteConfirm(false)}
+                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                >
+                  Delete only this instance
+                </button>
+                <button
+                  onClick={() => handleDeleteConfirm(true)}
+                  className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                >
+                  Delete entire recurring series
+                </button>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

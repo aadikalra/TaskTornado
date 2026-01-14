@@ -27,7 +27,6 @@ import {
 import { TestTimePicker } from '@/components/TestTimePicker';
 
 type StudyMaterial = string | { url: string; title?: string };
-type Priority = 'low' | 'medium' | 'high' | 'critical';
 
 export default function EditTestPage() {
   const { id } = useParams() as { id: string };
@@ -42,10 +41,6 @@ export default function EditTestPage() {
   const [testType, setTestType] = useState('Quiz');
   const [description, setDescription] = useState('');
   const [studyMaterials, setStudyMaterials] = useState<StudyMaterial[]>([]);
-  const [weight, setWeight] = useState<number>(0);
-  const [location, setLocation] = useState('');
-  const [duration, setDuration] = useState<number>(60);
-  const [priority, setPriority] = useState<Priority>('medium');
   const [status, setStatus] = useState<TestStatus>('not_started');
   const [score, setScore] = useState<number | null>(null);
   const [maxScore, setMaxScore] = useState<number | null>(100);
@@ -84,10 +79,6 @@ export default function EditTestPage() {
       setTestType(test.testType || 'Quiz');
       setDescription(test.description || '');
       setStudyMaterials(test.studyMaterials || []);
-      setWeight(test.weight || 0);
-      setLocation(test.location || '');
-      setDuration(test.duration || 60);
-      setPriority((test.priority as Priority) || 'medium');
       setStatus((test.status as TestStatus) || 'not_started');
       setScore(test.score ?? null);
       setMaxScore(test.maxScore ?? 100);
@@ -104,33 +95,20 @@ export default function EditTestPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!title || !classId || !testDate) {
-      toastError('Please fill in all required fields');
-      return;
-    }
+    setIsSubmitting(true);
 
     try {
-      setIsSubmitting(true);
-
-      const priorityForUpdate: ContextPriority = priority === 'critical' ? 'high' : priority;
-
       await updateTest(id, {
         title,
         classId,
-        testDate: testDate.toISOString().split('T')[0],
+        testDate: format(testDate!, 'yyyy-MM-dd'),
         testTime: testTime || null,
         testType: testType as TestType,
         description: description || null,
         studyMaterials: studyMaterials.map(m => typeof m === 'string' ? m : m.url),
-        weight: weight || null,
-        location: location || null,
-        duration: duration || null,
-        priority: priorityForUpdate,
         status: status as TestStatus,
         score: score || null,
         maxScore: maxScore || 100,
-        grade: grade || null,
         notes: notes || null,
         completed_at: completedAt ? completedAt.toISOString() : null
       });
@@ -182,7 +160,7 @@ export default function EditTestPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Test Title</Label>
+                <Label htmlFor="title">Test Title <span className="text-red-500">*</span></Label>
                 <Input
                   id="title"
                   value={title}
@@ -190,54 +168,6 @@ export default function EditTestPage() {
                   placeholder="Enter test title"
                   required
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (%)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={weight}
-                  onChange={(e) => setWeight(Number(e.target.value))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g., Room 205"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="duration">Duration (minutes)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min="1"
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <Select value={priority} onValueChange={(v: Priority) => setPriority(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">
@@ -268,51 +198,32 @@ export default function EditTestPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="score">Score</Label>
-                <Input
-                  id="score"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={score ?? ''}
-                  onChange={(e) => setScore(e.target.value ? Number(e.target.value) : null)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="grade">Grade</Label>
-                <Input
-                  id="grade"
-                  value={grade}
-                  readOnly
-                  className="bg-gray-100 dark:bg-gray-700"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="completedAt">Completed At</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {completedAt ? format(completedAt, 'PPP') : 'Not completed'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={completedAt || undefined}
-                      onSelect={(date) => setCompletedAt(date || null)}
-                      initialFocus
-                      required={false}
+              {/* Score and Grade - Only show when test is completed */}
+              {status === 'completed' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="score">Score</Label>
+                    <Input
+                      id="score"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={score ?? ''}
+                      onChange={(e) => setScore(e.target.value ? Number(e.target.value) : null)}
                     />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="grade">Grade</Label>
+                    <Input
+                      id="grade"
+                      value={grade}
+                      readOnly
+                      className="bg-gray-100 dark:bg-gray-700"
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Notes</Label>
@@ -327,7 +238,7 @@ export default function EditTestPage() {
 
 
               <div className="space-y-2">
-                <Label htmlFor="class">Class</Label>
+                <Label>Class <span className="text-red-500">*</span></Label>
                 <Select value={classId} onValueChange={setClassId} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a class" />
@@ -343,7 +254,7 @@ export default function EditTestPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Test Date</Label>
+                <Label>Test Date <span className="text-red-500">*</span></Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -376,7 +287,7 @@ export default function EditTestPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Test Type</Label>
+                <Label htmlFor="type">Test Type <span className="text-red-500">*</span></Label>
                 <Select value={testType} onValueChange={setTestType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select test type" />
@@ -452,7 +363,7 @@ export default function EditTestPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push(`/tests/${id}`)}
+              onClick={() => router.push('/dashboard')}
               disabled={isSubmitting}
             >
               Cancel

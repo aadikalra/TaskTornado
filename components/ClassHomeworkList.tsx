@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import { PlayfulHomeworkList } from "./PlayfulHomeworkList";
 import type { Class as ClassType, Homework as HomeworkType, Priority } from "@/context/ClassContext";
 import { getDueDateStatus, getDueDateLabel, getDueDateIcon } from "@/lib/dateUtils";
-import { 
-  AlertCircle, 
-  AlertTriangle, 
-  Clock, 
-  Calendar, 
-  Trash2, 
-  BookOpen, 
+import {
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  Calendar,
+  Trash2,
+  BookOpen,
   Calculator,
   BookText,
   BookMarkedIcon,
@@ -67,6 +67,10 @@ type TodoItem = {
     title?: string;
   }>;
   onDelete?: () => void;
+  onDeleteSeries?: () => void;
+  isRecurringInstance?: boolean;
+  parentRecurringId?: string;
+  recurring?: any;
   dueDateIcon: React.ReactNode;
 };
 
@@ -75,6 +79,7 @@ type ClassHomeworkListProps = {
   homeworks: HomeworkType[];
   onToggle: (id: string) => Promise<void>;
   onDeleteHomework: (id: string) => Promise<void>;
+  onDeleteRecurringSeries: (recurringId: string) => Promise<void>;
   onDeleteClass: (id: string) => Promise<void>;
 };
 
@@ -97,6 +102,7 @@ const ClassHomeworkListComponent = ({
   homeworks,
   onToggle,
   onDeleteHomework,
+  onDeleteRecurringSeries,
   onDeleteClass,
 }: ClassHomeworkListProps) => {
   // Use a state hook with a lazy initializer to pick a random color pair only once
@@ -119,7 +125,7 @@ const ClassHomeworkListComponent = ({
     setLocalHomeworks(prev => prev.map(hw =>
       hw.id === id ? { ...hw, completed: !hw.completed } : hw
     ));
-    
+
     try {
       await onToggle(id);
     } catch (error) {
@@ -132,7 +138,7 @@ const ClassHomeworkListComponent = ({
   const onDeleteHomeworkLocal = useCallback(async (id: string) => {
     const prevLocalHomeworks = localHomeworks;
     setLocalHomeworks(prev => prev.filter(hw => hw.id !== id));
-    
+
     try {
       await onDeleteHomework(id);
     } catch (error) {
@@ -140,6 +146,22 @@ const ClassHomeworkListComponent = ({
       setLocalHomeworks(prevLocalHomeworks);
     }
   }, [localHomeworks, onDeleteHomework]);
+
+  // Local handler for deleting recurring series with optimistic update
+  const onDeleteRecurringSeriesLocal = useCallback(async (recurringId: string) => {
+    const prevLocalHomeworks = localHomeworks;
+    // Optimistically remove all homeworks in this series
+    setLocalHomeworks(prev => prev.filter(hw => hw.recurring_id !== recurringId));
+
+    try {
+      if (onDeleteRecurringSeries) {
+        await onDeleteRecurringSeries(recurringId);
+      }
+    } catch (error) {
+      console.error("Failed to delete recurring series, reverting UI:", error);
+      setLocalHomeworks(prevLocalHomeworks);
+    }
+  }, [localHomeworks, onDeleteRecurringSeries]);
 
   // Memoize the sorting and filtering of local homeworks
   const allHomeworks = useMemo(() => {
@@ -180,9 +202,15 @@ const ClassHomeworkListComponent = ({
         />
       ),
       onDelete: () => onDeleteHomeworkLocal(hw.id),
+      onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => onDeleteRecurringSeriesLocal(hw.recurring_id || hw.parent_recurring_id!) : undefined,
+      isRecurringInstance: hw.is_recurring_instance ?? undefined,
+      parentRecurringId: hw.parent_recurring_id ?? undefined,
+      recurring: hw.recurring_id ? true : undefined as any
     };
-  }, [onDeleteHomeworkLocal]);
-  
+  }, [onDeleteHomeworkLocal, onDeleteRecurringSeriesLocal]);
+
+
+
   // Handler for deleting a class
   const handleDeleteClass = useCallback(async () => {
     try {
@@ -191,7 +219,7 @@ const ClassHomeworkListComponent = ({
       console.error("Failed to delete class:", error);
     }
   }, [classItem.id, onDeleteClass]);
-  
+
   // Memoize the converted todo items
   const allTodoItems = useMemo(() => allHomeworks.map(homeworkToTodoItem), [allHomeworks, homeworkToTodoItem]);
 
@@ -204,18 +232,18 @@ const ClassHomeworkListComponent = ({
     iconInMap: classItem.icon in iconMap,
     availableIcons: Object.keys(iconMap)
   });
-  
+
   // Use the icon from classItem, fallback to BookOpen if not found
   const ClassIconComponent = (iconMap[classItem.icon] as LucideIcon) || BookOpen;
-  
+
   // Use the assigned class color from the DB, otherwise use a memoized random color
-  const classColor =  randomColorPair.light;
-  
+  const classColor = randomColorPair.light;
+
   // Use the dark version of the random color for the icon, or a default dark color if no random pair is used
   const iconColor = randomColorPair.dark;
-    
+
   return (
-    <motion.div 
+    <motion.div
       className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -225,13 +253,13 @@ const ClassHomeworkListComponent = ({
       <div className="px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div 
+            <div
               className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm"
               style={{
                 backgroundColor: `${classColor}`,
               }}
             >
-              <ClassIconComponent 
+              <ClassIconComponent
                 className="h-4 w-4"
                 style={{ color: `${iconColor}` }}
                 strokeWidth={1.5}
@@ -264,7 +292,7 @@ const ClassHomeworkListComponent = ({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction 
+                <AlertDialogAction
                   className="bg-red-600 hover:bg-red-700"
                   onClick={handleDeleteClass}
                 >
@@ -274,12 +302,12 @@ const ClassHomeworkListComponent = ({
             </AlertDialogContent>
           </AlertDialog>
         </div>
-      
+
         <div className="p-4 space-y-6">
           {allTodoItems.length > 0 && (
-            <PlayfulHomeworkList 
-              items={allTodoItems} 
-              onItemToggle={onToggleLocal} 
+            <PlayfulHomeworkList
+              items={allTodoItems}
+              onItemToggle={onToggleLocal}
             />
           )}
         </div>

@@ -28,6 +28,36 @@ const tutorialsData: Tutorial[] = [
     estimatedTime: '5 min read',
     tags: ['setup', 'classes', 'onboarding'],
     href: '/tutorials/onboarding'
+  },
+  {
+    id: 'starring-homeworks',
+    title: 'Starring Homeworks: Prioritize Your Tasks',
+    description: 'Learn how to highlight your most important assignments by converting their priority tags into prominent stars.',
+    category: 'productivity',
+    difficulty: 'beginner',
+    estimatedTime: '2 min read',
+    tags: ['homework', 'priority', 'organization'],
+    href: '/tutorials/starring-homeworks'
+  },
+  {
+    id: 'test-details',
+    title: 'Viewing Test Details: Schedule & Materials',
+    description: 'Discover how to access comprehensive information about your upcoming tests, including dates, study materials, and grades.',
+    category: 'academic',
+    difficulty: 'beginner',
+    estimatedTime: '2 min read',
+    tags: ['tests', 'exams', 'study-materials', 'organization'],
+    href: '/tutorials/test-details'
+  },
+  {
+    id: 'recurring-homework',
+    title: 'Mastering Recurring Homework: Automate Your Schedule',
+    description: 'Save time by learning how to set up assignments that repeat daily or weekly, ensuring you never miss a routine task.',
+    category: 'productivity',
+    difficulty: 'intermediate',
+    estimatedTime: '3 min read',
+    tags: ['homework', 'recurring', 'automation', 'productivity'],
+    href: '/tutorials/recurring-homeworks'
   }
 ];
 
@@ -120,6 +150,6 @@ export default function TutorialsPage() {
         )}
       </main>
 
-          </div>
+    </div>
   );
 }

@@ -139,7 +139,7 @@ export class RecurringHomeworkService {
       homeworkData.links = links;
     }
 
-    await db.createHomework(homeworkData);
+    const createdMaster = await db.createHomework(homeworkData);
 
     // Create the initial homework instance
     const initialHomework = await db.createHomework({
@@ -148,7 +148,7 @@ export class RecurringHomeworkService {
       is_recurring_instance: true
     });
 
-    return { masterRecord: homeworkData, initialInstance: initialHomework };
+    return { masterRecord: createdMaster, initialInstance: initialHomework };
   }
 
   /**
@@ -198,6 +198,13 @@ export class RecurringHomeworkService {
       updated_at: new Date().toISOString()
     };
 
+    console.log('🔍 [createNextInstance] Creating instance:', {
+      title: newInstance.title,
+      class_id: newInstance.class_id,
+      master_class_id: masterRecord.class_id,
+      due_date: newInstance.due_date
+    });
+
     const { data, error } = await supabase
       .from('homework')
       .insert([newInstance])
@@ -232,26 +239,36 @@ export class RecurringHomeworkService {
    */
   static async processRecurringHomework(userId: string): Promise<void> {
     try {
+      console.log('🔄 [RecurringHomeworkService] Processing recurring homework for user:', userId);
       // Get all active recurring homework
       const activeRecurring = await this.getActiveRecurringHomework(userId);
+      console.log('📋 [RecurringHomeworkService] Found active recurring homework:', activeRecurring.length);
 
       for (const masterRecord of activeRecurring) {
+        console.log('🔍 [RecurringHomeworkService] Processing master record:', masterRecord.title, masterRecord.recurring_id);
         if (!masterRecord.recurring_id) {
-          console.warn('Skipping recurring homework with null recurring_id', masterRecord);
+          console.warn('⚠️ [RecurringHomeworkService] Skipping recurring homework with null recurring_id', masterRecord);
           continue;
         }
         // Get existing instances
         const existingInstances = await this.getRecurringInstances(masterRecord.recurring_id, userId);
+        console.log('📝 [RecurringHomeworkService] Found existing instances:', existingInstances.length);
 
-        // Check if we need to create a new instance
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Use all existing instances to check limits
         const shouldCreateNew = this.shouldCreateNewInstance(masterRecord, existingInstances);
+        console.log('🤔 [RecurringHomeworkService] Should create new instance?', shouldCreateNew);
 
         if (shouldCreateNew) {
+          console.log('✨ [RecurringHomeworkService] Creating new instance for:', masterRecord.title);
           await this.createNextInstance(masterRecord, userId);
         }
       }
+      console.log('✅ [RecurringHomeworkService] Processing completed successfully');
     } catch (error) {
-      console.error('Error processing recurring homework:', error);
+      console.error('❌ [RecurringHomeworkService] Error processing recurring homework:', error);
       throw error;
     }
   }
@@ -263,10 +280,8 @@ export class RecurringHomeworkService {
     masterRecord: any,
     existingInstances: any[]
   ): boolean {
-    if (existingInstances.length === 0) {
-      // No instances yet, should create first one
-      return true;
-    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const config: RecurringHomeworkConfig = {
       frequency: masterRecord.recurring_frequency,
@@ -275,25 +290,60 @@ export class RecurringHomeworkService {
       parentRecurringId: masterRecord.recurring_id
     };
 
-    // Check if we've reached max occurrences
+    // 1. Check max occurrences
     if (config.maxOccurrences && existingInstances.length >= config.maxOccurrences) {
+      console.log('❌ [shouldCreateNewInstance] Max occurrences reached');
       return false;
     }
 
-    // Check if we've passed the end date
-    if (config.endDate && new Date() > config.endDate) {
+    // 2. Check end date
+    if (config.endDate && today > config.endDate) {
+      console.log('❌ [shouldCreateNewInstance] End date passed');
       return false;
     }
 
-    // Get the latest instance
+    // 3. Prevent flooding: Stop adding if there are too many uncompleted instances
+    const uncompletedCount = existingInstances.filter(hw => !hw.completed).length;
+    if (uncompletedCount >= 3) {
+      console.log('❌ [shouldCreateNewInstance] Too many uncompleted instances (>=3). Complete some first!');
+      return false;
+    }
+
+    // 4. Limit future instances: At most 2 future dates
+    const futureInstances = existingInstances.filter(hw => {
+      const instanceDate = new Date(hw.due_date);
+      instanceDate.setHours(0, 0, 0, 0);
+      return instanceDate > today;
+    });
+
+    if (futureInstances.length >= 2) {
+      console.log('❌ [shouldCreateNewInstance] Already have 2 future instances');
+      return false;
+    }
+
+    // 5. Ensure we don't duplicate an instance for today or the same date
     const latestInstance = existingInstances[existingInstances.length - 1];
-    const latestDueDate = new Date(latestInstance.due_date);
+    if (latestInstance) {
+      const latestDueDate = new Date(latestInstance.due_date);
+      latestDueDate.setHours(0, 0, 0, 0);
 
-    // Check if it's time to create the next instance
-    const nextDueDate = this.calculateNextDueDate(config.frequency, latestDueDate);
+      const nextDueDate = this.calculateNextDueDate(config.frequency, latestDueDate);
+      nextDueDate.setHours(0, 0, 0, 0);
 
-    // Create instance if the next due date is today or in the past
-    return nextDueDate <= new Date();
+      // Check if an instance for this next date already exists
+      const alreadyExists = existingInstances.some(hw => {
+        const d = new Date(hw.due_date);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() === nextDueDate.getTime();
+      });
+
+      if (alreadyExists) {
+        console.log('❌ [shouldCreateNewInstance] Instance for next due date already exists');
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

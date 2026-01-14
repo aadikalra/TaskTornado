@@ -96,6 +96,8 @@ export const GamificationProvider = ({ children, homeworks = [], classes = [] }:
 
     // Calculate stats for each class
     homeworks.forEach(hw => {
+      if (!hw.classId) return; // Skip if no classId
+
       const className = classMap.get(hw.classId) || 'Unknown Class';
       const current = subjectStats.get(hw.classId) || { completed: 0, total: 0, xpEarned: 0 };
 

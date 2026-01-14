@@ -36,7 +36,7 @@ const MainApp = dynamic(() => import('@/components/MainApp'), {
         <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-[3px] border-t-[#275085] border-r-[#4a7ba7] border-b-transparent border-l-transparent animate-spin" />
       </div>
       
-      <span className="mt-6 text-xs font-medium text-gray-400 tracking-[0.2em] uppercase animate-pulse">
+      <span className="mt-6 text-xs font-medium text-gray-400 animate-pulse">
         Loading
       </span>
     </div>

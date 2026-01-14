@@ -110,6 +110,7 @@ interface ClassContextType {
   togglePinHomework: (id: string, pinned: boolean) => Promise<void>;
   deleteClass: (id: string) => Promise<void>;
   deleteHomework: (id: string) => Promise<void>;
+  deleteRecurringSeries: (recurringId: string) => Promise<void>;
   updateHomeworkDueDate: (homeworkId: string, newDueDate: Date) => Promise<void>;
   updateHomework: (id: string, updates: Partial<Homework>) => Promise<void>;
   clearAllClasses: () => Promise<void>;
@@ -253,6 +254,47 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         return acc;
       }, {} as { [key: string]: string });
       Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
+
+      // Process recurring homework to generate future instances
+      try {
+        console.log('🔄 Starting recurring homework processing for user:', user.id);
+        const { supabase } = await import('@/lib/supabase/client');
+        await RecurringHomeworkService.processRecurringHomework(user.id);
+        console.log('✅ Recurring homework processing completed');
+        // Refetch homework after processing recurring items
+        const { data: updatedHomeworks } = await supabase
+          .from('homework')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('due_date', { ascending: true });
+
+        if (updatedHomeworks) {
+          const updatedTransformedHomeworks = updatedHomeworks.map((hw: any) => {
+            let links: HomeworkLink[] = [];
+            if (hw.links) {
+              try {
+                links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
+                if (!Array.isArray(links)) links = [];
+              } catch (e) {
+                console.error('Error parsing links:', e);
+                links = [];
+              }
+            }
+            return {
+              ...hw,
+              links: links,
+              priority: (hw.priority as Priority) || 'medium',
+              dueDate: hw.due_date,
+              classId: hw.class_id,
+              pinned: hw.pinned || false,
+              completed: hw.completed || false
+            };
+          });
+          setHomeworks(updatedTransformedHomeworks);
+        }
+      } catch (error) {
+        console.error('Error processing recurring homework:', error);
+      }
 
       hasLoaded.current = true;
     } catch (err) {
@@ -562,6 +604,29 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     }
   };
 
+  const deleteRecurringSeries = async (recurringId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Get the current homeworks for potential revert
+    const prevHomeworks = homeworks;
+
+    try {
+      // Optimistically update the UI immediately - remove all homeworks in this series
+      setHomeworks(prev => prev.filter(hw =>
+        (hw as any).recurring_id !== recurringId &&
+        (hw as any).parent_recurring_id !== recurringId
+      ));
+
+      // Delete the entire recurring series using the service
+      await RecurringHomeworkService.deleteRecurringSeries(recurringId, user.id);
+    } catch (err) {
+      console.error('Error deleting recurring series:', err);
+      // Revert optimistic update on error
+      setHomeworks(prevHomeworks);
+      throw err;
+    }
+  };
+
   const addClass = async (name: string, icon: LucideIconName) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -856,7 +921,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       setHomeworks(prev => [...prev, optimisticHomework]);
 
       // Use the RecurringHomeworkService to create the recurring homework
-      const masterRecord = await RecurringHomeworkService.createRecurringHomework(
+      const { masterRecord, initialInstance } = await RecurringHomeworkService.createRecurringHomework(
         user.id,
         classId,
         title,
@@ -867,22 +932,24 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         recurring
       );
 
-      // Replace the temporary homework with the real one from the database
-      setHomeworks(prev =>
-        prev.map(hw =>
-          hw.id === tempId
-            ? {
-              ...masterRecord,
-              classId: masterRecord.class_id,
-              dueDate: masterRecord.due_date,
-              links: masterRecord.links ? (typeof masterRecord.links === 'string' ? JSON.parse(masterRecord.links) : masterRecord.links) : [],
-              priority: (masterRecord.priority as Priority) || 'medium',
-              pinned: masterRecord.pinned || false,
-              completed: masterRecord.completed || false
-            }
-            : hw
-        )
-      );
+      // Replace the temporary homework with the real records from the database
+      setHomeworks(prev => {
+        const otherHomeworks = prev.filter(hw => hw.id !== tempId);
+
+        // Transform the records to our local Homework type
+        const transform = (hw: any): Homework => ({
+          ...hw,
+          classId: hw.class_id,
+          dueDate: hw.due_date,
+          links: hw.links ? (typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links) : [],
+          priority: (hw.priority as Priority) || 'medium',
+          pinned: hw.pinned || false,
+          completed: hw.completed || false
+        });
+
+        // Add both to state to avoid subscription duplicates
+        return [...otherHomeworks, transform(masterRecord), transform(initialInstance)];
+      });
 
       // The subscription will also handle this, but we want to ensure consistency
     } catch (err) {
@@ -1390,6 +1457,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     togglePinHomework,
     deleteClass,
     deleteHomework,
+    deleteRecurringSeries,
     updateHomeworkDueDate,
     updateHomework,
     clearAllClasses,

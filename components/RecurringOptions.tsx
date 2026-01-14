@@ -1,10 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 import { RecurringFrequency, RecurringHomework } from '@/context/ClassContext';
 
 interface RecurringOptionsProps {
@@ -21,15 +26,18 @@ const frequencyOptions: { value: RecurringFrequency; label: string }[] = [
 ];
 
 export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps) {
+  const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
+
   const handleFrequencyChange = (frequency: RecurringFrequency) => {
     onChange({ ...recurring, frequency });
   };
 
-  const handleEndDateChange = (endDate: string) => {
+  const handleEndDateChange = (endDate: Date | undefined) => {
     onChange({
       ...recurring,
-      endDate: endDate ? new Date(endDate) : undefined
+      endDate
     });
+    setEndDatePopoverOpen(false);
   };
 
   const handleMaxOccurrencesChange = (maxOccurrences: string) => {
@@ -68,13 +76,26 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
           <Label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             End Date (Optional)
           </Label>
-          <Input
-            id="endDate"
-            type="date"
-            value={recurring.endDate ? recurring.endDate.toISOString().split('T')[0] : ''}
-            onChange={(e) => handleEndDateChange(e.target.value)}
-            className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
-          />
+          <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-[#264f84] rounded-lg"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                {recurring.endDate ? format(recurring.endDate, 'PPP') : <span>Pick an end date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+              <Calendar
+                mode="single"
+                selected={recurring.endDate}
+                onSelect={handleEndDateChange}
+                initialFocus
+                className="text-gray-900 dark:text-white rounded-xl"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>
