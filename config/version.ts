@@ -1,4 +1,4 @@
-export const BUILD_VERSION = "2.2";
+export const BUILD_VERSION = "2.3.5";
 
 export const getAppVersion = () => BUILD_VERSION;
 

@@ -65,11 +65,11 @@ export default function ChangelogPage() {
   const compareVersions = (version1: string, version2: string): number => {
     const v1Parts = version1.split('.').map(Number);
     const v2Parts = version2.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
       const v1Part = v1Parts[i] || 0;
       const v2Part = v2Parts[i] || 0;
-      
+
       if (v1Part > v2Part) return 1;
       if (v1Part < v2Part) return -1;
     }
@@ -79,18 +79,18 @@ export default function ChangelogPage() {
   // Check if current build is outdated (only compare with released versions, not future ones)
   const isOutdated = useMemo(() => {
     if (versions.length === 0) return false;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Find the latest released version (not future)
     const latestReleasedVersion = versions.find(version => {
       const versionDate = new Date(version.date + 'T00:00:00');
       return today >= versionDate;
     });
-    
+
     if (!latestReleasedVersion) return false;
-    
+
     return compareVersions(latestReleasedVersion.version, BUILD_VERSION) > 0;
   }, [versions]);
 
@@ -171,8 +171,8 @@ export default function ChangelogPage() {
                   Update Available
                 </h3>
                 <p className="text-sm text-amber-700 dark:text-amber-300">
-                  You're using build {getFullVersionString()}, but a newer version is available. 
-                  Please update to get the latest features and improvements.
+                  You're using build {getFullVersionString()}, but a newer version is available.
+                  Some bug fixes and improvements that have been addressed in the latest version may not be available to you.
                 </p>
               </div>
             </div>

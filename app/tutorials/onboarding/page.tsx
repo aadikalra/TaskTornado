@@ -8,11 +8,11 @@ import Image from 'next/image';
 export default function OnboardingTutorialPage() {
     return (
         <TutorialArticleTemplate
-            title="Onboarding: Setting Up Your Academic Success"
+            title="Getting Started"
+            category="Getting Started"
             description="A comprehensive guide to personalizing your TaskTornado experience, from grade selection to elective optimization."
-            readTime="5 min read"
             nextTutorial={{
-                title: "Starring Homeworks: Prioritize Your Tasks",
+                title: "Priority Stars",
                 href: "/tutorials/starring-homeworks",
                 label: "Next Lesson"
             }}

@@ -9,11 +9,11 @@ import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
 export default function StarringHomeworkTutorialPage() {
     return (
         <TutorialArticleTemplate
-            title="Starring Homeworks: Prioritize Your Tasks"
+            title="Priority Stars"
+            category="Features"
             description="Learn how to highlight your most important assignments by converting their priority tags into prominent stars."
-            readTime="2 min read"
             nextTutorial={{
-                title: "Viewing Test Details",
+                title: "Test Details",
                 href: "/tutorials/test-details"
             }}
         >

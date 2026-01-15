@@ -24,9 +24,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 export default function RecurringHomeworkTutorialPage() {
     return (
         <TutorialArticleTemplate
-            title="Mastering Recurring Homework: Automate Your Schedule"
+            title="Recurring Homework"
+            category="Features"
             description="Save time by learning how to set up assignments that repeat daily or weekly, ensuring you never miss a routine task."
-            readTime="3 min read"
         >
             <motion.section
                 initial={{ opacity: 0, y: 20 }}

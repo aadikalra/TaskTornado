@@ -171,16 +171,16 @@ export default function DockNav() {
       priority: 'important',
       group: 'tools'
     },
+
+    // --- SYSTEM / ACCOUNT GROUP ---
     {
       icon: <IconQuestion />,
       label: 'Tutorials',
       onClick: () => { router.push('/tutorials') },
       priority: 'essential',
       isActive: pathname === '/tutorials',
-      group: 'tools'
+      group: 'system'
     },
-
-    // --- SYSTEM / ACCOUNT GROUP ---
     {
       icon: <IconTabOpen />,
       label: 'Login',

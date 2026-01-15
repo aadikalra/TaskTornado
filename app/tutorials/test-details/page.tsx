@@ -10,11 +10,11 @@ import { BookOpen } from 'lucide-react';
 export default function TestDetailsTutorialPage() {
     return (
         <TutorialArticleTemplate
-            title="Viewing Test Details: Schedule & Materials"
+            title="Test Details"
+            category="Features"
             description="Discover how to access comprehensive information about your upcoming tests, including dates, study materials, and grades."
-            readTime="2 min read"
             nextTutorial={{
-                title: "Mastering Recurring Homework",
+                title: "Recurring Homework",
                 href: "/tutorials/recurring-homeworks"
             }}
         >

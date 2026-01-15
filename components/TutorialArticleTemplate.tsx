@@ -15,9 +15,9 @@ interface TOCItem {
 interface TutorialArticleTemplateProps {
     title: string;
     description: string;
+    category?: string;
     author?: string;
     date?: string;
-    readTime?: string;
     children: React.ReactNode;
     nextTutorial?: {
         title: string;
@@ -29,9 +29,9 @@ interface TutorialArticleTemplateProps {
 export function TutorialArticleTemplate({
     title,
     description,
+    category,
     author = "TaskTornado Team",
     date = "Jan 7, 2026",
-    readTime = "5 min read",
     children,
     nextTutorial
 }: TutorialArticleTemplateProps) {
@@ -105,6 +105,17 @@ export function TutorialArticleTemplate({
                 <article className="max-w-[720px] w-full py-20">
                     {/* Article Header */}
                     <header className="mb-12">
+                        {category && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-4"
+                            >
+                                <span className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400">
+                                    {category}
+                                </span>
+                            </motion.div>
+                        )}
                         <motion.h1
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -136,8 +147,6 @@ export function TutorialArticleTemplate({
                                     <span className="font-medium text-gray-900 dark:text-white">{author}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {readTime}</span>
-                                    <span>•</span>
                                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {date}</span>
                                 </div>
                             </div>
