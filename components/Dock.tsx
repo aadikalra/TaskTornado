@@ -13,11 +13,12 @@ import React, { Children, cloneElement, useEffect, useMemo, useRef, useState } f
 import { cn } from '@/lib/utils';
 
 export type DockItemData = {
-  icon: React.ReactNode;
-  label: React.ReactNode;
-  onClick: () => void;
+  icon?: React.ReactNode;
+  label?: React.ReactNode;
+  onClick?: () => void;
   className?: string;
   isActive?: boolean;
+  type?: 'item' | 'divider';
 };
 
 export type DockProps = {
@@ -232,22 +233,34 @@ export default function Dock({
         role="toolbar"
         aria-label="Application dock"
       >
-        {items.map((item, index) => (
-          <DockItem
-            key={index}
-            onClick={item.onClick}
-            className={item.className}
-            mouseX={mouseX}
-            spring={spring}
-            distance={responsiveDistance}
-            magnification={responsiveMagnification}
-            baseItemSize={responsiveBaseSize}
-            isActive={item.isActive}
-          >
-            <DockIcon>{item.icon}</DockIcon>
-            <DockLabel>{item.label}</DockLabel>
-          </DockItem>
-        ))}
+        {items.map((item, index) => {
+          if (item.type === 'divider') {
+            return (
+              <div
+                key={`divider-${index}`}
+                className="w-[1px] bg-slate-400/30 dark:bg-slate-500/30 self-center"
+                style={{ height: `${responsiveBaseSize * 0.6}px`, margin: '0 4px' }}
+              />
+            );
+          }
+
+          return (
+            <DockItem
+              key={index}
+              onClick={item.onClick}
+              className={item.className}
+              mouseX={mouseX}
+              spring={spring}
+              distance={responsiveDistance}
+              magnification={responsiveMagnification}
+              baseItemSize={responsiveBaseSize}
+              isActive={item.isActive}
+            >
+              <DockIcon>{item.icon}</DockIcon>
+              <DockLabel>{item.label}</DockLabel>
+            </DockItem>
+          );
+        })}
       </motion.div>
     </motion.div>
   );

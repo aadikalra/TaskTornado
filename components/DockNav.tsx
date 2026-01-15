@@ -22,6 +22,7 @@ import IconPen from './glass-icons/IconPen';
 import IconTabOpen from './glass-icons/IconTabOpen';
 import IconCircleCopyPlus from './glass-icons/IconCircleCopyPlus';
 import IconMessageSquare from './glass-icons/IconMessageSquare';
+import IconQuestion from './glass-icons/IconQuestions';
 import { useAI } from '@/context/AIContext';
 
 export default function DockNav() {
@@ -48,30 +49,21 @@ export default function DockNav() {
   }, []);
 
   const allItems = [
+    // --- CORE GROUP ---
     {
       icon: <IconHouse />,
       label: 'Home',
       onClick: () => router.push(user ? '/dashboard' : '/'),
-      priority: 'essential', // Always show
-      isActive: pathname === '/dashboard' || pathname === '/'
-    },
-    {
-      icon: <IconTabOpen />,
-      label: 'Login',
-      onClick: () => router.push('/login'),
-      priority: 'essential'
-    },
-    {
-      icon: <IconCircleCopyPlus />,
-      label: 'Sign Up',
-      onClick: () => router.push('/signup'),
-      priority: 'essential'
+      priority: 'essential',
+      isActive: pathname === '/dashboard' || pathname === '/',
+      group: 'core'
     },
     {
       icon: <IconMagnifier />,
       label: 'Search',
       onClick: openSearch,
-      priority: 'essential'
+      priority: 'essential',
+      group: 'core'
     },
     {
       icon: <IconSparkle />,
@@ -84,28 +76,34 @@ export default function DockNav() {
         setAIAssistantOpen(!isAIAssistantOpen);
       },
       priority: 'essential',
-      isActive: isAIAssistantOpen
+      isActive: isAIAssistantOpen,
+      group: 'core'
     },
     {
       icon: <IconCalendar />,
       label: 'Calendar',
       onClick: () => router.push('/calendar'),
       priority: 'essential',
-      isActive: pathname === '/calendar'
+      isActive: pathname === '/calendar',
+      group: 'core'
     },
+
+    // --- TOOLS GROUP ---
     {
       icon: <IconBookOpen />,
       label: 'Flashcards',
       onClick: () => router.push('/flashcards'),
-      priority: 'important', // Hide on very small screens
-      isActive: pathname === '/flashcards'
+      priority: 'important',
+      isActive: pathname === '/flashcards',
+      group: 'tools'
     },
     {
       icon: <IconGrid2 />,
       label: "Interactive Quizzes",
       onClick: () => router.push('/quiz'),
       priority: 'important',
-      isActive: pathname === '/quiz'
+      isActive: pathname === '/quiz',
+      group: 'tools'
     },
     {
       icon: <IconPin />,
@@ -118,14 +116,16 @@ export default function DockNav() {
         router.push('/web-saves');
       },
       priority: 'important',
-      isActive: pathname === '/web-saves'
+      isActive: pathname === '/web-saves',
+      group: 'tools'
     },
     {
       icon: <IconPen />,
       label: 'Writing Assist',
       onClick: () => router.push('/writing-assist'),
       priority: 'important',
-      isActive: pathname === '/writing-assist'
+      isActive: pathname === '/writing-assist',
+      group: 'tools'
     },
     {
       icon: <IconUsers />,
@@ -138,7 +138,8 @@ export default function DockNav() {
         router.push('/groups');
       },
       priority: 'important',
-      isActive: pathname === '/groups'
+      isActive: pathname === '/groups',
+      group: 'tools'
     },
     {
       icon: <IconMessageSquare />,
@@ -151,28 +152,56 @@ export default function DockNav() {
         router.push('/discussions');
       },
       priority: 'important',
-      isActive: pathname === '/discussions'
+      isActive: pathname === '/discussions',
+      group: 'tools'
     },
     {
       icon: <IconBox />,
       label: "Games",
       onClick: () => router.push('/games'),
-      priority: 'optional', // Hide on mobile
-      isActive: pathname === '/games'
+      priority: 'optional',
+      isActive: pathname === '/games',
+      group: 'tools'
     },
     {
       icon: <IconProgressBar />,
       label: 'Study Timer',
       onClick: () => setIsStudyTimerOpen(true),
       isActive: isStudyTimerOpen,
-      priority: 'important'
+      priority: 'important',
+      group: 'tools'
+    },
+    {
+      icon: <IconQuestion />,
+      label: 'Tutorials',
+      onClick: () => { router.push('/tutorials') },
+      priority: 'essential',
+      isActive: pathname === '/tutorials',
+      group: 'tools'
+    },
+
+    // --- SYSTEM / ACCOUNT GROUP ---
+    {
+      icon: <IconTabOpen />,
+      label: 'Login',
+      onClick: () => router.push('/login'),
+      priority: 'essential',
+      group: 'system'
+    },
+    {
+      icon: <IconCircleCopyPlus />,
+      label: 'Sign Up',
+      onClick: () => router.push('/signup'),
+      priority: 'essential',
+      group: 'system'
     },
     {
       icon: <IconFile />,
       label: "Changelog",
       onClick: () => router.push('/changelog'),
       priority: 'optional',
-      isActive: pathname === '/changelog'
+      isActive: pathname === '/changelog',
+      group: 'system'
     },
     {
       icon: <IconGear />,
@@ -185,12 +214,13 @@ export default function DockNav() {
         router.push('/settings');
       },
       priority: 'essential',
-      isActive: pathname === '/settings'
+      isActive: pathname === '/settings',
+      group: 'system'
     },
   ];
 
   // Filter items based on screen size and authentication
-  const items = allItems.filter(item => {
+  const filteredItems = allItems.filter(item => {
     if (!user) {
       // Not signed in: only show home, login, signup, changelog
       const itemLabel = item.label;
@@ -204,15 +234,26 @@ export default function DockNav() {
     }
 
     if (isVerySmall) {
-      // Very small screens: only essential items
       return item.priority === 'essential';
     } else if (isMobile) {
-      // Mobile screens: essential + important items
       return item.priority === 'essential' || item.priority === 'important';
     }
-    // Desktop: show all items
     return true;
   });
+
+  // Inject dividers between groups
+  const itemsWithDividers: (any & { group?: string })[] = [];
+  let currentGroup: string | null = null;
+
+  filteredItems.forEach((item) => {
+    if (currentGroup && item.group !== currentGroup) {
+      itemsWithDividers.push({ type: 'divider' });
+    }
+    itemsWithDividers.push(item);
+    currentGroup = (item as any).group || null;
+  });
+
+  const items = itemsWithDividers;
 
   return (
     <>

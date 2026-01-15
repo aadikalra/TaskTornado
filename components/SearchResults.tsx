@@ -7,13 +7,15 @@ import {
   Search, BookOpen, GraduationCap, FileText, Presentation, Target,
   Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield,
   PenTool, Bookmark, HelpCircle, Scroll, User, History,
-  CreditCard, Gamepad2, Trophy, MessageSquare, Video
+  CreditCard, Gamepad2, Trophy, MessageSquare, Video, Folder, CornerDownLeft
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+
+import { Button } from '@/components/animate-ui/components/buttons/button';
 
 // Test Type Icons
 const getTestTypeIcon = (testType: string) => {
@@ -65,7 +67,7 @@ const routeSearchItems = [
 ];
 
 export function SearchResults() {
-  const { query, closeSearch } = useSearch();
+  const { query, setQuery, closeSearch } = useSearch();
   const { classes, homeworks, tests } = useClassContext();
   const { theme } = useTheme();
   const router = useRouter();
@@ -169,262 +171,196 @@ export function SearchResults() {
 
   if (!hasResults) {
     return (
-      <div className="py-8 text-center">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          No results for “{query}”
+      <div className="py-16 px-6 text-center flex flex-col items-center justify-center">
+        <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-lg mb-1">
+          No results found
+        </h3>
+
+        <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-xs mx-auto text-sm">
+          "{query}" did not match any classes, assignments, or tests.
         </p>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setQuery('')}
+        >
+          Clear search
+        </Button>
       </div>
     );
   }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="pb-2"
-      >
+    <div className="pb-2">
+      {/* ROUTES / PAGES */}
+      {filteredRoutes.length > 0 && (
+        <div className="py-2">
+          <div className="px-4 py-2 text-xs font-medium text-gray-500 flex justify-between items-center bg-gray-50/50 dark:bg-neutral-800/30 mb-1">
+            <span>Pages</span>
+            {query === '' && (
+              <span className="text-gray-400 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 underline">
+                Customize
+              </span>
+            )}
+          </div>
 
-        {/* ROUTES */}
-        {filteredRoutes.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.15, delay: 0.05 }}
-            className="pt-3 pb-6"
-          >
-            <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
-                         text-gray-500 dark:text-gray-400 font-medium">
-              Pages
-            </h3>
-            <motion.ul>
-              {filteredRoutes.map((route, index) => {
-                const Icon = route.icon;
-                return (
-                  <motion.li
-                    key={route.href}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.15, delay: 0.1 + index * 0.05 }}
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Link
-                      href={route.href}
-                      onClick={closeSearch}
-                      className="flex items-center px-5 py-3 text-sm
-                               hover:bg-gray-50/60 dark:hover:bg-gray-800/70
-                               transition rounded-md"
-                    >
-                      <motion.div
-                        initial={{ rotate: 0 }}
-                        whileHover={{ rotate: 5 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Icon className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                      </motion.div>
-                      <span className="text-gray-900 dark:text-gray-100">
-                        {route.title}
-                      </span>
-                    </Link>
-                  </motion.li>
-                );
-              })}
-            </motion.ul>
-          </motion.div>
-        )}
+          <div className="flex flex-col">
+            {filteredRoutes.map((route) => {
+              const Icon = route.icon;
+              return (
+                <Link
+                  key={route.href}
+                  href={route.href}
+                  onClick={closeSearch}
+                  className="group px-4 py-2 flex items-center gap-4 cursor-default transition-colors hover:bg-gray-100/60 dark:hover:bg-neutral-800/60"
+                >
+                  {/* Icon Box */}
+                  <div className="p-2 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm shrink-0">
+                    <Icon className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={1.5} />
+                  </div>
 
-        {/* HOMEWORKS */}
-        {filteredHomeworks.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.15, delay: 0.1 + filteredRoutes.length * 0.05 }}
-            className="pt-3 pb-6"
-          >
-            <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
-                         text-gray-500 dark:text-gray-400 font-medium">
-              Assignments
-            </h3>
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                      {route.title}
+                    </h3>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                      Navigate to {route.title.toLowerCase()}
+                    </p>
+                  </div>
 
-            <motion.ul>
-              {filteredHomeworks.map((hw, index) => {
-                const c = classes.find(x => x.id === hw.classId);
-                const color = c ? colorMap[c.id] ?? '#808080' : '#808080';
+                  {/* "Jump to" Button (Visible on group hover) */}
+                  <div className="hidden group-hover:flex items-center gap-2 text-gray-400 dark:text-gray-500 text-[10px] font-semibold bg-white dark:bg-neutral-700 px-2 py-1 rounded shadow-sm border border-gray-100 dark:border-gray-600">
+                    Jump to...
+                    <CornerDownLeft className="w-2.5 h-2.5" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-                return (
-                  <motion.li
-                    key={hw.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.15, delay: 0.15 + filteredRoutes.length * 0.05 + index * 0.05 }}
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Link
-                      href={`/homework/${hw.id}`}
-                      onClick={closeSearch}
-                      className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
-                               transition rounded-md"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {hw.completed && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ duration: 0.2, delay: 0.2 + index * 0.05 }}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                            </motion.div>
-                          )}
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {hw.title}
-                          </span>
-                        </div>
+      {/* HOMEWORKS / ASSIGNMENTS */}
+      {filteredHomeworks.length > 0 && (
+        <div className="py-2">
+          <div className="px-4 py-2 text-xs font-medium text-gray-500 bg-gray-50/50 dark:bg-neutral-800/30 mb-1">
+            Assignments
+          </div>
 
-                        {c && (
-                          <motion.span
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
-                            whileHover={{ scale: 1.05 }}
-                            className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
-                            style={{
-                              background: isDark ? `${color}22` : `${color}20`,
-                              color,
-                              borderColor: `${color}55`,
-                            }}
-                          >
-                            {c.name}
-                          </motion.span>
-                        )}
-                      </div>
+          <div className="flex flex-col">
+            {filteredHomeworks.map((hw) => {
+              const c = classes.find((x) => x.id === hw.classId);
+              const color = c ? colorMap[c.id] ?? '#808080' : '#808080';
 
-                      {hw.description && (
-                        <motion.p
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-                          className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+              return (
+                <Link
+                  key={hw.id}
+                  href={`/homework/${hw.id}`}
+                  onClick={closeSearch}
+                  className="group px-4 py-2 flex items-center gap-4 cursor-default transition-colors hover:bg-gray-100/60 dark:hover:bg-neutral-800/60"
+                >
+                  {/* Icon Box */}
+                  <div className="p-2 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm shrink-0">
+                    {hw.completed ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" strokeWidth={1.5} />
+                    ) : (
+                      <div
+                        className="w-5 h-5 rounded-full border-2"
+                        style={{ borderColor: color, opacity: 0.6 }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                        {hw.title}
+                      </h3>
+                      {c && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full border shrink-0 ml-2"
+                          style={{ borderColor: `${color}44`, color: color, background: `${color}11` }}
                         >
-                          {hw.description}
-                        </motion.p>
+                          {c.name}
+                        </span>
                       )}
+                    </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                      Due: {new Date(hw.dueDate).toLocaleDateString()} • {hw.description || 'No description'}
+                    </p>
+                  </div>
 
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
-                        className="mt-1 text-xs text-gray-500 dark:text-gray-400"
-                      >
-                        Due: {new Date(hw.dueDate).toLocaleDateString()}
-                      </motion.p>
-                    </Link>
-                  </motion.li>
-                );
-              })}
-            </motion.ul>
-          </motion.div>
-        )}
+                  {/* "Jump to" Button */}
+                  <div className="hidden group-hover:flex items-center gap-2 text-gray-400 dark:text-gray-500 text-[10px] font-semibold bg-white dark:bg-neutral-700 px-2 py-1 rounded shadow-sm border border-gray-100 dark:border-gray-600">
+                    View task
+                    <CornerDownLeft className="w-2.5 h-2.5" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-        {/* TESTS */}
-        {filteredTests.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.15, delay: 0.15 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 }}
-            className="pt-3 pb-6"
-          >
-            <h3 className="px-5 pb-1 text-[11px] uppercase tracking-wider 
-                         text-gray-500 dark:text-gray-400 font-medium">
-              Tests & Exams
-            </h3>
+      {/* TESTS / EXAMS */}
+      {filteredTests.length > 0 && (
+        <div className="py-2">
+          <div className="px-4 py-2 text-xs font-medium text-gray-500 bg-gray-50/50 dark:bg-neutral-800/30 mb-1">
+            Tests & Exams
+          </div>
 
-            <motion.ul>
-              {filteredTests.map((t, index) => {
-                const c = classes.find(x => x.id === t.classId);
-                const { icon: TestIcon, color: testColor } = getTestTypeIcon(t.testType);
-                const badgeColor = c ? colorMap[c.id] ?? '#808080' : '#808080';
+          <div className="flex flex-col">
+            {filteredTests.map((t) => {
+              const c = classes.find((x) => x.id === t.classId);
+              const { icon: TestIcon, color: testColorIcon } = getTestTypeIcon(t.testType);
+              const badgeColor = c ? colorMap[c.id] ?? '#808080' : '#808080';
 
-                return (
-                  <motion.li
-                    key={t.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.15, delay: 0.2 + (filteredRoutes.length + filteredHomeworks.length) * 0.05 + index * 0.05 }}
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Link
-                      href={`/tests/${t.id}`}
-                      onClick={closeSearch}
-                      className="block px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/70
-                               transition rounded-md"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <motion.div
-                            initial={{ rotate: 0 }}
-                            whileHover={{ rotate: 10 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <TestIcon className={`h-4 w-4 mr-2 ${testColor}`} />
-                          </motion.div>
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {t.title}
-                          </span>
-                        </div>
+              return (
+                <Link
+                  key={t.id}
+                  href={`/tests/${t.id}`}
+                  onClick={closeSearch}
+                  className="group px-4 py-2 flex items-center gap-4 cursor-default transition-colors hover:bg-gray-100/60 dark:hover:bg-neutral-800/60"
+                >
+                  {/* Icon Box */}
+                  <div className="p-2 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm shrink-0">
+                    <TestIcon className={`w-5 h-5 ${testColorIcon}`} strokeWidth={1.5} />
+                  </div>
 
-                        {c && (
-                          <motion.span
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
-                            whileHover={{ scale: 1.05 }}
-                            className="px-2.5 py-0.5 text-xs rounded-full border font-medium"
-                            style={{
-                              background: isDark ? `${badgeColor}22` : `${badgeColor}20`,
-                              color: badgeColor,
-                              borderColor: `${badgeColor}55`,
-                            }}
-                          >
-                            {c.name}
-                          </motion.span>
-                        )}
-                      </div>
-
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-                        className="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-4"
-                      >
-                        <span>Type: {t.testType}</span>
-                        <span>Date: {new Date(t.testDate).toLocaleDateString()}</span>
-                        {t.testTime && <span>Time: {t.testTime}</span>}
-                      </motion.div>
-
-                      {t.description && (
-                        <motion.p
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.2, delay: 0.35 + index * 0.05 }}
-                          className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                        {t.title}
+                      </h3>
+                      {c && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full border shrink-0 ml-2"
+                          style={{ borderColor: `${badgeColor}44`, color: badgeColor, background: `${badgeColor}11` }}
                         >
-                          {t.description}
-                        </motion.p>
+                          {c.name}
+                        </span>
                       )}
-                    </Link>
-                  </motion.li>
-                );
-              })}
-            </motion.ul>
-          </motion.div>
-        )}
-      </motion.div>
-    </AnimatePresence>
+                    </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                      {t.testType} • {new Date(t.testDate).toLocaleDateString()} {t.testTime && `at ${t.testTime}`}
+                    </p>
+                  </div>
+
+                  {/* "Jump to" Button */}
+                  <div className="hidden group-hover:flex items-center gap-2 text-gray-400 dark:text-gray-500 text-[10px] font-semibold bg-white dark:bg-neutral-700 px-2 py-1 rounded shadow-sm border border-gray-100 dark:border-gray-600">
+                    View test
+                    <CornerDownLeft className="w-2.5 h-2.5" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
