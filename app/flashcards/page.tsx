@@ -221,11 +221,11 @@ export default function FlashcardsPage() {
                   No flashcard decks yet
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  Create your first flashcard deck using the Study Assistant!
+                  Create your first flashcard deck using the Aurora!
                 </p>
                 <Button onClick={openFlashcardAssistant} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Go to Study Assistant
+                  Go to Aurora
                 </Button>
               </div>
             ) : (
@@ -334,7 +334,7 @@ export default function FlashcardsPage() {
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md text-center">
                 {view === 'current'
-                  ? "It looks like you don't have any flashcards to review. Generate some from the Study Assistant!"
+                  ? "It looks like you don't have any flashcards to review. Generate some from the Aurora!"
                   : "This flashcard deck is empty."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -352,7 +352,7 @@ export default function FlashcardsPage() {
                 ) : (
                   <Button onClick={openFlashcardAssistant} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Go to Study Assistant
+                    Go to Aurora
                   </Button>
                 )}
               </div>
@@ -479,7 +479,7 @@ export default function FlashcardsPage() {
         description="Master any subject with interactive flashcards powered by AI"
         icon={<BookOpen className="h-6 w-6" />}
         features={[
-          'Create flashcard decks using the AI Study Assistant',
+          'Create flashcard decks using the AI Aurora',
           'Flip cards to reveal answers and test your knowledge',
           'Save decks to review anytime',
           'Track your progress as you study',

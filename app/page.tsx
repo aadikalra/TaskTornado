@@ -688,7 +688,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Visual - AI Assistant Preview */}
+            {/* Visual - Aurora Preview */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -701,7 +701,7 @@ export default function LandingPage() {
                   <div className="flex items-center space-x-3">
                     <div>
                       <h3 className="font-medium text-gray-900 dark:text-white">
-                        Study Assistant
+                        Aurora
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">AI-powered help</p>
                     </div>
@@ -761,7 +761,7 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      placeholder="Ask me anything..."
+                      placeholder="Ask away..."
                       className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#275085]"
                       disabled
                     />

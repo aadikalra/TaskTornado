@@ -9,8 +9,6 @@ import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
 interface PreferencesSectionProps {
-  showAIPriority: boolean;
-  onToggleAIPriority: (checked: boolean) => void;
   showLevelDisplay: boolean;
   onToggleLevelDisplay: (checked: boolean) => void;
   showSubjectMastery: boolean;
@@ -24,8 +22,6 @@ interface PreferencesSectionProps {
 }
 
 export default function PreferencesSection({
-  showAIPriority,
-  onToggleAIPriority,
   showLevelDisplay,
   onToggleLevelDisplay,
   showSubjectMastery,
@@ -37,50 +33,9 @@ export default function PreferencesSection({
   useNaturalLanguageDates,
   onToggleNaturalLanguageDates
 }: PreferencesSectionProps) {
-  const [showBetaModal, setShowBetaModal] = useState(false);
-  const [betaAccessGranted, setBetaAccessGranted] = useState(false);
-
-  const handleAIPriorityToggle = (checked: boolean) => {
-    if (checked && !betaAccessGranted) {
-      setShowBetaModal(true);
-      return;
-    }
-    onToggleAIPriority(checked);
-  };
-
-  const handleBetaSuccess = () => {
-    setBetaAccessGranted(true);
-    onToggleAIPriority(true);
-  };
-
   return (
     <>
       <div className="space-y-4">
-        <div className="relative flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          {/* ALPHA Badge */}
-          <div className="absolute -top-2 -left-2 z-10">
-            <span className="text-[10px] px-1.5 py-0.5 bg-black dark:bg-white text-white dark:text-black rounded-xl">
-              ALPHA
-            </span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Sparkles className="h-5 w-5 text-purple-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                AI Priority Recommendation
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-                Show the AI-powered homework recommendation card on the dashboard.
-              </p>
-            </div>
-          </div>
-          <Switch
-            checked={showAIPriority}
-            onCheckedChange={handleAIPriorityToggle}
-          />
-        </div>
 
         <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
           <div className="flex items-start gap-3">
@@ -97,7 +52,8 @@ export default function PreferencesSection({
             </div>
           </div>
           <Switch
-            checked={showLevelDisplay}
+            checked={false}
+            disabled={true}
             onCheckedChange={onToggleLevelDisplay}
           />
         </div>
@@ -172,7 +128,7 @@ export default function PreferencesSection({
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                AI Assistant Personality
+                Aurora Personality
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
                 Choose how the AI assistant communicates with you.
@@ -186,12 +142,6 @@ export default function PreferencesSection({
         </div>
       </div>
 
-      {/* Beta Password Modal */}
-      <BetaPasswordModal
-        isOpen={showBetaModal}
-        onClose={() => setShowBetaModal(false)}
-        onSuccess={handleBetaSuccess}
-      />
     </>
   );
 }

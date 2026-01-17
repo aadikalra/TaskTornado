@@ -28,7 +28,7 @@ const guidelines = [
     icon: Bot,
     iconColor: 'text-teal-600 dark:text-teal-400',
     bgColor: 'bg-teal-50 dark:bg-teal-900/20',
-    title: 'AI Study Assistant',
+    title: 'AI Aurora',
     description:
       'Your personal study companion powered by advanced AI models (Gemma for quick responses, Gemini for deeper analysis) that helps you understand concepts through guided questioning.',
   },
@@ -140,7 +140,7 @@ export default function AIGuidelinesPage() {
           className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Assistant Guidelines</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Aurora Guidelines</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Learn how to make the most of your AI-powered study companion
             </p>
@@ -180,7 +180,7 @@ export default function AIGuidelinesPage() {
           >
             <Card className="border-gray-200 dark:border-gray-800">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg">How to Use the AI Assistant</CardTitle>
+                <CardTitle className="text-lg">How to Use the Aurora</CardTitle>
                 <CardDescription className="text-sm">
                   Essential tips and best practices for effective AI interactions
                 </CardDescription>

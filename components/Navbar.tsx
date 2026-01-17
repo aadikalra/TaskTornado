@@ -140,14 +140,14 @@ export default function Navbar() {
                       className="relative p-2.5 text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-300  hover:scale-110 group"
                     >
                       <IconSparkle />
-                      <span className="sr-only">Study Assistant</span>
+                      <span className="sr-only">Aurora</span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent
                     className="bg-gray-900/90 dark:bg-gray-800/90 text-white border-white/10 backdrop-blur-xl"
                     sideOffset={8}
                   >
-                    AI Assistant
+                    Aurora
                   </TooltipContent>
                 </Tooltip>
 
@@ -359,7 +359,7 @@ export default function Navbar() {
                 className="w-full flex items-center px-4 py-3 text-base font-medium text-gray-800 dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/20 dark:hover:bg-white/10 rounded-lg mx-2 transition-all"
               >
                 <Sparkles className="w-5 h-5 mr-3" />
-                AI Assistant
+                Aurora
               </button>
 
               <Link

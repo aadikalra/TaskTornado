@@ -103,8 +103,8 @@ interface ClassContextType {
   tests: Test[];
   loading: boolean;
   error: string | null;
-  addClass: (name: string, icon: LucideIconName) => Promise<void>;
-  addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[], description?: string) => Promise<void>;
+  addClass: (name: string, icon: LucideIconName) => Promise<string>;
+  addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[], description?: string, completed?: boolean) => Promise<void>;
   addRecurringHomework: (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description?: string) => Promise<void>;
   toggleHomework: (id: string) => Promise<void>;
   togglePinHomework: (id: string, pinned: boolean) => Promise<void>;
@@ -627,7 +627,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     }
   };
 
-  const addClass = async (name: string, icon: LucideIconName) => {
+  const addClass = async (name: string, icon: LucideIconName): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
 
     // Generate a temporary ID for the optimistic update
@@ -664,6 +664,8 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
             : cls
         )
       );
+
+      return createdClass.id;
 
       // The subscription will also handle this, but we want to ensure consistency
     } catch (err) {
@@ -766,7 +768,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     }
   };
 
-  const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = [], description: string = '') => {
+  const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = [], description: string = '', completed: boolean = false) => {
     if (!user) throw new Error('User not authenticated');
 
     // Generate a temporary ID for the optimistic update
@@ -781,7 +783,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       description: description || '',
       dueDate: format(dueDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
       priority,
-      completed: false,
+      completed,
       pinned: false,
       links: links || [],
       created_at: new Date().toISOString(),
@@ -804,19 +806,18 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         existingClasses: classes.map(cls => ({ id: cls.id, name: cls.name }))
       });
 
-      // Check if the class exists in our local database by trying to find it in the database
-      // First check if it exists in our current classes array
-      let existingClass = classes.find(cls => cls.id === classId);
+      // Check if the class exists in our local database
+      const existingClass = classes.find(cls => cls.id === classId);
 
-      if (!existingClass) {
-        // If not in our current classes array, it might be a class that was just created
-        // or a Google Classroom class. Let's try to create a local class for it.
-        console.log('Class not found in current classes array, creating local class for:', classId);
+      // Only attempt to create a "local" class if we REALLY have an invalid classId
+      // and it's not a newly created UUID (UUIDs are usually 36 chars) or a temp ID from our own system.
+      const isPlaceholderId = !classId || classId.startsWith('unknown') || classId.length < 5;
 
-        // Create a local class for this class
+      if (!existingClass && isPlaceholderId) {
+        console.log('Class not found and appears to be placeholder, creating local class for:', classId);
+
         const localClassId = `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-        // Create the class in the database
         await db.createClass({
           id: localClassId,
           name: `Imported Class`,
@@ -825,9 +826,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
           user_id: user.id
         });
 
-        // Update the classId to use the local class
         classId = localClassId;
-        console.log('Updated classId to:', classId);
       }
 
       // Optimistically update the UI immediately
@@ -847,7 +846,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         class_id: classId,
         user_id: user.id,
         pinned: false, // Default to not pinned
-        completed: false, // Default to not completed
+        completed, // Use the provided completed status
       };
 
       // Only include links if it's a non-empty array

@@ -7,19 +7,19 @@ import { useWideLayout } from '@/hooks/use-wide-layout';
 
 export default function TermsOfService() {
   const { getContainerClass } = useWideLayout();
-  
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <div className={getContainerClass() + ' py-16'}>
-        
+
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-16"
         >
-          <Link 
-            href="/signup" 
+          <Link
+            href="/signup"
             className="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6 group"
           >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -77,7 +77,7 @@ export default function TermsOfService() {
         >
           <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Welcome to TaskTornado! These terms outline your rights and responsibilities as a student using our 
+              Welcome to TaskTornado! These terms outline your rights and responsibilities as a student using our
               academic productivity platform. We've kept them straightforward and student-focused.
             </p>
           </div>
@@ -100,10 +100,10 @@ export default function TermsOfService() {
                 1. Acceptance of Terms
               </h2>
             </div>
-            
+
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                By using TaskTornado to organize your homework, track assignments, or get AI study help, 
+                By using TaskTornado to organize your homework, track assignments, or get AI study help,
                 you agree to these terms. If you don't agree, that's okay - just don't use the service.
               </p>
             </div>
@@ -124,11 +124,11 @@ export default function TermsOfService() {
                 2. What TaskTornado Does
               </h2>
             </div>
-            
+
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               TaskTornado helps you stay on top of your schoolwork with these features:
             </p>
-            
+
             <div className="grid gap-4">
               <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
                 <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
@@ -139,7 +139,7 @@ export default function TermsOfService() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">Keep track of homework, projects, and test dates with smart reminders</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
                 <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
                   <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -149,17 +149,17 @@ export default function TermsOfService() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">Monitor your academic progress and identify areas for improvement</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
                 <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
                   <Shield className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">AI Study Assistant</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">AI Aurora</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Get help with homework questions and study suggestions (not cheating!)</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
                 <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
                   <Gamepad2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -187,7 +187,7 @@ export default function TermsOfService() {
                 3. Your Account
               </h2>
             </div>
-            
+
             <div className="space-y-4">
               <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6 border border-blue-100 dark:border-blue-900/50">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-3">What You're Responsible For</h3>
@@ -222,13 +222,13 @@ export default function TermsOfService() {
                 4. Using TaskTornado Responsibly
               </h2>
             </div>
-            
+
             <p className="text-gray-600 dark:text-gray-400 mb-6">To keep TaskTornado helpful for everyone, please:</p>
-            
+
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 'Be honest about your assignments and grades',
-                  "Don't use the AI to cheat on tests or homework",
+                "Don't use the AI to cheat on tests or homework",
                 'Respect other students using the platform',
                 "Don't try to break or hack the system",
                 'Use it to help your learning, not replace it',
@@ -252,7 +252,7 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
               5. Who Owns What
             </h2>
-            
+
             <div className="space-y-4">
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-3">Your Content</h3>
@@ -263,7 +263,7 @@ export default function TermsOfService() {
                   You can download or delete your data at any time.
                 </p>
               </div>
-              
+
               <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl p-6 border border-purple-100 dark:border-purple-900/50">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-3">Our Content</h3>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
@@ -283,7 +283,7 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
               6. Important Disclaimers
             </h2>
-            
+
             <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-6 border border-amber-100 dark:border-amber-900/50">
               <ul className="space-y-3">
                 {[
@@ -311,10 +311,10 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
               7. Changes to These Terms
             </h2>
-            
+
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                We might update these terms as TaskTornado grows and improves. We'll update the date at the top 
+                We might update these terms as TaskTornado grows and improves. We'll update the date at the top
                 when we do. Continuing to use the service means you accept the new terms.
               </p>
             </div>
@@ -330,11 +330,11 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
               8. Questions About These Terms?
             </h2>
-            
+
             <p className="text-gray-600 dark:text-gray-400 mb-8">
               If you have questions about these terms or how TaskTornado works:
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="https://forms.gle/wjR1nJdg8vFYeNcd6"

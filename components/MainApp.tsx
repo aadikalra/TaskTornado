@@ -186,8 +186,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import LevelDisplay from './LevelDisplay';
 import { SubjectMastery } from './SubjectMastery';
-import PriorityHomeworkCard from './PriorityHomeworkCard';
-import PriorityTestCard from './PriorityTestCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -278,13 +276,7 @@ const MainApp = () => {
     return true;
   });
 
-  const [showLevelDisplay, setShowLevelDisplay] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showLevelDisplay');
-      return saved !== null ? saved === 'true' : true; // default to true
-    }
-    return true;
-  });
+  const [showLevelDisplay, setShowLevelDisplay] = useState(false);
 
   const [showSubjectMastery, setShowSubjectMastery] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -302,21 +294,7 @@ const MainApp = () => {
     return false;
   });
 
-  const [showAIPriority, setShowAIPriority] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showAIPriority');
-      return saved !== null ? saved === 'true' : true; // default to true
-    }
-    return true;
-  });
 
-  const [aiPriorityExpanded, setAIPriorityExpanded] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('aiPriorityExpanded');
-      return saved !== null ? saved === 'true' : true; // default to true
-    }
-    return true;
-  });
 
   const [expandedClasses, setExpandedClasses] = useState<Record<string, boolean>>(() => {
     if (typeof window !== 'undefined') {
@@ -343,23 +321,9 @@ const MainApp = () => {
     return 'all';
   });
 
-  // Section order state
-  type SectionId = 'ai-priority' | 'pinned' | 'classes' | 'tests';
-  const defaultSectionOrder: SectionId[] = ['ai-priority', 'pinned', 'classes', 'tests'];
-
-  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('sectionOrder');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return defaultSectionOrder;
-        }
-      }
-    }
-    return defaultSectionOrder;
-  });
+  // Section order state - Reordering disabled
+  type SectionId = 'pinned' | 'classes' | 'tests';
+  const sectionOrder: SectionId[] = ['pinned', 'classes', 'tests'];
 
   // Wrapper functions that save to cookies when state changes
   const handleTogglePinnedHomeworks = (newState: boolean) => {
@@ -372,10 +336,7 @@ const MainApp = () => {
     setCookie('showClasses', newState.toString());
   };
 
-  const handleToggleAIPriority = (newState: boolean) => {
-    setAIPriorityExpanded(newState);
-    setCookie('aiPriorityExpanded', newState.toString());
-  };
+
 
   const handleToggleTests = (newState: boolean) => {
     setShowTests(newState);
@@ -1044,51 +1005,7 @@ const MainApp = () => {
   // Function to render each section based on ID
   const renderSection = (sectionId: SectionId) => {
     switch (sectionId) {
-      case 'ai-priority':
-        return showAIPriority && (
-          <div key="ai-priority" className="mb-10">
-            {/* Shared Section Header */}
-            <div
-              className="flex justify-between items-center mb-4 cursor-pointer group"
-              onClick={() => handleToggleAIPriority(!aiPriorityExpanded)}
-            >
-              <div>
-                <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
-                  AI Priority Recommendations
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-                  Your most important homework and upcoming tests
-                </p>
-              </div>
-              <div
-                className={`p-2 rounded-lg transition-all duration-500 ${aiPriorityExpanded
-                  ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                  : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                  }`}
-              >
-                <ChevronRight
-                  className={`h-5 w-5 transition-colors ${aiPriorityExpanded
-                    ? 'text-white'
-                    : 'text-gray-600 dark:text-gray-400'
-                    }`}
-                />
-              </div>
-            </div>
 
-            {/* Collapsible Content */}
-            <div
-              className={`overflow-hidden transition-all duration-400 ease-in-out ${aiPriorityExpanded
-                ? 'max-h-[2000px] opacity-100'
-                : 'max-h-0 opacity-0'
-                }`}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <PriorityHomeworkCard />
-                <PriorityTestCard />
-              </div>
-            </div>
-          </div>
-        );
 
       case 'classes':
         return (

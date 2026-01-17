@@ -103,12 +103,12 @@ export default function QuizPage() {
                                 No Quiz Questions Found
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md text-center mx-auto">
-                                It looks like you don't have any quiz questions to answer. Generate some from the Study Assistant!
+                                It looks like you don't have any quiz questions to answer. Generate some from the Aurora!
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                 <Button onClick={() => router.push('/study-assistant')} className="gap-2">
                                     <Plus className="h-4 w-4" />
-                                    Go to Study Assistant
+                                    Go to Aurora
                                 </Button>
                             </div>
                         </div>
@@ -225,7 +225,7 @@ export default function QuizPage() {
                 description="Test your knowledge with AI-generated multiple-choice quizzes"
                 icon={<HelpCircle className="h-6 w-6" />}
                 features={[
-                    'Generate quizzes using the AI Study Assistant',
+                    'Generate quizzes using the AI Aurora',
                     'Answer multiple-choice questions',
                     'Get instant feedback on your answers',
                     'Track your score and review explanations',

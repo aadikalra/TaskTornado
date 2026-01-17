@@ -67,7 +67,7 @@ export default function DockNav() {
     },
     {
       icon: <IconSparkle />,
-      label: 'AI Assistant',
+      label: 'Aurora',
       onClick: () => {
         if (!user) {
           router.push('/login');

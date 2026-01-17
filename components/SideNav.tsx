@@ -46,7 +46,7 @@ export function SideNav() {
         { id: 'search', label: 'Search', icon: Search, path: '#', onClick: openSearch },
         {
             id: 'ai',
-            label: 'AI Assistant',
+            label: 'Aurora',
             icon: Sparkles,
             path: '#',
             onClick: () => {

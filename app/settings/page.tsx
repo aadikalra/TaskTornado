@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, AlertTriangle, Maximize2 } from 'lucide-react';
+import { Home, Maximize2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
   PreferencesSection,
-  SectionOrderSection,
   AccessibilitySection,
   DataManagementSection,
   AccountSection
@@ -51,26 +50,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const { useWideLayout: isWideLayout, toggleWideLayout, getContainerClass } = useWideLayout();
 
-  const [showAIPriority, setShowAIPriority] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showAIPriority');
-      return saved !== null ? saved === 'true' : false; // default to false
-    }
-    return false;
-  });
 
-  const handleToggleAIPriority = (checked: boolean) => {
-    setShowAIPriority(checked);
-    setCookie('showAIPriority', checked.toString());
-  };
 
-  const [showLevelDisplay, setShowLevelDisplay] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showLevelDisplay');
-      return saved !== null ? saved === 'true' : true; // default to true
-    }
-    return true;
-  });
+  const [showLevelDisplay, setShowLevelDisplay] = useState(false);
 
   const handleToggleLevelDisplay = (checked: boolean) => {
     setShowLevelDisplay(checked);
@@ -145,64 +127,17 @@ export default function SettingsPage() {
     setCookie('aiPersonality', value);
   };
 
-  // Section order management
-  type SectionId = 'ai-priority' | 'pinned' | 'classes' | 'tests';
-
-  const defaultSectionOrder: SectionId[] = ['ai-priority', 'pinned', 'classes', 'tests'];
-
-  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(() => {
+  // Force level display to false and save it
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = getCookie('sectionOrder');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // Validate that parsed is an array of valid section IDs and contains no duplicates
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const validSections = parsed.filter((id): id is SectionId =>
-              ['ai-priority', 'pinned', 'classes', 'tests'].includes(id)
-            );
-            const uniqueSections = [...new Set(validSections)];
-            if (uniqueSections.length === validSections.length && validSections.length > 0) {
-              return validSections;
-            }
-          }
-        } catch {
-          // If parsing fails, return default
-        }
+      const saved = getCookie('showLevelDisplay');
+      if (saved !== 'false') {
+        setCookie('showLevelDisplay', 'false');
       }
     }
-    return defaultSectionOrder;
-  });
+  }, []);
 
-  const handleSectionOrderChange = (newOrder: SectionId[]) => {
-    // Validate the new order before setting it
-    if (Array.isArray(newOrder) && newOrder.length > 0) {
-      const validSections = newOrder.filter((id): id is SectionId =>
-        ['ai-priority', 'pinned', 'classes', 'tests'].includes(id)
-      );
-      const uniqueSections = [...new Set(validSections)];
-      if (uniqueSections.length === validSections.length && validSections.length > 0) {
-        setSectionOrder(validSections);
-        setCookie('sectionOrder', JSON.stringify(validSections));
-      }
-    }
-  };
 
-  const moveSectionUp = (index: number) => {
-    if (index > 0) {
-      const newOrder = [...sectionOrder];
-      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
-      handleSectionOrderChange(newOrder);
-    }
-  };
-
-  const moveSectionDown = (index: number) => {
-    if (index < sectionOrder.length - 1) {
-      const newOrder = [...sectionOrder];
-      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
-      handleSectionOrderChange(newOrder);
-    }
-  };
 
 
 
@@ -341,8 +276,6 @@ export default function SettingsPage() {
                 Preferences
               </h2>
               <PreferencesSection
-                showAIPriority={showAIPriority}
-                onToggleAIPriority={handleToggleAIPriority}
                 showLevelDisplay={showLevelDisplay}
                 onToggleLevelDisplay={handleToggleLevelDisplay}
                 showSubjectMastery={showSubjectMastery}
@@ -356,22 +289,7 @@ export default function SettingsPage() {
               />
             </motion.div>
 
-            {/* Section Order */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Section Order
-              </h2>
-              <SectionOrderSection
-                sectionOrder={sectionOrder}
-                onMoveUp={moveSectionUp}
-                onMoveDown={moveSectionDown}
-                onOrderChange={handleSectionOrderChange}
-              />
-            </motion.div>
+
           </div>
 
           {/* Right Column */}
@@ -435,23 +353,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Warning Notice - Minimalist */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 flex items-start gap-3 p-4 bg-yellow-50/50 dark:bg-yellow-950/10 rounded-xl"
-        >
-          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-100">
-              Destructive actions cannot be undone
-            </p>
-            <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">
-              Make sure you have a backup of any important data.
-            </p>
-          </div>
-        </motion.div>
 
         {/* Footer - Minimalist */}
         <motion.div

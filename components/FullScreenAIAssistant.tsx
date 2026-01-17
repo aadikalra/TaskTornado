@@ -78,20 +78,20 @@ export function FullScreenAIAssistant() {
   // Context hooks with error handling - must be called unconditionally at the top level
   const aiContext = useAI();
   const classContext = useClassContext();
-  
+
   // Destructure context values with defaults to avoid runtime errors
-  const { 
-    chat, 
-    isLoading: isAILoadingProp = false, 
-    error: aiError, 
-    setError = () => {}
+  const {
+    chat,
+    isLoading: isAILoadingProp = false,
+    error: aiError,
+    setError = () => { }
   } = aiContext || {};
-  
-  const { 
-    homeworks = [], 
-    classes = [], 
-    addHomework = () => Promise.resolve(), 
-    toggleHomework = () => Promise.resolve() 
+
+  const {
+    homeworks = [],
+    classes = [],
+    addHomework = () => Promise.resolve(),
+    toggleHomework = () => Promise.resolve()
   } = classContext || {};
 
   /* ---------------------------------------------------------------------- */
@@ -104,7 +104,7 @@ export function FullScreenAIAssistant() {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeCommand, setActiveCommand] = useState<'homework' | 'control' | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -294,7 +294,7 @@ export function FullScreenAIAssistant() {
                   </AnimateIcon>
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-white">
-                      Study Assistant
+                      Aurora
                     </h3>
                     <div className="flex items-center space-x-2">
                       <p className="text-xs text-muted-foreground">
@@ -506,7 +506,7 @@ export function FullScreenAIAssistant() {
                           onChange={(e) => setInput(e.target.value)}
                           placeholder="Ask me anything..."
                           className={cn(
-                            `min-h-[60px] w-full resize-none border-0 bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0`,
+                            `min-h-[44px] w-full resize-none border-0 bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0`,
                             activeCommand === 'homework'
                               ? 'text-yellow-700 dark:text-yellow-200'
                               : activeCommand === 'control'
