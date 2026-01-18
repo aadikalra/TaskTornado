@@ -1,10 +1,11 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight, Loader2, AlertCircle, RefreshCcw } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { getFullVersionString, BUILD_VERSION } from '@/config/version';
 
 type Version = {
@@ -26,33 +27,41 @@ export default function ChangelogPage() {
   const [error, setError] = useState<string | null>(null);
   const { getContainerClass } = useWideLayout();
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchVersions = async (showRefresher = false) => {
+    try {
+      if (showRefresher) setIsRefreshing(true);
+      else setLoading(true);
+
+      setError(null);
+      // Add cache-busting timestamp
+      const response = await fetch(`https://api.npoint.io/9eb23a1980287e881d97?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch changelog data: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.versions || !Array.isArray(data.versions)) {
+        throw new Error('Invalid data format received from API');
+      }
+
+      setVersions(data.versions);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      console.error('Error fetching changelog data:', err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
   // Fetch version data from API
   useEffect(() => {
-    const fetchVersions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch('https://api.npoint.io/9eb23a1980287e881d97');
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch changelog data: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.versions || !Array.isArray(data.versions)) {
-          throw new Error('Invalid data format received from API');
-        }
-
-        setVersions(data.versions);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        console.error('Error fetching changelog data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchVersions();
   }, []);
 
@@ -143,15 +152,24 @@ export default function ChangelogPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="w-full md:w-72"
+            className="w-full md:w-auto flex items-center gap-3"
           >
-            <div className="relative">
+            <Button
+              variant="outline"
+              onClick={() => fetchVersions(true)}
+              disabled={isRefreshing || loading}
+              className="h-10 px-3 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 shrink-0"
+            >
+              <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Checking...' : 'Refresh'}
+            </Button>
+            <div className="relative flex-1 md:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search updates..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+                className="h-10 pl-9 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800"
               />
             </div>
           </motion.div>
@@ -221,7 +239,7 @@ export default function ChangelogPage() {
                   <ul className="space-y-1.5 sm:space-y-2">
                     <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                      <span className="leading-relaxed">TaskTornado is now feature-complete. Future updates will focus on patches and bug fixes.</span>
+                      <span className="leading-relaxed">Developing significant platform updates via a multi-phase rollout. Phase 1 is now live as of v{BUILD_VERSION}.</span>
                     </li>
                   </ul>
                 </div>

@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
+import { useAI } from '@/context/AIContext';
 import { getFullVersionString } from '@/config/version';
 
 export default function QuizPage() {
@@ -21,6 +22,12 @@ export default function QuizPage() {
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { showIntro, dismissIntro } = useRouteIntro('quiz');
+    const { setAIAssistantOpen, setAIInput } = useAI();
+
+    const openQuizAssistant = () => {
+        setAIInput('@quiz ');
+        setAIAssistantOpen(true);
+    };
 
     // Check for quiz in localStorage
     useEffect(() => {
@@ -106,9 +113,9 @@ export default function QuizPage() {
                                 It looks like you don't have any quiz questions to answer. Generate some from the Aurora!
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                <Button onClick={() => router.push('/study-assistant')} className="gap-2">
+                                <Button onClick={openQuizAssistant} className="gap-2">
                                     <Plus className="h-4 w-4" />
-                                    Go to Aurora
+                                    Open Aurora
                                 </Button>
                             </div>
                         </div>
@@ -125,15 +132,6 @@ export default function QuizPage() {
                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Built for students • Public Beta {getFullVersionString()}
                             </p>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => router.push('/')}
-                                className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                            >
-                                <Home className="h-4 w-4" />
-                                <span>Home</span>
-                            </Button>
                         </div>
                     </motion.div>
                 </div>
@@ -172,11 +170,9 @@ export default function QuizPage() {
                                 <ArrowLeft className="h-4 w-4" />
                                 Back
                             </Button>
-                            <Button asChild>
-                                <Link href="/study-assistant" className="gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    New
-                                </Link>
+                            <Button onClick={openQuizAssistant} className="gap-2">
+                                <Plus className="h-4 w-4" />
+                                New
                             </Button>
                         </div>
                     </div>
@@ -204,15 +200,6 @@ export default function QuizPage() {
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             Built for students • Public Beta {getFullVersionString()}
                         </p>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push('/')}
-                            className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                        >
-                            <Home className="h-4 w-4" />
-                            <span>Home</span>
-                        </Button>
                     </div>
                 </motion.div>
             </div>

@@ -182,6 +182,14 @@ export default function DockNav() {
       group: 'system'
     },
     {
+      icon: <IconPen />,
+      label: 'Blog',
+      onClick: () => { router.push('/blog') },
+      priority: 'important',
+      isActive: pathname.startsWith('/blog'),
+      group: 'system'
+    },
+    {
       icon: <IconTabOpen />,
       label: 'Login',
       onClick: () => router.push('/login'),
@@ -222,9 +230,9 @@ export default function DockNav() {
   // Filter items based on screen size and authentication
   const filteredItems = allItems.filter(item => {
     if (!user) {
-      // Not signed in: only show home, login, signup, changelog
+      // Not signed in: show public links
       const itemLabel = item.label;
-      return itemLabel === 'Home' || itemLabel === 'Login' || itemLabel === 'Sign Up' || itemLabel === 'Changelog';
+      return itemLabel === 'Home' || itemLabel === 'Login' || itemLabel === 'Sign Up' || itemLabel === 'Changelog' || itemLabel === 'Blog' || itemLabel === 'Tutorials';
     }
 
     // Signed in: exclude login and signup items

@@ -225,7 +225,7 @@ export default function FlashcardsPage() {
                 </p>
                 <Button onClick={openFlashcardAssistant} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Go to Aurora
+                  Open Aurora
                 </Button>
               </div>
             ) : (
@@ -285,15 +285,6 @@ export default function FlashcardsPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Built for students • Public Beta {getFullVersionString()}
               </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/')}
-                className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              >
-                <Home className="h-4 w-4" />
-                <span>Home</span>
-              </Button>
             </div>
           </motion.div>
         </div>
@@ -352,7 +343,7 @@ export default function FlashcardsPage() {
                 ) : (
                   <Button onClick={openFlashcardAssistant} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Go to Aurora
+                    Open Aurora
                   </Button>
                 )}
               </div>
@@ -370,15 +361,6 @@ export default function FlashcardsPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Built for students • Public Beta {getFullVersionString()}
               </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/')}
-                className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              >
-                <Home className="h-4 w-4" />
-                <span>Home</span>
-              </Button>
             </div>
           </motion.div>
         </div>
@@ -458,15 +440,6 @@ export default function FlashcardsPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Built for students • Public Beta {getFullVersionString()}
             </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/')}
-              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
-            </Button>
           </div>
         </motion.div>
       </div>

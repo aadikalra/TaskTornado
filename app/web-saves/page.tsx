@@ -430,15 +430,6 @@ export default function WebSavesPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Built for students • Public Beta {getFullVersionString()}
             </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/')}
-              className="gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
-            </Button>
           </div>
         </motion.div>
       </div>
