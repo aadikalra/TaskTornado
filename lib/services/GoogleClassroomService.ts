@@ -12,13 +12,13 @@ async function getOAuthClient() {
   const classroomAuth = cookieStore.get('classroom-auth');
 
   if (!classroomAuth) {
-    throw new Error('No Google Classroom authentication found');
+    return null;
   }
 
   const authData = JSON.parse(classroomAuth.value);
 
   if (!authData.access_token) {
-    throw new Error('No valid access token found');
+    return null;
   }
 
   const oauth2Client = new google.auth.OAuth2();
@@ -34,8 +34,9 @@ async function getOAuthClient() {
 export async function getGoogleClassroomCourses(): Promise<GoogleClassroomCourse[]> {
   try {
     const oauth2Client = await getOAuthClient();
-    const classroom = google.classroom({ version: 'v1', auth: oauth2Client });
+    if (!oauth2Client) return [];
 
+    const classroom = google.classroom({ version: 'v1', auth: oauth2Client });
     const response = await classroom.courses.list({
       courseStates: ['ACTIVE'],
     });
@@ -43,13 +44,15 @@ export async function getGoogleClassroomCourses(): Promise<GoogleClassroomCourse
     return response.data.courses || [];
   } catch (error) {
     console.error('Error fetching Google Classroom courses:', error);
-    throw error;
+    return [];
   }
 }
 
 export async function getGoogleClassroomCourseWork(courseId: string): Promise<GoogleClassroomCourseWork[]> {
   try {
     const oauth2Client = await getOAuthClient();
+    if (!oauth2Client) return [];
+
     const classroom = google.classroom({ version: 'v1', auth: oauth2Client });
 
     const response = await classroom.courses.courseWork.list({
@@ -59,7 +62,7 @@ export async function getGoogleClassroomCourseWork(courseId: string): Promise<Go
     return response.data.courseWork || [];
   } catch (error) {
     console.error('Error fetching Google Classroom coursework:', error);
-    throw error;
+    return [];
   }
 }
 
@@ -89,7 +92,6 @@ export async function getAllGoogleClassroomCourseWork(): Promise<{ courseId: str
 
     return results;
   } catch (error) {
-    console.error('Error fetching all Google Classroom coursework:', error);
-    throw error;
+    return [];
   }
 }

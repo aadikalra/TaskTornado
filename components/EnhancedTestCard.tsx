@@ -21,7 +21,7 @@ type EnhancedTestCardProps = {
   test: Test;
   classInfo?: Class;
   classIcon: any;
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'list-item';
   layoutId?: string;
   onClick?: () => void;
   className?: string;
@@ -113,6 +113,42 @@ const EnhancedTestCard = ({
   const hasScore = test.grade || (test.score !== null && test.maxScore !== null);
   const displayScore = test.grade || (test.score !== null ? `${test.score}/${test.maxScore}` : '');
 
+  if (variant === 'list-item') {
+    return (
+      <motion.div
+        layoutId={layoutId}
+        onClick={onClick}
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        className={`group flex items-center gap-3 py-1 cursor-pointer ${className || ''}`}
+      >
+        <div className={`
+          shrink-0 flex items-center justify-center rounded-lg h-5 w-5
+          ${testTypeConfig.bg}
+          border border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-700
+          transition-colors duration-200
+        `}>
+          <TestTypeIcon className={`h-3 w-3 ${testTypeConfig.color}`} />
+        </div>
+
+        <div className="flex-1 min-w-0 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+            {test.title}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${testTypeConfig.badge}`}>
+              {testTypeConfig.label}
+            </span>
+            <span className={`text-xs ${dueDateLabel.includes('Today') ? 'text-amber-600 dark:text-amber-500 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+              {dueDateLabel}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       layoutId={layoutId}
@@ -123,15 +159,16 @@ const EnhancedTestCard = ({
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      className={`group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-200 ${className || ''}`}
+      className={`group relative bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md rounded-[24px] border border-gray-200/80 dark:border-white/5 shadow-sm hover:shadow-xl transition-all duration-300 ${className || ''}`}
     >
       {/* Background decoration */}
       <div className={`flex ${isCompact ? 'p-3 gap-3' : 'p-4 gap-4'} items-start relative`}>
         {/* Left Icon Section */}
         <div className={`
-          shrink-0 flex items-center justify-center rounded-lg
+          shrink-0 flex items-center justify-center rounded-xl
           ${isCompact ? 'h-10 w-10' : 'h-12 w-12'}
           ${testTypeConfig.bg}
+          border border-black/5 dark:border-white/5
         `}>
           <ClassIconComponent className={`
             ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}

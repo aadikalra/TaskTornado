@@ -318,7 +318,7 @@ const StatusGroupedTestList = ({
   return (
     <div className="space-y-6">
       {/* Enhanced Controls */}
-      <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+      <div className="bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md rounded-[24px] border border-gray-200/80 dark:border-white/5 p-5 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -363,7 +363,7 @@ const StatusGroupedTestList = ({
           </div>
         </div>
 
-              </div>
+      </div>
 
       {/* Content */}
       <div className="space-y-8">
@@ -385,7 +385,7 @@ const StatusGroupedTestList = ({
                       test={test}
                       classInfo={classInfo}
                       classIcon={IconComponent}
-                                            variant="compact"
+                      variant="compact"
                       layoutId={`test-card-${test.id}`}
                       onClick={() => handleTestClick(test)}
                       className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
@@ -415,7 +415,7 @@ const StatusGroupedTestList = ({
                       test={test}
                       classInfo={classInfo}
                       classIcon={IconComponent}
-                                            variant="compact"
+                      variant="compact"
                       layoutId={`test-card-${test.id}`}
                       onClick={() => handleTestClick(test)}
                       className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}

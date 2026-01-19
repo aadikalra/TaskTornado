@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Maximize2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Settings, User, Shield, Zap, Accessibility, Database, Globe, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
   PreferencesSection,
@@ -17,6 +16,8 @@ import {
 } from '@/components/settings';
 import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection';
 import { getFullVersionString } from '@/config/version';
+import { useDarkMode } from '@/context/DarkModeContext';
+import DotGrid from '../DotGrid';
 
 // Cookie utilities
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -36,10 +37,12 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
+type SettingTab = 'preferences' | 'classroom' | 'accessibility' | 'data' | 'account';
 
 export default function SettingsPage() {
   const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
   const { signOut, full_name, isGoogleUser } = useAuth() || {};
+  const [activeTab, setActiveTab] = useState<SettingTab>('preferences');
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -48,12 +51,10 @@ export default function SettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const router = useRouter();
-  const { useWideLayout: isWideLayout, toggleWideLayout, getContainerClass } = useWideLayout();
-
-
+  const { isDark } = useDarkMode();
+  const { useWideLayout: isWideLayout, toggleWideLayout } = useWideLayout();
 
   const [showLevelDisplay, setShowLevelDisplay] = useState(false);
-
   const handleToggleLevelDisplay = (checked: boolean) => {
     setShowLevelDisplay(checked);
     setCookie('showLevelDisplay', checked.toString());
@@ -62,7 +63,7 @@ export default function SettingsPage() {
   const [showSubjectMastery, setShowSubjectMastery] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('showSubjectMastery');
-      return saved !== null ? saved === 'true' : true; // default to true
+      return saved !== null ? saved === 'true' : true;
     }
     return true;
   });
@@ -75,7 +76,7 @@ export default function SettingsPage() {
   const [useDyslexicFont, setUseDyslexicFont] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('useDyslexicFont');
-      return saved !== null ? saved === 'true' : false; // default to false
+      return saved !== null ? saved === 'true' : false;
     }
     return false;
   });
@@ -88,7 +89,7 @@ export default function SettingsPage() {
   const [reduceMotion, setReduceMotion] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('reduceMotion');
-      return saved !== null ? saved === 'true' : false; // default to false
+      return saved !== null ? saved === 'true' : false;
     }
     return false;
   });
@@ -101,7 +102,7 @@ export default function SettingsPage() {
   const [useNaturalLanguageDates, setUseNaturalLanguageDates] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('useNaturalLanguageDates');
-      return saved !== null ? saved === 'true' : false; // default to false
+      return saved !== null ? saved === 'true' : false;
     }
     return false;
   });
@@ -111,9 +112,20 @@ export default function SettingsPage() {
     setCookie('useNaturalLanguageDates', checked.toString());
   };
 
-  // AI Personality setting
-  type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
+  const [showTestsInClassCards, setShowTestsInClassCards] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showTestsInClassCards');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
 
+  const handleToggleTestsInClassCards = (checked: boolean) => {
+    setShowTestsInClassCards(checked);
+    setCookie('showTestsInClassCards', checked.toString());
+  };
+
+  type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
   const [aiPersonality, setAIPersonality] = useState<AIPersonality>(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('aiPersonality');
@@ -127,39 +139,24 @@ export default function SettingsPage() {
     setCookie('aiPersonality', value);
   };
 
-  // Force level display to false and save it
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('showLevelDisplay');
-      if (saved !== 'false') {
-        setCookie('showLevelDisplay', 'false');
-      }
+      if (saved !== 'false') setCookie('showLevelDisplay', 'false');
     }
   }, []);
 
-
-
-
-
-  // Apply dyslexic font class to body
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (useDyslexicFont) {
-        document.body.classList.add('dyslexic-font');
-      } else {
-        document.body.classList.remove('dyslexic-font');
-      }
+      if (useDyslexicFont) document.body.classList.add('dyslexic-font');
+      else document.body.classList.remove('dyslexic-font');
     }
   }, [useDyslexicFont]);
 
-  // Apply reduce motion class to body
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (reduceMotion) {
-        document.body.classList.add('reduce-motion');
-      } else {
-        document.body.classList.remove('reduce-motion');
-      }
+      if (reduceMotion) document.body.classList.add('reduce-motion');
+      else document.body.classList.remove('reduce-motion');
     }
   }, [reduceMotion]);
 
@@ -186,13 +183,7 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     if (showLogoutConfirm) {
       setIsLoggingOut(true);
-
-      // Sign out first
-      if (signOut) {
-        await signOut();
-      }
-
-      // Then show countdown and redirect
+      if (signOut) await signOut();
       let countdownValue = 3;
       const interval = setInterval(() => {
         countdownValue -= 1;
@@ -210,22 +201,12 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async (confirmed: boolean) => {
     if (!confirmed) return;
-
     setIsDeleting(true);
     try {
-      // TODO: Implement actual account deletion API call
-      // For now, just simulate the process
       await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Clear all local data
       clearAllClasses();
       clearAllHomeworks();
-
-      // Sign out and redirect
-      if (signOut) {
-        signOut();
-      }
-
+      if (signOut) signOut();
       router.push('/');
     } catch (error) {
       console.error('Error deleting account:', error);
@@ -233,136 +214,197 @@ export default function SettingsPage() {
     }
   };
 
-  // Get user name for delete confirmation
-  const userName = full_name || "User"; // Use actual user name or fallback to "User"
+  const userName = full_name || "User";
+
+  const navigationItems = [
+    { id: 'preferences', label: 'Preferences', icon: Zap },
+    ...(isGoogleUser ? [{ id: 'classroom', label: 'Google Classroom', icon: Globe }] : []),
+    { id: 'accessibility', label: 'Accessibility', icon: Accessibility },
+    { id: 'data', label: 'Data', icon: Database },
+    { id: 'account', label: 'Account', icon: User },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white dark:bg-black font-sans selection:bg-blue-100 dark:selection:bg-blue-900/40">
+      {/* Background Decor */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <DotGrid
+          dotSize={2}
+          gap={30}
+          darkMode={isDark}
+          className="opacity-[0.15] dark:opacity-[0.05]"
+        />
+      </div>
 
-        {/* Header - Minimalist */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-light text-gray-900 dark:text-white tracking-tight">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 lg:py-12">
+        {/* Header Strip */}
+        <header className="mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 mb-4"
+          >
+            <div className="px-3 py-1 bg-blue-50 dark:bg-blue-950/30 rounded-full border border-blue-100 dark:border-blue-900/30">
+              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Control Center</span>
+            </div>
+            <span className="text-[10px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest">{getFullVersionString().split('-')[0]}</span>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight"
+          >
             Settings
-          </h1>
-        </motion.div>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-500 dark:text-gray-400 mt-4 text-lg max-w-xl leading-relaxed"
+          >
+            Fine-tune your study experience. These preferences are synced across your devices and applied instantly.
+          </motion.p>
+        </header>
 
-        {/* Main Content - Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="flex flex-col lg:flex-row gap-16">
+          {/* Side Navigation */}
+          <aside className="lg:w-64 flex-shrink-0">
+            <nav className="sticky top-12 flex flex-col gap-1">
+              {navigationItems.map((item) => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as SettingTab)}
+                    className={`
+                      flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group
+                      ${isActive
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold shadow-sm'
+                        : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-zinc-900/50 hover:text-gray-900 dark:hover:text-white'}
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'scale-110' : ''}`} />
+                      <span className="text-[14px]">{item.label}</span>
+                    </div>
+                    {isActive && (
+                      <motion.div layoutId="activeNav" className="w-1 h-4 bg-blue-600 dark:bg-blue-400 rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
 
-          {/* Left Column */}
-          <div className="space-y-8">
-            {/* Google Classroom Section */}
-            {isGoogleUser && (
+          {/* Settings Canvas */}
+          <main className="flex-1 min-w-0">
+            <AnimatePresence mode="wait">
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                key={activeTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="bg-gray-50/50 dark:bg-zinc-900/20 rounded-[32px] p-4 md:p-6 border border-gray-100 dark:border-zinc-800 backdrop-blur-sm"
               >
-                <GoogleClassroomSection />
+                {activeTab === 'preferences' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Preferences</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Configure your dashboard visibility and AI assistant personality.</p>
+                    </div>
+                    <PreferencesSection
+                      showLevelDisplay={showLevelDisplay}
+                      onToggleLevelDisplay={handleToggleLevelDisplay}
+                      showSubjectMastery={showSubjectMastery}
+                      onToggleSubjectMastery={handleToggleSubjectMastery}
+                      aiPersonality={aiPersonality}
+                      onPersonalityChange={handlePersonalityChange}
+                      useWideLayout={isWideLayout}
+                      onToggleWideLayout={toggleWideLayout}
+                      useNaturalLanguageDates={useNaturalLanguageDates}
+                      onToggleNaturalLanguageDates={handleToggleNaturalLanguageDates}
+                      showTestsInClassCards={showTestsInClassCards}
+                      onToggleTestsInClassCards={handleToggleTestsInClassCards}
+                    />
+                  </div>
+                )}
+
+                {activeTab === 'classroom' && isGoogleUser && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Google Classroom</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Manage your linked classroom courses and synchronization settings.</p>
+                    </div>
+                    <GoogleClassroomSection />
+                  </div>
+                )}
+
+                {activeTab === 'accessibility' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Accessibility</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Tailor the interface to your visual and motor preferences.</p>
+                    </div>
+                    <AccessibilitySection
+                      reduceMotion={reduceMotion}
+                      onToggleReduceMotion={handleToggleReduceMotion}
+                      useDyslexicFont={useDyslexicFont}
+                      onToggleDyslexicFont={handleToggleDyslexicFont}
+                    />
+                  </div>
+                )}
+
+                {activeTab === 'data' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Data Management</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Manage your local storage and cloud database entries.</p>
+                    </div>
+                    <DataManagementSection
+                      classes={classes}
+                      homeworks={homeworks}
+                      showClassConfirm={showClassConfirm}
+                      showHomeworkConfirm={showHomeworkConfirm}
+                      onClearClasses={handleClearClasses}
+                      onClearHomeworks={handleClearHomeworks}
+                    />
+                  </div>
+                )}
+
+                {activeTab === 'account' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Account</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Manage your profile, security settings, and session.</p>
+                    </div>
+                    <AccountSection
+                      isLoggingOut={isLoggingOut}
+                      showLogoutConfirm={showLogoutConfirm}
+                      countdown={countdown}
+                      onSignOut={handleSignOut}
+                      showDeleteConfirm={showDeleteConfirm}
+                      isDeleting={isDeleting}
+                      onDeleteAccountWithConfirmation={handleDeleteAccount}
+                      userName={userName}
+                    />
+                  </div>
+                )}
               </motion.div>
-            )}
-
-            {/* Preferences Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-            >
-              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Preferences
-              </h2>
-              <PreferencesSection
-                showLevelDisplay={showLevelDisplay}
-                onToggleLevelDisplay={handleToggleLevelDisplay}
-                showSubjectMastery={showSubjectMastery}
-                onToggleSubjectMastery={handleToggleSubjectMastery}
-                aiPersonality={aiPersonality}
-                onPersonalityChange={handlePersonalityChange}
-                useWideLayout={isWideLayout}
-                onToggleWideLayout={toggleWideLayout}
-                useNaturalLanguageDates={useNaturalLanguageDates}
-                onToggleNaturalLanguageDates={handleToggleNaturalLanguageDates}
-              />
-            </motion.div>
-
-
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-8">
-            {/* Accessibility Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Accessibility
-              </h2>
-              <AccessibilitySection
-                reduceMotion={reduceMotion}
-                onToggleReduceMotion={handleToggleReduceMotion}
-                useDyslexicFont={useDyslexicFont}
-                onToggleDyslexicFont={handleToggleDyslexicFont}
-              />
-            </motion.div>
-
-            {/* Data Management Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Data Management
-              </h2>
-              <DataManagementSection
-                classes={classes}
-                homeworks={homeworks}
-                showClassConfirm={showClassConfirm}
-                showHomeworkConfirm={showHomeworkConfirm}
-                onClearClasses={handleClearClasses}
-                onClearHomeworks={handleClearHomeworks}
-              />
-            </motion.div>
-
-            {/* Account Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Account
-              </h2>
-              <AccountSection
-                isLoggingOut={isLoggingOut}
-                showLogoutConfirm={showLogoutConfirm}
-                countdown={countdown}
-                onSignOut={handleSignOut}
-                showDeleteConfirm={showDeleteConfirm}
-                isDeleting={isDeleting}
-                onDeleteAccountWithConfirmation={handleDeleteAccount}
-                userName={userName}
-              />
-            </motion.div>
-          </div>
+            </AnimatePresence>
+          </main>
         </div>
 
-
-        {/* Footer - Minimalist */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800"
+          transition={{ delay: 0.3 }}
+          className="mt-20 pt-8 border-t border-gray-100 dark:border-zinc-900"
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-400 dark:text-zinc-500">
               Built for students • Public Beta {getFullVersionString()}
             </p>
           </div>

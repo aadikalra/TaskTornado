@@ -1,10 +1,7 @@
-'use client';
-
-import { LogOut, Trash2, AlertTriangle, X } from 'lucide-react';
+import { LogOut, Trash2, AlertTriangle, X, ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/animate-ui/primitives/buttons/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AccountSectionProps {
   isLoggingOut: boolean;
@@ -47,177 +44,178 @@ export default function AccountSection({
     setConfirmationText('');
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    return false;
-  };
-
-  const handleCopy = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    return false;
-  };
-
-  const handleCut = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    return false;
-  };
-
   return (
     <>
-      {isLoggingOut ? (
-        <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-            <span className="text-sm text-gray-900 dark:text-white font-medium">
-              Redirecting in {countdown}...
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:bg-red-50/30 dark:hover:bg-red-950/10 hover:border-red-200/50 dark:hover:border-red-900/30 transition-colors">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <LogOut className="h-4 w-4 text-red-400/70 dark:text-red-500/50" />
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                  Sign Out
-                </h3>
+      <div className="space-y-3">
+        {/* Sign Out Card */}
+        <div className="p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-red-50/50 dark:hover:bg-red-950/10">
+          {isLoggingOut ? (
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                Sign out of your account. You'll need to sign in again to access your data.
-              </p>
+              <span className="text-sm text-gray-900 dark:text-white font-bold">
+                Redirecting in {countdown}...
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 p-2 bg-red-50 dark:bg-red-950/30 rounded-xl">
+                  <LogOut className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
+                    Sign Out
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
+                    Securely sign out of your current session. You can sign back in at any time.
+                  </p>
+                </div>
+              </div>
               <Button
-                variant={showLogoutConfirm ? 'default' : 'outline'}
-                size="sm"
                 onClick={onSignOut}
-                className={`w-full sm:w-auto ${showLogoutConfirm ? 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600' : ''}`}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${showLogoutConfirm
+                    ? 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 shadow-red-600/20'
+                    : 'bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white hover:bg-gray-50'
+                  }`}
+                hoverScale={1.02}
               >
                 {showLogoutConfirm ? 'Click to Confirm' : 'Sign Out'}
               </Button>
             </div>
-          </div>
+          )}
         </div>
-      )}
 
-      {/* Delete Account Section */}
-      <div className="mt-4 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:bg-red-50/30 dark:hover:bg-red-950/10 hover:border-red-200/50 dark:hover:border-red-900/30 transition-colors">
-        {isDeleting ? (
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-            <span className="text-sm text-gray-900 dark:text-white font-medium">
-              Deleting your account...
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="h-4 w-4 text-red-400/70 dark:text-red-500/50" />
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                  Delete Account
-                </h3>
+        {/* Delete Account Card */}
+        <div className="p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-red-50/50 dark:hover:bg-red-950/10">
+          {isDeleting ? (
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Permanently delete your account and all associated data. This action cannot be undone.
-              </p>
-              {showDeleteConfirm && (
-                <div className="flex items-start gap-2 p-3 bg-red-50/50 dark:bg-red-950/20 rounded-lg border border-red-200/50 dark:border-red-900/30 mb-3">
-                  <AlertTriangle className="h-4 w-4 text-red-500/70 dark:text-red-500/50 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-medium text-gray-900 dark:text-white">
-                      This will permanently delete:
-                    </p>
-                    <ul className="text-xs text-gray-600 dark:text-gray-400 mt-1 list-disc list-inside">
-                      <li>All your classes and homework data</li>
-                      <li>Your account profile and preferences</li>
-                      <li>Any saved study groups or flashcards</li>
-                    </ul>
-                  </div>
+              <span className="text-sm text-gray-900 dark:text-white font-bold">
+                Deleting your account...
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 p-2 bg-red-50 dark:bg-red-950/30 rounded-xl">
+                  <Trash2 className="h-5 w-5 text-red-500" />
                 </div>
-              )}
+                <div>
+                  <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
+                    Delete Account
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
+                    Permanently delete your profile and all stored data. This action is irreversible.
+                  </p>
+                </div>
+              </div>
               <Button
-                variant="outline"
-                size="sm"
                 onClick={handleDeleteClick}
-                className="w-full sm:w-auto"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white hover:bg-red-50 hover:text-red-600 transition-all shadow-sm"
+                hoverScale={1.02}
               >
                 Delete Account
               </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Delete Account Confirmation Modal */}
-      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Trash2 className="h-5 w-5" />
-              Delete Account
-            </DialogTitle>
-          </DialogHeader>
+      {/* Contemporary Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleModalCancel}
+              className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-xl"
+            />
 
-          <div className="space-y-4">
-            <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-2">
-                    This action cannot be undone
-                  </p>
-                  <p className="text-xs text-red-700 dark:text-red-300">
-                    Deleting your account will permanently remove:
-                  </p>
-                  <ul className="text-xs text-red-700 dark:text-red-300 mt-1 list-disc list-inside">
-                    <li>All your classes and homework data</li>
-                    <li>Your account profile and preferences</li>
-                    <li>Any saved study groups or flashcards</li>
-                  </ul>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white dark:bg-zinc-950 rounded-[32px] border border-gray-100 dark:border-zinc-800 shadow-2xl overflow-hidden"
+            >
+              {/* Brand Strip */}
+              <div className="h-1.5 w-full bg-red-500" />
+
+              <div className="p-8 md:p-12">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-2xl">
+                    <ShieldAlert className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Serious Action Required</h2>
+                    <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mt-1">Permanently Delete Account</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-6 bg-red-50/50 dark:bg-red-950/10 rounded-2xl border border-red-100 dark:border-red-900/30">
+                    <h4 className="text-[13px] font-bold text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Irreversible Process
+                    </h4>
+                    <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
+                      You are about to delete your TaskTornado account. All classes, homework, and personal settings will be purged from our servers instantly.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest pl-1">
+                        Confirm Identity
+                      </label>
+                      <input
+                        type="text"
+                        value={confirmationText}
+                        onChange={(e) => setConfirmationText(e.target.value)}
+                        placeholder={`Type "${userName}" to confirm`}
+                        className="w-full px-5 py-4 bg-gray-50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-800 rounded-2xl text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      onClick={handleModalCancel}
+                      className="flex-1 py-4 px-6 rounded-2xl text-[13px] font-bold text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-900 transition-all"
+                      hoverScale={1.02}
+                    >
+                      Keep Account
+                    </Button>
+                    <Button
+                      onClick={handleModalConfirm}
+                      disabled={confirmationText.trim() !== userName.trim() || isDeleting}
+                      className={`flex-1 py-4 px-6 rounded-2xl text-[13px] font-bold transition-all shadow-lg ${confirmationText.trim() === userName.trim()
+                          ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/20'
+                          : 'bg-gray-100 dark:bg-zinc-900 text-gray-400 dark:text-zinc-600 cursor-not-allowed uppercase tracking-widest text-[10px]'
+                        }`}
+                      hoverScale={confirmationText.trim() === userName.trim() ? 1.02 : 1}
+                    >
+                      {isDeleting ? 'Processing...' : 'Delete Permanently'}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="confirmation" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Type your full name to confirm:
-              </label>
-              <Input
-                id="confirmation"
-                value={confirmationText}
-                onChange={(e) => setConfirmationText(e.target.value)}
-                placeholder={userName}
-                className="w-full"
-                onPaste={handlePaste}
-                onCopy={handleCopy}
-                onCut={handleCut}
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Enter: <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{userName}</span>
-              </p>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
+              <button
                 onClick={handleModalCancel}
-                className="flex-1"
-                disabled={isDeleting}
+                className="absolute top-8 right-8 p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleModalConfirm}
-                className="flex-1"
-                disabled={confirmationText.trim() !== userName.trim() || isDeleting}
-              >
-                {isDeleting ? 'Deleting...' : 'Delete Account'}
-              </Button>
-            </div>
+                <X className="w-5 h-5" />
+              </button>
+            </motion.div>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+      </AnimatePresence>
     </>
   );
 }

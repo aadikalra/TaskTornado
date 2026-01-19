@@ -56,20 +56,20 @@ const getPriorityIndicator = (priority: 'high' | 'medium' | 'low') => {
   switch (priority) {
     case 'high':
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 dark:bg-red-900">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 dark:bg-red-500/20">
           <Flame className="w-3 h-3 text-red-600 dark:text-red-400" />
         </span>
       );
     case 'medium':
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 dark:bg-yellow-900">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 dark:bg-yellow-500/20">
           <AlertTriangle className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
         </span>
       );
     case 'low':
     default:
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-900">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-500/20">
           <Minus className="w-3 h-3 text-green-600 dark:text-green-400" />
         </span>
       );
@@ -210,11 +210,11 @@ const PlayfulHomeworkListComponent = ({
                   checked={item.completed}
                   onCheckedChange={() => handleToggle(item.id)}
                   className={`
-    ${item.completed
+                    ${item.completed
                       ? 'border-transparent bg-teal-500 hover:bg-teal-600'
-                      : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10'
                     }
-  `}
+                  `}
                   style={
                     item.completed && item.classColor
                       ? {

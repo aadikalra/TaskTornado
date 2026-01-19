@@ -244,30 +244,30 @@ const ClassHomeworkListComponent = ({
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+      className="bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] shadow-md overflow-hidden border border-gray-200 dark:border-white/5 transition-all duration-300"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="px-5 py-4">
+      <div className="px-6 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border border-gray-100/50 dark:border-white/5"
               style={{
-                backgroundColor: `${classColor}`,
+                backgroundColor: `${classColor}20`, // Add transparency
               }}
             >
               <ClassIconComponent
-                className="h-4 w-4"
+                className="h-5 w-5"
                 style={{ color: `${iconColor}` }}
                 strokeWidth={1.5}
               />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{classItem.name}</h3>
-              <p className="text-sm text-gray-500">{allHomeworks.length} {allHomeworks.length === 1 ? 'assignment' : 'assignments'}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white">{classItem.name}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{allHomeworks.length} {allHomeworks.length === 1 ? 'assignment' : 'assignments'}</p>
             </div>
           </div>
           <AlertDialog>

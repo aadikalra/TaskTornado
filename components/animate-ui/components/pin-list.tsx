@@ -113,16 +113,19 @@ function PinList({
                   layoutId={`item-${item.id}`}
                   transition={transition}
                   className={cn(
-                    'flex items-center justify-between gap-5 rounded-2xl p-3 transition-all duration-200',
-                    'border border-opacity-30 dark:border-opacity-20',
-                    'shadow-sm hover:shadow-md dark:shadow-neutral-900/50',
-                    getItemBackground(item),
+                    'flex items-center justify-between gap-5 rounded-2xl p-3 transition-all duration-300',
+                    'border border-gray-200/80 dark:border-white/5',
+                    'shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-white/10',
+                    'bg-white dark:bg-zinc-900/80 backdrop-blur-md',
                     item.className,
                     togglingId === item.id ? 'z-20 scale-[1.02]' : 'z-10',
                   )}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-lg bg-background p-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="rounded-xl p-2 border border-black/5 dark:border-white/5"
+                      style={{ backgroundColor: `${(item as any).classColor}15` }}
+                    >
                       <item.icon
                         className="size-5"
                         style={{ color: (item as any).classColor || undefined }}
@@ -208,16 +211,19 @@ function PinList({
                   layoutId={`item-${item.id}`}
                   transition={transition}
                   className={cn(
-                    'flex items-center justify-between gap-5 rounded-2xl p-3 transition-all duration-200',
-                    'border border-opacity-30 dark:border-opacity-20',
-                    'shadow-sm hover:shadow-md dark:shadow-neutral-900/50',
-                    getItemBackground(item),
+                    'flex items-center justify-between gap-5 rounded-2xl p-3 transition-all duration-300',
+                    'border border-gray-200/80 dark:border-white/5',
+                    'shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-white/10',
+                    'bg-white dark:bg-zinc-900/80 backdrop-blur-md group',
                     item.className,
                     togglingId === item.id ? 'z-20 scale-[1.02]' : 'z-10',
                   )}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-lg bg-background p-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="rounded-xl p-2 border border-black/5 dark:border-white/5"
+                      style={{ backgroundColor: `${(item as any).classColor}15` }}
+                    >
                       <item.icon
                         className="size-5"
                         style={{ color: (item as any).classColor || undefined }}
@@ -245,7 +251,7 @@ function PinList({
                       )}
                       aria-label={item.pinned ? 'Unpin' : 'Pin'}
                     >
-                       <AnimatePresence mode="wait">
+                      <AnimatePresence mode="wait">
                         {item.pinned ? (
                           <motion.div key="pin-on" initial={{ rotate: 90 }} animate={{ rotate: 0 }}>
                             <Pin className="w-4 h-4 fill-current" />

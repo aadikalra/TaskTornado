@@ -9,7 +9,7 @@ function transformSupabaseData(
     homeworksData: any[],
     testsData: any[]
 ): { classes: Class[], homeworks: Homework[], tests: Test[] } {
-    const transformedClasses = classesData.map(c => ({...c, icon: c.icon as LucideIconName})) as Class[];
+    const transformedClasses = classesData.map(c => ({ ...c, icon: c.icon as LucideIconName })) as Class[];
 
     const transformedHomeworks = homeworksData.map(hw => {
         let links: HomeworkLink[] = [];
@@ -24,13 +24,13 @@ function transformSupabaseData(
         }
 
         return {
-        ...hw,
-        links: links,
-        priority: (hw.priority as Priority) || 'medium',
-        dueDate: hw.due_date,
-        classId: hw.class_id,
-        pinned: hw.pinned || false,
-        completed: hw.completed || false
+            ...hw,
+            links: links,
+            priority: (hw.priority as Priority) || 'medium',
+            dueDate: hw.due_date,
+            classId: hw.class_id,
+            pinned: hw.pinned || false,
+            completed: hw.completed || false
         };
     });
 
@@ -84,10 +84,23 @@ export async function getDashboardData(supabase: any, user: any) {
     const isGoogleUser = user.app_metadata?.provider === 'google';
 
     let data;
+    const supabaseData = await getSupabaseData(supabase, user.id);
+
     if (isGoogleUser) {
-        data = await getGoogleClassroomData(user.id);
+        try {
+            const googleData = await getGoogleClassroomData(user.id);
+            // Merge Google data with Supabase data
+            data = {
+                classes: [...supabaseData.classes, ...googleData.classes],
+                homeworks: [...supabaseData.homeworks, ...googleData.homeworks],
+                tests: supabaseData.tests // Google Classroom doesn't have "tests" per se
+            };
+        } catch (error) {
+            console.warn('Google Classroom data unavailable, using Supabase only:', error);
+            data = supabaseData;
+        }
     } else {
-        data = await getSupabaseData(supabase, user.id);
+        data = supabaseData;
     }
 
     return { user, ...data };

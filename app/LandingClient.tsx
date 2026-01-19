@@ -343,7 +343,7 @@ export default function LandingPage() {
               transition={{ duration: 0.6 }}
               className="relative"
             >
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700">
+              <div className="bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] shadow-2xl p-8 border border-gray-200 dark:border-white/5 transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">Today's Homework</h3>
                   <span className="text-sm text-gray-500 dark:text-gray-400">3 tasks</span>

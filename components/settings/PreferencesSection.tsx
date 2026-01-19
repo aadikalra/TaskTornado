@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Trophy, Award, Brain, Check, Maximize2, Calendar as CalendarIcon } from 'lucide-react';
+import { Sparkles, Trophy, Award, Brain, Check, Maximize2, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
@@ -19,6 +19,8 @@ interface PreferencesSectionProps {
   onToggleWideLayout: (checked: boolean) => void;
   useNaturalLanguageDates: boolean;
   onToggleNaturalLanguageDates: (checked: boolean) => void;
+  showTestsInClassCards: boolean;
+  onToggleTestsInClassCards: (checked: boolean) => void;
 }
 
 export default function PreferencesSection({
@@ -31,118 +33,140 @@ export default function PreferencesSection({
   useWideLayout,
   onToggleWideLayout,
   useNaturalLanguageDates,
-  onToggleNaturalLanguageDates
+  onToggleNaturalLanguageDates,
+  showTestsInClassCards,
+  onToggleTestsInClassCards
 }: PreferencesSectionProps) {
   return (
-    <>
-      <div className="space-y-4">
-
-        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Trophy className="h-5 w-5 text-amber-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Level Display
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-                Show your current level and XP progress on the dashboard.
-              </p>
-            </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-xl">
+            <Trophy className="h-5 w-5 text-amber-500" />
           </div>
-          <Switch
-            checked={false}
-            disabled={true}
-            onCheckedChange={onToggleLevelDisplay}
-          />
-        </div>
-
-        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Award className="h-5 w-5 text-blue-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Subject Mastery
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-                Show your top performing subjects and completion rates.
-              </p>
-            </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Level Display
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+              Show your current level and XP progress on the dashboard.
+            </p>
           </div>
-          <Switch
-            checked={showSubjectMastery}
-            onCheckedChange={onToggleSubjectMastery}
-          />
         </div>
+        <Switch
+          checked={false}
+          disabled={true}
+          onCheckedChange={onToggleLevelDisplay}
+          className="data-[state=checked]:bg-blue-600"
+        />
+      </div>
 
-        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          <div className="flex items-start gap-3">
-            <div className="mt-1">
-              <Maximize2 className="h-5 w-5 text-green-500" />
-            </div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Full Width Mode
-              </h3>
-              {/* <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                Recommended
-              </span> */}
-            </div>
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+            <Award className="h-5 w-5 text-blue-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Subject Mastery
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+              Show your top performing subjects and completion rates.
+            </p>
+          </div>
+        </div>
+        <Switch
+          checked={showSubjectMastery}
+          onCheckedChange={onToggleSubjectMastery}
+          className="data-[state=checked]:bg-blue-600"
+        />
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 p-2 bg-green-50 dark:bg-green-950/30 rounded-xl">
+            <Maximize2 className="h-5 w-5 text-green-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Full Width Mode
+            </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
               Use the full width of your screen for the settings page layout.
             </p>
           </div>
-          <Switch
-            checked={useWideLayout}
-            onCheckedChange={onToggleWideLayout}
-          />
         </div>
-
-        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          <div className="flex items-start gap-4">
-            <div className="mt-1">
-              <CalendarIcon className="h-5 w-5 text-orange-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Natural Language Dates
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-                Show dates like "next Monday" instead of "3d" on the dashboard.
-              </p>
-            </div>
-          </div>
-          <Switch
-            checked={useNaturalLanguageDates}
-            onCheckedChange={onToggleNaturalLanguageDates}
-          />
-        </div>
-
-        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="mt-1">
-              <Brain className="h-5 w-5 text-indigo-500" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Aurora Personality
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-                Choose how the AI assistant communicates with you.
-              </p>
-            </div>
-          </div>
-          <CustomPersonalitySelect
-            value={aiPersonality}
-            onValueChange={onPersonalityChange}
-          />
-        </div>
+        <Switch
+          checked={useWideLayout}
+          onCheckedChange={onToggleWideLayout}
+          className="data-[state=checked]:bg-blue-600"
+        />
       </div>
 
-    </>
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl">
+            <CalendarIcon className="h-5 w-5 text-orange-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Natural Language Dates
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+              Show dates like "next Monday" instead of "3d" on the dashboard.
+            </p>
+          </div>
+        </div>
+        <Switch
+          checked={useNaturalLanguageDates}
+          onCheckedChange={onToggleNaturalLanguageDates}
+          className="data-[state=checked]:bg-blue-600"
+        />
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 p-2 bg-purple-50 dark:bg-purple-950/30 rounded-xl">
+            <BookOpen className="h-5 w-5 text-purple-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Show Tests in Class Cards
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+              Display upcoming tests directly within class cards on the dashboard.
+            </p>
+          </div>
+        </div>
+        <Switch
+          checked={showTestsInClassCards}
+          onCheckedChange={onToggleTestsInClassCards}
+          className="data-[state=checked]:bg-blue-600"
+        />
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="mt-1 p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl">
+            <Brain className="h-5 w-5 text-indigo-500" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Aurora Personality
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+              Choose how the AI assistant communicates with you.
+            </p>
+          </div>
+        </div>
+        <CustomPersonalitySelect
+          value={aiPersonality}
+          onValueChange={onPersonalityChange}
+        />
+      </div>
+    </div>
+
+
   );
 }
 

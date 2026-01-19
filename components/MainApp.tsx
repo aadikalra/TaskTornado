@@ -210,6 +210,7 @@ import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { MarkTestAsTakenModal } from '@/components/MarkTestAsTakenModal';
+import EnhancedTestCard from '@/components/EnhancedTestCard';
 
 type LucideIconName = IconName;
 type Priority = 'low' | 'medium' | 'high';
@@ -255,6 +256,14 @@ const MainApp = () => {
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('showPinnedHomeworks');
+      return saved !== null ? saved === 'true' : true; // default to true
+    }
+    return true;
+  });
+
+  const [showTestsInClassCards, setShowTestsInClassCards] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showTestsInClassCards');
       return saved !== null ? saved === 'true' : true; // default to true
     }
     return true;
@@ -1099,170 +1108,145 @@ const MainApp = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {classes
-                    .map((cls: any, index: number) => (
-                      <motion.div
-                        key={cls.id}
-                        layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.2,
-                          delay: index * 0.05,
-                          layout: { type: "spring", stiffness: 300, damping: 30 }
-                        }}
-                        className="group bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center w-full gap-3">
-                            <div className="w-8 h-8 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center justify-center">
-                              {(() => {
-                                const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
-                                return <IconComponent className="w-4 h-4" style={{ color: getClassColor(index) }} />;
-                              })()}
-                            </div>
+                    .map((cls: any, index: number) => {
+                      const classTests = tests.filter((t: any) => t.classId === cls.id && t.status !== 'taken');
+                      const classHomeworks = homeworks
+                        .filter((hw: any) => hw.classId === cls.id)
+                        .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null)
+                        .sort((a: any, b: any) => {
+                          if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                        })
+                        .map((hw: any) => ({
+                          id: hw.id,
+                          text: hw.title,
+                          completed: hw.completed,
+                          subtext: new Date(hw.dueDate),
+                          priority: hw.priority || 'medium',
+                          classId: cls.id,
+                          classColor: getClassColor(index),
+                          dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
+                          links: hw.links,
+                          onDelete: () => deleteHomework(hw.id),
+                          onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => deleteRecurringSeries(hw.recurring_id || hw.parent_recurring_id) : undefined,
+                          className: cls.name,
+                          pinned: hw.pinned || false,
+                          recurring: hw.recurring_frequency ? true : undefined as any,
+                          isRecurringInstance: hw.is_recurring_instance || false,
+                          parentRecurringId: hw.parent_recurring_id || undefined,
+                          recurringFrequency: hw.recurring_frequency || undefined,
+                        }));
 
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                {cls.name}
-                              </h3>
-                            </div>
+                      const visibleHomeworks = expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
+                      const hasTests = classTests.length > 0 && showTestsInClassCards;
+                      const hasHomework = classHomeworks.length > 0;
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteClass(cls.id);
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
-                              aria-label="Delete class"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                      return (
+                        <motion.div
+                          key={cls.id}
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.2,
+                            delay: index * 0.05,
+                            layout: { type: "spring", stiffness: 300, damping: 30 }
+                          }}
+                          className="group bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-200/70 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center w-full gap-4">
+                              <div
+                                className="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100/50 dark:border-white/5 shrink-0 transition-transform group-hover:scale-110 duration-500"
+                                style={{
+                                  backgroundColor: `${getClassColor(index)}15`
+                                }}
+                              >
+                                {(() => {
+                                  const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
+                                  return <IconComponent className="w-5 h-5" style={{ color: getClassColor(index) }} />;
+                                })()}
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {cls.name}
+                                </h3>
+                              </div>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteClass(cls.id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                                aria-label="Delete class"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
 
-                        </div>
+                          <div className="space-y-2 mt-2">
+                            <PlayfulHomeworkList
+                              items={visibleHomeworks}
+                              onItemToggle={handleHomeworkToggle}
+                              onPinToggle={togglePinHomework}
+                              className="space-y-2"
+                            />
 
-                        {/* Divider */}
-                        <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
-
-                        <div className="space-y-2 mt-2">
-                          <PlayfulHomeworkList
-                            items={(() => {
-                              const classHomeworks = homeworks
-                                .filter((hw: any) => hw.classId === cls.id)
-                                .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null) // Show recurring instances and regular homework
-                                .sort((a: any, b: any) => {
-                                  // Sort by completion status first (uncompleted first)
-                                  if (a.completed !== b.completed) {
-                                    return a.completed ? 1 : -1;
-                                  }
-                                  // Then sort by due date
-                                  return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-                                })
-                                .map((hw: any) => {
-                                  // console.log('Homework item for class', cls.name, ':', {
-                                  //   id: hw.id,
-                                  //   classId: hw.classId,
-                                  //   className: cls.name,
-                                  //   title: hw.title,
-                                  //   completed: hw.completed,
-                                  //   dueDate: hw.dueDate
-                                  // });
-                                  return {
-                                    id: hw.id,
-                                    text: hw.title,
-                                    completed: hw.completed,
-                                    subtext: new Date(hw.dueDate),
-                                    priority: hw.priority || 'medium',
-                                    classId: cls.id,
-                                    classColor: getClassColor(index),
-                                    dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
-                                    links: hw.links,
-                                    onDelete: () => deleteHomework(hw.id),
-                                    onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => deleteRecurringSeries(hw.recurring_id || hw.parent_recurring_id) : undefined,
-                                    className: cls.name,
-                                    pinned: hw.pinned || false,
-                                    // Add recurring homework information
-                                    recurring: hw.recurring_frequency ? true : undefined as any,
-                                    isRecurringInstance: hw.is_recurring_instance || false,
-                                    parentRecurringId: hw.parent_recurring_id || undefined,
-                                    recurringFrequency: hw.recurring_frequency || undefined,
-                                  };
-                                });
-
-                              // Show all items if expanded, otherwise show only first 3
-                              return expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
-                            })()}
-                            onItemToggle={handleHomeworkToggle}
-                            onPinToggle={togglePinHomework}
-                            className="space-y-2"
-                          />
-
-                          {(() => {
-                            const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
-                            const totalCount = classHomeworks.length;
-
-                            if (totalCount > 3) {
-                              return (
-                                <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
-                                  {expandedClasses[cls.id] ? (
-                                    <button
-                                      onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
-                                      className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    >
-                                      Hide
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
-                                      className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    >
-                                      +{totalCount - 3} more assignments
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            }
-
-                            return null;
-                          })()}
-
-                          {(() => {
-                            const classHomeworks = homeworks.filter((hw: any) => hw.classId === cls.id && (hw.is_recurring_instance === true || hw.recurring_id == null));
-                            const classHasNoHomework = classHomeworks.length === 0;
-
-                            if (classHasNoHomework) {
-                              const upcomingClassTests = tests.filter((t: any) => {
-                                if (t.classId !== cls.id) return false;
-                                const testDate = new Date(t.testDate);
-                                const now = new Date();
-                                now.setHours(0, 0, 0, 0);
-                                const diffTime = testDate.getTime() - now.getTime();
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                // Show tests within the next 14 days
-                                return diffDays >= 0 && diffDays <= 14;
-                              });
-
-                              if (upcomingClassTests.length > 0) {
-                                return (
-                                  <div className="text-center py-2">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      {upcomingClassTests.length} {upcomingClassTests.length === 1 ? 'test' : 'tests'} in the next 14 days
-                                    </p>
+                            {hasTests && (
+                              <>
+                                {hasHomework && (
+                                  <div className="flex items-center gap-3 my-3">
+                                    <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Upcoming Tests</span>
+                                    <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
                                   </div>
-                                );
-                              }
-
-                              return (
-                                <div className="text-center py-2">
-                                  <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
+                                )}
+                                <div className="space-y-1">
+                                  {classTests.map((test: any) => (
+                                    <EnhancedTestCard
+                                      key={test.id}
+                                      test={test}
+                                      classIcon={iconMap[cls.icon as keyof typeof iconMap] || BookOpen}
+                                      variant="list-item"
+                                      className="hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg -mx-2 px-2"
+                                    />
+                                  ))}
                                 </div>
-                              );
-                            }
-                            return null;
-                          })()}
-                        </div>
-                      </motion.div>
-                    ))}
+                              </>
+                            )}
+
+                            {classHomeworks.length > 3 && (
+                              <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
+                                {expandedClasses[cls.id] ? (
+                                  <button
+                                    onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
+                                    className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                  >
+                                    Hide
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
+                                    className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                  >
+                                    +{classHomeworks.length - 3} more assignments
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            {!hasHomework && !hasTests && (
+                              <div className="text-center py-2">
+                                <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                 </div>
               )}
             </div>
