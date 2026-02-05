@@ -239,7 +239,7 @@ export default function ChangelogPage() {
                   <ul className="space-y-1.5 sm:space-y-2">
                     <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                      <span className="leading-relaxed">Developing significant platform updates via a multi-phase rollout. Phase 1 is now live as of v{BUILD_VERSION}.</span>
+                      <span className="leading-relaxed">Developing significant platform updates via a multi-phase rollout. Phase 1 is now live as of v2.4.</span>
                     </li>
                   </ul>
                 </div>

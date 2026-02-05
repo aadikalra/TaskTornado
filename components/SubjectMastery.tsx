@@ -4,105 +4,196 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { Award, BookOpen, ChevronRight, BarChart2 } from 'lucide-react';
 import { useGamification } from '@/context/GamificationContext';
+import { useClassContext } from '@/context/ClassContext';
 import { cn } from '@/lib/utils';
 
-interface SubjectMasteryProps {
-  className?: string;
-  maxItems?: number;
-}
-
-export const SubjectMastery = ({ className, maxItems = 5 }: SubjectMasteryProps) => {
+export const SubjectMastery = ({ className }: { className?: string }) => {
   const { data } = useGamification();
+  const { classes } = useClassContext();
 
-  const sortedSubjects = React.useMemo(() => {
+  // Exact color palette from MainApp.tsx to ensure perfect matching
+  const mainAppColors = [
+    '#E53E3E', // red
+    '#3182CE', // blue
+    '#D69E2E', // yellow
+    '#38A169', // green
+    '#805AD5', // purple
+    '#D53F8C', // pink
+    '#2E7774', // teal
+    '#4A5568'  // gray
+  ];
+
+  const allSubjects = React.useMemo(() => {
     return Object.values(data.subjectMastery)
-      .sort((a, b) => b.masteryLevel - a.masteryLevel)
-      .slice(0, maxItems);
-  }, [data.subjectMastery, maxItems]);
+      .map(subject => {
+        // Find the index of this class in the global classes list
+        const classIndex = classes.findIndex(c => c.id === subject.classId);
 
-  const getProgressColor = (level: number) => {
-    if (level >= 80) return 'bg-gradient-to-r from-[#264f84] to-blue-600 dark:from-blue-500 dark:to-blue-400';
-    if (level >= 50) return 'bg-gradient-to-r from-[#264f84]/70 to-blue-600/70 dark:from-blue-500/70 dark:to-blue-400/70';
-    return 'bg-gradient-to-r from-[#264f84]/50 to-blue-600/50 dark:from-blue-500/50 dark:to-blue-400/50';
-  };
+        // Use the same modulo logic as MainApp
+        const color = classIndex !== -1
+          ? mainAppColors[classIndex % mainAppColors.length]
+          : '#4A5568'; // Default to gray if not found
 
-  if (sortedSubjects.length === 0) {
+        return {
+          ...subject,
+          color
+        };
+      })
+      .sort((a, b) => b.masteryLevel - a.masteryLevel);
+  }, [data.subjectMastery, classes]);
+
+  const topThree = allSubjects.slice(0, 3);
+  const remaining = allSubjects.slice(3);
+
+  // Podium order: [2nd, 1st, 3rd]
+  const podiumOrder = React.useMemo(() => {
+    if (topThree.length === 0) return [];
+    if (topThree.length === 1) return [topThree[0]];
+    if (topThree.length === 2) return [topThree[1], topThree[0]];
+    return [topThree[1], topThree[0], topThree[2]];
+  }, [topThree]);
+
+  if (allSubjects.length === 0) {
     return (
       <div className={cn("w-full bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800", className)}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-light text-gray-900 dark:text-white tracking-tight">
-            Subject Mastery
-          </h2>
-        </div>
-        <div className="text-center py-8 border border-dashed border-gray-200 dark:border-gray-800 rounded-lg">
-          <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-full mb-3">
-            <BarChart2 className="h-4 w-4 text-gray-400" />
-          </div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-            No data available
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Complete assignments to see your stats.
-          </p>
+        <h2 className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-4">Subject Mastery</h2>
+        <div className="text-center py-12 border border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+          <p className="text-xs text-gray-500">No data available</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("w-full bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800", className)}>
-      <div className="space-y-1">
-        {sortedSubjects.map((subject, index) => (
-          <motion.div
-            key={subject.classId || `subject-${index}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="group py-2 border-b border-gray-100 dark:border-gray-900 last:border-0"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-gray-400 dark:text-gray-600 w-4">
-                  {index + 1}
-                </span>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors truncate">
+    <div className={cn("w-full bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex flex-col justify-between", className)}>
+      <div className="flex-1 flex flex-col">
+        <h2 className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-4">Subject Mastery</h2>
+
+        {/* Podium Section */}
+        <div className="flex items-end justify-center gap-6 mt-4 mb-8">
+          {podiumOrder.map((subject, idx) => {
+            const isFirst = (topThree.length > 1 && idx === 1) || (topThree.length === 1 && idx === 0);
+            const size = isFirst ? 80 : 64;
+            const radius = isFirst ? 36 : 28;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (subject.masteryLevel / 100) * circumference;
+
+            return (
+              <motion.div
+                key={subject.classId}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className={cn(
+                  "flex flex-col items-center group cursor-default",
+                  isFirst ? "order-2 pb-6" : idx === 0 ? "order-1" : "order-3"
+                )}
+              >
+                <div
+                  className="relative flex items-center justify-center mb-2"
+                  style={{ width: size, height: size }}
+                >
+                  <svg className="w-full h-full -rotate-90 transform">
+                    <circle
+                      cx={size / 2}
+                      cy={size / 2}
+                      r={radius}
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      fill="transparent"
+                      className="text-gray-50 dark:text-gray-800/50"
+                    />
+                    <motion.circle
+                      cx={size / 2}
+                      cy={size / 2}
+                      r={radius}
+                      stroke={subject.color}
+                      strokeWidth="2.5"
+                      strokeDasharray={circumference}
+                      initial={{ strokeDashoffset: circumference }}
+                      animate={{ strokeDashoffset: offset }}
+                      transition={{ duration: 1.5, delay: 0.5 + (idx * 0.1), ease: [0.16, 1, 0.3, 1] }}
+                      strokeLinecap="round"
+                      fill="transparent"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className={cn(
+                      "font-bold tabular-nums text-gray-900 dark:text-gray-100",
+                      isFirst ? "text-lg" : "text-sm"
+                    )}>
+                      {Math.round(subject.masteryLevel)}%
+                    </span>
+                    {isFirst && <Award className="w-3 h-3 text-amber-400 -mt-0.5" />}
+                  </div>
+                </div>
+                <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 text-center line-clamp-1 max-w-[80px]">
                   {subject.className}
-                </h3>
-              </div>
-              <div className="text-right">
-                <span className="text-xs font-medium text-gray-900 dark:text-white">
-                  {Math.round(subject.masteryLevel)}%
                 </span>
-              </div>
-            </div>
+              </motion.div>
+            );
+          })}
+        </div>
 
-            <div className="pl-6">
-              <div className="h-1 w-full bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${subject.masteryLevel}%` }}
-                  transition={{ duration: 0.8, delay: 0.2 + (index * 0.1), ease: [0.22, 1, 0.36, 1] }}
-                  className={cn("h-full rounded-full", getProgressColor(subject.masteryLevel))}
-                />
-              </div>
+        {/* Scrollable Row for others */}
+        {remaining.length > 0 && (
+          <div className="relative mt-auto">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+              {remaining.map((subject, idx) => {
+                const radius = 20;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (subject.masteryLevel / 100) * circumference;
+
+                return (
+                  <motion.div
+                    key={subject.classId}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + (idx * 0.05) }}
+                    className="flex flex-col items-center shrink-0 snap-center"
+                  >
+                    <div className="relative w-12 h-12 flex items-center justify-center mb-1">
+                      <svg className="w-full h-full -rotate-90 transform">
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r={radius}
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          fill="transparent"
+                          className="text-gray-50 dark:text-gray-800/30"
+                        />
+                        <motion.circle
+                          cx="24"
+                          cy="24"
+                          r={radius}
+                          stroke={subject.color}
+                          strokeWidth="1.5"
+                          strokeDasharray={circumference}
+                          initial={{ strokeDashoffset: circumference }}
+                          animate={{ strokeDashoffset: offset }}
+                          transition={{ duration: 1, delay: 0.8 + (idx * 0.05), ease: "easeOut" }}
+                          strokeLinecap="round"
+                          fill="transparent"
+                        />
+                      </svg>
+                      <span className="absolute text-[8px] font-medium tabular-nums text-gray-400">
+                        {Math.round(subject.masteryLevel)}%
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-gray-400 truncate max-w-[50px] text-center">
+                      {subject.className}
+                    </span>
+                  </motion.div>
+                );
+              })}
             </div>
-          </motion.div>
-        ))}
+            {/* Subtle fade edges for scroll */}
+            <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white dark:from-gray-900 to-transparent pointer-events-none opacity-50" />
+            <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white dark:from-gray-900 to-transparent pointer-events-none opacity-50" />
+          </div>
+        )}
       </div>
-
-      {Object.keys(data.subjectMastery).length > maxItems && (
-        <motion.div
-          key="view-all-button"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-900 flex justify-center"
-        >
-          <button className="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors flex items-center gap-1">
-            View all <ChevronRight className="w-3 h-3" />
-          </button>
-        </motion.div>
-      )}
     </div>
   );
-}
+};

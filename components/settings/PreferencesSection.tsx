@@ -9,78 +9,33 @@ import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
 interface PreferencesSectionProps {
-  showLevelDisplay: boolean;
-  onToggleLevelDisplay: (checked: boolean) => void;
-  showSubjectMastery: boolean;
-  onToggleSubjectMastery: (checked: boolean) => void;
+
+
   aiPersonality: AIPersonality;
   onPersonalityChange: (value: AIPersonality) => void;
   useWideLayout: boolean;
   onToggleWideLayout: (checked: boolean) => void;
-  useNaturalLanguageDates: boolean;
-  onToggleNaturalLanguageDates: (checked: boolean) => void;
+
   showTestsInClassCards: boolean;
   onToggleTestsInClassCards: (checked: boolean) => void;
 }
 
 export default function PreferencesSection({
-  showLevelDisplay,
-  onToggleLevelDisplay,
-  showSubjectMastery,
-  onToggleSubjectMastery,
+
+
   aiPersonality,
   onPersonalityChange,
   useWideLayout,
   onToggleWideLayout,
-  useNaturalLanguageDates,
-  onToggleNaturalLanguageDates,
+
   showTestsInClassCards,
   onToggleTestsInClassCards
 }: PreferencesSectionProps) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-xl">
-            <Trophy className="h-5 w-5 text-amber-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Level Display
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Show your current level and XP progress on the dashboard.
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={false}
-          disabled={true}
-          onCheckedChange={onToggleLevelDisplay}
-          className="data-[state=checked]:bg-blue-600"
-        />
-      </div>
 
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
-            <Award className="h-5 w-5 text-blue-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Subject Mastery
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Show your top performing subjects and completion rates.
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={showSubjectMastery}
-          onCheckedChange={onToggleSubjectMastery}
-          className="data-[state=checked]:bg-blue-600"
-        />
-      </div>
+
+
 
       <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
         <div className="flex items-start gap-3">
@@ -103,26 +58,7 @@ export default function PreferencesSection({
         />
       </div>
 
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl">
-            <CalendarIcon className="h-5 w-5 text-orange-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Natural Language Dates
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Show dates like "next Monday" instead of "3d" on the dashboard.
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={useNaturalLanguageDates}
-          onCheckedChange={onToggleNaturalLanguageDates}
-          className="data-[state=checked]:bg-blue-600"
-        />
-      </div>
+
 
       <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
         <div className="flex items-start gap-3">

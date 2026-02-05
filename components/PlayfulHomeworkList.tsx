@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { memo, useCallback } from 'react';
-import { motion, type Transition } from 'framer-motion';
+import { motion, type Transition, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Check, Trash2, Edit, Link as LinkIcon, School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -189,223 +189,223 @@ const PlayfulHomeworkListComponent = ({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {memoizedItems.map((item) => (
-        <motion.div
-          key={item.id}
-          layout
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{
-            layout: { type: "spring", stiffness: 300, damping: 30 },
-            opacity: { duration: 0.2 },
-            y: { duration: 0.2 }
-          }}
-          className="space-y-2"
-        >
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center">
+      <AnimatePresence initial={false}>
+        {memoizedItems.map((item) => (
+          <motion.div
+            key={item.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{
+              opacity: { duration: 0.2 },
+              y: { duration: 0.2 }
+            }}
+            className="space-y-2"
+          >
+            <div className="flex items-center space-x-2">
               <div className="flex items-center">
-                <Checkbox
-                  checked={item.completed}
-                  onCheckedChange={() => handleToggle(item.id)}
-                  className={`
-                    ${item.completed
-                      ? 'border-transparent bg-teal-500 hover:bg-teal-600'
-                      : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10'
-                    }
-                  `}
-                  style={
-                    item.completed && item.classColor
-                      ? {
-                        backgroundColor: item.classColor,
-                        // @ts-ignore — custom CSS variable, must be kebab-case
-                        '--tw-ring-color': item.classColor,
-                        // @ts-ignore
-                        '--tw-ring-offset-color': '#fff',
+                <div className="flex items-center">
+                  <Checkbox
+                    checked={item.completed}
+                    onCheckedChange={() => handleToggle(item.id)}
+                    className={`
+                      ${item.completed
+                        ? 'border-transparent bg-teal-500 hover:bg-teal-600'
+                        : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10'
                       }
-                      : undefined
-                  }
-                />
+                    `}
+                    style={
+                      item.completed && item.classColor
+                        ? {
+                          backgroundColor: item.classColor,
+                          // @ts-ignore — custom CSS variable, must be kebab-case
+                          '--tw-ring-color': item.classColor,
+                          // @ts-ignore
+                          '--tw-ring-offset-color': '#fff',
+                        }
+                        : undefined
+                    }
+                  />
+                </div>
               </div>
-            </div>
-            <div className="relative inline-block flex-1 group">
-              <div className="flex justify-between items-start w-full">
-                <div className="flex items-center gap-2">
-                  {!item.completed && (
-                    <div className="flex items-center gap-1">
-                      {item.pinned ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPinToggle?.(item.id, false);
-                          }}
-                          className="cursor-pointer hover:scale-110 transition-transform"
-                          title="Click to unpin this homework"
-                        >
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPinToggle?.(item.id, true);
-                          }}
-                          className="cursor-pointer hover:scale-110 transition-transform"
-                          title="Click to pin this homework"
-                        >
-                          {getPriorityIndicator(item.priority)}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor={`checkbox-${item.id}`}
-                      onClick={() => handleToggle(item.id)}
-                      className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
-                        }`}
-                    >
-                      {item.text}
-                      {isGoogleClassroomAssignment(item) && (
-                        <span title="From Google Classroom" className="ml-1">
-                          <School className="inline h-3 w-3 text-gray-400 dark:text-gray-500" />
-                        </span>
-                      )}
-                    </label>
-                    <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400 gap-2">
-                      {!item.completed && (
-                        <>
-                          {item.dueDateIcon}
-                          <p>
-                            {item.subtext instanceof Date ? item.subtext.toLocaleDateString() : item.subtext}
-                          </p>
-                        </>
-                      )}
+              <div className="relative inline-block flex-1 group">
+                <div className="flex justify-between items-start w-full">
+                  <div className="flex items-center gap-2">
+                    {!item.completed && (
+                      <div className="flex items-center gap-1">
+                        {item.pinned ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onPinToggle?.(item.id, false);
+                            }}
+                            className="cursor-pointer hover:scale-110 transition-transform"
+                            title="Click to unpin this homework"
+                          >
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onPinToggle?.(item.id, true);
+                            }}
+                            className="cursor-pointer hover:scale-110 transition-transform"
+                            title="Click to pin this homework"
+                          >
+                            {getPriorityIndicator(item.priority)}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <label
+                        htmlFor={`checkbox-${item.id}`}
+                        onClick={() => handleToggle(item.id)}
+                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {item.text}
+                        {isGoogleClassroomAssignment(item) && (
+                          <span title="From Google Classroom" className="ml-1">
+                            <School className="inline h-3 w-3 text-gray-400 dark:text-gray-500" />
+                          </span>
+                        )}
+                      </label>
+                      <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400 gap-2">
+                        {!item.completed && (
+                          <>
+                            {item.dueDateIcon}
+                            <p>
+                              {item.subtext instanceof Date ? item.subtext.toLocaleDateString() : item.subtext}
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {!item.completed && item.onDelete && !isGoogleClassroomAssignment(item) && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <Link href={`/homework/edit/${item.id}`}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400"
-                        title="Edit homework"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                  {!item.completed && item.onDelete && !isGoogleClassroomAssignment(item) && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <Link href={`/homework/edit/${item.id}`}>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-                          title="Delete homework"
+                          className="h-8 w-8 text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400"
+                          title="Edit homework"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-gray-900 dark:text-gray-100">
-                            {item.isRecurringInstance || item.parentRecurringId || item.recurring ? 'Delete recurring homework?' : 'Delete this homework?'}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                            {item.isRecurringInstance || item.parentRecurringId || item.recurring
-                              ? `Choose how you'd like to delete "${item.text}".`
-                              : `This will permanently delete the homework "${item.text}". This action cannot be undone.`
-                            }
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter className={item.isRecurringInstance || item.parentRecurringId || item.recurring ? "sm:flex-col gap-2" : ""}>
-                          <div className={cn(
-                            "flex flex-col-reverse sm:flex-row gap-2 w-full",
-                            (item.isRecurringInstance || item.parentRecurringId || item.recurring) ? "sm:justify-between" : "sm:justify-end"
-                          )}>
-                            <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                            title="Delete homework"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-gray-900 dark:text-gray-100">
+                              {item.isRecurringInstance || item.parentRecurringId || item.recurring ? 'Delete recurring homework?' : 'Delete this homework?'}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                              {item.isRecurringInstance || item.parentRecurringId || item.recurring
+                                ? `Choose how you'd like to delete "${item.text}".`
+                                : `This will permanently delete the homework "${item.text}". This action cannot be undone.`
+                              }
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className={item.isRecurringInstance || item.parentRecurringId || item.recurring ? "sm:flex-col gap-2" : ""}>
+                            <div className={cn(
+                              "flex flex-col-reverse sm:flex-row gap-2 w-full",
+                              (item.isRecurringInstance || item.parentRecurringId || item.recurring) ? "sm:justify-between" : "sm:justify-end"
+                            )}>
+                              <AlertDialogCancel className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
 
-                            {item.isRecurringInstance || item.parentRecurringId || item.recurring ? (
-                              <div className="flex flex-col sm:flex-row gap-2">
+                              {item.isRecurringInstance || item.parentRecurringId || item.recurring ? (
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <AlertDialogAction
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      item.onDelete?.();
+                                    }}
+                                    className="bg-red-500 hover:bg-red-600 text-white"
+                                  >
+                                    Delete This One
+                                  </AlertDialogAction>
+                                  <AlertDialogAction
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      item.onDeleteSeries?.();
+                                    }}
+                                    className="bg-red-700 hover:bg-red-800 text-white"
+                                  >
+                                    Delete Whole Series
+                                  </AlertDialogAction>
+                                </div>
+                              ) : (
                                 <AlertDialogAction
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     item.onDelete?.();
                                   }}
-                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                  className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
                                 >
-                                  Delete This One
+                                  Delete Homework
                                 </AlertDialogAction>
-                                <AlertDialogAction
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    item.onDeleteSeries?.();
-                                  }}
-                                  className="bg-red-700 hover:bg-red-800 text-white"
-                                >
-                                  Delete Whole Series
-                                </AlertDialogAction>
-                              </div>
-                            ) : (
-                              <AlertDialogAction
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  item.onDelete?.();
-                                }}
-                                className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 focus:ring-red-600"
-                              >
-                                Delete Homework
-                              </AlertDialogAction>
-                            )}
-                          </div>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                )}
-              </div>
-              <motion.svg
-                width="100%"
-                height="32"
-                viewBox="0 0 300 32"
-                className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none z-20 w-full overflow-visible"
-                preserveAspectRatio="none"
-              >
-                <motion.path
-                  d="M 10 16 s 79.8 -11.36 98.1 -11.34 c 22.2 0.02 -47.82 14.25 -33.39 22.02 c 12.61 6.77 124.18 -27.98 133.31 -17.28 c 7.52 8.38 -26.8 20.02 4.61 22.05 c 24.55 1.93 42.37 -20.36 86.37 -20.36"
-                  vectorEffect="non-scaling-stroke"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                  initial={false}
-                  animate={getPathAnimate(item.completed)}
-                  transition={getPathTransition(item.completed)}
-                  className="stroke-blue-500"
-                  style={{
-                    stroke: item.classColor
-                  }}
-                />
-              </motion.svg>
-            </div>
-          </div>
-          {/* Links are rendered here, below the main homework item */}
-          {item.links && item.links.length > 0 && !item.completed && (
-            <div className={`space-y-1.5 ml-8 transition-opacity duration-200`}>
-              {item.links.map(link => (
-                <div key={link.id} className="text-xs">
-                  <LinkCard
-                    url={link.url}
-                    title={link.title || item.text}
-                  />
+                              )}
+                            </div>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                 </div>
-              ))}
+                <motion.svg
+                  width="100%"
+                  height="32"
+                  viewBox="0 0 300 32"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none z-20 w-full overflow-visible"
+                  preserveAspectRatio="none"
+                >
+                  <motion.path
+                    d="M 10 16 s 79.8 -11.36 98.1 -11.34 c 22.2 0.02 -47.82 14.25 -33.39 22.02 c 12.61 6.77 124.18 -27.98 133.31 -17.28 c 7.52 8.38 -26.8 20.02 4.61 22.05 c 24.55 1.93 42.37 -20.36 86.37 -20.36"
+                    vectorEffect="non-scaling-stroke"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    initial={false}
+                    animate={getPathAnimate(item.completed)}
+                    transition={getPathTransition(item.completed)}
+                    className="stroke-blue-500"
+                    style={{
+                      stroke: item.classColor
+                    }}
+                  />
+                </motion.svg>
+              </div>
             </div>
-          )}
-        </motion.div>
-      ))}
+            {/* Links are rendered here, below the main homework item */}
+            {item.links && item.links.length > 0 && !item.completed && (
+              <div className={`space-y-1.5 ml-8 transition-opacity duration-200`}>
+                {item.links.map(link => (
+                  <div key={link.id} className="text-xs">
+                    <LinkCard
+                      url={link.url}
+                      title={link.title || item.text}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

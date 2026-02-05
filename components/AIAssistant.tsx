@@ -1859,7 +1859,14 @@ Examples of correct button prompts:
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response from AI service');
+        let errorMessage = 'Failed to get response from AI service';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.details || errorData.error || errorMessage;
+        } catch {
+          errorMessage += ` (${response.status})`;
+        }
+        throw new Error(errorMessage);
       }
 
       // Handle streaming response (simplified version)

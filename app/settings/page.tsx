@@ -54,24 +54,9 @@ export default function SettingsPage() {
   const { isDark } = useDarkMode();
   const { useWideLayout: isWideLayout, toggleWideLayout } = useWideLayout();
 
-  const [showLevelDisplay, setShowLevelDisplay] = useState(false);
-  const handleToggleLevelDisplay = (checked: boolean) => {
-    setShowLevelDisplay(checked);
-    setCookie('showLevelDisplay', checked.toString());
-  };
 
-  const [showSubjectMastery, setShowSubjectMastery] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showSubjectMastery');
-      return saved !== null ? saved === 'true' : true;
-    }
-    return true;
-  });
 
-  const handleToggleSubjectMastery = (checked: boolean) => {
-    setShowSubjectMastery(checked);
-    setCookie('showSubjectMastery', checked.toString());
-  };
+
 
   const [useDyslexicFont, setUseDyslexicFont] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -99,18 +84,7 @@ export default function SettingsPage() {
     setCookie('reduceMotion', checked.toString());
   };
 
-  const [useNaturalLanguageDates, setUseNaturalLanguageDates] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('useNaturalLanguageDates');
-      return saved !== null ? saved === 'true' : false;
-    }
-    return false;
-  });
 
-  const handleToggleNaturalLanguageDates = (checked: boolean) => {
-    setUseNaturalLanguageDates(checked);
-    setCookie('useNaturalLanguageDates', checked.toString());
-  };
 
   const [showTestsInClassCards, setShowTestsInClassCards] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -139,12 +113,7 @@ export default function SettingsPage() {
     setCookie('aiPersonality', value);
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showLevelDisplay');
-      if (saved !== 'false') setCookie('showLevelDisplay', 'false');
-    }
-  }, []);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -316,16 +285,13 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500 dark:text-gray-400">Configure your dashboard visibility and AI assistant personality.</p>
                     </div>
                     <PreferencesSection
-                      showLevelDisplay={showLevelDisplay}
-                      onToggleLevelDisplay={handleToggleLevelDisplay}
-                      showSubjectMastery={showSubjectMastery}
-                      onToggleSubjectMastery={handleToggleSubjectMastery}
+
+
                       aiPersonality={aiPersonality}
                       onPersonalityChange={handlePersonalityChange}
                       useWideLayout={isWideLayout}
                       onToggleWideLayout={toggleWideLayout}
-                      useNaturalLanguageDates={useNaturalLanguageDates}
-                      onToggleNaturalLanguageDates={handleToggleNaturalLanguageDates}
+
                       showTestsInClassCards={showTestsInClassCards}
                       onToggleTestsInClassCards={handleToggleTestsInClassCards}
                     />

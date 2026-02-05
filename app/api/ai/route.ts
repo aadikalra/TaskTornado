@@ -138,7 +138,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Log the incoming request for debugging
+    // Log parameters for debugging
+    console.log('API Request:', {
+      model,
+      isCloudModel,
+      action,
+      hasKey: !!OLLAMA_CLOUD_API_KEY,
+      keyPrefix: OLLAMA_CLOUD_API_KEY ? OLLAMA_CLOUD_API_KEY.substring(0, 4) + '...' : 'none'
+    });
+
+    // Check if API key is configured for the appropriate service
     console.log('Incoming request:', {
       action,
       model,

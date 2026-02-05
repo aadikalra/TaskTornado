@@ -25,9 +25,10 @@ import { format } from 'date-fns';
 type AddTestModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  defaultClassId?: string;
 };
 
-export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
+export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalProps) => {
   const { classes, addTest } = useClassContext();
   const { success, error: toastError } = useToast();
 
@@ -41,10 +42,14 @@ export const AddTestModal = ({ isOpen, onClose }: AddTestModalProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
-    if (isOpen && !classId && classes.length > 0) {
-      setClassId(classes[0].id);
+    if (isOpen) {
+      if (defaultClassId) {
+        setClassId(defaultClassId);
+      } else if (!classId && classes.length > 0) {
+        setClassId(classes[0].id);
+      }
     }
-  }, [isOpen, classes, classId]);
+  }, [isOpen, classes, classId, defaultClassId]);
 
   const resetForm = () => {
     setTitle('');

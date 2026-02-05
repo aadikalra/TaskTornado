@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
 import { AddTestModal } from './AddTestModal';
+import { TestDetailModal } from './TestDetailModal';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import { SplittingText } from './animate-ui/primitives/texts/splitting';
 import { useWideLayout } from '@/hooks/use-wide-layout';
@@ -38,6 +39,7 @@ type HomeworkLink = {
 import {
   AlertCircle,
   AlertTriangle,
+  Archive,
   Clock,
   Calendar as CalendarIcon,
   Trash2,
@@ -184,8 +186,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HomeworkLinkInput } from './HomeworkLinkInput';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import LevelDisplay from './LevelDisplay';
+
 import { SubjectMastery } from './SubjectMastery';
+import { MiniCalendar } from './MiniCalendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -251,6 +254,9 @@ const MainApp = () => {
   const [showAddTest, setShowAddTest] = useState(false);
   const [showMarkTestAsTakenModal, setShowMarkTestAsTakenModal] = useState(false);
   const [testToMark, setTestToMark] = useState<Test | null>(null);
+  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [isTestDetailModalOpen, setIsTestDetailModalOpen] = useState(false);
+  const [classIdForAddTest, setClassIdForAddTest] = useState<string | undefined>(undefined);
 
   // Initialize section visibility states from cookies with defaults
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
@@ -285,23 +291,11 @@ const MainApp = () => {
     return true;
   });
 
-  const [showLevelDisplay, setShowLevelDisplay] = useState(false);
 
-  const [showSubjectMastery, setShowSubjectMastery] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('showSubjectMastery');
-      return saved !== null ? saved === 'true' : true; // default to true
-    }
-    return true;
-  });
 
-  const [useNaturalLanguageDates, setUseNaturalLanguageDates] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = getCookie('useNaturalLanguageDates');
-      return saved !== null ? saved === 'true' : false; // default to false
-    }
-    return false;
-  });
+
+
+
 
 
 
@@ -312,6 +306,18 @@ const MainApp = () => {
     }
     return {};
   });
+
+  // Track which classes are showing archived homework
+  const [showArchivedForClass, setShowArchivedForClass] = useState<Record<string, boolean>>({});
+
+  // Helper function to determine if homework is archived (completed and due date was more than 7 days ago)
+  const isHomeworkArchived = useCallback((hw: any): boolean => {
+    if (!hw.completed) return false;
+    const dueDate = new Date(hw.dueDate);
+    const now = new Date();
+    const daysSinceDue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysSinceDue >= 7;
+  }, []);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     title: string;
@@ -352,15 +358,9 @@ const MainApp = () => {
     setCookie('showTests', newState.toString());
   };
 
-  const handleToggleLevelDisplay = (newState: boolean) => {
-    setShowLevelDisplay(newState);
-    setCookie('showLevelDisplay', newState.toString());
-  };
 
-  const handleToggleSubjectMastery = (newState: boolean) => {
-    setShowSubjectMastery(newState);
-    setCookie('showSubjectMastery', newState.toString());
-  };
+
+
 
   // Wrapper functions for test filters that save to cookies
   const handleTestFilterChange = (value: 'all' | 'upcoming' | 'taken') => {
@@ -669,16 +669,9 @@ const MainApp = () => {
     if (!wasCompleted) {
       const className = classes.find((cls: Class) => cls.id === homework.classId)?.name || 'Unknown Class';
 
-      // Enhanced success message with XP info (calculated by recalculateTotalXP)
-      let successMessage = `Great job on your ${className} assignment!`;
-
-      if (oldLevel !== gamificationData.currentLevel) {
-        successMessage += ` 🎉 Level up to ${gamificationData.currentLevel}!`;
-      }
-
       success(
         `✅ ${homework.title} completed!`,
-        successMessage
+        `Great job on your ${className} assignment!`
       );
     }
   }, [homeworks, classes, toggleHomework, gamificationData, success]);
@@ -783,6 +776,95 @@ const MainApp = () => {
     }
   }, [tests, classes, loading, addXP]);
 
+  // Color mapping for class icons
+  const classColors = {
+    red: '#E53E3E',
+    blue: '#3182CE',
+    yellow: '#D69E2E',
+    green: '#38A169',
+    purple: '#805AD5',
+    pink: '#D53F8C',
+    teal: '#2E7774',
+    gray: '#4A5568'
+  };
+
+  // Get initials from class name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Get a consistent color for each class
+  const getClassColor = (index: number) => {
+    const colors = Object.values(classColors);
+    return colors[index % colors.length];
+  };
+
+  // Memoize the processed class data to prevent re-renders
+  const processedClasses = useMemo(() => {
+    return classes.map((cls: any, index: number) => {
+      const classTests = tests.filter((t: any) => {
+        const testDate = new Date(t.testDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return t.classId === cls.id && t.status !== 'taken' && t.status !== 'completed' && testDate >= today;
+      });
+
+      // Get all homeworks for this class
+      const allClassHomeworks = homeworks
+        .filter((hw: any) => hw.classId === cls.id)
+        .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null);
+
+      // Separate active and archived homeworks
+      const activeHomeworks = allClassHomeworks.filter((hw: any) => !isHomeworkArchived(hw));
+      const archivedHomeworks = allClassHomeworks.filter((hw: any) => isHomeworkArchived(hw));
+
+      const mapHomework = (hw: any) => ({
+        id: hw.id,
+        text: hw.title,
+        completed: hw.completed,
+        subtext: new Date(hw.dueDate),
+        priority: hw.priority || 'medium',
+        classId: cls.id,
+        classColor: getClassColor(index),
+        dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
+        links: hw.links,
+        onDelete: () => deleteHomework(hw.id),
+        onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => deleteRecurringSeries(hw.recurring_id || hw.parent_recurring_id) : undefined,
+        className: cls.name,
+        pinned: hw.pinned || false,
+        recurring: hw.recurring_frequency ? true : undefined as any,
+        isRecurringInstance: hw.is_recurring_instance || false,
+        parentRecurringId: hw.parent_recurring_id || undefined,
+        recurringFrequency: hw.recurring_frequency || undefined,
+        isArchived: isHomeworkArchived(hw),
+      });
+
+      const classHomeworks = activeHomeworks
+        .sort((a: any, b: any) => {
+          if (a.completed !== b.completed) return a.completed ? 1 : -1;
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        })
+        .map(mapHomework);
+
+      const classArchivedHomeworks = archivedHomeworks
+        .sort((a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
+        .map(mapHomework);
+
+      return {
+        ...cls,
+        classTests,
+        classHomeworks,
+        classArchivedHomeworks,
+        index
+      };
+    });
+  }, [classes, homeworks, tests, getClassColor, isHomeworkArchived]);
+
   // Only return null if not client-side after hooks are initialized
   if (!isClient) {
     return null;
@@ -865,6 +947,11 @@ const MainApp = () => {
     }
   };
 
+  const handleTestClick = (test: Test) => {
+    setSelectedTest(test);
+    setIsTestDetailModalOpen(true);
+  };
+
   const handleMarkTestAsTaken = async (score: number, maxScore: number, grade?: string) => {
     if (!testToMark) return;
 
@@ -914,33 +1001,7 @@ const MainApp = () => {
     }
   };
 
-  // Color mapping for class icons
-  const classColors = {
-    red: '#E53E3E',
-    blue: '#3182CE',
-    yellow: '#D69E2E',
-    green: '#38A169',
-    purple: '#805AD5',
-    pink: '#D53F8C',
-    teal: '#2E7774',
-    gray: '#4A5568'
-  };
 
-  // Get initials from class name
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  // Get a consistent color for each class
-  const getClassColor = (index: number) => {
-    const colors = Object.values(classColors);
-    return colors[index % colors.length];
-  };
 
   // Calculate next due homework and days until due (no useMemo to avoid hook ordering issues)
   const nextDueHomework = homeworks.length > 0
@@ -1011,18 +1072,21 @@ const MainApp = () => {
   const upcomingTestsCount = tests.filter(test => test.status === 'upcoming');
   const takenTests = tests.filter(test => test.status === 'taken');
 
+
+
   // Function to render each section based on ID
   const renderSection = (sectionId: SectionId) => {
     switch (sectionId) {
 
 
       case 'classes':
+        const effectivelyShowClasses = showTestsInClassCards || showClasses;
         return (
           <div key="classes" className="mb-10">
             <div>
               <div
-                className="mb-4 cursor-pointer group"
-                onClick={() => handleToggleClasses(!showClasses)}
+                className={`mb-4 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
+                onClick={!showTestsInClassCards ? () => handleToggleClasses(!showClasses) : undefined}
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
@@ -1032,15 +1096,17 @@ const MainApp = () => {
                       </h2>
                       <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
                     </div>
-                    <div
-                      className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showClasses
-                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                        }`}
-                    >
-                      <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                        }`} />
-                    </div>
+                    {!showTestsInClassCards && (
+                      <div
+                        className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showClasses
+                          ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
+                          : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                          }`}
+                      >
+                        <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                          }`} />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
@@ -1063,21 +1129,39 @@ const MainApp = () => {
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Homework
                     </Button>
-                    <div
-                      className={`p-2 rounded-lg transition-all duration-500 hidden md:block ${showClasses
-                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                        }`}
-                    >
-                      <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                        }`} />
-                    </div>
+                    {showTestsInClassCards && (
+                      <Button
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAddTest(true);
+                        }}
+                        className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                      >
+                        <Plus className="mr-2 h-4 w-4" /> Add Test
+                      </Button>
+                    )}
+                    {!showTestsInClassCards && (
+                      <Button
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowClasses(!showClasses);
+                        }}
+                        className={`p-2 rounded-lg duration-500 hidden md:block ${showClasses
+                          ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-400'
+                          }`}
+                      >
+                        <ChevronRight className={`h-5 w-5 transition-transform ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div
-                className={`overflow-hidden transition-all duration-400 ease-in-out ${showClasses
+                className={`overflow-hidden transition-all duration-400 ease-in-out ${effectivelyShowClasses
                   ? 'max-h-[1000px] opacity-100'
                   : 'max-h-0 opacity-0'
                   }`}
@@ -1086,7 +1170,7 @@ const MainApp = () => {
             </div>
 
             <div
-              className={`overflow-hidden transition-all duration-400 ease-in-out ${showClasses
+              className={`overflow-hidden transition-all duration-400 ease-in-out ${effectivelyShowClasses
                 ? 'max-h-[5000px] opacity-100'
                 : 'max-h-0 opacity-0'
                 }`}
@@ -1106,147 +1190,192 @@ const MainApp = () => {
                   </p>
                 </motion.div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {classes
-                    .map((cls: any, index: number) => {
-                      const classTests = tests.filter((t: any) => t.classId === cls.id && t.status !== 'taken');
-                      const classHomeworks = homeworks
-                        .filter((hw: any) => hw.classId === cls.id)
-                        .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null)
-                        .sort((a: any, b: any) => {
-                          if (a.completed !== b.completed) return a.completed ? 1 : -1;
-                          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-                        })
-                        .map((hw: any) => ({
-                          id: hw.id,
-                          text: hw.title,
-                          completed: hw.completed,
-                          subtext: new Date(hw.dueDate),
-                          priority: hw.priority || 'medium',
-                          classId: cls.id,
-                          classColor: getClassColor(index),
-                          dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
-                          links: hw.links,
-                          onDelete: () => deleteHomework(hw.id),
-                          onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => deleteRecurringSeries(hw.recurring_id || hw.parent_recurring_id) : undefined,
-                          className: cls.name,
-                          pinned: hw.pinned || false,
-                          recurring: hw.recurring_frequency ? true : undefined as any,
-                          isRecurringInstance: hw.is_recurring_instance || false,
-                          parentRecurringId: hw.parent_recurring_id || undefined,
-                          recurringFrequency: hw.recurring_frequency || undefined,
-                        }));
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
 
-                      const visibleHomeworks = expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
-                      const hasTests = classTests.length > 0 && showTestsInClassCards;
-                      const hasHomework = classHomeworks.length > 0;
 
-                      return (
-                        <motion.div
-                          key={cls.id}
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.2,
-                            delay: index * 0.05,
-                            layout: { type: "spring", stiffness: 300, damping: 30 }
-                          }}
-                          className="group bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-200/70 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10"
-                        >
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center w-full gap-4">
-                              <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100/50 dark:border-white/5 shrink-0 transition-transform group-hover:scale-110 duration-500"
-                                style={{
-                                  backgroundColor: `${getClassColor(index)}15`
-                                }}
+
+
+                  {processedClasses.map((cls: any) => {
+                    const { classHomeworks, classArchivedHomeworks, classTests, index } = cls;
+                    const visibleHomeworks = expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
+                    const hasTests = classTests.length > 0 && showTestsInClassCards;
+                    const hasHomework = classHomeworks.length > 0;
+                    const hasArchivedHomework = classArchivedHomeworks.length > 0;
+                    const isShowingArchived = showArchivedForClass[cls.id] || false;
+
+                    return (
+                      <motion.div
+                        key={cls.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          delay: index * 0.05,
+                        }}
+                        className="group bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-200/70 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 break-inside-avoid"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center w-full gap-4">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100/50 dark:border-white/5 shrink-0 transition-transform group-hover:scale-110 duration-500"
+                              style={{
+                                backgroundColor: `${getClassColor(index)}15`
+                              }}
+                            >
+                              {(() => {
+                                const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
+                                return <IconComponent className="w-5 h-5" style={{ color: getClassColor(index) }} />;
+                              })()}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {cls.name}
+                              </h3>
+                            </div>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteClass(cls.id);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                              aria-label="Delete class"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 mt-2">
+                          <PlayfulHomeworkList
+                            items={classHomeworks.slice(0, 3)}
+                            onItemToggle={handleHomeworkToggle}
+                            onPinToggle={togglePinHomework}
+                            className="space-y-2"
+                          />
+
+                          <AnimatePresence>
+                            {expandedClasses[cls.id] && classHomeworks.length > 3 && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                style={{ overflow: 'hidden' }}
                               >
-                                {(() => {
-                                  const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
-                                  return <IconComponent className="w-5 h-5" style={{ color: getClassColor(index) }} />;
-                                })()}
-                              </div>
+                                <PlayfulHomeworkList
+                                  items={classHomeworks.slice(3)}
+                                  onItemToggle={handleHomeworkToggle}
+                                  onPinToggle={togglePinHomework}
+                                  className="space-y-2 pt-2"
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
 
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                  {cls.name}
-                                </h3>
+                          {hasTests && (
+                            <>
+                              {hasHomework && (
+                                <div className="flex items-center gap-3 my-3">
+                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Upcoming Tests</span>
+                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                                </div>
+                              )}
+                              <div className="space-y-1">
+                                {classTests.map((test: any) => (
+                                  <EnhancedTestCard
+                                    key={test.id}
+                                    test={test}
+                                    classIcon={iconMap[cls.icon as keyof typeof iconMap] || BookOpen}
+                                    variant="list-item"
+                                    onClick={() => handleTestClick(test)}
+                                    className="hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg -mx-2 px-2"
+                                  />
+                                ))}
                               </div>
+                            </>
+                          )}
 
+                          {classHomeworks.length > 3 && (
+                            <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
+                              {expandedClasses[cls.id] ? (
+                                <button
+                                  onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
+                                  className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                >
+                                  Hide
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
+                                  className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                >
+                                  +{classHomeworks.length - 3} more assignments
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {!hasHomework && !hasTests && !hasArchivedHomework && (
+                            <div className="text-center py-2">
+                              <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
+                            </div>
+                          )}
+
+                          {/* Show archived homework option when no active homework but has archived */}
+                          {!hasHomework && hasArchivedHomework && !isShowingArchived && (
+                            <div className="text-center py-3">
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteClass(cls.id);
-                                }}
-                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
-                                aria-label="Delete class"
+                                onClick={() => setShowArchivedForClass(prev => ({ ...prev, [cls.id]: true }))}
+                                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-1.5 mx-auto"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Archive className="w-3.5 h-3.5" />
+                                View {classArchivedHomeworks.length} archived assignment{classArchivedHomeworks.length > 1 ? 's' : ''}
                               </button>
                             </div>
-                          </div>
+                          )}
 
-                          <div className="space-y-2 mt-2">
-                            <PlayfulHomeworkList
-                              items={visibleHomeworks}
-                              onItemToggle={handleHomeworkToggle}
-                              onPinToggle={togglePinHomework}
-                              className="space-y-2"
-                            />
-
-                            {hasTests && (
-                              <>
-                                {hasHomework && (
-                                  <div className="flex items-center gap-3 my-3">
-                                    <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
-                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Upcoming Tests</span>
-                                    <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
-                                  </div>
-                                )}
-                                <div className="space-y-1">
-                                  {classTests.map((test: any) => (
-                                    <EnhancedTestCard
-                                      key={test.id}
-                                      test={test}
-                                      classIcon={iconMap[cls.icon as keyof typeof iconMap] || BookOpen}
-                                      variant="list-item"
-                                      className="hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg -mx-2 px-2"
-                                    />
-                                  ))}
+                          {/* Archived homework section */}
+                          <AnimatePresence>
+                            {isShowingArchived && hasArchivedHomework && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                style={{ overflow: 'hidden' }}
+                              >
+                                <div className="flex items-center gap-3 my-3">
+                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                                  <span className="text-[10px] uppercase font-medium text-gray-400 tracking-wider flex items-center gap-1.5">
+                                    <Archive className="w-3 h-3" />
+                                    Archived
+                                  </span>
+                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
                                 </div>
-                              </>
-                            )}
-
-                            {classHomeworks.length > 3 && (
-                              <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
-                                {expandedClasses[cls.id] ? (
+                                <PlayfulHomeworkList
+                                  items={classArchivedHomeworks}
+                                  onItemToggle={handleHomeworkToggle}
+                                  onPinToggle={togglePinHomework}
+                                  className="space-y-2 opacity-60"
+                                />
+                                <div className="text-center pt-2">
                                   <button
-                                    onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
-                                    className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                    onClick={() => setShowArchivedForClass(prev => ({ ...prev, [cls.id]: false }))}
+                                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                                   >
-                                    Hide
+                                    Hide archived
                                   </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
-                                    className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                  >
-                                    +{classHomeworks.length - 3} more assignments
-                                  </button>
-                                )}
-                              </div>
+                                </div>
+                              </motion.div>
                             )}
-
-                            {!hasHomework && !hasTests && (
-                              <div className="text-center py-2">
-                                <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1254,6 +1383,7 @@ const MainApp = () => {
         );
 
       case 'tests':
+        if (showTestsInClassCards) return null;
         return (
           <div key="tests" className="mb-12">
             <div className="mb-6">
@@ -1290,15 +1420,19 @@ const MainApp = () => {
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Test
                     </Button>
-                    <div
-                      className={`p-2 rounded-lg transition-all duration-500 hidden md:block ${showTests
-                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
+                    <Button
+                      variant="default"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowTests(!showTests);
+                      }}
+                      className={`p-2 rounded-lg duration-500 hidden md:block ${showTests
+                        ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-400'
                         }`}
                     >
-                      <ChevronRight className={`h-5 w-5 transition-colors ${showTests ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                        }`} />
-                    </div>
+                      <ChevronRight className={`h-5 w-5 transition-transform ${showTests ? 'rotate-90' : 'rotate-0'}`} />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1348,7 +1482,7 @@ const MainApp = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
           <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
             Welcome back, {full_name || 'Student'}!
@@ -1359,7 +1493,7 @@ const MainApp = () => {
         </motion.div>
 
         {/* Stats Section - Minimalist Design */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Completion Rate */}
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
@@ -1467,7 +1601,7 @@ const MainApp = () => {
                   const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
                   const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
 
-                  if (useNaturalLanguageDates && daysUntil !== null) {
+                  if (daysUntil !== null) {
                     if (daysUntil === 0) return 'Today';
                     if (daysUntil === 1) return 'Tomorrow';
 
@@ -1501,13 +1635,10 @@ const MainApp = () => {
           </div>
         </div>
         {/* Gamification Section */}
-        {(showLevelDisplay || showSubjectMastery) && (
-          <div className={`grid grid-cols-1 gap-6 mb-10 ${showLevelDisplay && showSubjectMastery ? 'md:grid-cols-2' : ''
-            }`}>
-            {showLevelDisplay && <LevelDisplay />}
-            {showSubjectMastery && <SubjectMastery />}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 items-stretch">
+          <SubjectMastery className="h-full" />
+          <MiniCalendar />
+        </div>
 
         {/* Render sections in user-defined order */}
         {sectionOrder.map(sectionId => renderSection(sectionId))}
@@ -1923,9 +2054,26 @@ const MainApp = () => {
         {/* Add Test Modal */}
         <AnimatePresence>
           {showAddTest && (
-            <AddTestModal isOpen={showAddTest} onClose={() => setShowAddTest(false)} />
+            <AddTestModal
+              isOpen={showAddTest}
+              onClose={() => {
+                setShowAddTest(false);
+                setClassIdForAddTest(undefined);
+              }}
+              defaultClassId={classIdForAddTest}
+            />
           )}
         </AnimatePresence>
+
+        {/* Test Detail Modal */}
+        <TestDetailModal
+          test={selectedTest}
+          isOpen={isTestDetailModalOpen}
+          onClose={() => setIsTestDetailModalOpen(false)}
+          onDelete={deleteTest}
+          classInfo={selectedTest ? classes.find(c => c.id === selectedTest.classId) : undefined}
+          layoutId={selectedTest ? `test-card-${selectedTest.id}` : undefined}
+        />
 
         {/* Mark Test as Taken Modal */}
         <AnimatePresence>

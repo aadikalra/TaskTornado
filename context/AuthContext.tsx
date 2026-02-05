@@ -236,8 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'aiDeeperMessageCounter',
         'aiCloudMessageCounter',
         'showAIPriority',
-        'showLevelDisplay',
-        'showSubjectMastery',
+
+
         'useDyslexicFont',
         'reduceMotion',
         'aiPersonality',

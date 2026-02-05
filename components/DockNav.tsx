@@ -24,6 +24,8 @@ import IconCircleCopyPlus from './glass-icons/IconCircleCopyPlus';
 import IconMessageSquare from './glass-icons/IconMessageSquare';
 import IconQuestion from './glass-icons/IconQuestions';
 import { useAI } from '@/context/AIContext';
+import IconBlog from './glass-icons/IconBlog';
+import IconTranslate from './glass-icons/IconTranslate';
 
 export default function DockNav() {
   const router = useRouter();
@@ -128,6 +130,20 @@ export default function DockNav() {
       group: 'tools'
     },
     {
+      icon: <IconTranslate />,
+      label: 'Translate',
+      onClick: () => {
+        if (!user) {
+          router.push('/login');
+          return;
+        }
+        router.push('/translate');
+      },
+      priority: 'important',
+      isActive: pathname === '/translate',
+      group: 'tools'
+    },
+    {
       icon: <IconUsers />,
       label: 'Group Chats',
       onClick: () => {
@@ -182,7 +198,7 @@ export default function DockNav() {
       group: 'system'
     },
     {
-      icon: <IconPen />,
+      icon: <IconBlog />,
       label: 'Blog',
       onClick: () => { router.push('/blog') },
       priority: 'important',

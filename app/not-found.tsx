@@ -9,19 +9,19 @@ export default function NotFound() {
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
 
-      <section className="relative min-h-screen bg-white flex items-center justify-center" style={{ fontFamily: '"Arvo", serif' }}>
+      <section className="relative min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center transition-colors duration-300" style={{ fontFamily: '"Arvo", serif' }}>
         <div className="container mx-auto px-4 w-full max-w-4xl">
           <div className="flex flex-col items-center text-center">
             {/* 404 Text - Above the animation */}
             <div className="mb-8">
-              <h1 className="text-7xl sm:text-8xl font-bold text-gray-800 mb-4" style={{ fontFamily: '"Arvo", serif', fontWeight: 700 }}>
+              <h1 className="text-7xl sm:text-8xl font-bold text-gray-800 dark:text-gray-100 mb-4 transition-colors" style={{ fontFamily: '"Arvo", serif', fontWeight: 700 }}>
                 404
               </h1>
               <div className="space-y-4">
-                <h3 className="text-2xl sm:text-3xl font-semibold" style={{ fontFamily: '"Arvo", serif', fontWeight: 400 }}>
+                <h3 className="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-gray-200 transition-colors" style={{ fontFamily: '"Arvo", serif', fontWeight: 400 }}>
                   Looks like you&apos;re lost
                 </h3>
-                <p className="text-gray-600" style={{ fontFamily: '"Arvo", serif', fontWeight: 400 }}>
+                <p className="text-gray-600 dark:text-gray-400 transition-colors" style={{ fontFamily: '"Arvo", serif', fontWeight: 400 }}>
                   The page you are looking for is not available!
                 </p>
               </div>
@@ -41,6 +41,35 @@ export default function NotFound() {
 
       {/* Minimal custom CSS for the SVG animation */}
       <style>{`
+        :root {
+          --logo-fill: #1a365d;
+          --logo-stroke: #1a365d;
+          --logo-stroke-mid: #2d3748;
+          --logo-glow: rgba(26, 54, 93, 0.3);
+          --logo-radial-1: rgba(26, 54, 93, 0.1);
+          --logo-radial-2: rgba(26, 54, 93, 0.05);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --logo-fill: #90cdf4;
+            --logo-stroke: #63b3ed;
+            --logo-stroke-mid: #bee3f8;
+            --logo-glow: rgba(144, 205, 244, 0.4);
+            --logo-radial-1: rgba(144, 205, 244, 0.15);
+            --logo-radial-2: rgba(144, 205, 244, 0.08);
+          }
+        }
+        
+        .dark {
+          --logo-fill: #90cdf4;
+          --logo-stroke: #63b3ed;
+          --logo-stroke-mid: #bee3f8;
+          --logo-glow: rgba(144, 205, 244, 0.4);
+          --logo-radial-1: rgba(144, 205, 244, 0.15);
+          --logo-radial-2: rgba(144, 205, 244, 0.08);
+        }
+        
         .btn--tl {
           pointer-events: all;
           cursor: pointer;
@@ -54,11 +83,11 @@ export default function NotFound() {
           transform: translateZ(0);
         }
         .logo-svg {
-          fill: #1a365d;
+          fill: var(--logo-fill);
           transition: all 0.4s ease;
         }
         .logo-path {
-          stroke: #1a365d;
+          stroke: var(--logo-stroke);
           stroke-width: 0;
           stroke-dasharray: 1000;
           stroke-dashoffset: 1000;
@@ -70,7 +99,7 @@ export default function NotFound() {
         }
         .btn--tl:hover .logo-svg {
           transform: scale(1.1);
-          filter: drop-shadow(0 2px 4px rgba(26, 54, 93, 0.3));
+          filter: drop-shadow(0 2px 4px var(--logo-glow));
         }
         .btn--tl:hover {
           transform: scale(1.05) translateZ(0);
@@ -79,20 +108,20 @@ export default function NotFound() {
           0% {
             stroke-dashoffset: 1000;
             fill: transparent;
-            stroke: #1a365d;
+            stroke: var(--logo-stroke);
           }
           50% {
             stroke-dashoffset: 0;
             fill: transparent;
-            stroke: #2d3748;
+            stroke: var(--logo-stroke-mid);
           }
           80% {
-            fill: rgba(26, 54, 93, 0.3);
-            stroke: #2d3748;
+            fill: var(--logo-radial-1);
+            stroke: var(--logo-stroke-mid);
           }
           100% {
             stroke-dashoffset: 0;
-            fill: #1a365d;
+            fill: var(--logo-fill);
             stroke: transparent;
           }
         }
@@ -104,8 +133,8 @@ export default function NotFound() {
           right: -5px;
           bottom: -5px;
           background:
-            radial-gradient(circle at 30% 20%, rgba(26, 54, 93, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 70% 80%, rgba(26, 54, 93, 0.05) 0%, transparent 50%);
+            radial-gradient(circle at 30% 20%, var(--logo-radial-1) 0%, transparent 50%),
+            radial-gradient(circle at 70% 80%, var(--logo-radial-2) 0%, transparent 50%);
           border-radius: 50%;
           opacity: 0;
           transition: opacity 0.3s ease;
