@@ -7,6 +7,16 @@ import { TestDetailModal } from './TestDetailModal';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import { SplittingText } from './animate-ui/primitives/texts/splitting';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Cookie utilities for persisting UI state
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -243,7 +253,7 @@ const MainApp = () => {
     updateTestDueDate,
     markTestComplete
   } = useClassContext();
-  const [isClient, setIsClient] = useState(false);
+
   const [showAddClass, setShowAddClass] = useState(false);
   const [showAddHomework, setShowAddHomework] = useState(false);
   const [showPinHomeworkModal, setShowPinHomeworkModal] = useState(false);
@@ -257,6 +267,7 @@ const MainApp = () => {
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isTestDetailModalOpen, setIsTestDetailModalOpen] = useState(false);
   const [classIdForAddTest, setClassIdForAddTest] = useState<string | undefined>(undefined);
+  const [classToDelete, setClassToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Initialize section visibility states from cookies with defaults
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
@@ -539,121 +550,129 @@ const MainApp = () => {
     return () => clearTimeout(timer);
   }, [newClassName, handleAISuggest]);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+
 
   // Auto-show onboarding modal for users with no classes
   useEffect(() => {
-    if (isClient && user && classes.length === 0 && !loading) {
+    if (user && classes.length === 0 && !loading) {
       setShowOnboarding(true);
     }
-  }, [isClient, user, classes.length, loading]);
+  }, [user, classes.length, loading]);
 
   // Show toast notifications for overdue assignments - ONLY ON FIRST LOAD
   React.useEffect(() => {
     // Only run this effect once on initial load, not every time homeworks changes
-    if (!isClient || loading || homeworks.length === 0 || hasShownInitialNotifications) return;
+    if (loading || homeworks.length === 0 || hasShownInitialNotifications) return;
 
-    const overdueAssignments = homeworks.filter((hw: Homework) => {
-      const dueDate = new Date(hw.dueDate);
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0); // Start of today (midnight)
-      return !hw.completed && dueDate < todayStart;
-    });
-
-    if (overdueAssignments.length > 0) {
-      // Group by class for better messaging
-      const overdueByClass = overdueAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
-        const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
-        if (!acc[className]) acc[className] = [];
-        acc[className].push(hw);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      Object.entries(overdueByClass).forEach(([className, assignments]: [string, any]) => {
-        if (assignments.length === 1) {
-          warning(
-            `${assignments[0].title} is overdue!`,
-            `Due date was ${new Date(assignments[0].dueDate).toLocaleDateString()}`
-          );
-        } else {
-          warning(
-            `${assignments.length} assignments overdue in ${className}`,
-            `Check your ${className} assignments`
-          );
-        }
+    // Delay toast notifications so the page UI can settle first (dock, animations, etc.)
+    const delayTimer = setTimeout(() => {
+      const overdueAssignments = homeworks.filter((hw: Homework) => {
+        const dueDate = new Date(hw.dueDate);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0); // Start of today (midnight)
+        return !hw.completed && dueDate < todayStart;
       });
 
-      // Mark that we've shown initial notifications
-      setHasShownInitialNotifications(true);
-    }
-  }, [isClient, loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
+      if (overdueAssignments.length > 0) {
+        // Group by class for better messaging
+        const overdueByClass = overdueAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
+          const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
+          if (!acc[className]) acc[className] = [];
+          acc[className].push(hw);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        Object.entries(overdueByClass).forEach(([className, assignments]: [string, any]) => {
+          if (assignments.length === 1) {
+            warning(
+              `${assignments[0].title} is overdue!`,
+              `Due date was ${new Date(assignments[0].dueDate).toLocaleDateString()}`
+            );
+          } else {
+            warning(
+              `${assignments.length} assignments overdue in ${className}`,
+              `Check your ${className} assignments`
+            );
+          }
+        });
+
+        // Mark that we've shown initial notifications
+        setHasShownInitialNotifications(true);
+      }
+    }, 1500);
+
+    return () => clearTimeout(delayTimer);
+  }, [loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
 
   // Show toast notifications for assignments due soon - ONLY ON FIRST LOAD
   React.useEffect(() => {
     // Only run this effect once on initial load, not every time homeworks changes
-    if (!isClient || loading || homeworks.length === 0 || hasShownInitialNotifications) return;
+    if (loading || homeworks.length === 0 || hasShownInitialNotifications) return;
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Delay toast notifications so the page UI can settle first
+    const delayTimer = setTimeout(() => {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
 
-    const tomorrowStart = new Date(todayStart);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+      const tomorrowStart = new Date(todayStart);
+      tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
-    const threeDaysFromNow = new Date(todayStart);
-    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+      const threeDaysFromNow = new Date(todayStart);
+      threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 
-    const dueSoonAssignments = homeworks.filter((hw: Homework) => {
-      const dueDate = new Date(hw.dueDate);
-      return !hw.completed && dueDate >= todayStart && dueDate <= threeDaysFromNow;
-    });
-
-    if (dueSoonAssignments.length > 0) {
-      // Group by class for better messaging
-      const dueSoonByClass = dueSoonAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
-        const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
-        if (!acc[className]) acc[className] = [];
-        acc[className].push(hw);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      Object.entries(dueSoonByClass).forEach(([className, assignments]: [string, any]) => {
-        if (assignments.length === 1) {
-          const hw = assignments[0];
-          const dueDate = new Date(hw.dueDate);
-          const todayStart = new Date();
-          todayStart.setHours(0, 0, 0, 0);
-
-          const tomorrowStart = new Date(todayStart);
-          tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
-          let timePhrase = '';
-          if (dueDate >= todayStart && dueDate < tomorrowStart) {
-            timePhrase = 'today';
-          } else if (dueDate >= tomorrowStart && dueDate < new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000)) {
-            timePhrase = 'tomorrow';
-          } else {
-            const daysUntilDue = Math.ceil((dueDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
-            timePhrase = `in ${daysUntilDue} days`;
-          }
-
-          warning(
-            `${hw.title} is due ${timePhrase}!`,
-            `Due on ${dueDate.toLocaleDateString()}`
-          );
-        } else {
-          warning(
-            `${assignments.length} assignments due soon in ${className}`,
-            `Check your ${className} assignments`
-          );
-        }
+      const dueSoonAssignments = homeworks.filter((hw: Homework) => {
+        const dueDate = new Date(hw.dueDate);
+        return !hw.completed && dueDate >= todayStart && dueDate <= threeDaysFromNow;
       });
 
-      // Mark that we've shown initial notifications
-      setHasShownInitialNotifications(true);
-    }
-  }, [isClient, loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
+      if (dueSoonAssignments.length > 0) {
+        // Group by class for better messaging
+        const dueSoonByClass = dueSoonAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
+          const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
+          if (!acc[className]) acc[className] = [];
+          acc[className].push(hw);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        Object.entries(dueSoonByClass).forEach(([className, assignments]: [string, any]) => {
+          if (assignments.length === 1) {
+            const hw = assignments[0];
+            const dueDate = new Date(hw.dueDate);
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+
+            const tomorrowStart = new Date(todayStart);
+            tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+            let timePhrase = '';
+            if (dueDate >= todayStart && dueDate < tomorrowStart) {
+              timePhrase = 'today';
+            } else if (dueDate >= tomorrowStart && dueDate < new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000)) {
+              timePhrase = 'tomorrow';
+            } else {
+              const daysUntilDue = Math.ceil((dueDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
+              timePhrase = `in ${daysUntilDue} days`;
+            }
+
+            warning(
+              `${hw.title} is due ${timePhrase}!`,
+              `Due on ${dueDate.toLocaleDateString()}`
+            );
+          } else {
+            warning(
+              `${assignments.length} assignments due soon in ${className}`,
+              `Check your ${className} assignments`
+            );
+          }
+        });
+
+        // Mark that we've shown initial notifications
+        setHasShownInitialNotifications(true);
+      }
+    }, 1500);
+
+    return () => clearTimeout(delayTimer);
+  }, [loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
 
   // Show success toast when completing homework
   const handleHomeworkToggle = useCallback(async (homeworkId: string) => {
@@ -709,22 +728,7 @@ const MainApp = () => {
     }
   };
 
-  // Add debugging for homework display
-  useEffect(() => {
-    console.log('Available classes:', classes.map((cls: Class) => ({ id: cls.id, name: cls.name })));
-    console.log('Total homework items:', homeworks.length);
-    console.log('Homework items with class details:', homeworks.map((hw: Homework) => {
-      const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
-      return {
-        id: hw.id,
-        classId: hw.classId,
-        className: className,
-        title: hw.title,
-        is_recurring_instance: (hw as any).is_recurring_instance,
-        recurring_id: (hw as any).recurring_id
-      };
-    }));
-  }, [classes, homeworks]);
+
 
   // Award XP for existing completed tests on component mount
   useEffect(() => {
@@ -799,10 +803,10 @@ const MainApp = () => {
   };
 
   // Get a consistent color for each class
-  const getClassColor = (index: number) => {
+  const getClassColor = useCallback((index: number) => {
     const colors = Object.values(classColors);
     return colors[index % colors.length];
-  };
+  }, []);
 
   // Memoize the processed class data to prevent re-renders
   const processedClasses = useMemo(() => {
@@ -865,10 +869,82 @@ const MainApp = () => {
     });
   }, [classes, homeworks, tests, getClassColor, isHomeworkArchived]);
 
-  // Only return null if not client-side after hooks are initialized
-  if (!isClient) {
-    return null;
-  }
+  // Memoized: overdue homework count (used in stats section)
+  const overdueCount = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    return homeworks.filter((hw: any) => !hw.completed && new Date(hw.dueDate) < todayStart).length;
+  }, [homeworks]);
+
+  // Memoized: next due homework and days until due
+  const { nextDueHomework, daysUntilNextDue } = useMemo(() => {
+    if (homeworks.length === 0) return { nextDueHomework: null, daysUntilNextDue: null };
+    const now = new Date();
+    const next = homeworks
+      .filter((hw: any) => !hw.completed && new Date(hw.dueDate) > now)
+      .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
+    const days = next
+      ? Math.ceil((new Date(next.dueDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    return { nextDueHomework: next, daysUntilNextDue: days };
+  }, [homeworks]);
+
+  // Memoized: next upcoming test and days until test
+  const { nextUpcomingTest, daysUntilNextTest } = useMemo(() => {
+    if (tests.length === 0) return { nextUpcomingTest: null, daysUntilNextTest: null };
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const next = tests
+      .filter((test: Test) => test.status !== 'taken' && new Date(test.testDate) >= todayStart)
+      .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0] || null;
+    const days = next
+      ? Math.ceil((new Date(next.testDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    return { nextUpcomingTest: next, daysUntilNextTest: days };
+  }, [tests]);
+
+  // Memoized: test filtering logic
+  const filteredTests = useMemo(() => {
+    return tests.filter(test => {
+      const testDate = new Date(test.testDate + 'T00:00:00');
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+
+      switch (testFilter) {
+        case 'upcoming':
+          return testDate >= today;
+        case 'taken':
+          return testDate < today;
+        default:
+          return true;
+      }
+    });
+  }, [tests, testFilter]);
+
+  // Memoized: group tests by class
+  const testsByClass = useMemo(() => {
+    return filteredTests.reduce((acc, test) => {
+      const classId = test.classId;
+      if (!acc[classId]) {
+        acc[classId] = [];
+      }
+      acc[classId].push(test);
+      return acc;
+    }, {} as Record<string, typeof tests>);
+  }, [filteredTests]);
+
+  // Memoized: classes that have tests
+  const classesWithTests = useMemo(() => classes.filter(cls => testsByClass[cls.id]), [classes, testsByClass]);
+
+  // Memoized: test statistics
+  const { totalTests, upcomingTestsCount, takenTests } = useMemo(() => ({
+    totalTests: tests.length,
+    upcomingTestsCount: tests.filter(test => test.status === 'upcoming'),
+    takenTests: tests.filter(test => test.status === 'taken'),
+  }), [tests]);
+
+
 
   const handleAddClass = async () => {
     if (!newClassName.trim()) return;
@@ -1003,74 +1079,7 @@ const MainApp = () => {
 
 
 
-  // Calculate next due homework and days until due (no useMemo to avoid hook ordering issues)
-  const nextDueHomework = homeworks.length > 0
-    ? homeworks
-      .filter((hw: any) => !hw.completed && new Date(hw.dueDate) > new Date())
-      .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0]
-    : null;
 
-  const daysUntilNextDue = nextDueHomework
-    ? Math.ceil((new Date(nextDueHomework.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    : null;
-
-  // Calculate next upcoming test and days until test
-  const nextUpcomingTest = tests.length > 0
-    ? tests
-      .filter((test: Test) => test.status !== 'taken' && new Date(test.testDate) >= new Date(new Date().setHours(0, 0, 0, 0)))
-      .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0]
-    : null;
-
-  const daysUntilNextTest = nextUpcomingTest
-    ? Math.ceil((new Date(nextUpcomingTest.testDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    : null;
-
-  // Test filtering logic
-  const filteredTests = tests.filter(test => {
-    // Create date objects with consistent timezone (UTC)
-    const testDate = new Date(test.testDate + 'T00:00:00');
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    // console.log('Test filtering:', {
-    //   testTitle: test.title,
-    //   testDate: test.testDate,
-    //   testDateObj: testDate,
-    //   today: today,
-    //   isBeforeToday: testDate < today,
-    //   isAfterOrEqualToday: testDate >= today,
-    //   currentFilter: testFilter
-    // });
-
-    switch (testFilter) {
-      case 'upcoming':
-        return testDate >= today; // Show tests from today onwards
-      case 'taken':
-        return testDate < today; // Show tests before today
-      default:
-        return true;
-    }
-  });
-
-  console.log('Filtered tests count:', filteredTests.length, 'out of', tests.length);
-
-  // Group tests by class
-  const testsByClass = filteredTests.reduce((acc, test) => {
-    const classId = test.classId;
-    if (!acc[classId]) {
-      acc[classId] = [];
-    }
-    acc[classId].push(test);
-    return acc;
-  }, {} as Record<string, typeof tests>);
-
-  // Get class info for each class
-  const classesWithTests = classes.filter(cls => testsByClass[cls.id]);
-
-  // Test statistics
-  const totalTests = tests.length;
-  const upcomingTestsCount = tests.filter(test => test.status === 'upcoming');
-  const takenTests = tests.filter(test => test.status === 'taken');
 
 
 
@@ -1082,7 +1091,7 @@ const MainApp = () => {
       case 'classes':
         const effectivelyShowClasses = showTestsInClassCards || showClasses;
         return (
-          <div key="classes" className="mb-10">
+          <div key="classes" className="mb-10" data-tour="classes">
             <div>
               <div
                 className={`mb-4 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
@@ -1170,7 +1179,7 @@ const MainApp = () => {
             </div>
 
             <div
-              className={`overflow-hidden transition-all duration-400 ease-in-out ${effectivelyShowClasses
+              className={`overflow-hidden p-6 -mx-6 transition-all duration-400 ease-in-out ${effectivelyShowClasses
                 ? 'max-h-[5000px] opacity-100'
                 : 'max-h-0 opacity-0'
                 }`}
@@ -1237,7 +1246,7 @@ const MainApp = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                deleteClass(cls.id);
+                                setClassToDelete({ id: cls.id, name: cls.name });
                               }}
                               className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
                               aria-label="Delete class"
@@ -1508,36 +1517,16 @@ const MainApp = () => {
           {/* Overdue Items */}
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className={`text-xs font-medium ${homeworks.filter((hw: any) => {
-                const dueDate = new Date(hw.dueDate);
-                const todayStart = new Date();
-                todayStart.setHours(0, 0, 0, 0);
-                return !hw.completed && dueDate < todayStart;
-              }).length > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
+              <span className={`text-xs font-medium ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
               <div className="relative">
-                <Clock className={`w-4 h-4 ${homeworks.filter((hw: any) => {
-                  const dueDate = new Date(hw.dueDate);
-                  const todayStart = new Date();
-                  todayStart.setHours(0, 0, 0, 0);
-                  return !hw.completed && dueDate < todayStart;
-                }).length > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
-                {homeworks.filter((hw: any) => {
-                  const dueDate = new Date(hw.dueDate);
-                  const todayStart = new Date();
-                  todayStart.setHours(0, 0, 0, 0);
-                  return !hw.completed && dueDate < todayStart;
-                }).length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
-                  )}
+                <Clock className={`w-4 h-4 ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
+                {overdueCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
+                )}
               </div>
             </div>
             <div className="text-2xl font-light text-gray-900 dark:text-white">
-              {homeworks.filter((hw: any) => {
-                const dueDate = new Date(hw.dueDate);
-                const todayStart = new Date();
-                todayStart.setHours(0, 0, 0, 0);
-                return !hw.completed && dueDate < todayStart;
-              }).length}
+              {overdueCount}
             </div>
           </div>
 
@@ -2145,6 +2134,32 @@ const MainApp = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Class Confirmation Dialog */}
+      <AlertDialog open={!!classToDelete} onOpenChange={(open) => { if (!open) setClassToDelete(null); }}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{classToDelete?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this class and all of its homework and tests. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600 text-white border-none"
+              onClick={() => {
+                if (classToDelete) {
+                  deleteClass(classToDelete.id);
+                  setClassToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

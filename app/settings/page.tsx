@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Settings, User, Shield, Zap, Accessibility, Database, Globe, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
@@ -40,6 +41,8 @@ const getCookie = (name: string): string | null => {
 type SettingTab = 'preferences' | 'classroom' | 'accessibility' | 'data' | 'account';
 
 export default function SettingsPage() {
+  const { authenticated } = useRequireAuth();
+  if (!authenticated) return null;
   const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
   const { signOut, full_name, isGoogleUser } = useAuth() || {};
   const [activeTab, setActiveTab] = useState<SettingTab>('preferences');

@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import WorthinessCheckModal from '@/components/WorthinessCheckModal';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { getFullVersionString } from '@/config/version';
 
 export default function GamesPage() {
+    const { authenticated } = useRequireAuth();
+    if (!authenticated) return null;
     const router = useRouter();
     const { homeworks } = useClassContext();
     const { getContainerClass } = useWideLayout();

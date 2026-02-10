@@ -56,7 +56,6 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
-  const [retryCount, setRetryCount] = useState(0);
   const [schoolWarning, setSchoolWarning] = useState<{ showWarning: boolean; message: string } | null>(null);
 
   // Fetch user's groups
@@ -69,10 +68,10 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
 
     setLoading(true);
     setError(null);
-    
+
     try {
       console.log('Fetching group chat memberships for user:', user.id);
-      
+
       // First, get all groups the user is a member of
       const { data: memberships, error: membershipsError, status } = await supabase
         .from('study_group_members')
@@ -81,12 +80,12 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
 
       console.log('Memberships query status:', status);
       console.log('Memberships data:', memberships);
-      
+
       if (membershipsError) {
         console.error('Error fetching memberships:', membershipsError);
         throw new Error(`Memberships error: ${membershipsError.message}`);
       }
-      
+
       if (!memberships || memberships.length === 0) {
         console.log('No memberships found for user');
         setGroups([]);
@@ -96,13 +95,13 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       // Get the group IDs
       const groupIds = memberships.map(m => m.group_id);
       console.log('Found group IDs:', groupIds);
-      
+
       if (groupIds.length === 0) {
         console.log('No group IDs to fetch');
         setGroups([]);
         return;
       }
-      
+
       // Fetch the groups with member counts
       console.log('Fetching groups with IDs:', groupIds);
       const { data: groupsData, error: groupsError } = await supabase
@@ -113,7 +112,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
           group_messages(count)
         `)
         .in('id', groupIds);
-        
+
       if (groupsError) {
         console.error('Error fetching groups:', groupsError);
         throw new Error(`Groups error: ${groupsError.message}`);
@@ -123,14 +122,14 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
 
       // Format the groups data
       const formattedGroups = (groupsData || []).map(group => {
-        const memberCount = Array.isArray(group.study_group_members) && group.study_group_members[0]?.count 
-          ? group.study_group_members[0].count 
+        const memberCount = Array.isArray(group.study_group_members) && group.study_group_members[0]?.count
+          ? group.study_group_members[0].count
           : 0;
-          
-        const messagesCount = Array.isArray(group.group_messages) && group.group_messages[0]?.count 
-          ? group.group_messages[0].count 
+
+        const messagesCount = Array.isArray(group.group_messages) && group.group_messages[0]?.count
+          ? group.group_messages[0].count
           : 0;
-          
+
         return {
           ...group,
           member_count: memberCount,
@@ -157,10 +156,10 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Fetch group messages
   const fetchMessages = useCallback(async (groupId: string) => {
     if (!groupId) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Fetch all messages for this group with the full_name directly from group_messages
       const { data: messages, error: messagesError } = await supabase
         .from('group_messages')
@@ -177,19 +176,19 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       // Process messages with the full_name directly from the message
       const processedMessages = messages.map(msg => {
         const isCurrentUser = msg.user_id === user?.id;
-        
+
         return {
           ...msg,
           profiles: {
-            full_name: isCurrentUser && msg.full_name === 'User' 
-              ? 'You' 
+            full_name: isCurrentUser && msg.full_name === 'User'
+              ? 'You'
               : msg.full_name || 'User',
             email: '',
             avatar_url: ''
           }
         };
       });
-      
+
       setMessages(processedMessages);
     } catch (err) {
       console.error('Error fetching messages:', err);
@@ -202,7 +201,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Fetch group links
   const fetchLinks = useCallback(async (groupId: string) => {
     if (!groupId) return;
-    
+
     try {
       // Fetch links with the full_name directly from group_links
       const { data, error } = await supabase
@@ -212,7 +211,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       // Process links to match the expected format with profiles
       const processedLinks = data.map(link => ({
         ...link,
@@ -221,7 +220,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
           avatar_url: ''
         }
       }));
-      
+
       setLinks(processedLinks || []);
     } catch (err) {
       console.error('Error fetching links:', err);
@@ -232,14 +231,14 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Create a new group
   const createGroup = async (name: string, classId?: string) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       const { data: group, error } = await supabase
         .from('study_groups')
-        .insert([{ 
-          name, 
+        .insert([{
+          name,
           class_id: classId || null,
-          created_by: user.id 
+          created_by: user.id
         }])
         .select()
         .single();
@@ -249,9 +248,9 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       // Add creator as a member
       await supabase
         .from('study_group_members')
-        .insert([{ 
-          group_id: group.id, 
-          user_id: user.id 
+        .insert([{
+          group_id: group.id,
+          user_id: user.id
         }]);
 
       await fetchGroups();
@@ -264,17 +263,17 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Join a group
   const joinGroup = async (groupId: string) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       const { error } = await supabase
         .from('study_group_members')
-        .insert([{ 
-          group_id: groupId, 
-          user_id: user.id 
+        .insert([{
+          group_id: groupId,
+          user_id: user.id
         }]);
 
       if (error) throw error;
-      
+
       await fetchGroups();
     } catch (err) {
       console.error('Error joining group:', err);
@@ -285,7 +284,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Leave a group
   const leaveGroup = async (groupId: string) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       const { error } = await supabase
         .from('study_group_members')
@@ -294,12 +293,12 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         .eq('user_id', user.id);
 
       if (error) throw error;
-      
+
       // If current group is the one we're leaving, clear it
       if (currentGroup?.id === groupId) {
         setCurrentGroup(null);
       }
-      
+
       await fetchGroups();
     } catch (err) {
       console.error('Error leaving group:', err);
@@ -310,7 +309,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Send a message to a group
   const sendMessage = async (groupId: string, content: string) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       const { error } = await supabase
         .from('group_messages')
@@ -325,7 +324,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         console.error('Error inserting message:', error);
         throw new Error('Failed to send message');
       }
-      
+
       // Real-time subscription handles updates
     } catch (err) {
       console.error('Error sending message:', err);
@@ -336,7 +335,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Add a link to a group
   const addLink = async (groupId: string, url: string, title?: string) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       // If no title provided, try to fetch it
       let linkTitle = title;
@@ -361,7 +360,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         }]);
 
       if (error) throw error;
-      
+
       // Real-time subscription handles updates
     } catch (err) {
       console.error('Error adding link:', err);
@@ -425,7 +424,11 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
           console.log(`✅ Subscribed to channel: ${channelName}`);
           setConnectionStatus('connected');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.error('❌ Subscription error:', err);
+          if (err) {
+            console.error('❌ Subscription error:', err);
+          } else {
+            console.warn(`⚠️ Realtime subscription status: ${status}`);
+          }
           setConnectionStatus('disconnected');
         }
       });

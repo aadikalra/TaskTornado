@@ -19,6 +19,7 @@ export type DockItemData = {
   className?: string;
   isActive?: boolean;
   type?: 'item' | 'divider';
+  dataTour?: string;
 };
 
 export type DockProps = {
@@ -42,6 +43,7 @@ type DockItemProps = {
   baseItemSize: number;
   magnification: number;
   isActive?: boolean;
+  dataTour?: string;
 };
 
 function DockItem({
@@ -53,7 +55,8 @@ function DockItem({
   distance,
   magnification,
   baseItemSize,
-  isActive
+  isActive,
+  dataTour
 }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isHovered = useMotionValue(0);
@@ -93,6 +96,7 @@ function DockItem({
       tabIndex={0}
       role="button"
       aria-haspopup="true"
+      data-tour={dataTour}
     >
       {isActive && (
         <motion.div
@@ -232,6 +236,7 @@ export default function Dock({
         }}
         role="toolbar"
         aria-label="Application dock"
+        data-tour="dock"
       >
         {items.map((item, index) => {
           if (item.type === 'divider') {
@@ -255,6 +260,7 @@ export default function Dock({
               magnification={responsiveMagnification}
               baseItemSize={responsiveBaseSize}
               isActive={item.isActive}
+              dataTour={item.dataTour}
             >
               <DockIcon>{item.icon}</DockIcon>
               <DockLabel>{item.label}</DockLabel>

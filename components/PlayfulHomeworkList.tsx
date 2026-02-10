@@ -200,7 +200,10 @@ const PlayfulHomeworkListComponent = ({
               opacity: { duration: 0.2 },
               y: { duration: 0.2 }
             }}
-            className="space-y-2"
+            className={cn(
+              "space-y-2 transition-all duration-200",
+              item.pinned && "p-3 -mx-3 rounded-xl bg-gradient-to-r from-amber-50/80 to-transparent dark:from-amber-900/10 shadow-[0_2px_8px_-2px_rgba(251,191,36,0.1)]"
+            )}
           >
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
@@ -392,14 +395,13 @@ const PlayfulHomeworkListComponent = ({
             </div>
             {/* Links are rendered here, below the main homework item */}
             {item.links && item.links.length > 0 && !item.completed && (
-              <div className={`space-y-1.5 ml-8 transition-opacity duration-200`}>
+              <div className="flex flex-wrap gap-1.5 ml-8 mt-1.5 transition-opacity duration-200">
                 {item.links.map(link => (
-                  <div key={link.id} className="text-xs">
-                    <LinkCard
-                      url={link.url}
-                      title={link.title || item.text}
-                    />
-                  </div>
+                  <LinkCard
+                    key={link.id}
+                    url={link.url}
+                    title={link.title || item.text}
+                  />
                 ))}
               </div>
             )}

@@ -13,8 +13,17 @@ import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { getFullVersionString } from '@/config/version';
+import { useRequireAuth } from '@/hooks/use-require-auth';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function GroupsPage() {
+  const { authenticated } = useRequireAuth();
+  if (!authenticated) return null;
   const router = useRouter();
   const { groups, loading, error, createGroup, schoolWarning, dismissSchoolWarning } = useStudyGroups();
   const { getContainerClass } = useWideLayout();
@@ -22,6 +31,7 @@ export default function GroupsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const { showIntro, dismissIntro } = useRouteIntro('groups');
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,21 +86,7 @@ export default function GroupsPage() {
     );
   }
 
-  // Helper function to show the dialog with proper type assertion
-  const showCreateGroupDialog = () => {
-    const dialog = document.getElementById('create-group-dialog') as HTMLDialogElement | null;
-    if (dialog) {
-      (dialog as HTMLDialogElement).showModal();
-    }
-  };
 
-  // Helper function to close the dialog with proper type assertion
-  const closeCreateGroupDialog = () => {
-    const dialog = document.getElementById('create-group-dialog') as HTMLDialogElement | null;
-    if (dialog) {
-      dialog.close();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -116,7 +112,7 @@ export default function GroupsPage() {
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                showCreateGroupDialog();
+                setIsCreateGroupOpen(true);
               }}
               className="gap-2"
             >
@@ -196,7 +192,7 @@ export default function GroupsPage() {
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  showCreateGroupDialog();
+                  setIsCreateGroupOpen(true);
                 }}
                 className="gap-2"
               >
@@ -259,76 +255,72 @@ export default function GroupsPage() {
       </div>
 
       {/* Create Group Dialog */}
-      <dialog id="create-group-dialog" className="relative z-50">
-        <div className="fixed inset-0 bg-black/50" onClick={closeCreateGroupDialog} />
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800"
-          >
-            <h3 className="mb-6 text-xl font-medium text-gray-900 dark:text-white">Create a new group chat</h3>
+      <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create a new group chat</DialogTitle>
+          </DialogHeader>
 
-            <form onSubmit={handleCreateGroup} className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="group-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Group Name
-                </label>
-                <Input
-                  id="group-name"
-                  type="text"
-                  placeholder="e.g., CS101 Study Group"
-                  className="w-full dark:text-gray-300"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  required
-                />
-                {createError && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{createError}</p>
-                )}
-              </div>
+          <form onSubmit={handleCreateGroup} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="group-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Group Name
+              </label>
+              <Input
+                id="group-name"
+                type="text"
+                placeholder="e.g., CS101 Study Group"
+                className="w-full dark:text-gray-300"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                required
+              />
+              {createError && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{createError}</p>
+              )}
+            </div>
 
-              <div className="flex justify-end space-x-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={closeCreateGroupDialog}
-                  disabled={isCreating}
-                  className="px-4 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isCreating || !newGroupName.trim()}
-                  className="px-4"
-                >
-                  {isCreating ? (
-                    <>
-                      <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Creating...
-                    </>
-                  ) : 'Create Group'}
-                </Button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      </dialog>
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateGroupOpen(false)}
+                disabled={isCreating}
+                className="px-4 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isCreating || !newGroupName.trim()}
+                className="px-4"
+              >
+                {isCreating ? (
+                  <>
+                    <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Creating...
+                  </>
+                ) : 'Create Group'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Route Intro Popup */}
       <RouteIntroPopup

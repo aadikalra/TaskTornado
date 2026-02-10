@@ -4,11 +4,15 @@ import { usePathname } from 'next/navigation';
 import { Analytics } from '@vercel/analytics/next';
 import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
+import { useAI } from '@/context/AIContext';
 import { CustomContextMenu } from '@/components/CustomContextMenu';
 import { DictionaryPopup } from '@/components/DictionaryPopup';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useToast } from '@/context/ToastContext';
+import { OnboardingTour } from '@/components/OnboardingTour';
+import { RoleSwitcher } from '@/components/RoleSwitcher';
+
 
 // Dynamically import DockNav with no SSR to avoid hydration issues
 const DockNav = dynamic(() => import('@/components/DockNav'), {
@@ -21,27 +25,20 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
-  const { error } = useToast();
+  const { isAIAssistantOpen, isAISidebarMode } = useAI();
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
 
-  // Block Cmd+Option+U (View Page Source)
+  // Track if we're on desktop (md+) for sidebar margin
+  const [isDesktop, setIsDesktop] = React.useState(false);
   React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for Cmd+Option+U (Mac) or Ctrl+Alt+U (Windows/Linux)
-      if ((event.metaKey || event.ctrlKey) && event.altKey && event.key.toLowerCase() === 'u') {
-        event.preventDefault();
-        event.stopPropagation();
-        error('Not Allowed');
-        return false;
-      }
-    };
+    const check = () => setIsDesktop(window.innerWidth >= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-    window.addEventListener('keydown', handleKeyDown, true);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown, true);
-    };
-  }, [error]);
+  const showSidebarMargin = isDesktop && isAIAssistantOpen && isAISidebarMode;
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -100,11 +97,19 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       <div className="min-h-screen flex flex-col" onContextMenu={handleContextMenu}>
         {/* SearchBar - rendered globally so it can be opened from anywhere */}
         <SearchBar />
-        <main className="flex-1 bg-transparent pb-24 md:pb-0">
+        <main
+          className="flex-1 bg-transparent pb-24 md:pb-0 overflow-x-hidden"
+          style={{
+            marginRight: showSidebarMargin ? 420 : 0,
+            transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
           {children}
         </main>
         {/* Always show DockNav on all pages */}
+        <RoleSwitcher />
         <DockNav />
+        <OnboardingTour />
         {contextMenu && (
           <CustomContextMenu
             x={contextMenu.x}

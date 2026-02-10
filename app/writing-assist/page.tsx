@@ -5,8 +5,11 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { PenTool } from 'lucide-react';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 
 const WritingAssistPage = () => {
+  const { authenticated } = useRequireAuth();
+  if (!authenticated) return null;
   const { showIntro, dismissIntro } = useRouteIntro('writing-assist');
 
   return (

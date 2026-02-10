@@ -35,6 +35,8 @@ import {
   Bookmark,
   Cloud,
   HelpCircle,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
 
 import { Bot } from '@/components/animate-ui/icons/bot';
@@ -306,7 +308,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const abortControllerRef = useRef<AbortController | null>(null); // Added abortControllerRef
 
   // Safeguard destructuring
-  const { chat, error: aiError, setError: setAIError = () => { }, setAIInput } = aiContext || {};
+  const { chat, error: aiError, setError: setAIError = () => { }, setAIInput, isAISidebarMode, setAISidebarMode } = aiContext || {};
 
   const {
     homeworks = [],
@@ -2311,63 +2313,85 @@ Examples of correct button prompts:
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, x: '100%', y: '100%' }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, x: '100%', y: '100%' }}
-            transition={{ duration: 0.3 }}
+            initial={{
+              clipPath: isAISidebarMode
+                ? 'inset(0% 0% 0% 100% round 0px)'
+                : 'inset(100% 0% 0% 100% round 24px)',
+            }}
+            animate={{
+              clipPath: isAISidebarMode
+                ? 'inset(0% 0% 0% 0% round 0px)'
+                : 'inset(0% 0% 0% 0% round 24px)',
+            }}
+            exit={{
+              clipPath: isAISidebarMode
+                ? 'inset(0% 0% 0% 100% round 0px)'
+                : 'inset(100% 0% 0% 100% round 24px)',
+            }}
+            transition={{
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             style={{
-              width: window.innerWidth < 768 ? '100vw' : `${panelSize.width}px`,
-              height: window.innerWidth < 768 ? '100vh' : `${panelSize.height}px`,
+              width: window.innerWidth < 768
+                ? '100vw'
+                : isAISidebarMode ? '420px' : `${panelSize.width}px`,
+              height: window.innerWidth < 768
+                ? '100vh'
+                : isAISidebarMode ? '100vh' : `${panelSize.height}px`,
             }}
             className={cn(
               'fixed z-50 flex flex-col overflow-hidden bg-white dark:bg-black border border-gray-200 dark:border-zinc-900 shadow-xl',
               // Mobile (full-screen)
               'inset-0 rounded-none',
-              // Desktop (fixed panel - only use right and bottom, not inset-auto)
-              'md:right-6 md:bottom-6 md:rounded-3xl md:left-auto md:top-auto',
-              'transition-all duration-200 ease-in-out'
+              // Desktop
+              isAISidebarMode
+                ? 'md:right-0 md:top-0 md:bottom-0 md:rounded-none md:left-auto md:border-r-0 md:border-t-0 md:border-b-0'
+                : 'md:right-6 md:bottom-6 md:rounded-3xl md:left-auto md:top-auto',
             )}
           >
-            {/* Resize handles - only on desktop */}
-            <div className="hidden md:block">
-              {/* Top edge */}
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'top')}
-                className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary/20 transition-colors"
-              />
-              {/* Bottom edge */}
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'bottom')}
-                className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary/20 transition-colors"
-              />
-              {/* Left edge */}
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'left')}
-                className="absolute top-0 bottom-0 left-0 w-1 cursor-ew-resize hover:bg-primary/20 transition-colors"
-              />
-              {/* Right edge */}
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'right')}
-                className="absolute top-0 bottom-0 right-0 w-1 cursor-ew-resize hover:bg-primary/20 transition-colors"
-              />
-              {/* Corner handles */}
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'top-left')}
-                className="absolute top-0 left-0 w-3 h-3 cursor-nwse-resize hover:bg-primary/30 transition-colors"
-              />
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'top-right')}
-                className="absolute top-0 right-0 w-3 h-3 cursor-nesw-resize hover:bg-primary/30 transition-colors"
-              />
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'bottom-left')}
-                className="absolute bottom-0 left-0 w-3 h-3 cursor-nesw-resize hover:bg-primary/30 transition-colors"
-              />
-              <div
-                onMouseDown={(e) => handleMouseDown(e, 'bottom-right')}
-                className="absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize hover:bg-primary/30 transition-colors"
-              />
-            </div>
+            {/* Resize handles - only on desktop, not in sidebar mode */}
+            {!isAISidebarMode && (
+              <div className="hidden md:block">
+                {/* Top edge */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'top')}
+                  className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary/20 transition-colors"
+                />
+                {/* Bottom edge */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'bottom')}
+                  className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary/20 transition-colors"
+                />
+                {/* Left edge */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'left')}
+                  className="absolute top-0 bottom-0 left-0 w-1 cursor-ew-resize hover:bg-primary/20 transition-colors"
+                />
+                {/* Right edge */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'right')}
+                  className="absolute top-0 bottom-0 right-0 w-1 cursor-ew-resize hover:bg-primary/20 transition-colors"
+                />
+                {/* Corner handles */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'top-left')}
+                  className="absolute top-0 left-0 w-3 h-3 cursor-nwse-resize hover:bg-primary/30 transition-colors"
+                />
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'top-right')}
+                  className="absolute top-0 right-0 w-3 h-3 cursor-nesw-resize hover:bg-primary/30 transition-colors"
+                />
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'bottom-left')}
+                  className="absolute bottom-0 left-0 w-3 h-3 cursor-nesw-resize hover:bg-primary/30 transition-colors"
+                />
+                <div
+                  onMouseDown={(e) => handleMouseDown(e, 'bottom-right')}
+                  className="absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize hover:bg-primary/30 transition-colors"
+                />
+              </div>
+            )}
             {/* Floating Top Controls */}
             <motion.div
               initial={{ y: 0, opacity: 1 }}
@@ -2417,6 +2441,19 @@ Examples of correct button prompts:
                 </motion.button>
 
                 <div className="w-[1px] h-4 bg-gray-200 dark:bg-zinc-800 mx-0.5" />
+
+                {/* Sidebar toggle — desktop only */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setAISidebarMode(!isAISidebarMode)}
+                  className="hidden md:flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                  title={isAISidebarMode ? 'Floating panel' : 'Sidebar mode'}
+                >
+                  {isAISidebarMode ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+                </motion.button>
+
+                <div className="hidden md:block w-[1px] h-4 bg-gray-200 dark:bg-zinc-800 mx-0.5" />
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}

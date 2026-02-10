@@ -1,10 +1,11 @@
 'use client';
 
-import { Sparkles, Trophy, Award, Brain, Check, Maximize2, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
+import { Sparkles, Trophy, Award, Brain, Check, Maximize2, Calendar as CalendarIcon, BookOpen, RotateCcw } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { BetaPasswordModal } from '@/components/BetaPasswordModal';
+import { useOnboardingTour } from '@/components/OnboardingTour';
 
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
@@ -31,6 +32,8 @@ export default function PreferencesSection({
   showTestsInClassCards,
   onToggleTestsInClassCards
 }: PreferencesSectionProps) {
+  const { resetTour } = useOnboardingTour();
+
   return (
     <div className="space-y-3">
 
@@ -99,6 +102,28 @@ export default function PreferencesSection({
           value={aiPersonality}
           onValueChange={onPersonalityChange}
         />
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-xl">
+            <RotateCcw className="h-5 w-5 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+              Replay Onboarding Tour
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
+              Walk through the key features of TaskTornado again.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={resetTour}
+          className="px-4 py-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all shadow-sm"
+        >
+          Restart
+        </button>
       </div>
     </div>
 

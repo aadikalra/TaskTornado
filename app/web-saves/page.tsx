@@ -6,6 +6,7 @@ import { Plus, X, ExternalLink, Loader2, ImageIcon, Home, AlertTriangle, Bookmar
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWebSaves } from '@/context/WebSavesContext';
 import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useWideLayout } from '@/hooks/use-wide-layout';
@@ -92,6 +93,8 @@ const SitePreview = ({ url, title }: { url: string; title?: string | null }) => 
 };
 
 export default function WebSavesPage() {
+  const { authenticated } = useRequireAuth();
+  if (!authenticated) return null;
   const { user } = useAuth();
   const router = useRouter();
   const { saves, loading, error, addSave, deleteSave } = useWebSaves();

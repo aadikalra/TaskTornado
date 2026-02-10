@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, Home, HelpCircle } from 'lucide-react';
 import { InteractiveQuiz, QuizQuestion } from '@/components/Quiz';
 import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -16,6 +17,8 @@ import { useAI } from '@/context/AIContext';
 import { getFullVersionString } from '@/config/version';
 
 export default function QuizPage() {
+    const { authenticated } = useRequireAuth();
+    if (!authenticated) return null;
     const router = useRouter();
     const { user } = useAuth();
     const { getContainerClass } = useWideLayout();

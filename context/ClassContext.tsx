@@ -255,52 +255,54 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       }, {} as { [key: string]: string });
       Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
 
-      // Process recurring homework to generate future instances
-      try {
-        console.log('🔄 Starting recurring homework processing for user:', user.id);
-        const { supabase } = await import('@/lib/supabase/client');
-        await RecurringHomeworkService.processRecurringHomework(user.id);
-        console.log('✅ Recurring homework processing completed');
-        // Refetch homework after processing recurring items
-        const { data: updatedHomeworks } = await supabase
-          .from('homework')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('due_date', { ascending: true });
-
-        if (updatedHomeworks) {
-          const updatedTransformedHomeworks = updatedHomeworks.map((hw: any) => {
-            let links: HomeworkLink[] = [];
-            if (hw.links) {
-              try {
-                links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
-                if (!Array.isArray(links)) links = [];
-              } catch (e) {
-                console.error('Error parsing links:', e);
-                links = [];
-              }
-            }
-            return {
-              ...hw,
-              links: links,
-              priority: (hw.priority as Priority) || 'medium',
-              dueDate: hw.due_date,
-              classId: hw.class_id,
-              pinned: hw.pinned || false,
-              completed: hw.completed || false
-            };
-          });
-          setHomeworks(updatedTransformedHomeworks);
-        }
-      } catch (error) {
-        console.error('Error processing recurring homework:', error);
-      }
-
+      // Mark loading complete immediately so the UI renders with initial data
       hasLoaded.current = true;
+      setLoading(false);
+
+      // Process recurring homework in the background (non-blocking)
+      // This runs after the UI is already visible with initial data
+      (async () => {
+        try {
+          const { supabase } = await import('@/lib/supabase/client');
+          await RecurringHomeworkService.processRecurringHomework(user.id);
+          // Refetch homework after processing recurring items
+          const { data: updatedHomeworks } = await supabase
+            .from('homework')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('due_date', { ascending: true });
+
+          if (updatedHomeworks) {
+            const updatedTransformedHomeworks = updatedHomeworks.map((hw: any) => {
+              let links: HomeworkLink[] = [];
+              if (hw.links) {
+                try {
+                  links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
+                  if (!Array.isArray(links)) links = [];
+                } catch (e) {
+                  console.error('Error parsing links:', e);
+                  links = [];
+                }
+              }
+              return {
+                ...hw,
+                links: links,
+                priority: (hw.priority as Priority) || 'medium',
+                dueDate: hw.due_date,
+                classId: hw.class_id,
+                pinned: hw.pinned || false,
+                completed: hw.completed || false
+              };
+            });
+            setHomeworks(updatedTransformedHomeworks);
+          }
+        } catch (error) {
+          console.error('Error processing recurring homework:', error);
+        }
+      })();
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to load data. Please try again.');
-    } finally {
       setLoading(false);
     }
   }, [user, isGoogleUser]);

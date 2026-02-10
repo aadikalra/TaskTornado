@@ -2,8 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Languages, ArrowRightLeft, Copy, Check, Volume2, Loader2, ChevronDown, Sparkles, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRightLeft, Copy, Check, Volume2, Loader2, ChevronDown, X } from 'lucide-react';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
@@ -11,6 +10,7 @@ import { getFullVersionString } from '@/config/version';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { Languages } from 'lucide-react';
 
 // Supported languages for the translation
 const LANGUAGES = [
@@ -101,28 +101,23 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
 
     return (
         <div className="relative" ref={dropdownRef}>
-            <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-2 font-bold uppercase tracking-wider">
-                {label}
-            </div>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-[#F7F7F9] dark:bg-zinc-900/50 border border-gray-200/80 dark:border-white/5 rounded-2xl hover:border-gray-300 dark:hover:border-white/10 transition-all duration-200 group"
+                className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100/80 dark:hover:bg-white/[0.04] rounded-xl transition-all duration-150 group"
             >
-                <div className="flex items-center gap-3">
-                    <span className="text-xl">{selectedLang?.flag}</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedLang?.name}</span>
-                </div>
-                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                <span className="text-lg leading-none">{selectedLang?.flag}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedLang?.name}</span>
+                <ChevronDown className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute top-full left-0 right-0 mt-2 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden"
+                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                        className="absolute top-full left-0 mt-1.5 z-50 w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 rounded-xl shadow-xl overflow-hidden"
                     >
                         <div className="p-2 border-b border-gray-100 dark:border-white/5">
                             <input
@@ -130,7 +125,7 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
                                 placeholder="Search languages..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-white/5 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-[#165df9]/30"
+                                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-white/5 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-[#264f84]/30"
                                 autoFocus
                             />
                         </div>
@@ -143,15 +138,15 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
                                         setIsOpen(false);
                                         setSearch('');
                                     }}
-                                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-100/80 dark:hover:bg-white/5 transition-colors ${value === lang.code ? 'bg-[#165df9]/5 dark:bg-[#165df9]/10' : ''
+                                    className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100/80 dark:hover:bg-white/5 transition-colors ${value === lang.code ? 'bg-[#264f84]/5 dark:bg-[#264f84]/10' : ''
                                         }`}
                                 >
-                                    <span className="text-xl">{lang.flag}</span>
-                                    <span className={`text-sm ${value === lang.code ? 'text-[#165df9] dark:text-[#165df9] font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
+                                    <span className="text-lg">{lang.flag}</span>
+                                    <span className={`text-sm ${value === lang.code ? 'text-[#264f84] dark:text-blue-400 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
                                         {lang.name}
                                     </span>
                                     {value === lang.code && (
-                                        <Check className="h-4 w-4 text-[#165df9] ml-auto" />
+                                        <Check className="h-3.5 w-3.5 text-[#264f84] dark:text-blue-400 ml-auto" />
                                     )}
                                 </button>
                             ))}
@@ -184,12 +179,7 @@ export default function TranslatePage() {
 
     const MAX_CHARS = 5000;
 
-    // Redirect to login if not authenticated
-    useEffect(() => {
-        if (!user) {
-            router.push('/login');
-        }
-    }, [user, router]);
+    const abortedRef = useRef(false);
 
     const handleSourceTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const text = e.target.value;
@@ -226,15 +216,10 @@ export default function TranslatePage() {
             return;
         }
 
-        // Cancel any ongoing speech
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
-
-        // Try to find a high-quality voice for the selected language
         const voices = window.speechSynthesis.getVoices();
-
-        // Match by exact language code first (e.g., 'es-ES'), then by prefix (e.g., 'es')
         const voice = voices.find(v => v.lang === langCode) ||
             voices.find(v => v.lang.startsWith(langCode)) ||
             voices.find(v => v.lang.includes(langCode));
@@ -247,13 +232,11 @@ export default function TranslatePage() {
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
 
-        // Some browsers require a small delay after cancel
         setTimeout(() => {
             window.speechSynthesis.speak(utterance);
         }, 50);
     };
 
-    // Pre-load voices to ensure they are available when requested
     useEffect(() => {
         if (typeof window !== 'undefined' && window.speechSynthesis) {
             window.speechSynthesis.getVoices();
@@ -310,7 +293,6 @@ export default function TranslatePage() {
 
             const decoder = new TextDecoder();
             let accumulatedResponse = '';
-            let currentSection: 'translation' | 'pronunciation' | 'explanation' | null = null;
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -326,45 +308,26 @@ export default function TranslatePage() {
                             if (data.translation) {
                                 accumulatedResponse += data.translation;
 
-                                // Simple parser for markers
                                 const translationMarker = '[TRANSLATION]';
                                 const pronunciationMarker = '[PRONUNCIATION]';
                                 const explanationMarker = '[EXPLANATION]';
 
-                                // Check for section changes
-                                if (accumulatedResponse.includes(translationMarker)) {
-                                    currentSection = 'translation';
-                                }
-                                if (accumulatedResponse.includes(pronunciationMarker)) {
-                                    currentSection = 'pronunciation';
-                                }
-                                if (accumulatedResponse.includes(explanationMarker)) {
-                                    currentSection = 'explanation';
-                                }
-
-                                // Extract content for each section
-                                let tempText = accumulatedResponse;
-
-                                // Helper to get content between markers
                                 const extractBetween = (str: string, startMarker: string, endMarker?: string) => {
                                     const startIndex = str.indexOf(startMarker);
                                     if (startIndex === -1) return '';
-
                                     const contentStart = startIndex + startMarker.length;
                                     const contentEnd = endMarker ? str.indexOf(endMarker, contentStart) : str.length;
-
                                     return str.substring(contentStart, contentEnd !== -1 ? contentEnd : str.length).trim();
                                 };
 
-                                const t = extractBetween(tempText, translationMarker, pronunciationMarker);
-                                const p = extractBetween(tempText, pronunciationMarker, explanationMarker);
-                                const e = extractBetween(tempText, explanationMarker);
+                                const t = extractBetween(accumulatedResponse, translationMarker, pronunciationMarker);
+                                const p = extractBetween(accumulatedResponse, pronunciationMarker, explanationMarker);
+                                const e = extractBetween(accumulatedResponse, explanationMarker);
 
                                 if (t) setTranslatedText(t);
                                 if (p) setPronunciation(p);
                                 if (e) setExplanation(e);
 
-                                // Fallback for when markers haven't appeared yet or for normal translation
                                 if (!t && !p && !e && accumulatedResponse && !accumulatedResponse.includes('[')) {
                                     setTranslatedText(accumulatedResponse.trim());
                                 }
@@ -403,228 +366,226 @@ export default function TranslatePage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [translate, isTranslating]);
 
-    if (!user) {
-        return null;
-    }
+    const sourceLang = LANGUAGES.find(l => l.code === sourceLanguage);
+    const targetLang = LANGUAGES.find(l => l.code === targetLanguage);
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950">
-            <div className={getContainerClass() + ' py-16'}>
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-12"
-                >
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="p-3 bg-gray-100 dark:bg-zinc-900 border border-gray-200/50 dark:border-white/5 rounded-2xl">
-                                    <Languages className="h-6 w-6 text-[#165df9]" />
-                                </div>
-                                <h1 className="text-4xl font-light text-gray-900 dark:text-white tracking-tight">
-                                    Translate
-                                </h1>
-                            </div>
-                            <p className="text-gray-500 dark:text-gray-400 max-w-lg">
-                                High-fidelity translation across 55+ languages powered by AI
-                            </p>
-                        </div>
-                        <div className="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">
-                                <kbd>⌘</kbd>
-                                <span>+</span>
-                                <kbd>Enter</kbd>
-                            </div>
-                            <span>to translate</span>
-                        </div>
-                    </div>
-                </motion.div>
+            <div className="px-4 pt-4 pb-16 sm:px-6 sm:pt-6 sm:pb-20 lg:px-8 lg:pt-8 lg:pb-24">
 
-                {/* Main Translation Interface */}
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-10">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">
+                            Translate
+                        </h1>
+                        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                            AI-powered translation across 55+ languages
+                        </p>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500"
+                    >
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">
+                            <kbd>⌘</kbd>
+                            <span>+</span>
+                            <kbd>Enter</kbd>
+                        </div>
+                        <span>to translate</span>
+                    </motion.div>
+                </div>
+
+                {/* Language Bar */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md border border-gray-200/80 dark:border-white/5 rounded-[32px] shadow-sm overflow-hidden"
+                    className="flex items-center gap-2 mb-6"
                 >
-                    {/* Language Selectors */}
-                    <div className="flex items-center gap-4 p-6 border-b border-gray-100 dark:border-white/5 bg-[#F7F7F9]/30 dark:bg-black/5">
-                        <div className="flex-1">
-                            <LanguageSelector
-                                value={sourceLanguage}
-                                onChange={setSourceLanguage}
-                                label="From"
-                            />
+                    <LanguageSelector
+                        value={sourceLanguage}
+                        onChange={setSourceLanguage}
+                        label="From"
+                    />
+
+                    <button
+                        onClick={swapLanguages}
+                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-colors group active:scale-95"
+                        title="Swap languages"
+                    >
+                        <ArrowRightLeft className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                    </button>
+
+                    <LanguageSelector
+                        value={targetLanguage}
+                        onChange={setTargetLanguage}
+                        label="To"
+                    />
+                </motion.div>
+
+                {/* Main Translation Panels */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="grid md:grid-cols-2 gap-4 mb-4"
+                >
+                    {/* Source Panel */}
+                    <div className="relative border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden group/panel focus-within:border-gray-300 dark:focus-within:border-gray-700 transition-colors">
+                        <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                {sourceLang?.flag} {sourceLang?.name}
+                            </span>
+                            <span className={`text-[10px] font-medium tabular-nums tracking-tight ${charCount > MAX_CHARS * 0.9 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                                {charCount > 0 ? `${charCount.toLocaleString()} / ${MAX_CHARS.toLocaleString()}` : ''}
+                            </span>
                         </div>
-
-                        <button
-                            onClick={swapLanguages}
-                            className="mt-6 p-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors group"
-                            title="Swap languages"
-                        >
-                            <ArrowRightLeft className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-[#165df9] transition-colors" />
-                        </button>
-
-                        <div className="flex-1">
-                            <LanguageSelector
-                                value={targetLanguage}
-                                onChange={setTargetLanguage}
-                                label="To"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Text Areas */}
-                    <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-white/5">
-                        {/* Source Text */}
-                        <div className="relative p-8">
-                            <textarea
-                                ref={textareaRef}
-                                value={sourceText}
-                                onChange={handleSourceTextChange}
-                                placeholder="Enter text to translate..."
-                                className="w-full h-80 resize-none bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-lg leading-relaxed outline-none scrollbar-hide"
-                            />
-                            <div className="absolute bottom-6 left-8 right-8 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                        <textarea
+                            ref={textareaRef}
+                            value={sourceText}
+                            onChange={handleSourceTextChange}
+                            placeholder="Enter text to translate..."
+                            className="w-full h-56 sm:h-64 resize-none bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-[15px] leading-relaxed outline-none scrollbar-hide px-5 pb-14"
+                        />
+                        <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => speakText(sourceText, sourceLanguage)}
+                                    disabled={!sourceText}
+                                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Listen"
+                                >
+                                    <Volume2 className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                </button>
+                                {sourceText && (
                                     <button
-                                        onClick={() => speakText(sourceText, sourceLanguage)}
-                                        disabled={!sourceText}
-                                        className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                        title="Listen"
+                                        onClick={() => {
+                                            setSourceText('');
+                                            setCharCount(0);
+                                            setTranslatedText('');
+                                            setPronunciation('');
+                                            setExplanation('');
+                                        }}
+                                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                                        title="Clear"
                                     >
-                                        <Volume2 className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                        <X className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
                                     </button>
-                                    {sourceText && (
-                                        <button
-                                            onClick={() => {
-                                                setSourceText('');
-                                                setCharCount(0);
-                                                setTranslatedText('');
-                                            }}
-                                            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-                                            title="Clear"
-                                        >
-                                            <X className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                        </button>
-                                    )}
-                                </div>
-                                <span className={`text-[10px] font-bold uppercase tracking-widest ${charCount > MAX_CHARS * 0.9 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
-                                    {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
-                                </span>
+                                )}
                             </div>
-                        </div>
-
-                        {/* Translated Text */}
-                        <div className="relative p-8 bg-gray-50/30 dark:bg-white/[0.01]">
-                            {isTranslating && !translatedText ? (
-                                <div className="flex items-center justify-center h-80">
-                                    <div className="flex flex-col items-center gap-4">
-                                        <Loader2 className="h-8 w-8 text-[#165df9] animate-spin" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Processing...</span>
-                                    </div>
-                                </div>
+                            {isTranslating ? (
+                                <button
+                                    onClick={cancelTranslation}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-500/5 active:scale-95"
+                                >
+                                    <X className="h-3 w-3" />
+                                    Stop
+                                </button>
                             ) : (
-                                <>
-                                    <div className="h-80 overflow-y-auto scrollbar-hide">
-                                        <div className={`text-lg leading-relaxed mb-4 ${translatedText ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
-                                            }`}>
-                                            {translatedText || 'Translation will appear here...'}
-                                        </div>
-                                        {pronunciation && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 5 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200/50 dark:border-white/5"
-                                            >
-                                                <Volume2 className="h-3 w-3 text-gray-400" />
-                                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 italic">
-                                                    {pronunciation}
-                                                </span>
-                                            </motion.div>
-                                        )}
-                                    </div>
-                                    <div className="absolute bottom-6 left-8 right-8 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => speakText(translatedText, targetLanguage)}
-                                                disabled={!translatedText}
-                                                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                title="Listen"
-                                            >
-                                                <Volume2 className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                            </button>
-                                            <button
-                                                onClick={copyToClipboard}
-                                                disabled={!translatedText}
-                                                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                title="Copy"
-                                            >
-                                                {copied ? (
-                                                    <Check className="h-4 w-4 text-green-500" />
-                                                ) : (
-                                                    <Copy className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </>
+                                <button
+                                    onClick={translate}
+                                    disabled={!sourceText.trim()}
+                                    className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                                >
+                                    Translate
+                                </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Extra Context (Explanation) */}
+                    {/* Output Panel */}
+                    <div className="relative border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-gray-50/50 dark:bg-white/[0.02]">
+                        <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                {targetLang?.flag} {targetLang?.name}
+                            </span>
+                            {isTranslating && (
+                                <div className="flex items-center gap-1.5">
+                                    <Loader2 className="h-3 w-3 text-gray-400 animate-spin" />
+                                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">Translating...</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {isTranslating && !translatedText ? (
+                            <div className="flex items-center justify-center h-56 sm:h-64">
+                                <div className="flex flex-col items-center gap-3">
+                                    <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">Processing...</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="h-56 sm:h-64 overflow-y-auto scrollbar-hide px-5 pb-14">
+                                    <div className={`text-[15px] leading-relaxed ${translatedText ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+                                        {translatedText || 'Translation will appear here...'}
+                                    </div>
+                                    {pronunciation && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-4 inline-flex items-center gap-2 px-2.5 py-1 bg-gray-100 dark:bg-white/5 rounded-lg"
+                                        >
+                                            <Volume2 className="h-3 w-3 text-gray-400" />
+                                            <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                                {pronunciation}
+                                            </span>
+                                        </motion.div>
+                                    )}
+                                </div>
+                                <div className="absolute bottom-3 left-4 right-4 flex items-center gap-1">
+                                    <button
+                                        onClick={() => speakText(translatedText, targetLanguage)}
+                                        disabled={!translatedText}
+                                        className="p-1.5 rounded-lg hover:bg-gray-200/80 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        title="Listen"
+                                    >
+                                        <Volume2 className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                    </button>
+                                    <button
+                                        onClick={copyToClipboard}
+                                        disabled={!translatedText}
+                                        className="p-1.5 rounded-lg hover:bg-gray-200/80 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        title="Copy"
+                                    >
+                                        {copied ? (
+                                            <Check className="h-3.5 w-3.5 text-green-500" />
+                                        ) : (
+                                            <Copy className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                        )}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* Explanation / Context */}
+                <AnimatePresence>
                     {explanation && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="border-t border-gray-100 dark:border-white/5 bg-[#F7F7F9]/30 dark:bg-black/10 overflow-hidden"
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden mb-4"
                         >
-                            <div className="p-6">
-                                <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Translation Context</div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl">
+                            <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
+                                    Translation Context
+                                </div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                                     {explanation}
                                 </div>
                             </div>
                         </motion.div>
                     )}
-
-                    {/* Action Bar */}
-                    <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-[#F7F7F9]/30 dark:bg-black/5">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {isTranslating && translatedText && (
-                                    <div className="flex items-center gap-2 bg-white/80 dark:bg-zinc-800/80 px-3 py-1.5 rounded-full border border-gray-200/50 dark:border-white/5 shadow-sm">
-                                        <Loader2 className="h-3 w-3 text-[#165df9] animate-spin" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Streaming Response</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-3">
-                                {isTranslating ? (
-                                    <Button
-                                        onClick={cancelTranslation}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="gap-2 text-gray-500 hover:text-red-600 transition-colors"
-                                    >
-                                        <X className="h-4 w-4" />
-                                        Stop Generation
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        onClick={translate}
-                                        disabled={!sourceText.trim()}
-                                        className="h-10 px-8 rounded-2xl bg-[#165df9] hover:bg-[#165df9]/90 text-white shadow-lg shadow-[#165df9]/20 font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                    >
-                                        Translate
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
+                </AnimatePresence>
 
                 {/* Footer */}
                 <motion.div
@@ -634,13 +595,9 @@ export default function TranslatePage() {
                     className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
                 >
                     <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                             Built for students • Public Beta {getFullVersionString()}
                         </p>
-                        <div className="flex items-center gap-6 text-xs text-gray-400 dark:text-gray-500 font-medium tracking-tight">
-                            <span>Enterprise-Grade Privacy</span>
-                            <span>Local Model Accuracy</span>
-                        </div>
                     </div>
                 </motion.div>
             </div>

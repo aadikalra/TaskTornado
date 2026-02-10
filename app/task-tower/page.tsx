@@ -514,7 +514,11 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
     );
 }
 
+import { useRequireAuth } from '@/hooks/use-require-auth';
+
 export default function TaskTowerPage() {
+    const { authenticated } = useRequireAuth();
+    if (!authenticated) return null;
     const { homeworks } = useClassContext();
     const totalHomeworks = homeworks ? homeworks.length : 0;
     const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;

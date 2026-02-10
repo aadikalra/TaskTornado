@@ -16,7 +16,8 @@ import { cn } from '@/lib/utils';
 
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BookOpen, GraduationCap } from 'lucide-react';
+import { BookOpen, GraduationCap, CalendarDays as CalendarDaysIcon } from 'lucide-react';
+import { schoolYear2025_2026, getEventsForDate } from '@/data/schoolEvents';
 
 export const MiniCalendar = () => {
     const [currentMonth, setCurrentMonth] = React.useState(new Date());
@@ -148,9 +149,10 @@ export const MiniCalendar = () => {
                         const dateStr = format(calDay.date, 'yyyy-MM-dd');
                         const dayHomeworks = homeworkByDate[dateStr] || [];
                         const dayTests = testsByDate[dateStr] || [];
+                        const dayEvents = getEventsForDate(calDay.date, schoolYear2025_2026);
                         const isToday = isDateToday(calDay.date);
 
-                        const hasItems = dayHomeworks.length > 0 || dayTests.length > 0;
+                        const hasItems = dayHomeworks.length > 0 || dayTests.length > 0 || dayEvents.length > 0;
 
                         return (
                             <Tooltip key={idx} delayDuration={0}>
@@ -170,6 +172,9 @@ export const MiniCalendar = () => {
                                             )}
                                             {dayHomeworks.length > 0 && (
                                                 <div className={cn("w-2 h-2 rounded-full", isToday ? "bg-white/50 dark:bg-gray-900/50" : "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]")} />
+                                            )}
+                                            {dayEvents.length > 0 && (
+                                                <div className={cn("w-2 h-2 rounded-full", isToday ? "bg-white/50 dark:bg-gray-900/50" : "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]")} />
                                             )}
                                         </div>
                                     </div>
@@ -198,6 +203,21 @@ export const MiniCalendar = () => {
                                                             </div>
                                                         );
                                                     })}
+                                                </div>
+                                            )}
+
+                                            {dayEvents.length > 0 && (
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center gap-1.5 text-green-500 text-[10px] font-bold uppercase tracking-tight">
+                                                        <CalendarDaysIcon className="w-3 h-3" />
+                                                        Events
+                                                    </div>
+                                                    {dayEvents.map(event => (
+                                                        <div key={event.id} className="text-xs text-gray-700 dark:text-gray-300 pl-4.5 border-l border-green-200 dark:border-green-900/50">
+                                                            <p className="font-semibold leading-tight">{event.title}</p>
+                                                            {event.description && <p className="text-[10px] text-gray-500 truncate">{event.description}</p>}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             )}
 

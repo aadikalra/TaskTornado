@@ -172,10 +172,16 @@ export const RealtimeChat = ({
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 pb-24 space-y-4 scroll-smooth">
         {allMessages.length === 0 ? (
-          <div className="text-center text-sm text-muted-foreground">
-            No messages yet. Start the conversation!
+          <div className="h-full flex items-center justify-center text-sm text-muted-foreground p-8">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Send className="w-6 h-6 text-primary" />
+              </div>
+              <p>No messages yet.</p>
+              <p className="text-xs opacity-70">Start the conversation!</p>
+            </div>
           </div>
         ) : null}
         <div className="space-y-1">
@@ -199,28 +205,36 @@ export const RealtimeChat = ({
         </div>
       </div>
 
-      <form onSubmit={handleSendMessage} className="flex-shrink-0 flex w-full gap-2 border-t border-border p-4">
-        <Input
-          className={cn(
-            'rounded-full bg-background text-sm transition-all duration-300',
-            isConnected && newMessage.trim() ? 'w-[calc(100%-36px)]' : 'w-full'
-          )}
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-          disabled={!isConnected}
-        />
-        {isConnected && newMessage.trim() && (
-          <Button
-            className="aspect-square rounded-full animate-in fade-in slide-in-from-right-4 duration-300"
-            type="submit"
-            disabled={!isConnected}
-          >
-            <Send className="size-4" />
-          </Button>
-        )}
-      </form>
+      {/* Floating Glassmorphic Input Area - Matches AIAssistant.tsx */}
+      <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-black dark:via-black/40 dark:to-transparent pt-12">
+        <form
+          onSubmit={handleSendMessage}
+          className="pointer-events-auto bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md shadow-xl rounded-[28px] border border-gray-200 dark:border-zinc-800"
+        >
+          <div className="flex items-center gap-2 p-1">
+            <Input
+              className="flex-1 min-h-[44px] border-0 bg-transparent dark:bg-transparent shadow-none px-4 focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground/70"
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              disabled={!isConnected}
+            />
+            <Button
+              className={cn(
+                "h-10 w-10 rounded-full flex-shrink-0 mr-1",
+                "bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 shadow-md",
+                "transition-all duration-300",
+                !newMessage.trim() && "opacity-50"
+              )}
+              type="submit"
+              disabled={!isConnected || !newMessage.trim()}
+            >
+              <Send className="size-4" />
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

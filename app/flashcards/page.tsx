@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, Trash2, BookOpen, Home } from 'lucide-react';
 import { FlashcardDeck, Flashcard } from '@/components/Flashcard';
 import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -33,6 +34,8 @@ interface FlashcardDeckType {
 }
 
 export default function FlashcardsPage() {
+  const { authenticated } = useRequireAuth();
+  if (!authenticated) return null;
   const router = useRouter();
   const { user } = useAuth();
   const { getContainerClass } = useWideLayout();

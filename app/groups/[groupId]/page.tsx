@@ -4,17 +4,35 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStudyGroups } from '@/context/StudyGroupsContext';
 import { supabase } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsPanel, TabsPanels, TabsList, TabsTab } from '@/components/animate-ui/components/base/tabs';
-import { MessageSquare, Link as LinkIcon, ArrowLeft, Send, Plus, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { MessageSquare, Link as LinkIcon, ArrowLeft, Send, Plus, Wifi, WifiOff, Loader2, LogOut, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { RealtimeChat } from '@/components/realtime-chat';
 import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { GoogleDocsIcon, GoogleSheetsIcon, GoogleSlidesIcon, GoogleDriveIcon, GoogleClassroomIcon, GoogleFormsIcon } from '@/components/BrandIcons';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { GroupShareMenu } from '@/components/GroupShareMenu';
 
 export default function GroupPage() {
+  const { authenticated } = useRequireAuth();
+  if (!authenticated) return null;
   const { groupId } = useParams() as { groupId: string };
   const router = useRouter();
   const { user, full_name } = useAuth();
@@ -149,9 +167,11 @@ export default function GroupPage() {
     }
   };
 
-  const handleLeaveGroup = async () => {
-    if (!window.confirm('Are you sure you want to leave this group?')) return;
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
+  // ...
+
+  const handleLeaveGroup = async () => {
     try {
       await leaveGroup(groupId as string);
       router.push('/groups');
@@ -289,9 +309,9 @@ export default function GroupPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="space-y-4">
         {/* Main content */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="space-y-4">
           <Tabs defaultValue="chat">
             <TabsList>
               <TabsTab value="chat">
@@ -307,33 +327,50 @@ export default function GroupPage() {
             <TabsPanels className="mt-0">
               <TabsPanel value="chat">
                 <div className="h-[500px] flex flex-col">
-                  <Card className="flex-1 flex flex-col overflow-hidden">
-                    <CardHeader className="border-b">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          Group Chat
-                          {connectionStatus === 'connected' && (
-                            <div className="flex items-center gap-1 text-xs text-green-600">
-                              <Wifi className="h-3 w-3" />
-                              <span>Live</span>
-                            </div>
-                          )}
-                          {connectionStatus === 'connecting' && (
-                            <div className="flex items-center gap-1 text-xs text-yellow-600">
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              <span>Connecting...</span>
-                            </div>
-                          )}
-                          {connectionStatus === 'disconnected' && (
-                            <div className="flex items-center gap-1 text-xs text-red-600">
-                              <WifiOff className="h-3 w-3" />
-                              <span>Offline</span>
-                            </div>
-                          )}
-                        </CardTitle>
+                  <Card className="flex-1 flex flex-col overflow-hidden relative">
+                    {/* Floating Glassmorphic Header Capsules */}
+                    <div className="absolute top-0 inset-x-0 z-50 pointer-events-none p-3 flex justify-between items-start">
+                      {/* Left Capsule: Members */}
+                      <div className="pointer-events-auto flex items-center h-9 px-4 rounded-full bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-gray-200/80 dark:border-zinc-700/80 shadow-lg">
+                        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                          {currentGroup.member_count || 0} {(currentGroup.member_count || 0) === 1 ? 'member' : 'members'}
+                        </span>
                       </div>
-                    </CardHeader>
-                    <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+
+                      {/* Right Capsule: Status + Share */}
+                      <div className="pointer-events-auto flex items-center h-9 rounded-full bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-gray-200/80 dark:border-zinc-700/80 shadow-lg">
+                        {connectionStatus === 'connected' && (
+                          <div className="pl-3 pr-2" title="Connected - Real-time sync active">
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                          </div>
+                        )}
+                        {connectionStatus === 'connecting' && (
+                          <div className="pl-3 pr-2" title="Connecting...">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-yellow-500" />
+                          </div>
+                        )}
+                        {connectionStatus === 'disconnected' && (
+                          <div className="pl-3 pr-2" title="Disconnected - Messages may not sync">
+                            <WifiOff className="h-3.5 w-3.5 text-red-500" />
+                          </div>
+                        )}
+                        <div className="w-[1px] h-4 bg-gray-200 dark:bg-zinc-700" />
+                        <GroupShareMenu
+                          groupId={groupId}
+                          groupName={currentGroup.name}
+                          className="h-8 w-8 rounded-full hover:bg-gray-100/50 dark:hover:bg-zinc-800/50"
+                        />
+                        <div className="w-[1px] h-4 bg-gray-200 dark:bg-zinc-700" />
+                        <button
+                          onClick={() => setShowLeaveDialog(true)}
+                          className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-red-100/50 dark:hover:bg-red-900/30 transition-colors pr-1"
+                          title="Leave Group"
+                        >
+                          <LogOut className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-hidden flex flex-col pt-2">
                       <RealtimeChat
                         roomName={`group-${groupId}`}
                         username={full_name || user?.email || 'Anonymous'}
@@ -345,151 +382,182 @@ export default function GroupPage() {
               </TabsPanel>
 
               <TabsPanel value="links">
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle>Shared Links</CardTitle>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setActiveTab('chat');
-                          document.getElementById('link-input')?.focus();
-                        }}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Share in Chat
-                      </Button>
+                <div className="space-y-6 max-w-5xl mx-auto px-1 pt-2">
+                  {/* Share a Link Header section */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-semibold tracking-tight">Shared Resources</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Useful links and documents shared by the group.</p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {links.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <LinkIcon className="mx-auto h-8 w-8 mb-2" />
-                        <p>No links shared yet</p>
+
+                    <form onSubmit={handleAddLink} className="flex-1 max-w-md">
+                      <div className="relative group">
+                        <Input
+                          id="link-input"
+                          type="url"
+                          placeholder="Share a new link (https://...)"
+                          value={newLink}
+                          onChange={(e) => setNewLink(e.target.value)}
+                          required
+                          className="w-full h-11 pl-4 pr-12 rounded-2xl bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm focus-visible:ring-primary/20 transition-all"
+                        />
+                        <Button
+                          type="submit"
+                          size="icon"
+                          className="absolute right-1 top-1 bottom-1 h-9 w-9 rounded-xl bg-[#264f84] hover:bg-[#1f3f6b] dark:bg-blue-600 dark:hover:bg-blue-700 transition-all transform group-focus-within:scale-105"
+                          disabled={!newLink.trim()}
+                        >
+                          <Plus className="h-5 w-5" />
+                        </Button>
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {links.map((link) => (
-                          <a
+                    </form>
+                  </div>
+
+                  {links.length === 0 ? (
+                    <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-[32px] border border-zinc-200/50 dark:border-zinc-800/50 p-16 text-center shadow-sm">
+                      <div className="w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center mx-auto mb-4">
+                        <LinkIcon className="h-8 w-8 text-primary/40" />
+                      </div>
+                      <h3 className="text-xl font-medium">No links yet</h3>
+                      <p className="text-muted-foreground mt-2 max-w-xs mx-auto">
+                        Be the first to share a research paper, article, or resource with your team!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {links.map((link) => {
+                        const domain = new URL(link.url).hostname;
+                        const urlLower = link.url.toLowerCase();
+
+                        // Specialized brand styling logic
+                        let brandStyles = {
+                          cardBg: "bg-white/40 dark:bg-zinc-900/40",
+                          iconBg: "bg-[#264f84]/5 dark:bg-blue-500/5",
+                          iconBorder: "border-[#264f84]/10 dark:border-blue-500/10",
+                          accentColor: "group-hover:text-[#264f84] dark:group-hover:text-blue-400",
+                          label: link.title || domain,
+                          sublabel: domain,
+                          Icon: null as React.ElementType | null
+                        };
+
+                        if (urlLower.includes('docs.google.com/document')) {
+                          brandStyles = { ...brandStyles, iconBg: "bg-blue-500/10", iconBorder: "border-blue-500/20", accentColor: "group-hover:text-blue-600 dark:group-hover:text-blue-400", label: link.title || 'Google Doc', Icon: GoogleDocsIcon };
+                        } else if (urlLower.includes('docs.google.com/spreadsheets')) {
+                          brandStyles = { ...brandStyles, iconBg: "bg-emerald-500/10", iconBorder: "border-emerald-500/20", accentColor: "group-hover:text-emerald-600 dark:group-hover:text-emerald-400", label: link.title || 'Google Sheet', Icon: GoogleSheetsIcon };
+                        } else if (urlLower.includes('docs.google.com/presentation')) {
+                          brandStyles = { ...brandStyles, iconBg: "bg-amber-500/10", iconBorder: "border-amber-500/20", accentColor: "group-hover:text-amber-600 dark:group-hover:text-amber-400", label: link.title || 'Google Slide', Icon: GoogleSlidesIcon };
+                        } else if (urlLower.includes('drive.google.com')) {
+                          brandStyles = { ...brandStyles, iconBg: "bg-blue-500/5", iconBorder: "border-blue-500/10", accentColor: "group-hover:text-blue-600 dark:group-hover:text-blue-400", label: link.title || 'Google Drive', Icon: GoogleDriveIcon };
+                        } else if (urlLower.includes('classroom.google.com')) {
+                          brandStyles = { ...brandStyles, iconBg: "bg-green-600/10", iconBorder: "border-green-600/20", accentColor: "group-hover:text-green-700 dark:group-hover:text-green-400", label: link.title || 'Google Classroom', Icon: GoogleClassroomIcon };
+                        } else if (urlLower.includes('docs.google.com/forms')) {
+                          brandStyles = { ...brandStyles, iconBg: "bg-purple-500/10", iconBorder: "border-purple-500/20", accentColor: "group-hover:text-purple-700 dark:group-hover:text-purple-400", label: link.title || 'Google Form', Icon: GoogleFormsIcon };
+                        }
+
+                        return (
+                          <motion.a
                             key={link.id}
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block p-3 border rounded hover:bg-accent transition-colors"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            whileHover={{ y: -4 }}
+                            className={cn(
+                              "group relative backdrop-blur-md rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50 p-4 shadow-sm hover:shadow-xl transition-all duration-300",
+                              brandStyles.cardBg,
+                              urlLower.includes('docs.google.com') ? "hover:border-blue-500/30" : "hover:border-[#264f84]/30 dark:hover:border-blue-500/30"
+                            )}
                           >
-                            <div className="flex items-start gap-3">
-                              <div className="mt-0.5">
-                                <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex flex-col h-full gap-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className={cn(
+                                  "p-2 rounded-2xl border shrink-0 transition-all duration-500 group-hover:scale-110",
+                                  brandStyles.iconBg,
+                                  brandStyles.iconBorder
+                                )}>
+                                  {brandStyles.Icon ? (
+                                    <brandStyles.Icon className="w-6 h-6" />
+                                  ) : (
+                                    <img
+                                      src={`https://unavatar.io/${domain}?fallback=https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                                      alt={domain}
+                                      className="w-6 h-6 grayscale group-hover:grayscale-0 transition-all duration-500"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '';
+                                        (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className={cn(
+                                    "font-semibold text-sm leading-tight line-clamp-2 transition-colors",
+                                    brandStyles.accentColor
+                                  )}>
+                                    {brandStyles.label}
+                                  </h4>
+                                  <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/50 mt-1 truncate">
+                                    {domain}
+                                  </p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium line-clamp-1">{link.title || link.url}</p>
-                                <p className="text-sm text-muted-foreground line-clamp-1">{link.url}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Avatar className="h-5 w-5">
+
+                              <div className="mt-auto pt-3 border-t border-zinc-200/30 dark:border-zinc-800/30 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-6 w-6 ring-2 ring-background">
                                     <AvatarImage src={link.profiles?.avatar_url} />
-                                    <AvatarFallback className="text-xs">
+                                    <AvatarFallback className="text-[10px] bg-[#264f84]/10 dark:bg-blue-500/10 text-[#264f84] dark:text-blue-400 font-bold">
                                       {link.profiles?.full_name?.charAt(0).toUpperCase() || '?'}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-xs text-muted-foreground">
-                                    Shared by {link.profiles?.full_name || 'Unknown'}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">•</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(link.created_at), 'MMM d, yyyy')}
-                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] font-medium leading-none">
+                                      {link.profiles?.full_name?.split(' ')[0] || 'Unknown'}
+                                    </span>
+                                    <span className="text-[9px] text-muted-foreground min-w-fit">
+                                      {format(new Date(link.created_at), 'MMM d')}
+                                    </span>
+                                  </div>
                                 </div>
+
+                                <ArrowRight className={cn(
+                                  "h-4 w-4 -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300",
+                                  brandStyles.accentColor
+                                )} />
                               </div>
                             </div>
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                          </motion.a>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </TabsPanel>
             </TabsPanels>
           </Tabs>
         </div>
-
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Group Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Created</h3>
-                <p>{format(new Date(currentGroup.created_at), 'MMMM d, yyyy')}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Members</h3>
-                <p>{currentGroup.member_count || 0} members</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Invite Link</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <Input
-                    value={`${window.location.origin}/groups/join/${groupId}`}
-                    readOnly
-                    className="text-xs h-8"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/groups/join/${groupId}`);
-                      // Show copied tooltip
-                    }}
-                  >
-                    Copy
-                  </Button>
-                </div>
-              </div>
-
-              <Button
-                variant="destructive"
-                className="w-full mt-4"
-                onClick={handleLeaveGroup}
-              >
-                Leave Group
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Share a Link</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddLink} className="space-y-2">
-                <Input
-                  id="link-input"
-                  type="url"
-                  placeholder="https://example.com"
-                  value={newLink}
-                  onChange={(e) => setNewLink(e.target.value)}
-                  required
-                />
-                <Button type="submit" className="w-full">
-                  Share Link
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
       </div>
+      {/* Leave Group Confirmation Dialog */}
+      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. You will be removed from the group and will need an invite link to rejoin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLeaveGroup}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
+            >
+              Leave Group
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-  );
-}
-
-// Skeleton component for loading state
-function Skeleton({ className }: { className: string }) {
-  return (
-    <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
   );
 }

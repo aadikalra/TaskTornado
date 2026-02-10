@@ -37,7 +37,6 @@ export function SearchBar() {
     preventDefault: true,
   });
 
-  if (!isOpen) return null;
 
   return (
     <AnimatePresence>

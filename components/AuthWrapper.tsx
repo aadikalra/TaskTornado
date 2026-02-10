@@ -12,8 +12,8 @@ export default function AuthWrapper({ children }: Props) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [shouldRedirect, setShouldRedirect] = useState<{to: string} | null>(null);
-  
+  const [shouldRedirect, setShouldRedirect] = useState<{ to: string } | null>(null);
+
   const isAuthPage = pathname && (pathname === '/login' || pathname === '/signup');
 
   // Define public routes - these don't require authentication
@@ -26,6 +26,8 @@ export default function AuthWrapper({ children }: Props) {
     '/legal',
     '/legal/terms',
     '/legal/privacy',
+    '/translate',
+    '/blog',
   ];
 
   // Check if route is in public routes list
@@ -37,7 +39,7 @@ export default function AuthWrapper({ children }: Props) {
   const is404Scenario = typeof window !== 'undefined' && !isInPublicRoutes && !isAuthPage;
 
   const isPublicRoute = isInPublicRoutes;
-  
+
   // Handle redirects in useEffect to prevent state updates during render
   useEffect(() => {
     // Only run this effect when loading state changes or user state changes
@@ -71,7 +73,7 @@ export default function AuthWrapper({ children }: Props) {
       });
     }
   }, [loading, isAuthPage, isPublicRoute, is404Scenario, user, pathname]);
-  
+
   // Handle the actual redirect
   useEffect(() => {
     if (shouldRedirect) {

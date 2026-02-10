@@ -30,6 +30,8 @@ type AIContextType = {
   clearError: () => void;
   isAIAssistantOpen: boolean;
   setAIAssistantOpen: (open: boolean) => void;
+  isAISidebarMode: boolean;
+  setAISidebarMode: (mode: boolean) => void;
   aiInput: string;
   setAIInput: (input: string) => void;
 };
@@ -40,6 +42,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAIAssistantOpen, setAIAssistantOpen] = useState(false);
+  const [isAISidebarMode, setAISidebarMode] = useState(false);
   const [aiInput, setAIInput] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedInput = localStorage.getItem('ai-assistant-input');
@@ -267,6 +270,8 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       clearError,
       isAIAssistantOpen,
       setAIAssistantOpen,
+      isAISidebarMode,
+      setAISidebarMode,
       aiInput,
       setAIInput,
     }}>
