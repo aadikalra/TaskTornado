@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Settings, User, Shield, Zap, Accessibility, Database, Globe, ChevronRight } from 'lucide-react';
+import { Facehash } from 'facehash';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
@@ -221,14 +223,43 @@ export default function SettingsPage() {
             </div>
             <span className="text-[10px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest">{getFullVersionString().split('-')[0]}</span>
           </motion.div>
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight"
+            className="flex items-center gap-4"
           >
-            Settings
-          </motion.h1>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-pointer">
+                    <Facehash
+                      name={userName}
+                      size={56}
+                      enableBlink
+                      intensity3d="dramatic"
+                      showInitial={true}
+                      colors={['#3b82f6', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']}
+                      style={{ borderRadius: '50%', flexShrink: 0 }}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 shadow-lg"
+                >
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Hey, {userName}! 👋
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <h1
+              className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight"
+            >
+              Settings
+            </h1>
+          </motion.div>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

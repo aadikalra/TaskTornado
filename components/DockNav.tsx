@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
+import { Facehash } from 'facehash';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
 import Dock from './Dock';
@@ -33,7 +34,7 @@ import { NotificationPanel, useNotifications } from './NotificationPanel';
 export default function DockNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, signOut } = useAuth() || {};
+  const { user, signOut, full_name } = useAuth() || {};
   const { openSearch } = useSearch();
   const { isAIAssistantOpen, setAIAssistantOpen } = useAI();
   const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
@@ -306,7 +307,16 @@ export default function DockNav() {
       group: 'system'
     },
     {
-      icon: <IconGear />,
+      icon: <Facehash
+        name={full_name || 'User'}
+        size={28}
+        enableBlink
+        intensity3d="dramatic"
+        showInitial={true}
+        interactive={false}
+        colors={['#3b82f6', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']}
+        style={{ borderRadius: '50%' }}
+      />,
       label: 'Settings',
       onClick: () => router.push('/settings'),
       priority: 'essential',

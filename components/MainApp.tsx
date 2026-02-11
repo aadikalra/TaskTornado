@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { Facehash } from 'facehash';
 import { format } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
 import { AddTestModal } from './AddTestModal';
@@ -191,7 +192,7 @@ import {
   ArrowRight
 } from "lucide-react";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 
 import { HomeworkLinkInput } from './HomeworkLinkInput';
 import { Label } from '@/components/ui/label';
@@ -1212,6 +1213,11 @@ const MainApp = () => {
                     const hasArchivedHomework = classArchivedHomeworks.length > 0;
                     const isShowingArchived = showArchivedForClass[cls.id] || false;
 
+                    // Check if this class has overdue homework
+                    const todayStart = new Date();
+                    todayStart.setHours(0, 0, 0, 0);
+                    const hasOverdueHomework = classHomeworks.some((hw: any) => !hw.completed && new Date(hw.subtext) < todayStart);
+
                     return (
                       <motion.div
                         key={cls.id}
@@ -1221,7 +1227,10 @@ const MainApp = () => {
                           duration: 0.3,
                           delay: index * 0.05,
                         }}
-                        className="group bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-200/70 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 break-inside-avoid"
+                        className={`group bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 border break-inside-avoid ${showFrowny && hasOverdueHomework
+                          ? 'border-red-300 dark:border-red-500/40 shadow-red-100 dark:shadow-red-900/20 shadow-md'
+                          : 'border-gray-200/70 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
+                          }`}
                       >
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center w-full gap-4">
@@ -1484,65 +1493,544 @@ const MainApp = () => {
     }
   };
 
+  const timeGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 6) return { text: 'Burning the midnight oil' };
+    if (hour < 12) return { text: 'Good morning' };
+    if (hour < 17) return { text: 'Good afternoon' };
+    if (hour < 21) return { text: 'Good evening' };
+    return { text: 'Late night grind' };
+  }, []);
+
+  // ─── Facehash Joke Feature ──────────────────────────────────────────────────
+  const [joke, setJoke] = useState<string | null>(null);
+  const [jokeLoading, setJokeLoading] = useState(false);
+  const jokeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const fetchJoke = useCallback(async () => {
+    if (jokeLoading) return;
+    setJokeLoading(true);
+    try {
+      const res = await fetch('https://icanhazdadjoke.com/', {
+        headers: { 'Accept': 'application/json' },
+      });
+      const data = await res.json();
+      setJoke(data.joke);
+      // Auto-dismiss after 8 seconds
+      if (jokeTimeoutRef.current) clearTimeout(jokeTimeoutRef.current);
+      jokeTimeoutRef.current = setTimeout(() => setJoke(null), 8000);
+    } catch {
+      setJoke("Why did the student eat their homework? Because their teacher said it was a piece of cake!");
+      if (jokeTimeoutRef.current) clearTimeout(jokeTimeoutRef.current);
+      jokeTimeoutRef.current = setTimeout(() => setJoke(null), 8000);
+    } finally {
+      setJokeLoading(false);
+    }
+  }, [jokeLoading]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (jokeTimeoutRef.current) clearTimeout(jokeTimeoutRef.current);
+    };
+  }, []);
+
+  // ─── Facehash "Overdue Peek" Animation ──────────────────────────────────────
+  const facehashRef = React.useRef<HTMLDivElement>(null);
+  const overdueCardRef = React.useRef<HTMLDivElement>(null);
+  const facehashControls = useAnimationControls();
+  const [hasPlayedOverduePeek, setHasPlayedOverduePeek] = useState(false);
+  const [showFrowny, setShowFrowny] = useState(false);
+  const [showSleepy, setShowSleepy] = useState(false);
+  const [showParty, setShowParty] = useState(false);
+  const [showVictory, setShowVictory] = useState(false);
+  const prevCompletionCountRef = React.useRef(0);
+  const victoryAnimatingRef = React.useRef(false);
+
+  // Initial appear animation (since we use controls instead of declarative animate)
+  useEffect(() => {
+    facehashControls.start({
+      scale: 1,
+      opacity: 1,
+      transition: { delay: 0.1, type: 'spring', stiffness: 300, damping: 20 },
+    });
+  }, [facehashControls]);
+
+  useEffect(() => {
+    if (overdueCount <= 0 || hasPlayedOverduePeek) return;
+
+    const timer = setTimeout(() => {
+      if (!facehashRef.current || !overdueCardRef.current) return;
+      // Don't interrupt if joke bubble is showing
+      if (joke) return;
+
+      const avatarRect = facehashRef.current.getBoundingClientRect();
+      const cardRect = overdueCardRef.current.getBoundingClientRect();
+
+      // Calculate where to move: center the avatar over the overdue card
+      const deltaX = cardRect.left + cardRect.width / 2 - (avatarRect.left + avatarRect.width / 2);
+      const deltaY = cardRect.top - avatarRect.top - 8; // hover just above the card
+
+      setHasPlayedOverduePeek(true);
+
+      // Animate: slide over slowly, show frowny, pause, slide back
+      facehashControls.start({
+        x: deltaX,
+        y: deltaY,
+        rotate: -8,
+        transition: { type: 'spring', stiffness: 60, damping: 16 },
+      }).then(() => {
+        setShowFrowny(true);
+        return new Promise(resolve => setTimeout(resolve, 4000));
+      }).then(() => {
+        setShowFrowny(false);
+        return facehashControls.start({
+          x: 0,
+          y: 0,
+          rotate: 0,
+          transition: { type: 'spring', stiffness: 80, damping: 18 },
+        });
+      });
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [overdueCount, hasPlayedOverduePeek, joke, facehashControls]);
+
+  // ─── Facehash "Sleepy Head" — Persistent from 10:30 PM to 5 AM ─────────────
+  const isLateNight = useMemo(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    const minutes = now.getMinutes();
+    // 10:30 PM (22:30) through 4:59 AM
+    return (hour === 22 && minutes >= 30) || hour >= 23 || hour < 5;
+  }, []);
+
+  // Settle into sleep on mount if late night
+  useEffect(() => {
+    if (!isLateNight) return;
+
+    // Wait for overdue peek to finish first
+    const timer = setTimeout(() => {
+      if (showFrowny || joke) return;
+      setShowSleepy(true);
+
+      // Settle into sleeping position and stay
+      facehashControls.start({
+        rotate: 20,
+        y: 6,
+        transition: { type: 'spring', stiffness: 30, damping: 12 },
+      });
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, [isLateNight, showFrowny, joke, facehashControls]);
+
+  // ─── Facehash "Celebration Dance" Animation ───────────────────────────────────
+  const playPartyAnimation = useCallback(() => {
+    // Override other animations
+    setShowParty(true);
+
+    // Phase 1: Anticipation — crouch/squish down
+    facehashControls.start({
+      scaleX: 1.12,
+      scaleY: 0.88,
+      y: 4,
+      rotate: 0,
+      transition: { duration: 0.15, ease: 'easeIn' },
+    }).then(() => {
+      // Phase 2: Launch up with backflip!
+      return facehashControls.start({
+        scaleX: 0.9,
+        scaleY: 1.1,
+        y: -30,
+        rotate: -360,
+        transition: { duration: 0.5, ease: [0.2, 0.8, 0.2, 1] },
+      });
+    }).then(() => {
+      // Phase 3: Hang at the top for a beat
+      return new Promise(resolve => setTimeout(resolve, 80));
+    }).then(() => {
+      // Phase 4: Fall and land — overshoot squish
+      return facehashControls.start({
+        scaleX: 1.15,
+        scaleY: 0.85,
+        y: 3,
+        rotate: 0,
+        transition: { duration: 0.25, ease: 'easeIn' },
+      });
+    }).then(() => {
+      // Phase 5: Settle bounce
+      return facehashControls.start({
+        scaleX: 1,
+        scaleY: 1,
+        y: -6,
+        transition: { duration: 0.2, type: 'spring', stiffness: 400, damping: 12 },
+      });
+    }).then(() => {
+      // Phase 6: Final settle
+      return facehashControls.start({
+        y: 0,
+        transition: { duration: 0.3, type: 'spring', stiffness: 300, damping: 15 },
+      });
+    }).then(() => {
+      setShowParty(false);
+    });
+  }, [facehashControls]);
+
+  // ─── Facehash "100% Victory Lap" Animation ──────────────────────────────────
+  const playVictoryAnimation = useCallback(() => {
+    if (victoryAnimatingRef.current) return;
+    victoryAnimatingRef.current = true;
+    setShowVictory(true);
+    setShowParty(false);
+
+    // Phase 1: Majestic rise — slow float upward
+    facehashControls.start({
+      y: -10,
+      scale: 1.06,
+      rotate: 0,
+      transition: { duration: 0.8, ease: [0.2, 0.8, 0.3, 1] },
+    }).then(() => {
+      // Phase 2: Hover with gentle bob — bask in glory
+      return facehashControls.start({
+        y: [-10, -13, -10, -12, -10],
+        transition: { duration: 2.5, ease: 'easeInOut' },
+      });
+    }).then(() => {
+      // Phase 3: Graceful descent
+      setShowVictory(false);
+      return facehashControls.start({
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.6, type: 'spring', stiffness: 100, damping: 14 },
+      });
+    }).then(() => {
+      victoryAnimatingRef.current = false;
+    });
+  }, [facehashControls]);
+
+  // Detect completion increase
+  const completionCount = useMemo(() => homeworks.filter((hw: any) => hw.completed).length, [homeworks]);
+  const totalHomeworkCount = homeworks.length;
+
+  useEffect(() => {
+    if (completionCount > prevCompletionCountRef.current && prevCompletionCountRef.current > 0) {
+      // Check if this completion made it 100%
+      if (totalHomeworkCount > 0 && completionCount === totalHomeworkCount) {
+        playVictoryAnimation();
+      } else {
+        playPartyAnimation();
+      }
+    }
+    prevCompletionCountRef.current = completionCount;
+  }, [completionCount, totalHomeworkCount, playPartyAnimation, playVictoryAnimation]);
+
+  // Completion rate for emoji reaction
+  const completionRate = useMemo(() => {
+    if (homeworks.length === 0) return 0;
+    return Math.round((homeworks.filter((hw: any) => hw.completed).length / homeworks.length) * 100);
+  }, [homeworks]);
+
+  const completionEmoji = completionRate === 100 ? '🏆' : completionRate >= 80 ? '🔥' : completionRate >= 50 ? '💪' : completionRate > 0 ? '🌱' : '📝';
+  const overdueEmoji = overdueCount === 0 ? '✅' : overdueCount <= 2 ? '😬' : '😰';
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
       <main className={getContainerClass('max-w-7xl') + ' py-8'}>
-        {/* Welcome Section */}
+        {/* Welcome Section — with Facehash Avatar */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
-            Welcome back, {full_name || 'Student'}!
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Here's what's happening with your classes today
-          </p>
-        </motion.div>
+          <div className="flex items-start gap-4 sm:gap-5">
+            {/* Facehash Avatar — clickable for jokes */}
+            <div className="relative shrink-0" ref={facehashRef}>
+              <div className="relative">
+                {/* Pillow + zzz during sleepy animation - moved OUTSIDE the clipped container */}
+                <AnimatePresence>
+                  {showSleepy && (
+                    <>
+                      {/* Pillow underneath the tilted avatar */}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.7, x: 5 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.3 }}
+                        className="absolute -bottom-3 -left-4 pointer-events-none select-none z-0"
+                      >
+                        <svg width="48" height="24" viewBox="0 0 48 24" fill="none">
+                          {/* Pillow body - soft rounded squircle */}
+                          <rect x="2" y="4" width="44" height="18" rx="6" fill="#e0e7ff" className="dark:fill-indigo-900/60" />
+                          {/* Pillow puff highlights */}
+                          <ellipse cx="12" cy="11" rx="6" ry="5" fill="#eef2ff" className="dark:fill-indigo-800/40" />
+                          <ellipse cx="36" cy="11" rx="6" ry="5" fill="#eef2ff" className="dark:fill-indigo-800/40" />
+                          {/* Pillow outline */}
+                          <rect x="2" y="4" width="44" height="18" rx="6" stroke="#c7d2fe" strokeWidth="1" fill="none" className="dark:stroke-indigo-700/50" />
+                        </svg>
+                      </motion.div>
+                      {/* Floating zzz */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute -top-4 -right-3 pointer-events-none select-none z-20"
+                      >
+                        <motion.span
+                          animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                          className="text-[10px] font-bold text-indigo-300 dark:text-indigo-400/60 block"
+                        >
+                          z
+                        </motion.span>
+                        <motion.span
+                          animate={{ y: [0, -3, 0], opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ duration: 2.3, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                          className="text-xs font-bold text-indigo-300 dark:text-indigo-400/60 block -mt-1 ml-1"
+                        >
+                          z
+                        </motion.span>
+                        <motion.span
+                          animate={{ y: [0, -5, 0], opacity: [0.2, 0.7, 0.2] }}
+                          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+                          className="text-sm font-bold text-indigo-300 dark:text-indigo-400/60 block -mt-1 ml-2.5"
+                        >
+                          z
+                        </motion.span>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
 
-        {/* Stats Section - Minimalist Design */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {/* Completion Rate */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Complete</span>
-              <CheckCircle className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+                {/* Golden crown when all homework is done */}
+                <AnimatePresence>
+                  {completionRate === 100 && homeworks.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.3 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.5 }}
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none select-none z-30"
+                    >
+                      <svg width="44" height="32" viewBox="0 0 44 32" fill="none">
+                        {/* Crown glow */}
+                        <ellipse cx="22" cy="26" rx="16" ry="5" fill="#fbbf24" opacity="0.2" />
+                        {/* Crown body */}
+                        <path
+                          d="M5 24L2 8L12 16L22 4L32 16L42 8L39 24H5Z"
+                          fill="#f59e0b"
+                          stroke="#d97706"
+                          strokeWidth="1"
+                        />
+                        {/* Crown band */}
+                        <rect x="5" y="24" width="34" height="4" rx="1" fill="#d97706" />
+                        {/* Crown jewels */}
+                        <circle cx="14" cy="18" r="2.5" fill="#fbbf24" />
+                        <circle cx="22" cy="12" r="3" fill="#fcd34d" />
+                        <circle cx="30" cy="18" r="2.5" fill="#fbbf24" />
+                      </svg>
+                      {/* Sparkles */}
+                      <motion.div
+                        animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 0.8] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                        className="absolute -top-2 -left-2"
+                      >
+                        <span className="text-[10px]">✨</span>
+                      </motion.div>
+                      <motion.div
+                        animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 0.8] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                        className="absolute -top-2 -right-2"
+                      >
+                        <span className="text-[10px]">✨</span>
+                      </motion.div>
+                      <motion.div
+                        animate={{ opacity: [0, 1, 0], scale: [0.8, 1.3, 0.8] }}
+                        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                        className="absolute -top-1 left-1/2 -translate-x-1/2"
+                      >
+                        <span className="text-[8px]">⭐</span>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={facehashControls}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 20 }}
+                  className="rounded-2xl overflow-hidden shadow-md cursor-pointer select-none z-10 relative"
+                  onClick={fetchJoke}
+                  title="Click me for a joke!"
+                >
+                  <Facehash
+                    name={full_name || user?.email || 'Student'}
+                    size={64}
+                    enableBlink={!showSleepy}
+                    intensity3d="dramatic"
+                    showInitial={!showFrowny && !showSleepy && !showParty && !showVictory}
+                    colors={['#3b82f6', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']}
+                    style={{ borderRadius: '16px' }}
+                    onRenderMouth={
+                      showVictory ? () => (
+                        // Victory mouth — proud confident grin
+                        <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
+                          <path
+                            d="M3 3C5 11 19 11 21 3"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M7 6C9 9 15 9 17 6"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            opacity="0.4"
+                          />
+                        </svg>
+                      ) : showParty ? () => (
+                        // Party mouth — wide happy smile
+                        <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                          <path
+                            d="M2 2C6 10 18 10 22 2"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      ) : showFrowny ? () => (
+                        <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+                          <path
+                            d="M2 10C5 4 10 2 18 4"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      ) : showSleepy ? () => (
+                        // Sleeping mouth — gentle relaxed closed line
+                        <svg width="16" height="6" viewBox="0 0 16 6" fill="none">
+                          <path
+                            d="M3 2C5.5 4.5 10.5 4.5 13 2"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      ) : undefined
+                    }
+                  />
+                </motion.div>
+              </div>
+
+              {/* Joke Speech Bubble */}
+              <AnimatePresence>
+                {joke && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85, y: 5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 5 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    className="absolute left-0 top-full mt-2 z-50 w-64 sm:w-72 cursor-pointer"
+                    onClick={() => { setJoke(null); if (jokeTimeoutRef.current) clearTimeout(jokeTimeoutRef.current); }}
+                  >
+                    {/* Speech bubble arrow */}
+                    <div className="absolute -top-1.5 left-5 w-3 h-3 bg-white dark:bg-gray-800 border-l border-t border-gray-200 dark:border-gray-700 rotate-45" />
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-lg">
+                      <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+                        {joke}
+                      </p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 text-right">
+                        tap to dismiss · click me again for another
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="text-2xl font-light text-gray-900 dark:text-white">
-              {homeworks.length > 0 ? Math.round((homeworks.filter((hw: any) => hw.completed).length / homeworks.length) * 100) : 0}%
+
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white mb-1 tracking-tight">
+                {timeGreeting.text}, {full_name?.split(' ')[0] || 'Student'}!
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Here's what's happening with your classes today
+              </p>
             </div>
           </div>
+        </motion.div>
+
+        {/* Stats Section - Enhanced with emoji reactions */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* Completion Rate */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Complete</span>
+              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">{completionEmoji}</span>
+            </div>
+            <div className="flex items-end gap-1.5">
+              <span className="text-2xl font-light text-gray-900 dark:text-white">
+                {completionRate}%
+              </span>
+              <CheckCircle className="w-4 h-4 text-[#264f84] dark:text-blue-400 mb-1" />
+            </div>
+          </motion.div>
 
           {/* Overdue Items */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+          <motion.div
+            ref={overdueCardRef}
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+          >
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs font-medium ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
-              <div className="relative">
+              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">{overdueEmoji}</span>
+            </div>
+            <div className="flex items-end gap-1.5">
+              <span className="text-2xl font-light text-gray-900 dark:text-white">
+                {overdueCount}
+              </span>
+              <div className="relative mb-1">
                 <Clock className={`w-4 h-4 ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
                 {overdueCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
                 )}
               </div>
             </div>
-            <div className="text-2xl font-light text-gray-900 dark:text-white">
-              {overdueCount}
-            </div>
-          </div>
+          </motion.div>
 
           {/* Test Stats */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+          <motion.div
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+          >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Tests</span>
-              <GraduationCap className="w-4 h-4 text-[#264f84] dark:text-blue-400" />
+              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">📝</span>
             </div>
-            <div className="text-2xl font-light text-gray-900 dark:text-white">
-              {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
+            <div className="flex items-end gap-1.5">
+              <span className="text-2xl font-light text-gray-900 dark:text-white">
+                {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
+              </span>
+              <GraduationCap className="w-4 h-4 text-[#264f84] dark:text-blue-400 mb-1" />
             </div>
-          </div>
+          </motion.div>
 
           {/* Next Deadline */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+          <motion.div
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+          >
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs font-medium ${(() => {
                 const nextItem = nextDueHomework && nextUpcomingTest
@@ -1550,11 +2038,11 @@ const MainApp = () => {
                   : (nextDueHomework || nextUpcomingTest);
                 const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
 
-                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400'; // Default blue
-                if (daysUntil === 0) return 'text-red-500'; // Overdue/Today - Red
-                if (daysUntil === 1) return 'text-amber-500'; // Tomorrow - Yellow/Amber
-                if (daysUntil <= 3) return 'text-orange-500'; // 2-3 days - Orange
-                return 'text-green-600 dark:text-green-400'; // 4+ days - Green
+                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400';
+                if (daysUntil === 0) return 'text-red-500';
+                if (daysUntil === 1) return 'text-amber-500';
+                if (daysUntil <= 3) return 'text-orange-500';
+                return 'text-green-600 dark:text-green-400';
               })()
                 }`}>
                 {nextDueHomework || nextUpcomingTest ? (
@@ -1567,61 +2055,70 @@ const MainApp = () => {
                   })()
                 ) : 'Next Due'}
               </span>
-              <CalendarIcon className={`w-4 h-4 ${(() => {
+              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {(() => {
+                  const nextItem = nextDueHomework && nextUpcomingTest
+                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                    : (nextDueHomework || nextUpcomingTest);
+                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                  if (!daysUntil) return '📅';
+                  if (daysUntil === 0) return '⏰';
+                  if (daysUntil === 1) return '⚡';
+                  return '📅';
+                })()}
+              </span>
+            </div>
+            <div className="flex items-end gap-1.5">
+              <span className="text-2xl font-light text-gray-900 dark:text-white">
+                {nextDueHomework || nextUpcomingTest ? (
+                  (() => {
+                    const nextItem = nextDueHomework && nextUpcomingTest
+                      ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                      : (nextDueHomework || nextUpcomingTest);
+                    const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                    const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
+
+                    if (daysUntil !== null) {
+                      if (daysUntil === 0) return 'Today';
+                      if (daysUntil === 1) return 'Tomorrow';
+
+                      if (daysUntil < 7) {
+                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const currentDay = new Date().getDay();
+                        const testDay = itemDate.getDay();
+                        const itemDayName = dayNames[testDay];
+                        const daysUntilItem = testDay - currentDay;
+                        const isSameWeek = daysUntilItem > 0 && daysUntilItem <= 6;
+
+                        if (isSameWeek) {
+                          return `This ${itemDayName}`;
+                        } else {
+                          return `Next ${itemDayName}`;
+                        }
+                      }
+
+                      return format(itemDate, 'MMM d');
+                    }
+
+                    return `${daysUntil}d`;
+                  })()
+                ) : '-'}
+              </span>
+              <CalendarIcon className={`w-4 h-4 mb-1 ${(() => {
                 const nextItem = nextDueHomework && nextUpcomingTest
                   ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                   : (nextDueHomework || nextUpcomingTest);
                 const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
 
-                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400'; // Default blue
-                if (daysUntil === 0) return 'text-red-500'; // Overdue/Today - Red
-                if (daysUntil === 1) return 'text-amber-500'; // Tomorrow - Yellow/Amber
-                if (daysUntil <= 3) return 'text-orange-500'; // 2-3 days - Orange
-                return 'text-green-600 dark:text-green-400'; // 4+ days - Green
+                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400';
+                if (daysUntil === 0) return 'text-red-500';
+                if (daysUntil === 1) return 'text-amber-500';
+                if (daysUntil <= 3) return 'text-orange-500';
+                return 'text-green-600 dark:text-green-400';
               })()
                 }`} />
             </div>
-            <div className="text-2xl font-light text-gray-900 dark:text-white">
-              {nextDueHomework || nextUpcomingTest ? (
-                (() => {
-                  const nextItem = nextDueHomework && nextUpcomingTest
-                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                    : (nextDueHomework || nextUpcomingTest);
-                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                  const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
-
-                  if (daysUntil !== null) {
-                    if (daysUntil === 0) return 'Today';
-                    if (daysUntil === 1) return 'Tomorrow';
-
-                    // Smart natural language for upcoming days
-                    if (daysUntil < 7) {
-                      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                      const currentDay = new Date().getDay();
-                      const testDay = itemDate.getDay();
-
-                      // Get the day name for the item
-                      const itemDayName = dayNames[testDay];
-
-                      // Check if item is in the same week (within 6 days from today)
-                      const daysUntilItem = testDay - currentDay;
-                      const isSameWeek = daysUntilItem > 0 && daysUntilItem <= 6;
-
-                      if (isSameWeek) {
-                        return `This ${itemDayName}`;
-                      } else {
-                        return `Next ${itemDayName}`;
-                      }
-                    }
-
-                    return format(itemDate, 'MMM d');
-                  }
-
-                  return `${daysUntil}d`;
-                })()
-              ) : '-'}
-            </div>
-          </div>
+          </motion.div>
         </div>
         {/* Gamification Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 items-stretch">
@@ -2082,57 +2579,61 @@ const MainApp = () => {
 
       {/* Onboarding Modal */}
       <AnimatePresence>
-        {showOnboarding && (
-          <OnboardingModal
-            isOpen={showOnboarding}
-            onClose={() => setShowOnboarding(false)}
-          />
-        )}
+        {
+          showOnboarding && (
+            <OnboardingModal
+              isOpen={showOnboarding}
+              onClose={() => setShowOnboarding(false)}
+            />
+          )
+        }
       </AnimatePresence>
 
       {/* Delete Confirmation Dialog */}
       <AnimatePresence>
-        {deleteConfirm && (
-          <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-800"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Delete Recurring Homework
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Are you sure you want to delete "<span className="font-medium">{deleteConfirm.title}</span>"?
-              </p>
+        {
+          deleteConfirm && (
+            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-800"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Delete Recurring Homework
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Are you sure you want to delete "<span className="font-medium">{deleteConfirm.title}</span>"?
+                </p>
 
-              <div className="space-y-3 mb-6">
-                <button
-                  onClick={() => handleDeleteConfirm(false)}
-                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
-                >
-                  Delete only this instance
-                </button>
-                <button
-                  onClick={() => handleDeleteConfirm(true)}
-                  className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                >
-                  Delete entire recurring series
-                </button>
-              </div>
+                <div className="space-y-3 mb-6">
+                  <button
+                    onClick={() => handleDeleteConfirm(false)}
+                    className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                  >
+                    Delete only this instance
+                  </button>
+                  <button
+                    onClick={() => handleDeleteConfirm(true)}
+                    className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                  >
+                    Delete entire recurring series
+                  </button>
+                </div>
 
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setDeleteConfirm(null)}
+                    className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )
+        }
       </AnimatePresence>
 
       {/* Delete Class Confirmation Dialog */}

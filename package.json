@@ -122,6 +122,7 @@
     "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "dedent": "^1.0.0",
+    "facehash": "^0.0.7",
     "framer-motion": "^12.23.12",
     "googleapis": "^161.0.0",
     "gsap": "^3.13.0",

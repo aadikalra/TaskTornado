@@ -2,8 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Clipboard, Loader2, RotateCcw, ChevronDown, ChevronUp, AlertCircle, ArrowLeftRight, Trash2, Plus } from 'lucide-react';
+import { ArrowRight, Clipboard, Loader2, RotateCcw, ChevronDown, ChevronUp, AlertCircle, ArrowLeftRight, Trash2, Plus, Lock } from 'lucide-react';
 import { getFullVersionString } from '@/config/version';
+import { useAuth } from '@/context/AuthContext';
+import { useEffect } from 'react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 interface Assignment {
@@ -40,7 +42,15 @@ export default function GradeCalculatorPage() {
     const [manualEarned, setManualEarned] = useState('');
     const [manualPossible, setManualPossible] = useState('');
 
+    const { user } = useAuth() || {};
     const assessmentWeight = 100 - practiceWeight;
+
+    // ─── Auth Guard ─────────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (!user && entryMode === 'paste') {
+            setEntryMode('manual');
+        }
+    }, [user, entryMode]);
 
     // ─── Calculation ────────────────────────────────────────────────────────────
     const results = useMemo(() => {
@@ -332,18 +342,27 @@ export default function GradeCalculatorPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="flex items-center gap-1 p-0.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg w-fit"
                             >
-                                {(['paste', 'manual'] as const).map(mode => (
-                                    <button
-                                        key={mode}
-                                        onClick={() => setEntryMode(mode)}
-                                        className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-all ${entryMode === mode
-                                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                                            }`}
-                                    >
-                                        {mode === 'paste' ? 'AI Paste' : 'Manual Entry'}
-                                    </button>
-                                ))}
+                                {(['paste', 'manual'] as const).map(mode => {
+                                    const isDisabled = mode === 'paste' && !user;
+                                    return (
+                                        <button
+                                            key={mode}
+                                            disabled={isDisabled}
+                                            onClick={() => !isDisabled && setEntryMode(mode)}
+                                            className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-all ${entryMode === mode
+                                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                                : isDisabled
+                                                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-1.5">
+                                                {mode === 'paste' ? 'AI Paste' : 'Manual Entry'}
+                                                {isDisabled && <Lock className="w-2.5 h-2.5 opacity-50" />}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </motion.div>
 
                             {/* Paste mode */}
@@ -479,11 +498,17 @@ export default function GradeCalculatorPage() {
                                             </div>
                                         </div>
 
-                                        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800/50 flex items-center justify-end">
+                                        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800/50 flex items-center justify-between">
+                                            {!user && (
+                                                <div className="flex items-center gap-1.5 px-2 text-[10px] text-gray-400 dark:text-gray-500 italic">
+                                                    <Lock className="w-2.5 h-2.5" />
+                                                    AI Paste requires an account
+                                                </div>
+                                            )}
                                             <button
                                                 onClick={addManualAssignment}
                                                 disabled={!manualName.trim() || !manualEarned || !manualPossible}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 ml-auto"
                                             >
                                                 <Plus className="w-3 h-3" />
                                                 Add

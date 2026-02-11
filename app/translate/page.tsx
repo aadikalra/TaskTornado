@@ -10,7 +10,8 @@ import { getFullVersionString } from '@/config/version';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Languages } from 'lucide-react';
+import { Languages, Lock } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 // Supported languages for the translation
 const LANGUAGES = [
@@ -173,6 +174,15 @@ export default function TranslatePage() {
     const [isTranslating, setIsTranslating] = useState(false);
     const [copied, setCopied] = useState(false);
     const [charCount, setCharCount] = useState(0);
+    const [translationsCount, setTranslationsCount] = useState<number>(0);
+
+    // Load initial count
+    useEffect(() => {
+        if (!user) {
+            const count = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
+            setTranslationsCount(count);
+        }
+    }, [user]);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -262,6 +272,21 @@ export default function TranslatePage() {
             return;
         }
 
+        // Limit check for guest users
+        if (!user) {
+            const currentCount = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
+            if (currentCount >= 10) {
+                toast.error('Limit reached', {
+                    description: 'Guest users are limited to 10 translations. Sign in for unlimited access!',
+                    action: {
+                        label: 'Log In',
+                        onClick: () => router.push('/login')
+                    }
+                });
+                return;
+            }
+        }
+
         setIsTranslating(true);
         setTranslatedText('');
         setPronunciation('');
@@ -296,7 +321,16 @@ export default function TranslatePage() {
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    // Increment count for guest users on success
+                    if (!user) {
+                        const currentCount = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
+                        const newCount = currentCount + 1;
+                        Cookies.set('translate_usage_guest', newCount.toString(), { expires: 7 }); // 1 week
+                        setTranslationsCount(newCount);
+                    }
+                    break;
+                }
 
                 const chunk = decoder.decode(value, { stream: true });
                 const lines = chunk.split('\n');
@@ -390,14 +424,24 @@ export default function TranslatePage() {
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500"
+                        className="flex flex-col items-end gap-2"
                     >
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">
-                            <kbd>⌘</kbd>
-                            <span>+</span>
-                            <kbd>Enter</kbd>
+                        {!user && (
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-lg">
+                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+                                    Usage: {translationsCount}/10
+                                </span>
+                                {translationsCount >= 10 && <Lock className="w-2.5 h-2.5 text-amber-500" />}
+                            </div>
+                        )}
+                        <div className="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">
+                                <kbd>⌘</kbd>
+                                <span>+</span>
+                                <kbd>Enter</kbd>
+                            </div>
+                            <span>to translate</span>
                         </div>
-                        <span>to translate</span>
                     </motion.div>
                 </div>
 
