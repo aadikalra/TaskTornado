@@ -29,9 +29,9 @@ export const SubjectMastery = ({ className }: { className?: string }) => {
 
   if (allSubjects.length === 0) {
     return (
-      <div className={cn("w-full bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800", className)}>
+      <div className={cn("w-full bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800", className)}>
         <h2 className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-3">Subject Mastery</h2>
-        <div className="text-center py-8 border border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+        <div className="text-center py-8 border border-dashed border-gray-100 dark:border-gray-800 rounded-2xl">
           <p className="text-xs text-gray-500">No data available</p>
         </div>
       </div>
@@ -39,7 +39,7 @@ export const SubjectMastery = ({ className }: { className?: string }) => {
   }
 
   return (
-    <div className={cn("w-full bg-white dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-800", className)}>
+    <div className={cn("w-full bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800", className)}>
       <h2 className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-4">Subject Mastery</h2>
 
       <div className="space-y-3.5">

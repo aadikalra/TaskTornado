@@ -46,86 +46,68 @@ export default function AccountSection({
 
   return (
     <>
-      <div className="space-y-3">
-        {/* Sign Out Card */}
-        <div className="p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-red-50/50 dark:hover:bg-red-950/10">
+      <div className="space-y-1">
+        {/* Sign Out */}
+        <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
           {isLoggingOut ? (
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-              </div>
-              <span className="text-sm text-gray-900 dark:text-white font-bold">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
                 Redirecting in {countdown}...
               </span>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-1 p-2 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                  <LogOut className="h-5 w-5 text-red-500" />
-                </div>
-                <div>
-                  <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
-                    Sign Out
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
-                    Securely sign out of your current session. You can sign back in at any time.
-                  </p>
-                </div>
+            <>
+              <div className="flex items-center gap-3">
+                <LogOut className="h-[18px] w-[18px] text-rose-500/70" />
+                <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+                  Sign Out
+                </span>
               </div>
               <Button
                 onClick={onSignOut}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${showLogoutConfirm
-                    ? 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 shadow-red-600/20'
-                    : 'bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white hover:bg-gray-50'
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${showLogoutConfirm
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'
                   }`}
                 hoverScale={1.02}
               >
                 {showLogoutConfirm ? 'Click to Confirm' : 'Sign Out'}
               </Button>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Delete Account Card */}
-        <div className="p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-red-50/50 dark:hover:bg-red-950/10">
+        {/* Delete Account */}
+        <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
           {isDeleting ? (
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-              </div>
-              <span className="text-sm text-gray-900 dark:text-white font-bold">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
                 Deleting your account...
               </span>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-1 p-2 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                  <Trash2 className="h-5 w-5 text-red-500" />
-                </div>
-                <div>
-                  <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
-                    Delete Account
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
-                    Permanently delete your profile and all stored data. This action is irreversible.
-                  </p>
-                </div>
+            <>
+              <div className="flex items-center gap-3">
+                <Trash2 className="h-[18px] w-[18px] text-rose-500/70" />
+                <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+                  Delete Account
+                </span>
               </div>
               <Button
                 onClick={handleDeleteClick}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white hover:bg-red-50 hover:text-red-600 transition-all shadow-sm"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
                 hoverScale={1.02}
               >
                 Delete Account
               </Button>
-            </div>
+            </>
           )}
         </div>
       </div>
 
-      {/* Contemporary Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
@@ -141,62 +123,54 @@ export default function AccountSection({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white dark:bg-zinc-950 rounded-[32px] border border-gray-100 dark:border-zinc-800 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
             >
               {/* Brand Strip */}
-              <div className="h-1.5 w-full bg-red-500" />
+              <div className="h-1 w-full bg-red-500" />
 
-              <div className="p-8 md:p-12">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-2xl">
-                    <ShieldAlert className="h-6 w-6 text-red-600" />
-                  </div>
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <ShieldAlert className="h-5 w-5 text-red-500" />
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Serious Action Required</h2>
-                    <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mt-1">Permanently Delete Account</p>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Account</h2>
+                    <p className="text-xs text-red-500 font-medium mt-0.5">This action is permanent</p>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="p-6 bg-red-50/50 dark:bg-red-950/10 rounded-2xl border border-red-100 dark:border-red-900/30">
-                    <h4 className="text-[13px] font-bold text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
-                      Irreversible Process
-                    </h4>
-                    <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
-                      You are about to delete your TaskTornado account. All classes, homework, and personal settings will be purged from our servers instantly.
+                <div className="space-y-5">
+                  <div className="p-4 bg-red-50/50 dark:bg-red-950/10 rounded-xl border border-red-100 dark:border-red-900/20">
+                    <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
+                      All your classes, homework, and settings will be permanently deleted. This cannot be undone.
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest pl-1">
-                        Confirm Identity
-                      </label>
-                      <input
-                        type="text"
-                        value={confirmationText}
-                        onChange={(e) => setConfirmationText(e.target.value)}
-                        placeholder={`Type "${userName}" to confirm`}
-                        className="w-full px-5 py-4 bg-gray-50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-800 rounded-2xl text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all font-medium"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
+                      Type &ldquo;{userName}&rdquo; to confirm
+                    </label>
+                    <input
+                      type="text"
+                      value={confirmationText}
+                      onChange={(e) => setConfirmationText(e.target.value)}
+                      placeholder={userName}
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all"
+                    />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <div className="flex gap-3 pt-2">
                     <Button
                       onClick={handleModalCancel}
-                      className="flex-1 py-4 px-6 rounded-2xl text-[13px] font-bold text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-900 transition-all"
+                      className="flex-1 py-3 px-4 rounded-xl text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors"
                       hoverScale={1.02}
                     >
-                      Keep Account
+                      Cancel
                     </Button>
                     <Button
                       onClick={handleModalConfirm}
                       disabled={confirmationText.trim() !== userName.trim() || isDeleting}
-                      className={`flex-1 py-4 px-6 rounded-2xl text-[13px] font-bold transition-all shadow-lg ${confirmationText.trim() === userName.trim()
-                          ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/20'
-                          : 'bg-gray-100 dark:bg-zinc-900 text-gray-400 dark:text-zinc-600 cursor-not-allowed uppercase tracking-widest text-[10px]'
+                      className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all ${confirmationText.trim() === userName.trim()
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-gray-100 dark:bg-zinc-900 text-gray-300 dark:text-zinc-700 cursor-not-allowed'
                         }`}
                       hoverScale={confirmationText.trim() === userName.trim() ? 1.02 : 1}
                     >
@@ -208,9 +182,9 @@ export default function AccountSection({
 
               <button
                 onClick={handleModalCancel}
-                className="absolute top-8 right-8 p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="absolute top-6 right-6 p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </motion.div>
           </div>

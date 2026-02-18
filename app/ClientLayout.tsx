@@ -12,6 +12,10 @@ import dynamic from 'next/dynamic';
 import { useToast } from '@/context/ToastContext';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
+import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
+
+// Register custom eye types before any Facehash renders
+patchFacehashFaces();
 
 
 // Dynamically import DockNav with no SSR to avoid hydration issues

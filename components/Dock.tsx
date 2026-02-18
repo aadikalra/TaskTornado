@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 export type DockItemData = {
   icon?: React.ReactNode;
   label?: React.ReactNode;
+  popover?: React.ReactNode;
   onClick?: () => void;
   className?: string;
   isActive?: boolean;
@@ -36,6 +37,7 @@ export type DockProps = {
 type DockItemProps = {
   className?: string;
   children: React.ReactNode;
+  popover?: React.ReactNode;
   onClick?: () => void;
   mouseX: MotionValue<number>;
   spring: SpringOptions;
@@ -48,6 +50,7 @@ type DockItemProps = {
 
 function DockItem({
   children,
+  popover,
   className = '',
   onClick,
   mouseX,
@@ -111,9 +114,10 @@ function DockItem({
       )}
       {Children.map(children, child =>
         React.isValidElement(child)
-          ? cloneElement(child as React.ReactElement<{ isHovered?: MotionValue<number> }>, { isHovered })
+          ? cloneElement(child as React.ReactElement<{ isHovered?: MotionValue<number>; isPopoverOpen?: boolean }>, { isHovered })
           : child
       )}
+      {popover && <DockPopover isHovered={isHovered}>{popover}</DockPopover>}
       {isActive && (
         <motion.div
           layoutId="dock-active-dot"
@@ -158,6 +162,38 @@ function DockLabel({ children, className = '', isHovered }: DockLabelProps) {
           className={`${className} absolute -top-6 left-1/2 w-fit whitespace-pre rounded-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1 text-xs text-gray-800 dark:text-gray-100 shadow-lg dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]`}
           role="tooltip"
           style={{ x: '-50%' }}
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function DockPopover({ children, isHovered }: { children: React.ReactNode; isHovered?: MotionValue<number> }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isHovered) return;
+    const unsubscribe = isHovered.on('change', latest => {
+      setIsVisible(latest === 1);
+    });
+    return () => unsubscribe();
+  }, [isHovered]);
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          ref={popoverRef}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: -12 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          className="absolute bottom-full left-1/2 -translate-x-1/2 z-[100] pb-4"
+          onMouseEnter={() => isHovered?.set(1)}
+          onMouseLeave={() => isHovered?.set(0)}
         >
           {children}
         </motion.div>
@@ -261,6 +297,7 @@ export default function Dock({
               baseItemSize={responsiveBaseSize}
               isActive={item.isActive}
               dataTour={item.dataTour}
+              popover={item.popover}
             >
               <DockIcon>{item.icon}</DockIcon>
               <DockLabel>{item.label}</DockLabel>

@@ -24,7 +24,7 @@ export default function DataManagementSection({
     <div className="space-y-3">
       <DangerZoneItem
         title="Delete All Classes"
-        description="Permanently delete all classes and associated homework"
+
         buttonText="Delete All Classes"
         confirmText="Click to Confirm"
         onConfirm={onClearClasses}
@@ -37,7 +37,7 @@ export default function DataManagementSection({
 
       <DangerZoneItem
         title="Delete All Homework"
-        description="Permanently delete all homework assignments"
+
         buttonText="Delete All Homework"
         confirmText="Click to Confirm"
         onConfirm={onClearHomeworks}

@@ -9,7 +9,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -50,8 +50,8 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #f9fafb;
-  /* Light gray background */
+  --background: #F0F7FF;
+  /* Subtle cool gray background */
   --foreground: oklch(0.145 0 0);
   /* Dark text for contrast */
   --card: oklch(1 0 0);
@@ -72,8 +72,8 @@
   /* Dark text on secondary */
   --muted: oklch(0.97 0 0);
   /* Light gray muted */
-  --muted-foreground: oklch(0.556 0 0);
-  /* Medium gray text */
+  --muted-foreground: #6B7280;
+  /* Solid medium gray for accessible secondary text */
   --accent-foreground: oklch(0.205 0 0);
   /* Dark text on accent */
   --destructive: oklch(0.577 0.245 27.325);

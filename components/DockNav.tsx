@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { X } from 'lucide-react';
+import { X, LogOut } from 'lucide-react';
 import { Facehash } from 'facehash';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
@@ -278,7 +278,8 @@ export default function DockNav() {
       onClick: () => router.push('/calendar'),
       priority: 'essential',
       isActive: pathname === '/calendar',
-      group: 'core'
+      group: 'core',
+      dataTour: 'calendar'
     },
 
     // --- DIVIDER ---
@@ -291,7 +292,8 @@ export default function DockNav() {
       onClick: () => { setIsMoreOpen(prev => !prev); setIsNotificationsOpen(false); },
       priority: 'essential',
       isActive: isMoreOpen || isOverflowActive,
-      group: 'more'
+      group: 'more',
+      dataTour: 'apps'
     },
 
     // --- DIVIDER ---
@@ -304,24 +306,54 @@ export default function DockNav() {
       onClick: () => { setIsNotificationsOpen(!isNotificationsOpen); setIsMoreOpen(false); },
       priority: 'essential',
       isActive: isNotificationsOpen,
-      group: 'system'
+      group: 'system',
+      dataTour: 'notifications'
     },
     {
-      icon: <Facehash
-        name={full_name || 'User'}
-        size={28}
-        enableBlink
-        intensity3d="dramatic"
-        showInitial={true}
-        interactive={false}
-        colors={['#3b82f6', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']}
-        style={{ borderRadius: '50%' }}
-      />,
+      icon: (
+        <span className="text-[13px] font-black text-[#264f84] dark:text-blue-400 tracking-tight">
+          {(() => {
+            const names = full_name?.trim().split(/\s+/);
+            if (!names || !names[0]) return 'U';
+            if (names.length === 1) return names[0].charAt(0).toUpperCase();
+            return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+          })()}
+        </span>
+      ),
       label: 'Settings',
       onClick: () => router.push('/settings'),
       priority: 'essential',
       isActive: pathname === '/settings',
-      group: 'system'
+      group: 'system',
+      dataTour: 'settings',
+      popover: (
+        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-2xl border border-gray-200/60 dark:border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-1.5 min-w-[180px] flex flex-col gap-1">
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-white/[0.04] mb-1">
+            <p className="text-[13px] font-bold text-gray-900 dark:text-white truncate">
+              {(full_name?.split(' ')[0]) || 'Student'}
+            </p>
+            <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 truncate opacity-70">
+              {user?.email}
+            </p>
+          </div>
+          <button
+            onClick={() => router.push('/settings')}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors text-left"
+          >
+            <div className="w-4 h-4 flex items-center justify-center opacity-70">
+              <IconGear />
+            </div>
+            <span className="text-[12px] font-semibold">Settings</span>
+          </button>
+          <button
+            onClick={() => { signOut(); router.push('/'); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-[12px] font-semibold">Log out</span>
+          </button>
+        </div>
+      )
     },
   ] : [
     // Not signed in — public dock with More menu

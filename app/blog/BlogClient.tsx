@@ -21,6 +21,18 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
     {
+        id: 'facehash',
+        title: 'Facehash',
+        excerpt: 'How we turn your name into a one-of-a-kind avatar — no uploads, no setup, no two students alike.',
+        date: 'Feb 14, 2026',
+        author: 'Aadi Kalra',
+        authorRole: 'Founder',
+        readTime: '4 min read',
+        category: 'Design',
+        coverImage: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?auto=format&fit=crop&q=80&w=2000',
+        href: '/blog/facehash'
+    },
+    {
         id: 'grade-calculator',
         title: 'Grade Calculator',
         excerpt: 'Instant weighted percentage calculations from raw grade text.',
@@ -206,7 +218,7 @@ export default function BlogClient() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
 
-    const categories = ['All', 'Product', 'Engineering', 'Scale', 'Education'];
+    const categories = ['All', 'Product', 'Design', 'Engineering', 'Scale', 'Education'];
 
     const filteredPosts = useMemo(() => {
         return blogPosts.filter(post => {

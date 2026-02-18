@@ -35,68 +35,41 @@ export default function PreferencesSection({
   const { resetTour } = useOnboardingTour();
 
   return (
-    <div className="space-y-3">
-
-
-
-
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-green-50 dark:bg-green-950/30 rounded-xl">
-            <Maximize2 className="h-5 w-5 text-green-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Full Width Mode
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Use the full width of your screen for the settings page layout.
-            </p>
-          </div>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center gap-3">
+          <Maximize2 className="h-[18px] w-[18px] text-blue-500/70" />
+          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+            Full Width Mode
+          </span>
         </div>
         <Switch
           checked={useWideLayout}
           onCheckedChange={onToggleWideLayout}
-          className="data-[state=checked]:bg-blue-600"
+          className="data-[state=checked]:bg-blue-500"
         />
       </div>
 
-
-
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-purple-50 dark:bg-purple-950/30 rounded-xl">
-            <BookOpen className="h-5 w-5 text-purple-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Show Tests in Class Cards
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Display upcoming tests directly within class cards on the dashboard.
-            </p>
-          </div>
+      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-[18px] w-[18px] text-blue-500/70" />
+          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+            Show Tests in Class Cards
+          </span>
         </div>
         <Switch
           checked={showTestsInClassCards}
           onCheckedChange={onToggleTestsInClassCards}
-          className="data-[state=checked]:bg-blue-600"
+          className="data-[state=checked]:bg-blue-500"
         />
       </div>
 
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3 flex-1">
-          <div className="mt-1 p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl">
-            <Brain className="h-5 w-5 text-indigo-500" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Aurora Personality
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Choose how the AI assistant communicates with you.
-            </p>
-          </div>
+      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center gap-3 flex-1">
+          <Brain className="h-[18px] w-[18px] text-blue-500/70" />
+          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+            Aurora Personality
+          </span>
         </div>
         <CustomPersonalitySelect
           value={aiPersonality}
@@ -104,23 +77,16 @@ export default function PreferencesSection({
         />
       </div>
 
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-xl">
-            <RotateCcw className="h-5 w-5 text-amber-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Replay Onboarding Tour
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Walk through the key features of TaskTornado again.
-            </p>
-          </div>
+      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center gap-3">
+          <RotateCcw className="h-[18px] w-[18px] text-blue-500/70" />
+          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+            Replay Onboarding Tour
+          </span>
         </div>
         <button
           onClick={resetTour}
-          className="px-4 py-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all shadow-sm"
+          className="px-3.5 py-1.5 text-xs font-medium text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
         >
           Restart
         </button>
@@ -195,9 +161,7 @@ const CustomPersonalitySelect = ({ value, onValueChange }: CustomPersonalitySele
                       <Check className="w-4 h-4 text-blue-500" />
                     )}
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {personality.description}
-                  </span>
+
                 </div>
               </button>
             ))}

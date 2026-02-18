@@ -783,14 +783,25 @@ const MainApp = () => {
 
   // Color mapping for class icons
   const classColors = {
-    red: '#E53E3E',
-    blue: '#3182CE',
-    yellow: '#D69E2E',
-    green: '#38A169',
-    purple: '#805AD5',
-    pink: '#D53F8C',
-    teal: '#2E7774',
-    gray: '#4A5568'
+    red: '#C53030',    // red-700
+    blue: '#2B6CB0',   // blue-700
+    yellow: '#C2410C', // orange-700
+    green: '#2F855A',  // green-700
+    purple: '#6B46C1', // purple-700
+    pink: '#B83280',   // pink-700
+    teal: '#285E61',   // teal-800
+    gray: '#2D3748'    // gray-700
+  };
+
+  const headerColors = {
+    red: '#9B2C2C',    // red-800
+    blue: '#2A4365',   // blue-900
+    yellow: '#9A3412', // orange-800
+    green: '#22543D',  // green-800
+    purple: '#44337A', // purple-800
+    pink: '#82274A',   // pink-800
+    teal: '#1D4044',   // teal-900
+    gray: '#1A202C'    // gray-900
   };
 
   // Get initials from class name
@@ -806,6 +817,11 @@ const MainApp = () => {
   // Get a consistent color for each class
   const getClassColor = useCallback((index: number) => {
     const colors = Object.values(classColors);
+    return colors[index % colors.length];
+  }, []);
+
+  const getHeaderColor = useCallback((index: number) => {
+    const colors = Object.values(headerColors);
     return colors[index % colors.length];
   }, []);
 
@@ -1101,10 +1117,9 @@ const MainApp = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                      <h2 className="text-lg sm:text-xl font-black text-[#264f84] dark:text-blue-400 transition-colors uppercase tracking-tight">
                         My Classes
                       </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your classes and assignments</p>
                     </div>
                     {!showTestsInClassCards && (
                       <div
@@ -1118,16 +1133,16 @@ const MainApp = () => {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
                     <Button
                       variant="default"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowAddClass(true);
                       }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold uppercase tracking-wider px-4"
                     >
-                      <Plus className="mr-2 h-4 w-4" /> Add Class
+                      <Plus className="mr-2 h-4 w-4" /> ADD CLASS
                     </Button>
                     <Button
                       variant="default"
@@ -1135,9 +1150,9 @@ const MainApp = () => {
                         e.stopPropagation();
                         setShowAddHomework(true);
                       }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold uppercase tracking-wider px-4"
                     >
-                      <Plus className="mr-2 h-4 w-4" /> Add Homework
+                      <Plus className="mr-2 h-4 w-4" /> ADD HOMEWORK
                     </Button>
                     {showTestsInClassCards && (
                       <Button
@@ -1146,9 +1161,9 @@ const MainApp = () => {
                           e.stopPropagation();
                           setShowAddTest(true);
                         }}
-                        className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                        className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold uppercase tracking-wider px-4"
                       >
-                        <Plus className="mr-2 h-4 w-4" /> Add Test
+                        <Plus className="mr-2 h-4 w-4" /> ADD TEST
                       </Button>
                     )}
                     {!showTestsInClassCards && (
@@ -1189,18 +1204,18 @@ const MainApp = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white dark:bg-gray-950 rounded-[32px] p-6 text-center border border-gray-100 dark:border-gray-800"
+                  className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-gray-100 dark:border-gray-800"
                 >
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
-                    <Layers className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                    <Layers className="h-6 w-6 text-[#6B7280] dark:text-gray-500" />
                   </div>
-                  <h3 className="text-xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">No classes yet</h3>
-                  <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-sm">
+                  <h3 className="text-xl font-light text-[#111827] dark:text-white mb-2 tracking-tight">No classes yet</h3>
+                  <p className="text-[#6B7280] dark:text-gray-400 max-w-xs mx-auto text-sm">
                     Get started by adding your first class to organize your schoolwork.
                   </p>
                 </motion.div>
               ) : (
-                <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
 
 
@@ -1227,50 +1242,59 @@ const MainApp = () => {
                           duration: 0.3,
                           delay: index * 0.05,
                         }}
-                        className={`group bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-500 border break-inside-avoid ${showFrowny && hasOverdueHomework
+                        className={`group rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-500 border bg-white dark:bg-gray-900 ${showFrowny && hasOverdueHomework
                           ? 'border-red-300 dark:border-red-500/40 shadow-red-100 dark:shadow-red-900/20 shadow-md'
-                          : 'border-gray-200/70 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
+                          : 'border-gray-200/70 dark:border-white/5'
                           }`}
+
                       >
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex items-center w-full gap-4">
-                            <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100/50 dark:border-white/5 shrink-0 transition-transform group-hover:scale-110 duration-500"
-                              style={{
-                                backgroundColor: `${getClassColor(index)}15`
-                              }}
-                            >
-                              {(() => {
-                                const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
-                                return <IconComponent className="w-5 h-5" style={{ color: getClassColor(index) }} />;
-                              })()}
-                            </div>
+                        <div
+                          className="p-3 mb-3 rounded-xl transition-colors duration-500"
+                          style={{ backgroundColor: `${getClassColor(index)}12` }}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center w-full gap-3">
+                              <div className="shrink-0 transition-transform group-hover:scale-110 duration-500">
+                                {(() => {
+                                  const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
+                                  return <IconComponent className="w-6 h-6" style={{ color: getHeaderColor(index) }} />;
+                                })()}
+                              </div>
 
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                {cls.name}
-                              </h3>
-                            </div>
+                              <div className="flex-1 min-w-0">
+                                <h3
+                                  className="text-base font-bold truncate tracking-tight uppercase"
+                                  style={{ color: getHeaderColor(index) }}
+                                >
+                                  {cls.name}
+                                </h3>
+                                {!hasHomework && !hasTests && !hasArchivedHomework && (
+                                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
+                                    0 assignments
+                                  </p>
+                                )}
+                              </div>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setClassToDelete({ id: cls.id, name: cls.name });
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
-                              aria-label="Delete class"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setClassToDelete({ id: cls.id, name: cls.name });
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                                aria-label="Delete class"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="space-y-2 mt-2">
+                        <div className="space-y-1 mt-1">
                           <PlayfulHomeworkList
                             items={classHomeworks.slice(0, 3)}
                             onItemToggle={handleHomeworkToggle}
                             onPinToggle={togglePinHomework}
-                            className="space-y-2"
+                            className="space-y-1.5"
                           />
 
                           <AnimatePresence>
@@ -1286,7 +1310,7 @@ const MainApp = () => {
                                   items={classHomeworks.slice(3)}
                                   onItemToggle={handleHomeworkToggle}
                                   onPinToggle={togglePinHomework}
-                                  className="space-y-2 pt-2"
+                                  className="space-y-1.5 pt-1.5"
                                 />
                               </motion.div>
                             )}
@@ -1297,7 +1321,7 @@ const MainApp = () => {
                               {hasHomework && (
                                 <div className="flex items-center gap-3 my-3">
                                   <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
-                                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Upcoming Tests</span>
+                                  <span className="text-[12px] uppercase font-bold text-gray-400 tracking-wider">Upcoming Tests</span>
                                   <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
                                 </div>
                               )}
@@ -1336,15 +1360,11 @@ const MainApp = () => {
                             </div>
                           )}
 
-                          {!hasHomework && !hasTests && !hasArchivedHomework && (
-                            <div className="text-center py-2">
-                              <p className="text-xs text-gray-400 dark:text-gray-500">No assignments yet</p>
-                            </div>
-                          )}
+
 
                           {/* Show archived homework option when no active homework but has archived */}
                           {!hasHomework && hasArchivedHomework && !isShowingArchived && (
-                            <div className="text-center py-3">
+                            <div className="text-center py-2">
                               <button
                                 onClick={() => setShowArchivedForClass(prev => ({ ...prev, [cls.id]: true }))}
                                 className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-1.5 mx-auto"
@@ -1367,7 +1387,7 @@ const MainApp = () => {
                               >
                                 <div className="flex items-center gap-3 my-3">
                                   <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
-                                  <span className="text-[10px] uppercase font-medium text-gray-400 tracking-wider flex items-center gap-1.5">
+                                  <span className="text-[12px] uppercase font-bold text-gray-400 tracking-wider flex items-center gap-1.5">
                                     <Archive className="w-3 h-3" />
                                     Archived
                                   </span>
@@ -1412,10 +1432,10 @@ const MainApp = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                      <h2 className="text-lg sm:text-xl font-semibold text-[#111827] dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                         Tests & Exams
                       </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
+                      <p className="text-[#6B7280] dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
                     </div>
                     <div
                       className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showTests
@@ -1466,13 +1486,13 @@ const MainApp = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white dark:bg-gray-950 rounded-[32px] p-6 text-center border border-gray-100 dark:border-gray-800"
+                    className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-gray-100 dark:border-gray-800"
                   >
                     <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
-                      <CalendarIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                      <CalendarIcon className="h-6 w-6 text-[#6B7280] dark:text-gray-500" />
                     </div>
-                    <h3 className="text-xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
-                    <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto text-sm">
+                    <h3 className="text-xl font-light text-[#111827] dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
+                    <p className="text-[#6B7280] dark:text-gray-400 max-w-xs mx-auto text-sm">
                       Start by adding your first test to keep track of your exam schedule
                     </p>
                   </motion.div>
@@ -1495,11 +1515,11 @@ const MainApp = () => {
 
   const timeGreeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 6) return { text: 'Burning the midnight oil' };
-    if (hour < 12) return { text: 'Good morning' };
-    if (hour < 17) return { text: 'Good afternoon' };
-    if (hour < 21) return { text: 'Good evening' };
-    return { text: 'Late night grind' };
+    if (hour < 6) return { text: 'Burning the Midnight Oil' };
+    if (hour < 12) return { text: 'Good Morning' };
+    if (hour < 17) return { text: 'Good Afternoon' };
+    if (hour < 21) return { text: 'Good Evening' };
+    return { text: 'Late Night Grind' };
   }, []);
 
   // ─── Facehash Joke Feature ──────────────────────────────────────────────────
@@ -1609,7 +1629,8 @@ const MainApp = () => {
   useEffect(() => {
     if (!isLateNight) return;
 
-    // Wait for overdue peek to finish first
+    // If overdue homework exists, wait for overdue peek to finish first
+    const delay = overdueCount > 0 ? 8000 : 500;
     const timer = setTimeout(() => {
       if (showFrowny || joke) return;
       setShowSleepy(true);
@@ -1620,10 +1641,10 @@ const MainApp = () => {
         y: 6,
         transition: { type: 'spring', stiffness: 30, damping: 12 },
       });
-    }, 8000);
+    }, delay);
 
     return () => clearTimeout(timer);
-  }, [isLateNight, showFrowny, joke, facehashControls]);
+  }, [isLateNight, overdueCount, showFrowny, joke, facehashControls]);
 
   // ─── Facehash "Celebration Dance" Animation ───────────────────────────────────
   const playPartyAnimation = useCallback(() => {
@@ -1735,7 +1756,7 @@ const MainApp = () => {
   const overdueEmoji = overdueCount === 0 ? '✅' : overdueCount <= 2 ? '😬' : '😰';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-[#F0F7FF] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
       <main className={getContainerClass('max-w-7xl') + ' py-8'}>
         {/* Welcome Section — with Facehash Avatar */}
         <motion.div
@@ -1787,14 +1808,14 @@ const MainApp = () => {
                         <motion.span
                           animate={{ y: [0, -3, 0], opacity: [0.3, 0.8, 0.3] }}
                           transition={{ duration: 2.3, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-                          className="text-xs font-bold text-indigo-300 dark:text-indigo-400/60 block -mt-1 ml-1"
+                          className="text-xs font-bold text-teal-300 dark:text-teal-400/60 block -mt-1 ml-1"
                         >
                           z
                         </motion.span>
                         <motion.span
                           animate={{ y: [0, -5, 0], opacity: [0.2, 0.7, 0.2] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-                          className="text-sm font-bold text-indigo-300 dark:text-indigo-400/60 block -mt-1 ml-2.5"
+                          className="text-sm font-bold text-teal-300 dark:text-teal-400/60 block -mt-1 ml-2.5"
                         >
                           z
                         </motion.span>
@@ -1866,12 +1887,16 @@ const MainApp = () => {
                   title="Click me for a joke!"
                 >
                   <Facehash
-                    name={full_name || user?.email || 'Student'}
+                    name={(full_name?.split(' ')[0]) || user?.email || 'Student'}
                     size={64}
                     enableBlink={!showSleepy}
                     intensity3d="dramatic"
                     showInitial={!showFrowny && !showSleepy && !showParty && !showVictory}
-                    colors={['#3b82f6', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']}
+                    colors={[
+                      '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899',
+                      '#f43f5e', '#f59e0b', '#10b981', '#14b8a6',
+                      '#06b6d4', '#0ea5e9', '#f97316', '#64748b',
+                    ]}
                     style={{ borderRadius: '16px' }}
                     onRenderMouth={
                       showVictory ? () => (
@@ -1953,10 +1978,10 @@ const MainApp = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white mb-1 tracking-tight">
-                {timeGreeting.text}, {full_name?.split(' ')[0] || 'Student'}!
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#264f84] dark:text-blue-400 mb-1 tracking-tight uppercase">
+                {timeGreeting.text} {full_name?.split(' ')[0] || 'Student'}!
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <p className="text-[#6B7280] dark:text-gray-400 text-sm">
                 Here's what's happening with your classes today
               </p>
             </div>
@@ -1969,17 +1994,14 @@ const MainApp = () => {
           <motion.div
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Complete</span>
-              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">{completionEmoji}</span>
-            </div>
-            <div className="flex items-end gap-1.5">
-              <span className="text-2xl font-light text-gray-900 dark:text-white">
+            <span className="text-base text-[#264f84] dark:text-blue-400 font-black uppercase tracking-tight">Complete</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-base font-black text-[#00c951] dark:text-[#00c951] tracking-tight">
                 {completionRate}%
               </span>
-              <CheckCircle className="w-4 h-4 text-[#264f84] dark:text-blue-400 mb-1" />
+              <CheckCircle className="w-5 h-5 text-[#264f84] dark:text-blue-400" />
             </div>
           </motion.div>
 
@@ -1988,20 +2010,17 @@ const MainApp = () => {
             ref={overdueCardRef}
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className={`text-xs font-medium ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
-              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">{overdueEmoji}</span>
-            </div>
-            <div className="flex items-end gap-1.5">
-              <span className="text-2xl font-light text-gray-900 dark:text-white">
+            <span className={`text-base font-black uppercase tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
+            <div className="flex items-center gap-2.5">
+              <span className={`text-base font-black tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#00c951] dark:text-[#00c951]'}`}>
                 {overdueCount}
               </span>
-              <div className="relative mb-1">
-                <Clock className={`w-4 h-4 ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
+              <div className="relative">
+                <Clock className={`w-5 h-5 ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
                 {overdueCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full border-2 border-white dark:border-gray-900"></span>
                 )}
               </div>
             </div>
@@ -2011,17 +2030,14 @@ const MainApp = () => {
           <motion.div
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[#264f84] dark:text-blue-400 font-medium">Tests</span>
-              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">📝</span>
-            </div>
-            <div className="flex items-end gap-1.5">
-              <span className="text-2xl font-light text-gray-900 dark:text-white">
+            <span className="text-base text-[#264f84] dark:text-blue-400 font-black uppercase tracking-tight">Tests</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-base font-black text-[#00c951] dark:text-[#00c951] tracking-tight">
                 {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
               </span>
-              <GraduationCap className="w-4 h-4 text-[#264f84] dark:text-blue-400 mb-1" />
+              <GraduationCap className="w-5 h-5 text-[#264f84] dark:text-blue-400" />
             </div>
           </motion.div>
 
@@ -2029,47 +2045,43 @@ const MainApp = () => {
           <motion.div
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 group"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className={`text-xs font-medium ${(() => {
+            <span className={`text-base font-black uppercase tracking-tight ${(() => {
+              const nextItem = nextDueHomework && nextUpcomingTest
+                ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                : (nextDueHomework || nextUpcomingTest);
+              const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+
+              if (!daysUntil && daysUntil !== 0) return 'text-[#264f84] dark:text-blue-400';
+              if (daysUntil === 0) return 'text-red-500';
+              if (daysUntil === 1) return 'text-amber-500';
+              if (daysUntil <= 3) return 'text-orange-500';
+              return 'text-[#264f84] dark:text-blue-400';
+            })()
+              }`}>
+              {nextDueHomework || nextUpcomingTest ? (
+                (() => {
+                  const nextItem = nextDueHomework && nextUpcomingTest
+                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                    : (nextDueHomework || nextUpcomingTest);
+                  const isTest = nextItem === nextUpcomingTest;
+                  return `Next ${isTest ? 'Test' : 'Due'}`;
+                })()
+              ) : 'Next Due'}
+            </span>
+            <div className="flex items-center gap-2.5">
+              <span className={`text-base font-black whitespace-nowrap tracking-tight ${(() => {
                 const nextItem = nextDueHomework && nextUpcomingTest
                   ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                   : (nextDueHomework || nextUpcomingTest);
                 const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-
-                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400';
+                if (!daysUntil && daysUntil !== 0) return 'text-[#00c951] dark:text-[#00c951]';
                 if (daysUntil === 0) return 'text-red-500';
                 if (daysUntil === 1) return 'text-amber-500';
                 if (daysUntil <= 3) return 'text-orange-500';
-                return 'text-green-600 dark:text-green-400';
-              })()
-                }`}>
-                {nextDueHomework || nextUpcomingTest ? (
-                  (() => {
-                    const nextItem = nextDueHomework && nextUpcomingTest
-                      ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                      : (nextDueHomework || nextUpcomingTest);
-                    const isTest = nextItem === nextUpcomingTest;
-                    return `Next ${isTest ? 'Test' : 'Due'}`;
-                  })()
-                ) : 'Next Due'}
-              </span>
-              <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                {(() => {
-                  const nextItem = nextDueHomework && nextUpcomingTest
-                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                    : (nextDueHomework || nextUpcomingTest);
-                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                  if (!daysUntil) return '📅';
-                  if (daysUntil === 0) return '⏰';
-                  if (daysUntil === 1) return '⚡';
-                  return '📅';
-                })()}
-              </span>
-            </div>
-            <div className="flex items-end gap-1.5">
-              <span className="text-2xl font-light text-gray-900 dark:text-white">
+                return 'text-[#00c951] dark:text-[#00c951]';
+              })()}`}>
                 {nextDueHomework || nextUpcomingTest ? (
                   (() => {
                     const nextItem = nextDueHomework && nextUpcomingTest
@@ -2104,25 +2116,23 @@ const MainApp = () => {
                   })()
                 ) : '-'}
               </span>
-              <CalendarIcon className={`w-4 h-4 mb-1 ${(() => {
+              <CalendarIcon className={`w-5 h-5 ${(() => {
                 const nextItem = nextDueHomework && nextUpcomingTest
                   ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                   : (nextDueHomework || nextUpcomingTest);
                 const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
 
-                if (!daysUntil) return 'text-[#264f84] dark:text-blue-400';
+                if (!daysUntil && daysUntil !== 0) return 'text-[#264f84] dark:text-blue-400';
                 if (daysUntil === 0) return 'text-red-500';
                 if (daysUntil === 1) return 'text-amber-500';
                 if (daysUntil <= 3) return 'text-orange-500';
-                return 'text-green-600 dark:text-green-400';
+                return 'text-[#264f84] dark:text-blue-400';
               })()
                 }`} />
             </div>
           </motion.div>
         </div>
-        {/* Gamification Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 items-stretch">
-          <SubjectMastery className="h-full" />
+        <div className="mb-8 h-[280px]">
           <MiniCalendar />
         </div>
 

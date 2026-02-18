@@ -255,7 +255,7 @@ function TranslateTile() {
             <div className="space-y-1.5">
                 <div className="bg-white/70 dark:bg-zinc-800/50 border border-violet-100 dark:border-violet-800/30 rounded-lg px-3 py-2 flex items-center gap-2">
                     <span className="text-xs">🇺🇸</span>
-                    <span className="text-[10px] text-gray-600 dark:text-gray-300">Good morning, how are you?</span>
+                    <span className="text-[10px] text-gray-600 dark:text-gray-300">Good Morning, how are you?</span>
                 </div>
                 <div className="flex justify-center">
                     <ArrowRightLeft className="w-3 h-3 text-violet-300 dark:text-violet-600" />

@@ -251,17 +251,9 @@ export default function GoogleClassroomSection() {
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Notice */}
-            <div className="p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Connect Google Classroom</h4>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Sync your assignments and courses automatically.
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 px-3 py-2">
+              <AlertCircle className="h-4 w-4 text-green-500/60 shrink-0" />
+              <span className="text-sm text-gray-500 dark:text-zinc-400">Link your Google Classroom to sync classes automatically.</span>
             </div>
 
             {/* Connect Button */}

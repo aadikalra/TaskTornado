@@ -188,7 +188,7 @@ const PlayfulHomeworkListComponent = ({
   // }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <AnimatePresence initial={false}>
         {memoizedItems.map((item) => (
           <motion.div

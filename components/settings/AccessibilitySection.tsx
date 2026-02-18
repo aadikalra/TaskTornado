@@ -17,46 +17,32 @@ export default function AccessibilitySection({
   onToggleDyslexicFont
 }: AccessibilitySectionProps) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl">
-            <Pause className="h-5 w-5 text-orange-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Reduce Motion
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Disable animations and transitions for better performance and accessibility.
-            </p>
-          </div>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center gap-3">
+          <Pause className="h-[18px] w-[18px] text-violet-500/70" />
+          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+            Reduce Motion
+          </span>
         </div>
         <Switch
           checked={reduceMotion}
           onCheckedChange={onToggleReduceMotion}
-          className="data-[state=checked]:bg-blue-600"
+          className="data-[state=checked]:bg-blue-500"
         />
       </div>
 
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F7F7F9] dark:bg-zinc-900/50 transition-all hover:bg-gray-100 dark:hover:bg-zinc-900/80">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 p-2 bg-green-50 dark:bg-green-950/30 rounded-xl">
-            <Type className="h-5 w-5 text-green-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-              Dyslexic-Friendly Font
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[250px] sm:max-w-none">
-              Use OpenDyslexic font for improved readability.
-            </p>
-          </div>
+      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center gap-3">
+          <Type className="h-[18px] w-[18px] text-violet-500/70" />
+          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+            Dyslexic-Friendly Font
+          </span>
         </div>
         <Switch
           checked={useDyslexicFont}
           onCheckedChange={onToggleDyslexicFont}
-          className="data-[state=checked]:bg-blue-600"
+          className="data-[state=checked]:bg-blue-500"
         />
       </div>
     </div>

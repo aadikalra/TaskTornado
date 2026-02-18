@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Settings, User, Shield, Zap, Accessibility, Database, Globe, ChevronRight } from 'lucide-react';
+import { User, Zap, Accessibility, Database, Globe } from 'lucide-react';
 import { Facehash } from 'facehash';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useClassContext } from '@/context/ClassContext';
@@ -134,6 +133,31 @@ export default function SettingsPage() {
     }
   }, [reduceMotion]);
 
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-150px 0px -60% 0px',
+      threshold: 0,
+    };
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveTab(entry.target.id as SettingTab);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+    const sections = ['preferences', 'classroom', 'accessibility', 'data', 'account'];
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [isGoogleUser]);
+
   const handleClearClasses = () => {
     if (showClassConfirm) {
       clearAllClasses();
@@ -234,12 +258,12 @@ export default function SettingsPage() {
                 <TooltipTrigger asChild>
                   <div className="cursor-pointer">
                     <Facehash
-                      name={userName}
+                      name={userName.split(' ')[0]}
                       size={56}
                       enableBlink
                       intensity3d="dramatic"
                       showInitial={true}
-                      colors={['#3b82f6', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']}
+                      colors={['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#f97316', '#64748b']}
                       style={{ borderRadius: '50%', flexShrink: 0 }}
                     />
                   </div>
@@ -260,155 +284,130 @@ export default function SettingsPage() {
               Settings
             </h1>
           </motion.div>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-gray-500 dark:text-gray-400 mt-4 text-lg max-w-xl leading-relaxed"
-          >
-            Fine-tune your study experience. These preferences are synced across your devices and applied instantly.
-          </motion.p>
+
         </header>
 
-        <div className="flex flex-col lg:flex-row gap-16">
-          {/* Side Navigation */}
-          <aside className="lg:w-64 flex-shrink-0">
-            <nav className="sticky top-12 flex flex-col gap-1">
+        {/* Top Navigation Chips */}
+        <div className="sticky top-0 z-50 py-3 -mx-4 px-4 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-100/80 dark:border-zinc-900/50 mb-10">
+          <div className="max-w-3xl mx-auto overflow-x-auto no-scrollbar">
+            <nav className="flex items-center gap-2 min-w-max">
               {navigationItems.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id as SettingTab)}
+                    onClick={() => {
+                      const element = document.getElementById(item.id);
+                      if (element) {
+                        const yOffset = -80;
+                        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                      setActiveTab(item.id as SettingTab);
+                    }}
                     className={`
-                      flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group
+                      flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap text-[13px] font-medium
                       ${isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold shadow-sm'
-                        : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-zinc-900/50 hover:text-gray-900 dark:hover:text-white'}
+                        ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900/50'}
                     `}
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'scale-110' : ''}`} />
-                      <span className="text-[14px]">{item.label}</span>
-                    </div>
-                    {isActive && (
-                      <motion.div layoutId="activeNav" className="w-1 h-4 bg-blue-600 dark:bg-blue-400 rounded-full" />
-                    )}
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
                   </button>
                 );
               })}
             </nav>
-          </aside>
-
-          {/* Settings Canvas */}
-          <main className="flex-1 min-w-0">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-gray-50/50 dark:bg-zinc-900/20 rounded-[32px] p-4 md:p-6 border border-gray-100 dark:border-zinc-800 backdrop-blur-sm"
-              >
-                {activeTab === 'preferences' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Preferences</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Configure your dashboard visibility and AI assistant personality.</p>
-                    </div>
-                    <PreferencesSection
-
-
-                      aiPersonality={aiPersonality}
-                      onPersonalityChange={handlePersonalityChange}
-                      useWideLayout={isWideLayout}
-                      onToggleWideLayout={toggleWideLayout}
-
-                      showTestsInClassCards={showTestsInClassCards}
-                      onToggleTestsInClassCards={handleToggleTestsInClassCards}
-                    />
-                  </div>
-                )}
-
-                {activeTab === 'classroom' && isGoogleUser && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Google Classroom</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Manage your linked classroom courses and synchronization settings.</p>
-                    </div>
-                    <GoogleClassroomSection />
-                  </div>
-                )}
-
-                {activeTab === 'accessibility' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Accessibility</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Tailor the interface to your visual and motor preferences.</p>
-                    </div>
-                    <AccessibilitySection
-                      reduceMotion={reduceMotion}
-                      onToggleReduceMotion={handleToggleReduceMotion}
-                      useDyslexicFont={useDyslexicFont}
-                      onToggleDyslexicFont={handleToggleDyslexicFont}
-                    />
-                  </div>
-                )}
-
-                {activeTab === 'data' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Data Management</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Manage your local storage and cloud database entries.</p>
-                    </div>
-                    <DataManagementSection
-                      classes={classes}
-                      homeworks={homeworks}
-                      showClassConfirm={showClassConfirm}
-                      showHomeworkConfirm={showHomeworkConfirm}
-                      onClearClasses={handleClearClasses}
-                      onClearHomeworks={handleClearHomeworks}
-                    />
-                  </div>
-                )}
-
-                {activeTab === 'account' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Account</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Manage your profile, security settings, and session.</p>
-                    </div>
-                    <AccountSection
-                      isLoggingOut={isLoggingOut}
-                      showLogoutConfirm={showLogoutConfirm}
-                      countdown={countdown}
-                      onSignOut={handleSignOut}
-                      showDeleteConfirm={showDeleteConfirm}
-                      isDeleting={isDeleting}
-                      onDeleteAccountWithConfirmation={handleDeleteAccount}
-                      userName={userName}
-                    />
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </main>
+          </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-20 pt-8 border-t border-gray-100 dark:border-zinc-900"
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-400 dark:text-zinc-500">
-              Built for students • Public Beta {getFullVersionString()}
-            </p>
-          </div>
-        </motion.div>
+        <main className="max-w-3xl mx-auto w-full pb-24">
+          {/* Preferences */}
+          <section id="preferences" className="scroll-mt-24 mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <Zap className="h-5 w-5 text-blue-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preferences</h2>
+            </div>
+            <PreferencesSection
+              aiPersonality={aiPersonality}
+              onPersonalityChange={handlePersonalityChange}
+              useWideLayout={isWideLayout}
+              onToggleWideLayout={toggleWideLayout}
+              showTestsInClassCards={showTestsInClassCards}
+              onToggleTestsInClassCards={handleToggleTestsInClassCards}
+            />
+            <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+          </section>
+
+          {/* Google Classroom */}
+          {isGoogleUser && (
+            <section id="classroom" className="scroll-mt-24 mb-16">
+              <div className="flex items-center gap-3 mb-6">
+                <Globe className="h-5 w-5 text-green-500" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Google Classroom</h2>
+              </div>
+              <GoogleClassroomSection />
+              <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+            </section>
+          )}
+
+          {/* Accessibility */}
+          <section id="accessibility" className="scroll-mt-24 mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <Accessibility className="h-5 w-5 text-violet-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Accessibility</h2>
+            </div>
+            <AccessibilitySection
+              reduceMotion={reduceMotion}
+              onToggleReduceMotion={handleToggleReduceMotion}
+              useDyslexicFont={useDyslexicFont}
+              onToggleDyslexicFont={handleToggleDyslexicFont}
+            />
+            <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+          </section>
+
+          {/* Data Management */}
+          <section id="data" className="scroll-mt-24 mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <Database className="h-5 w-5 text-amber-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Data Management</h2>
+            </div>
+            <DataManagementSection
+              classes={classes}
+              homeworks={homeworks}
+              showClassConfirm={showClassConfirm}
+              showHomeworkConfirm={showHomeworkConfirm}
+              onClearClasses={handleClearClasses}
+              onClearHomeworks={handleClearHomeworks}
+            />
+            <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+          </section>
+
+          {/* Account */}
+          <section id="account" className="scroll-mt-24">
+            <div className="flex items-center gap-3 mb-6">
+              <User className="h-5 w-5 text-rose-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h2>
+            </div>
+            <AccountSection
+              isLoggingOut={isLoggingOut}
+              showLogoutConfirm={showLogoutConfirm}
+              countdown={countdown}
+              onSignOut={handleSignOut}
+              showDeleteConfirm={showDeleteConfirm}
+              isDeleting={isDeleting}
+              onDeleteAccountWithConfirmation={handleDeleteAccount}
+              userName={userName}
+            />
+          </section>
+        </main>
+
+        <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-gray-100 dark:border-zinc-900">
+          <p className="text-sm text-gray-400 dark:text-zinc-500">
+            Built for students • Public Beta {getFullVersionString()}
+          </p>
+        </div>
       </div>
     </div>
   );

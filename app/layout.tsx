@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Inter } from 'next/font/google';
 
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
@@ -13,6 +13,12 @@ import { ToastProvider } from '@/context/ToastContext';
 import AuthWrapper from '@/components/AuthWrapper';
 import { ClientLayout } from './ClientLayout';
 import React from 'react';
+
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -59,7 +65,7 @@ export default function RootLayout({
       <head>
 
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#f9fafb] dark:bg-gray-900 text-gray-900 dark:text-gray-100`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
         <AuthProvider>
           <DarkModeProvider>
             <ClassProvider>
