@@ -227,6 +227,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Set loading immediately to unmount the entire children tree
+    // before user state becomes null. This prevents "Rendered fewer hooks
+    // than expected" errors caused by components re-rendering mid-logout.
+    setLoading(true);
+
     if (typeof window !== 'undefined') {
       const cookies = document.cookie.split(';');
 

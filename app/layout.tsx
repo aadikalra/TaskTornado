@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Geist, Geist_Mono, Inter, Nunito_Sans } from 'next/font/google';
 
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
@@ -30,6 +30,13 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
   display: 'swap',
+});
+
+const nunitoSans = Nunito_Sans({
+  variable: '--font-nunito-sans',
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
 export const metadata = {
@@ -65,7 +72,7 @@ export default function RootLayout({
       <head>
 
       </head>
-      <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${nunitoSans.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
         <AuthProvider>
           <DarkModeProvider>
             <ClassProvider>

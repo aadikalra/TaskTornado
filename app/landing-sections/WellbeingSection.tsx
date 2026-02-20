@@ -1,184 +1,172 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Heart, ShieldAlert, Phone, MessageCircle } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Sparkles, Brain, Zap, BookOpen, Heart } from 'lucide-react';
+import Image from 'next/image';
+import { AuroraDemo } from '@/components/AuroraDemo';
 
-// ─── Animated floating topic pills — pushed far out to the edges ─────────────────
+// ─── Floating topic pills ───────────────────────────────────────────────────
 const TOPICS = [
-    { label: 'Test anxiety', x: '-18%', y: '10%', delay: 0 },
-    { label: 'Time management', x: '92%', y: '5%', delay: 0.8 },
-    { label: 'Burnout', x: '-15%', y: '55%', delay: 1.6 },
-    { label: 'Motivation', x: '95%', y: '50%', delay: 0.4 },
-    { label: 'Procrastination', x: '88%', y: '88%', delay: 1.2 },
-    { label: 'Peer pressure', x: '-12%', y: '90%', delay: 2.0 },
+    { label: 'Socratic tutoring', x: '-8%', y: '8%', delay: 0 },
+    { label: '@commands', x: '102%', y: '0%', delay: 0.8 },
+    { label: 'Study plans', x: '-10%', y: '60%', delay: 1.6 },
+    { label: 'Practice quizzes', x: '104%', y: '55%', delay: 0.4 },
+    { label: 'Flashcards', x: '100%', y: '92%', delay: 1.2 },
+    { label: 'Stress support', x: '-6%', y: '95%', delay: 2.0 },
 ];
 
 export default function WellbeingSection() {
+    const squiggleRef = useRef<HTMLSpanElement>(null);
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    // Track dark mode for JS-driven gradient
+    useEffect(() => {
+        const checkDark = () => setIsDarkMode(document.documentElement.classList.contains('dark'));
+        checkDark();
+        const observer = new MutationObserver(checkDark);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
+
+    const { scrollYProgress } = useScroll({
+        target: squiggleRef,
+        offset: ['start 0.85', 'start 0.5']
+    });
+    const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+    const wipePercent = useTransform(scrollYProgress, [0, 1], [0, 100]);
+    const backgroundImage = useTransform(wipePercent, (v) =>
+        `linear-gradient(to right, #df96c9 ${v}%, ${isDarkMode ? 'rgba(74,156,219,0.4)' : 'rgba(39,80,133,0.4)'} ${v}%)`
+    );
+
     return (
-        <section className="relative py-24 md:py-32 bg-gray-50 dark:bg-zinc-900 overflow-hidden">
+        <section className="bg-[#FFF8FA] dark:bg-gray-950 py-24 md:py-32 overflow-hidden">
+            <div className="max-w-6xl mx-auto px-5 md:px-8">
 
-            {/* ── Ambient background glow ─────────────────────────────── */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/[0.05] rounded-full blur-[120px]" />
-                <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-amber-500/[0.04] rounded-full blur-[100px]" />
-            </div>
-
-            <div className="relative z-10 max-w-6xl mx-auto px-5 md:px-8">
-
-                {/* ── Header — large editorial style ──────────────────── */}
+                {/* ── Header ──────────────────────────────────────────────── */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="text-center mb-16 md:mb-20"
+                    className="text-center mb-16 md:mb-24"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-800/30 rounded-full mb-6">
-                        <Heart className="w-3 h-3 text-rose-400" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500 dark:text-rose-400">The Support</span>
-                    </div>
-                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white tracking-tight leading-[1.05] mb-5">
-                        Grades matter.<br />
-                        <span className="text-gray-400 dark:text-zinc-500">Your health matters more.</span>
+                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#275085] dark:text-[#4a9cdb] bg-[#275085]/5 dark:bg-[#275085]/10 border border-[#275085]/10 dark:border-[#4a9cdb]/10 rounded-full mb-4">
+                        Meet Aurora
+                    </span>
+                    <h2 className="text-3xl md:text-5xl font-semibold text-[#275085] dark:text-[#4a9cdb] tracking-tight leading-[1.15] mb-4">
+                        Your AI study partner<br />
+                        <motion.span
+                            ref={squiggleRef}
+                            className="relative inline-block"
+                            style={{
+                                backgroundImage,
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                            }}
+                        >
+                            that actually gets school.
+                            <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 10" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                <motion.path
+                                    d="M2 6 C 10 2, 18 2, 26 6 S 42 10, 50 6 S 66 2, 74 6 S 90 10, 98 6 S 114 2, 122 6 S 138 10, 146 6 S 162 2, 170 6 S 186 10, 194 6 S 210 2, 218 6 S 234 10, 242 6 S 258 2, 266 6 S 282 10, 298 6"
+                                    stroke="#df96c9"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    fill="none"
+                                    style={{ pathLength }}
+                                />
+                            </svg>
+                        </motion.span>
                     </h2>
-                    <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
-                        School is stressful. We built a safe space to help you manage the pressure.
+                    <p className="text-base md:text-lg text-[#275085]/55 dark:text-[#4a9cdb]/55 font-medium max-w-lg mx-auto leading-relaxed">
+                        Aurora teaches, organizes, quizzes, and supports you — all from one conversation.
                     </p>
                 </motion.div>
 
-                {/* ── Center conversation card with floating topics ────── */}
-                <div className="relative max-w-md mx-auto mb-16 md:mb-20">
+                {/* ── Two heroes: Image + Chat ────────────────────────────── */}
+                <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-28">
 
-                    {/* Floating topic pills — pushed far from center */}
-                    <div className="hidden md:block">
-                        {TOPICS.map((topic, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.3 + topic.delay * 0.15, duration: 0.5 }}
-                                className="absolute"
-                                style={{ left: topic.x, top: topic.y }}
-                            >
+                    {/* Left — Illustration (transparent bg, no card) */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                        className="flex justify-center"
+                    >
+                        <Image
+                            src="/aurora-wellbeing.png"
+                            alt="Cozy study illustration"
+                            width={480}
+                            height={480}
+                            className="w-full max-w-[420px] h-auto object-contain drop-shadow-2xl"
+                        />
+                    </motion.div>
+
+                    {/* Right — Chat card with floating pills */}
+                    <div className="relative">
+
+                        {/* Floating topic pills */}
+                        <div className="hidden md:block">
+                            {TOPICS.map((topic, i) => (
                                 <motion.div
-                                    animate={{ y: [-4, 4, -4] }}
-                                    transition={{ repeat: Infinity, duration: 3 + i * 0.5, ease: 'easeInOut' }}
-                                    className="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-full text-[11px] font-medium text-gray-500 dark:text-zinc-400 whitespace-nowrap shadow-sm"
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.3 + topic.delay * 0.15, duration: 0.5 }}
+                                    className="absolute z-[60]"
+                                    style={{ left: topic.x, top: topic.y }}
                                 >
-                                    {topic.label}
+                                    <motion.div
+                                        animate={{ y: [-4, 4, -4] }}
+                                        transition={{ repeat: Infinity, duration: 3 + i * 0.5, ease: 'easeInOut' }}
+                                        className="px-3 py-1.5 bg-[#F1F6D1] dark:bg-zinc-800 border border-[#275085]/8 dark:border-[#4a9cdb]/10 rounded-full text-[11px] font-medium text-[#275085]/60 dark:text-[#4a9cdb]/60 whitespace-nowrap shadow-sm"
+                                    >
+                                        {topic.label}
+                                    </motion.div>
                                 </motion.div>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* The conversation card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.15 }}
-                        className="bg-white dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700/50 rounded-[24px] p-5 shadow-sm"
-                    >
-                        <div className="space-y-4">
-                            {/* User message */}
-                            <div className="flex justify-end">
-                                <div className="bg-[#165df9] rounded-[18px] rounded-tr-sm px-4 py-2.5 text-[13px] text-white font-medium max-w-[85%] shadow-lg shadow-[#165df9]/20">
-                                    @therapist I can&apos;t stop stressing about my chemistry final
-                                </div>
-                            </div>
-
-                            {/* Aurora response */}
-                            <div className="flex items-start gap-2.5">
-                                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                                    <Heart className="w-3 h-3 text-white" />
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed">
-                                        I hear you — that&apos;s a lot of pressure. Let&apos;s try something: name the <span className="text-gray-900 dark:text-white font-medium">one specific topic</span> that feels most overwhelming right now.
-                                    </p>
-                                    <p className="text-[13px] text-gray-400 dark:text-gray-500 leading-relaxed">
-                                        We&apos;ll tackle it together, step by step. You don&apos;t have to figure it all out at once 💙
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* User follow-up */}
-                            <div className="flex justify-end">
-                                <div className="bg-[#165df9] rounded-[18px] rounded-tr-sm px-4 py-2.5 text-[13px] text-white font-medium max-w-[85%] shadow-lg shadow-[#165df9]/20">
-                                    Balancing equations... I just don&apos;t get it
-                                </div>
-                            </div>
-
-                            {/* Aurora second response */}
-                            <div className="flex items-start gap-2.5">
-                                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                                    <Heart className="w-3 h-3 text-white" />
-                                </div>
-                                <p className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    Perfect — now we have something concrete. Would you like me to walk you through it Socratically, or generate a quick <span className="font-mono text-[11px] text-blue-500 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10 px-1.5 py-0.5 rounded">@quiz</span> to find exactly where you&apos;re getting stuck?
-                                </p>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* ── Two info blocks — side by side ──────────────────── */}
-                <div className="grid md:grid-cols-2 gap-4 md:gap-5 max-w-3xl mx-auto mb-5">
-
-                    {/* Reality Check */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-amber-50/80 dark:bg-amber-950/10 border border-amber-200/60 dark:border-amber-800/30 rounded-[20px] p-5"
-                    >
-                        <div className="flex items-center gap-2.5 mb-3">
-                            <ShieldAlert className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Reality Check</h3>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                            This is for coaching and coping strategies, not crisis management. Think of it as a supportive friend, not a professional therapist.
-                        </p>
-                    </motion.div>
-
-                    {/* What it helps with */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.15 }}
-                        className="bg-white dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700/50 rounded-[20px] p-5"
-                    >
-                        <div className="flex items-center gap-2.5 mb-3">
-                            <MessageCircle className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Built for students</h3>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                            {['Exam stress', 'Focus tips', 'Time pressure', 'Motivation', 'Study burnout'].map((tag, i) => (
-                                <span key={i} className="px-2.5 py-1 text-[10px] font-medium text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 rounded-full border border-gray-200 dark:border-zinc-700">
-                                    {tag}
-                                </span>
                             ))}
                         </div>
-                    </motion.div>
+
+                        {/* The conversation demo */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="h-[520px] w-full"
+                        >
+                            <AuroraDemo />
+                        </motion.div>
+                    </div>
                 </div>
 
-                {/* ── Crisis banner ────────────────────────────────────── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 }}
-                    className="max-w-3xl mx-auto bg-red-50 dark:bg-red-950/10 border border-red-200/60 dark:border-red-800/30 rounded-[16px] px-5 py-4 flex items-start md:items-center gap-3"
-                >
-                    <Phone className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5 md:mt-0" />
-                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                        <span className="font-semibold text-gray-900 dark:text-gray-300">If you&apos;re in crisis:</span>{' '}
-                        Text HOME to <span className="font-mono font-bold text-gray-900 dark:text-white">741741</span> or call <span className="font-mono font-bold text-gray-900 dark:text-white">988</span> for the Suicide & Crisis Lifeline.
-                    </p>
-                </motion.div>
+                {/* ── Bottom: four minimal feature points ─────────────────── */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 max-w-3xl mx-auto">
+                    {[
+                        { icon: Brain, label: 'Socratic Method', desc: 'Guides you, never gives answers' },
+                        { icon: Zap, label: '7 @Commands', desc: 'One shortcut for every workflow' },
+                        { icon: BookOpen, label: 'Instant Flashcards', desc: 'AI-generated from any topic' },
+                        { icon: Heart, label: 'Stress Support', desc: 'A safe space when school gets heavy' },
+                    ].map((item, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 + i * 0.06 }}
+                            className="text-center"
+                        >
+                            <div className="w-10 h-10 rounded-2xl bg-[#ebf6b5] dark:bg-[#275085]/30 flex items-center justify-center mx-auto mb-3">
+                                <item.icon className="w-5 h-5 text-[#275085] dark:text-[#4a9cdb]" />
+                            </div>
+                            <h3 className="text-sm font-bold text-[#275085] dark:text-[#4a9cdb] mb-1">{item.label}</h3>
+                            <p className="text-[11px] text-[#275085]/45 dark:text-[#4a9cdb]/45 leading-relaxed">{item.desc}</p>
+                        </motion.div>
+                    ))}
+                </div>
             </div>
         </section>
     );

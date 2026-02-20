@@ -60,7 +60,7 @@ export default function GuardiansHero() {
     }, []);
 
     return (
-        <section className="relative pt-28 pb-8 md:pt-36 md:pb-12 overflow-hidden bg-white dark:bg-gray-950">
+        <section className="relative min-h-screen flex flex-col justify-center pt-20 pb-10 overflow-hidden bg-transparent dark:bg-gray-950">
 
             {/* Orbit keyframes */}
             <style>{`

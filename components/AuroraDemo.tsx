@@ -94,7 +94,7 @@ export function AuroraDemo() {
     };
 
     return (
-        <div className="w-full max-w-[600px] mx-auto h-[600px] flex flex-col bg-white dark:bg-black border border-gray-200 dark:border-zinc-900 shadow-xl rounded-3xl overflow-hidden relative font-sans">
+        <div className="w-full max-w-[600px] mx-auto h-full flex flex-col bg-white dark:bg-black border border-gray-200 dark:border-zinc-900 shadow-xl rounded-3xl overflow-hidden relative font-sans">
             {/* Floating Top Controls (Exact Match) */}
             <div className="absolute top-0 inset-x-0 z-50 pointer-events-none p-4 flex justify-between items-start">
                 <div className="pointer-events-auto">

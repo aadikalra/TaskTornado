@@ -6,7 +6,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function FinalCTASection() {
     return (
-        <section className="py-20 md:py-28 bg-white dark:bg-gray-950">
+        <section className="py-20 md:py-28 bg-transparent dark:bg-gray-950">
             <div className="max-w-5xl mx-auto px-5 md:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
@@ -38,11 +38,11 @@ export default function FinalCTASection() {
                                 shadow-lg shadow-white/10
                             "
                         >
-                            Launch TaskTornado
+                            Sign Up
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                         <Link
-                            href="/blog"
+                            href="/login"
                             className="
                                 inline-flex items-center gap-2 px-7 py-3.5
                                 bg-transparent text-white/80
@@ -53,7 +53,7 @@ export default function FinalCTASection() {
                                 transition-colors duration-200
                             "
                         >
-                            Read the journal
+                            Log In
                         </Link>
                     </div>
 

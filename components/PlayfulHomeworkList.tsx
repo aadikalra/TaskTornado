@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { memo, useCallback } from 'react';
-import { motion, type Transition, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Check, Trash2, Edit, Link as LinkIcon, School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -97,26 +97,17 @@ type PlayfulHomeworkListProps = {
   onItemToggle: (id: string) => void;
   onPinToggle?: (id: string, pinned: boolean) => void;
   className?: string;
+  checkboxColor?: string;
 };
 
-const getPathAnimate = (isChecked: boolean) => ({
-  pathLength: isChecked ? 1 : 0,
-  opacity: isChecked ? 1 : 0,
-});
 
-const getPathTransition = (isChecked: boolean): Transition => ({
-  pathLength: { duration: 1, ease: 'easeInOut' },
-  opacity: {
-    duration: 0.01,
-    delay: isChecked ? 0 : 1,
-  },
-});
 
 const PlayfulHomeworkListComponent = ({
   items,
   onItemToggle,
   onPinToggle,
   className = '',
+  checkboxColor = 'data-[state=checked]:bg-teal-500 data-[state=checked]:!border-transparent',
 }: PlayfulHomeworkListProps) => {
   const [mounted, setMounted] = React.useState(false);
   const [confettiItems, setConfettiItems] = React.useState<Set<string>>(new Set());
@@ -211,12 +202,11 @@ const PlayfulHomeworkListComponent = ({
                   <Checkbox
                     checked={item.completed}
                     onCheckedChange={() => handleToggle(item.id)}
-                    className={`
-                      ${item.completed
-                        ? 'border-transparent bg-teal-500 hover:bg-teal-600'
+                    className={cn(
+                      item.completed
+                        ? checkboxColor
                         : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10'
-                      }
-                    `}
+                    )}
                     style={
                       item.completed && item.classColor
                         ? {
@@ -265,7 +255,7 @@ const PlayfulHomeworkListComponent = ({
                       <label
                         htmlFor={`checkbox-${item.id}`}
                         onClick={() => handleToggle(item.id)}
-                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-gray-500' : 'text-gray-900 dark:text-white'
+                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-[#264f84]/40 dark:text-blue-400/30' : 'text-[#264f84] dark:text-blue-400'
                           }`}
                       >
                         {item.text}
@@ -275,7 +265,7 @@ const PlayfulHomeworkListComponent = ({
                           </span>
                         )}
                       </label>
-                      <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400 gap-2">
+                      <div className="flex items-center mt-1 text-xs text-[#264f84]/60 dark:text-blue-400/50 gap-2">
                         {!item.completed && (
                           <>
                             {item.dueDateIcon}
@@ -368,29 +358,7 @@ const PlayfulHomeworkListComponent = ({
                     </div>
                   )}
                 </div>
-                <motion.svg
-                  width="100%"
-                  height="32"
-                  viewBox="0 0 300 32"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none z-20 w-full overflow-visible"
-                  preserveAspectRatio="none"
-                >
-                  <motion.path
-                    d="M 10 16 s 79.8 -11.36 98.1 -11.34 c 22.2 0.02 -47.82 14.25 -33.39 22.02 c 12.61 6.77 124.18 -27.98 133.31 -17.28 c 7.52 8.38 -26.8 20.02 4.61 22.05 c 24.55 1.93 42.37 -20.36 86.37 -20.36"
-                    vectorEffect="non-scaling-stroke"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                    initial={false}
-                    animate={getPathAnimate(item.completed)}
-                    transition={getPathTransition(item.completed)}
-                    className="stroke-blue-500"
-                    style={{
-                      stroke: item.classColor
-                    }}
-                  />
-                </motion.svg>
+
               </div>
             </div>
             {/* Links are rendered here, below the main homework item */}

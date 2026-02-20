@@ -187,32 +187,39 @@ export default function DockNav() {
     },
   ];
 
-  // Public overflow items (logged-out) — only free tools + content pages
-  const publicOverflowItems = [
+  // Public items for the center of the top navbar (cleaner 4-item set)
+  const publicNavItems = [
     {
-      icon: <IconTranslate />,
       label: 'Translate',
       onClick: () => router.push('/translate'),
       isActive: pathname === '/translate',
     },
     {
-      icon: <IconCircleCopyPlus />,
       label: 'Grades',
       onClick: () => router.push('/grade-calculator'),
       isActive: pathname === '/grade-calculator',
     },
     {
-      icon: <IconQuestion />,
       label: 'Tutorials',
       onClick: () => router.push('/tutorials'),
       isActive: pathname === '/tutorials',
     },
     {
-      icon: <IconBlog />,
       label: 'Blog',
       onClick: () => router.push('/blog'),
       isActive: pathname.startsWith('/blog'),
     },
+  ];
+
+  // Public overflow items (logged-out) — everything else
+  const publicOverflowItems = [
+    ...publicNavItems.map(item => ({
+      ...item,
+      icon: item.label === 'Translate' ? <IconTranslate /> :
+        item.label === 'Grades' ? <IconCircleCopyPlus /> :
+          item.label === 'Tutorials' ? <IconQuestion /> :
+            <IconBlog />
+    })),
     {
       icon: <IconFile />,
       label: 'Changelog',
@@ -399,6 +406,170 @@ export default function DockNav() {
     },
   ];
 
+  // ─── LOGGED-OUT: Floating top navbar ──────────────────────────────────────────
+  if (!user) {
+    return (
+      <>
+        {/* "More" dropdown for top navbar — drops down from navbar */}
+        <AnimatePresence>
+          {isMoreOpen && (
+            <motion.div
+              ref={moreMenuRef}
+              initial={{ opacity: 0, y: -10, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="fixed top-[72px] right-4 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-[60] w-[300px] sm:w-[340px]"
+            >
+              <div className="bg-white/85 dark:bg-zinc-900/85 backdrop-blur-2xl rounded-2xl border border-gray-200/60 dark:border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-4 pb-2">
+                  <span className="text-[13px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Tools
+                  </span>
+                  <button
+                    onClick={() => setIsMoreOpen(false)}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-white/[0.06] transition-all active:scale-90"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 p-3">
+                  {publicOverflowItems.map((item, i) => (
+                    <motion.button
+                      key={item.label}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03, type: 'spring', stiffness: 400, damping: 25 }}
+                      onClick={() => { item.onClick(); setIsMoreOpen(false); }}
+                      className={`
+                        flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer
+                        ${item.isActive
+                          ? 'bg-[#264f84]/10 dark:bg-blue-500/15'
+                          : 'hover:bg-gray-100/80 dark:hover:bg-white/[0.06]'
+                        }
+                      `}
+                    >
+                      <div className={`
+                        w-10 h-10 flex items-center justify-center rounded-xl transition-all
+                        ${item.isActive
+                          ? 'bg-[#264f84]/15 dark:bg-blue-500/20 shadow-sm'
+                          : 'bg-gray-100/80 dark:bg-white/[0.06]'
+                        }
+                      `}>
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          {item.icon}
+                        </div>
+                      </div>
+                      <span className={`
+                        text-[11px] font-medium leading-tight text-center
+                        ${item.isActive
+                          ? 'text-[#264f84] dark:text-blue-400'
+                          : 'text-gray-600 dark:text-gray-400'
+                        }
+                      `}>
+                        {item.label}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Floating top navbar ── */}
+        <motion.nav
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
+          className="fixed top-0 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 pt-3 sm:pt-4 pointer-events-none"
+        >
+          <div className="pointer-events-auto flex items-center w-full max-w-4xl rounded-2xl bg-white/70 dark:bg-zinc-900/70 backdrop-blur-2xl border border-white/50 dark:border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5),0_2px_8px_rgba(0,0,0,0.3)] px-4 sm:px-5 py-2.5 gap-3">
+            {/* Logo */}
+            <button
+              onClick={() => router.push('/')}
+              className="flex items-center gap-2 shrink-0 group"
+            >
+              <img
+                src="/TaskTornado.svg"
+                alt="TaskTornado"
+                className="w-7 h-7 dark:hidden transition-transform group-hover:scale-110"
+              />
+              <img
+                src="/TaskTornadoDark.svg"
+                alt="TaskTornado"
+                className="w-7 h-7 hidden dark:block transition-transform group-hover:scale-110"
+              />
+              <span className="text-[15px] font-bold tracking-tight text-[#275085] hidden sm:inline">
+                TaskTornado
+              </span>
+            </button>
+
+            {/* Center links — text-only for a cleaner look */}
+            <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
+              {publicNavItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.onClick}
+                  className={`
+                    relative py-1 text-[13px] font-medium transition-all duration-150 active:scale-95
+                    ${item.isActive
+                      ? 'text-[#264f84] dark:text-blue-400'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }
+                  `}
+                >
+                  {item.label}
+                  {item.isActive && (
+                    <motion.div
+                      layoutId="active-nav-dot"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#264f84] dark:bg-blue-400 rounded-full"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* More button — visible only on small/medium screens */}
+            <button
+              onClick={() => setIsMoreOpen(prev => !prev)}
+              className={`
+                md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all duration-150 active:scale-95 ml-auto
+                ${isMoreOpen
+                  ? 'bg-[#264f84]/10 dark:bg-blue-500/15 text-[#264f84] dark:text-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-white/[0.06]'
+                }
+              `}
+            >
+              <MoreIcon />
+              <span className="hidden sm:inline">More</span>
+            </button>
+
+            {/* Spacer for desktop */}
+            <div className="hidden md:block flex-shrink" />
+
+            {/* Auth buttons */}
+            <div className="flex items-center gap-2 shrink-0 ml-auto md:ml-0">
+              <button
+                onClick={() => router.push('/login')}
+                className="px-4 py-1.5 rounded-xl text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-white/[0.06] transition-all duration-150 active:scale-95"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => router.push('/signup')}
+                className="px-4 py-1.5 rounded-xl text-[13px] font-semibold text-white bg-[#264f84] hover:bg-[#1e3f6a] dark:bg-blue-600 dark:hover:bg-blue-700 shadow-[0_2px_8px_rgba(38,79,132,0.3)] hover:shadow-[0_4px_16px_rgba(38,79,132,0.4)] transition-all duration-200 active:scale-95"
+              >
+                Sign up
+              </button>
+            </div>
+          </div>
+        </motion.nav>
+      </>
+    );
+  }
+
+  // ─── LOGGED-IN: macOS-style dock (unchanged) ─────────────────────────────────
   return (
     <>
       {/* Active overflow page breadcrumb — shows current page when on a "More" page */}

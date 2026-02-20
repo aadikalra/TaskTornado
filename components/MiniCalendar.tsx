@@ -112,11 +112,11 @@ export const MiniCalendar = () => {
     }, [currentMonth, daysInMonth, firstDayOfWeek, monthStart, monthEnd]);
 
     return (
-        <div className="w-full h-full bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 transition-all hover:border-gray-300 dark:hover:border-gray-700 flex flex-col relative overflow-hidden group">
+        <div className="w-full h-full bg-[#ebf6b5] dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 transition-all hover:border-gray-300 dark:hover:border-gray-700 flex flex-col relative overflow-hidden group">
             {/* Floating Month Title (Bottom Left) */}
-            <div className="absolute bottom-3 left-3 z-10 px-2.5 py-1 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+            <div className="absolute bottom-3 left-3 z-10 px-2.5 py-1 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-full shadow-sm opacity-100 transition-all">
                 <Link href="/calendar" className="flex items-center">
-                    <h2 className="text-[10px] font-black text-[#264f84] dark:text-blue-400 tracking-widest uppercase whitespace-nowrap">
+                    <h2 className="text-[10px] font-bold text-[#111827] dark:text-white tracking-widest uppercase whitespace-nowrap">
                         {format(currentMonth, 'MMM yyyy')}
                     </h2>
                 </Link>
@@ -140,14 +140,16 @@ export const MiniCalendar = () => {
 
             <TooltipProvider>
                 <div className="grid grid-cols-7 gap-y-1 text-center flex-1" style={{ gridTemplateRows: `auto repeat(${calendarDays.length / 7}, 1fr)` }}>
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-                        <div
-                            key={idx}
-                            className="text-[10px] font-black text-[#00c951] dark:text-[#00c951] flex items-center justify-center h-6 bg-gray-50/80 dark:bg-gray-800/40 first:rounded-l-lg last:rounded-r-lg mb-1.5"
-                        >
-                            {day}
-                        </div>
-                    ))}
+                    <div className="col-span-7 grid grid-cols-7 mb-1.5 bg-black/10 dark:bg-white/10 rounded-lg overflow-hidden px-1">
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
+                            <div
+                                key={idx}
+                                className="text-[10px] font-bold text-[#111827] dark:text-white flex items-center justify-center h-6 uppercase tracking-wider"
+                            >
+                                {day}
+                            </div>
+                        ))}
+                    </div>
                     {calendarDays.map((calDay, idx) => {
                         const dateStr = format(calDay.date, 'yyyy-MM-dd');
                         const dayHomeworks = homeworkByDate[dateStr] || [];
@@ -162,10 +164,12 @@ export const MiniCalendar = () => {
                                 <TooltipTrigger asChild>
                                     <div
                                         className={cn(
-                                            "relative flex items-center justify-center text-xs transition-all rounded-lg cursor-default font-black",
-                                            calDay.isCurrentMonth ? "text-[#264f84] dark:text-blue-400" : "text-[#264f84]/30 dark:text-blue-500/30",
-                                            isToday && "bg-[#264f84]/15 dark:bg-blue-500/20 text-[#264f84] dark:text-blue-300 shadow-sm scale-105 z-10",
-                                            !isToday && calDay.isCurrentMonth && "hover:bg-gray-100 dark:hover:bg-gray-800"
+                                            "relative flex items-center justify-center text-xs transition-all rounded-lg cursor-default font-semibold",
+                                            calDay.isCurrentMonth
+                                                ? "text-[#111827] dark:text-blue-100"
+                                                : "text-[#111827]/40 dark:text-blue-400/30 font-normal",
+                                            isToday && "bg-[#1a3a5f] dark:bg-blue-600 text-white dark:text-white font-bold shadow-md scale-105 z-10",
+                                            !isToday && calDay.isCurrentMonth && "hover:bg-white/50 dark:hover:bg-white/10"
                                         )}
                                     >
                                         <span className="relative z-0">{calDay.day}</span>

@@ -1,134 +1,239 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, Cpu, Users, Heart, Scale, Ban, Github, Terminal } from 'lucide-react';
+import Image from 'next/image';
 
-// ─── Staggered fade-up for the price strip ──────────────────────────────────────
-const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.08 } },
-};
-const fadeUp = {
-    hidden: { opacity: 0, y: 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
 };
 
-export default function PromiseSection() {
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.5 }
+    }
+};
+
+export default function PromiseSection({ id }: { id?: string }) {
     return (
-        <section className="py-24 md:py-32 bg-white dark:bg-gray-950 overflow-hidden">
-            <div className="max-w-5xl mx-auto px-5 md:px-8">
+        <section id={id} className="py-24 md:py-32 bg-[#F8FAF0] dark:bg-gray-950 overflow-hidden transition-colors duration-300">
+            <div className="max-w-6xl mx-auto px-5 md:px-8">
 
-                {/* ── Giant price statement ───────────────────────────── */}
                 <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-16 md:mb-20"
-                >
-                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/8 dark:bg-[#275085]/10 rounded-full mb-8">
-                        The Promise
-                    </span>
-
-                    {/* The $0 hero */}
-                    <div className="relative inline-block mb-6">
-                        <motion.span
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
-                            className="text-[120px] md:text-[180px] lg:text-[220px] font-black text-gray-900 dark:text-white leading-none tracking-tighter tabular-nums"
-                        >
-                            $0
-                        </motion.span>
-                        <motion.span
-                            initial={{ opacity: 0, x: -10 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.5, duration: 0.4 }}
-                            className="absolute -top-2 -right-16 md:-right-20 text-sm md:text-base font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full"
-                        >
-                            forever
-                        </motion.span>
-                    </div>
-
-                    <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-4">
-                        No hidden fees. No bait-and-switch.
-                    </h2>
-                    <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto leading-relaxed">
-                        We&apos;ve been burned by &ldquo;free&rdquo; apps that switch to paid models too. TaskTornado is genuinely different.
-                    </p>
-                </motion.div>
-
-                {/* ── Competitor price comparison strip ────────────────── */}
-                <motion.div
-                    variants={stagger}
+                    variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true }}
-                    className="flex flex-col md:flex-row items-stretch justify-center gap-4 md:gap-5 max-w-3xl mx-auto mb-16 md:mb-20"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 mb-24"
                 >
-                    {/* Competitors */}
-                    {[
-                        { name: 'ChatGPT Plus', price: '$20', period: '/mo' },
-                        { name: 'Notion Personal', price: '$10', period: '/mo' },
-                    ].map((comp, i) => (
-                        <motion.div
-                            key={i}
-                            variants={fadeUp}
-                            className="flex-1 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[20px] p-6 text-center relative"
+                    {/* ── Left Column: The Big $0 ────────────────────────── */}
+                    <div className="lg:col-span-4 flex flex-col items-center lg:items-start relative">
+                        <div className="relative">
+                            {/* "forever" Badge */}
+                            <motion.span
+                                variants={itemVariants}
+                                className="absolute -top-4 -right-12 bg-[#d1fae5] dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+                            >
+                                forever
+                            </motion.span>
+
+                            {/* The $0 */}
+                            <motion.h2
+                                variants={itemVariants}
+                                className="text-[160px] md:text-[200px] leading-none font-black text-[#275085] dark:text-white tracking-tighter"
+                            >
+                                $0
+                            </motion.h2>
+                        </div>
+
+                        {/* "The Promise" Badge */}
+                        <motion.span
+                            variants={itemVariants}
+                            className="mt-4 bg-[#ebf6b5] dark:bg-emerald-900/40 text-[#2d5a27] dark:text-emerald-400 text-sm font-bold px-4 py-1.5 rounded-full"
                         >
-                            <p className="text-xs font-medium text-gray-400 dark:text-zinc-500 mb-2">{comp.name}</p>
-                            <div className="relative inline-block">
-                                <span className="text-3xl font-black text-gray-300 dark:text-zinc-600 tabular-nums">{comp.price}</span>
-                                <span className="text-sm text-gray-300 dark:text-zinc-600">{comp.period}</span>
-                                {/* strikethrough */}
-                                <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-red-400/70 -rotate-6" />
+                            The Promise
+                        </motion.span>
+                    </div>
+
+                    {/* ── Right Column: Headlines & Comparison ───────────── */}
+                    <div className="lg:col-span-8 flex flex-col justify-center">
+                        <motion.h3
+                            variants={itemVariants}
+                            className="text-3xl md:text-5xl font-semibold text-[#275085] dark:text-[#4a9cdb] tracking-tight leading-[1.15] mb-4"
+                        >
+                            No hidden fees.<br />
+                            No bait-and-switch.
+                        </motion.h3>
+
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-lg text-[#275085]/80 dark:text-[#4a9cdb]/80 mb-12 max-w-2xl leading-relaxed"
+                        >
+                            We&apos;ve been burned by &ldquo;free&rdquo; apps that switch to paid models too. TaskTornado is genuinely different.
+                        </motion.p>
+
+                        {/* Comparison Cards */}
+                        <motion.div
+                            variants={itemVariants}
+                            className="grid grid-cols-1 md:grid-cols-3 gap-5"
+                        >
+                            {/* Card 1: ChatGPT Plus */}
+                            <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-2 shadow-sm border border-slate-100 dark:border-zinc-800 flex flex-col">
+                                <div className="bg-[#eaf2ff] dark:bg-sky-900/30 px-5 py-3 rounded-[20px]">
+                                    <h4 className="font-semibold text-[#275085] dark:text-sky-200">ChatGPT Plus</h4>
+                                </div>
+                                <div className="px-5 pb-5 pt-4 flex-1 flex flex-col justify-between">
+                                    <p className="text-xs text-[#275085]/60 dark:text-slate-400 mb-6 mt-1">
+                                        Replaces your tutor with smart plans
+                                    </p>
+                                    <p className="text-3xl font-bold text-[#275085] dark:text-white">$20<span className="text-sm font-medium text-[#275085]/40 tracking-normal">/month</span></p>
+                                </div>
+                            </div>
+
+                            {/* Card 2: Notion Personal */}
+                            <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-2 shadow-sm border border-slate-100 dark:border-zinc-800 flex flex-col">
+                                <div className="bg-purple-50 dark:bg-purple-900/30 px-5 py-3 rounded-[20px]">
+                                    <h4 className="font-semibold text-[#275085] dark:text-purple-200">Notion Personal</h4>
+                                </div>
+                                <div className="px-5 pb-5 pt-4 flex-1 flex flex-col justify-between">
+                                    <p className="text-xs text-[#275085]/60 dark:text-slate-400 mb-6 mt-1">
+                                        Organizes your personal life
+                                    </p>
+                                    <p className="text-3xl font-bold text-[#275085] dark:text-white">$10<span className="text-sm font-medium text-[#275085]/40 tracking-normal">/month</span></p>
+                                </div>
+                            </div>
+
+                            {/* Card 3: TaskTornado */}
+                            <div className="bg-[#275085] dark:bg-blue-600 rounded-[28px] p-2 shadow-lg flex flex-col md:-translate-y-2">
+                                <div className="bg-white/10 dark:bg-black/20 px-5 py-3 rounded-[20px] flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <img src="/TaskTornadoDark.svg" alt="Logo" className="w-5 h-5 block" />
+                                        <h4 className="font-semibold text-white">TaskTornado</h4>
+                                    </div>
+                                    <div className="bg-[#ebf6b5] dark:bg-green-500 rounded-full p-0.5">
+                                        <Check className="w-3 h-3 text-[#275085] dark:text-white" strokeWidth={3} />
+                                    </div>
+                                </div>
+                                <div className="px-5 pb-5 pt-4 flex-1 flex flex-col justify-between">
+                                    <p className="text-xs text-blue-100/90 mb-6 mt-1">
+                                        TaskTornado is a new way to study.
+                                    </p>
+                                    <p className="text-3xl font-bold text-white">$0<span className="text-sm font-medium text-blue-200/80 tracking-normal">/forever</span></p>
+                                </div>
                             </div>
                         </motion.div>
-                    ))}
-
-                    {/* TaskTornado */}
-                    <motion.div
-                        variants={fadeUp}
-                        className="flex-1 bg-[#275085] dark:bg-[#275085] border border-[#1f3f6b] dark:border-[#1f3f6b] rounded-[20px] p-6 text-center relative"
-                    >
-                        <p className="text-xs font-medium text-white/70 mb-2">TaskTornado</p>
-                        <span className="text-3xl font-black text-white tabular-nums">$0</span>
-                        <span className="text-sm text-white/60">/forever</span>
-                        <div className="absolute -top-2 -right-2">
-                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                            </div>
-                        </div>
-                    </motion.div>
-                </motion.div>
-
-                {/* ── How we keep it free ──────────────────────────────── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 }}
-                    className="max-w-2xl mx-auto"
-                >
-                    <h3 className="text-center text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-6">
-                        How we keep it free
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-200 dark:bg-zinc-800 rounded-[20px] overflow-hidden border border-gray-200 dark:border-zinc-800">
-                        {[
-                            { title: 'Open-source models', desc: 'Efficient AI like Gemma keeps our costs near zero' },
-                            { title: 'Fair usage limits', desc: 'Daily message caps so everyone gets equal access' },
-                            { title: 'No investor pressure', desc: 'We answer to students, not shareholders' },
-                        ].map((item, i) => (
-                            <div key={i} className="bg-white dark:bg-gray-950 p-5 text-center">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{item.title}</p>
-                                <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">{item.desc}</p>
-                            </div>
-                        ))}
                     </div>
                 </motion.div>
+
+                {/* ── Bottom Section: How We Keep It Free ────────────── */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    className="max-w-7xl mx-auto"
+                >
+                    <div className="text-center mb-10">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                            How We Keep It Free
+                        </h3>
+                    </div>
+
+                    <div className="md:-mx-12 lg:-mx-24">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {/* Card 1: Open Source */}
+                            <motion.div variants={itemVariants} className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-100 dark:border-zinc-800 flex flex-col group h-full">
+                                {/* Top Half: Icon/Header + Image */}
+                                <div className="flex justify-between items-start gap-4 mb-0">
+                                    <div className="flex-1">
+                                        <div className="text-[#275085] dark:text-[#4a9cdb] mb-4">
+                                            <Github className="w-8 h-8 stroke-[2.5]" />
+                                        </div>
+                                        <h4 className="font-bold text-xl text-[#275085] dark:text-[#4a9cdb]">Open-source models</h4>
+                                    </div>
+                                    <div className="relative w-28 h-28 shrink-0 -mt-3 -mr-3 transition-transform duration-500 ease-out">
+                                        <Image
+                                            src="/open-source-infra.png"
+                                            alt="Infrastructure"
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Bottom Half: Text content (full width) */}
+                                <div className="-mt-1">
+                                    <p className="text-sm text-[#275085]/65 dark:text-[#4a9cdb]/65 leading-relaxed">
+                                        Open-source models like Gemma allow us to operate near zero cost.
+                                    </p>
+                                </div>
+                            </motion.div>
+
+                            {/* Card 2: Fair Usage */}
+                            <motion.div variants={itemVariants} className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-100 dark:border-zinc-800 flex flex-col group h-full">
+                                {/* Top Half: Icon/Header + Image */}
+                                <div className="flex justify-between items-start gap-4 mb-0">
+                                    <div className="flex-1">
+                                        <div className="text-[#275085] dark:text-[#4a9cdb] mb-4">
+                                            <Scale className="w-8 h-8 stroke-[2.5]" />
+                                        </div>
+                                        <h4 className="font-bold text-xl text-[#275085] dark:text-[#4a9cdb]">Fair usage limits</h4>
+                                    </div>
+                                    <div className="relative w-28 h-28 shrink-0 -mt-2 -mr-2 transition-transform duration-500 ease-out">
+                                        <Image
+                                            src="/fairUsage.png"
+                                            alt="Fair Usage"
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Bottom Half: Text content (full width) */}
+                                <div className="-mt-1">
+                                    <p className="text-sm text-[#275085]/65 dark:text-[#4a9cdb]/65 leading-relaxed">
+                                        Sensible caps ensure everyone gets equal access to our resources.
+                                    </p>
+                                </div>
+                            </motion.div>
+
+                            {/* Card 3: No Pressure */}
+                            <motion.div variants={itemVariants} className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-100 dark:border-zinc-800 flex flex-col group h-full">
+                                {/* Top Half: Icon/Header + Image */}
+                                <div className="flex justify-between items-start gap-4 mb-0">
+                                    <div className="flex-1">
+                                        <div className="text-[#275085] dark:text-[#4a9cdb] mb-4">
+                                            <Ban className="w-8 h-8 stroke-[2.5]" />
+                                        </div>
+                                        <h4 className="font-bold text-xl text-[#275085] dark:text-[#4a9cdb]">No investor pressure</h4>
+                                    </div>
+                                    <div className="relative w-28 h-28 shrink-0 -mt-2 -mr-2 transition-transform duration-500 ease-out">
+                                        <Image
+                                            src="/noPressure.png"
+                                            alt="No Pressure"
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Bottom Half: Text content (full width) */}
+                                <div className="-mt-1">
+                                    <p className="text-sm text-[#275085]/65 dark:text-[#4a9cdb]/65 leading-relaxed">
+                                        We answer to students, not shareholders looking for infinite growth.
+                                    </p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </motion.div>
+
             </div>
         </section>
     );

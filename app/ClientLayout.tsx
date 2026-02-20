@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next';
 import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { useAI } from '@/context/AIContext';
+import { useAuth } from '@/context/AuthContext';
 import { CustomContextMenu } from '@/components/CustomContextMenu';
 import { DictionaryPopup } from '@/components/DictionaryPopup';
 import * as React from 'react';
@@ -30,6 +31,7 @@ interface ClientLayoutProps {
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
   const { isAIAssistantOpen, isAISidebarMode } = useAI();
+  const { user } = useAuth() || {};
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
 
@@ -102,7 +104,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         {/* SearchBar - rendered globally so it can be opened from anywhere */}
         <SearchBar />
         <main
-          className="flex-1 bg-transparent pb-24 md:pb-0 overflow-x-hidden"
+          className={`flex-1 bg-transparent overflow-x-hidden ${user ? 'pb-24 md:pb-0' : (isLandingPage ? 'pt-0' : 'pt-20 sm:pt-24')}`}
           style={{
             marginRight: showSidebarMargin ? 420 : 0,
             transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',

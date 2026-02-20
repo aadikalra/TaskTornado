@@ -8,11 +8,11 @@ import { ArrowRight, Sparkles, Brain, CalendarCheck, BookOpen, LayoutGrid, PenTo
 
 // ─── Rotating word pairs ─────────────────────────────────────────────────────────
 const ROTATING_WORDS = [
-    { bold: 'organized', color: 'text-[#275085] dark:text-[#4a9cdb]' },
-    { bold: 'ahead', color: 'text-emerald-500 dark:text-emerald-400' },
-    { bold: 'unstoppable', color: 'text-violet-500 dark:text-violet-400' },
-    { bold: 'stress-free', color: 'text-amber-500 dark:text-amber-400' },
-    { bold: 'on track', color: 'text-rose-500 dark:text-rose-400' },
+    { bold: 'organized', color: 'text-[#b5d565]' },
+    { bold: 'ahead', color: 'text-[#b5d565]' },
+    { bold: 'unstoppable', color: 'text-[#b5d565]' },
+    { bold: 'stress-free', color: 'text-[#b5d565]' },
+    { bold: 'on track', color: 'text-[#b5d565]' },
 ];
 
 // ─── Orbiting feature chips — real app features from the DockNav ─────────────────
@@ -71,7 +71,7 @@ export default function Hero() {
     }, []);
 
     return (
-        <section className="relative pt-28 pb-8 md:pt-36 md:pb-12 overflow-hidden bg-white dark:bg-gray-950">
+        <section className="relative min-h-screen flex flex-col justify-center pt-20 pb-10 overflow-hidden bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
 
             {/* Orbit keyframes injected once */}
             <style>{`
@@ -83,176 +83,135 @@ export default function Hero() {
 
             {/* ── Multi-layer ambient glow ─────────────────────────── */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] rounded-full blur-[140px]" />
-                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] rounded-full blur-[120px]" />
-                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] rounded-full blur-[100px]" />
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
             </div>
 
-            <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-8">
-                {/* ── Headline with rotating word ──────────────────────── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1, duration: 0.5 }}
-                    className="text-center mb-5"
-                >
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.08]">
-                        <span className="text-gray-900 dark:text-white">Everything you need</span>
-                        <br />
-                        <span className="text-gray-900 dark:text-white">to stay </span>
-                        <span className="inline-flex overflow-hidden align-baseline min-w-[140px] md:min-w-[220px] lg:min-w-[280px]">
-                            <AnimatePresence mode="wait">
-                                <motion.span
-                                    key={index}
-                                    initial={{ y: 30, opacity: 0, filter: 'blur(6px)' }}
-                                    animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                                    exit={{ y: -30, opacity: 0, filter: 'blur(6px)' }}
-                                    transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
-                                    className={ROTATING_WORDS[index].color}
-                                >
-                                    {ROTATING_WORDS[index].bold}
-                                </motion.span>
-                            </AnimatePresence>
-                        </span>
-                        <span className="text-gray-900 dark:text-white">.</span>
-                    </h1>
-                </motion.div>
-
-                {/* ── Subtitle ─────────────────────────────────────────── */}
-                <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.4 }}
-                    className="text-center text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed mb-10"
-                >
-                    AI tutoring, smart scheduling, and a homework dashboard that actually works — built for students, by students.
-                </motion.p>
-
-                {/* ── CTAs ──────────────────────────────────────────────── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4 }}
-                    className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16 md:mb-20"
-                >
-                    <Link
-                        href="/signup"
-                        className="
-                            group inline-flex items-center gap-2 px-7 py-3
-                            bg-[#275085] hover:bg-[#1f3f6b]
-                            text-white font-semibold text-sm
-                            rounded-full transition-all duration-200
-                            shadow-lg shadow-[#275085]/20 hover:shadow-xl hover:shadow-[#275085]/30
-                        "
+            <div className="relative z-10 w-full px-4 md:px-8 flex flex-col lg:flex-row items-center justify-between min-h-[85vh] gap-12 lg:gap-0">
+                {/* ── Left Column: Content ─────────────────────────────── */}
+                <div className="text-left py-12 pl-6 md:pl-12 xl:pl-20 lg:w-[50%] xl:w-[55%]">
+                    {/* ── Headline with rotating word ──────────────────────── */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1, duration: 0.6 }}
+                        className="mb-8"
                     >
-                        Get Started Free
-                        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                    <Link
-                        href="/blog"
-                        className="
-                            inline-flex items-center gap-2 px-7 py-3
-                            text-gray-500 dark:text-gray-400 font-medium text-sm
-                            rounded-full border border-gray-200 dark:border-zinc-800
-                            hover:text-gray-900 dark:hover:text-white
-                            hover:border-gray-300 dark:hover:border-zinc-700
-                            transition-all duration-200
-                        "
-                    >
-                        Read the journal
-                    </Link>
-                </motion.div>
+                        <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-[68px] font-bold tracking-tight leading-[1.08]">
+                            <span className="text-[#275085] dark:text-[#4a9cdb]">Everything you need</span>
+                            <br />
+                            <span className="text-[#275085] dark:text-[#4a9cdb]">to stay </span>
+                            <span className="inline-flex overflow-hidden align-baseline">
+                                <AnimatePresence mode="wait">
+                                    <motion.span
+                                        key={index}
+                                        initial={{ y: 60, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        exit={{ y: -60, opacity: 0 }}
+                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                        className={`${ROTATING_WORDS[index].color} whitespace-nowrap`}
+                                    >
+                                        {ROTATING_WORDS[index].bold}
+                                    </motion.span>
+                                </AnimatePresence>
+                            </span>
+                            <span className="text-[#275085] dark:text-[#4a9cdb]">.</span>
+                        </h1>
+                    </motion.div>
 
-                {/* ═══════════════════════════════════════════════════════
-                    VISUAL — Big logo with ORBITING chips
-                ═══════════════════════════════════════════════════════ */}
+                    {/* ── Subtitle ─────────────────────────────────────────── */}
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                        className="text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium"
+                    >
+                        AI tutoring, smart scheduling, and a homework dashboard that actually works — built for students, by a student.
+                    </motion.p>
+                </div>
+
+                {/* ── Right Column: Visual (Orbit) ──────────────────────── */}
                 <div
                     ref={orbitRef}
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
-                    className="relative flex items-center justify-center mx-auto mb-10"
-                    style={{ height: 380 }}
+                    className="relative flex items-center justify-center pr-4 md:pr-8 xl:pr-16 lg:w-[45%] xl:w-[40%] h-[500px] lg:h-[700px] overflow-visible"
                 >
+                    {/* ── Orbit Container ─────────────────────────────────── */}
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        {/* ── Continuously orbiting chips (desktop) ─────────── */}
+                        <div className="hidden lg:block absolute inset-0 pointer-events-none scale-100 xl:scale-110">
+                            {ORBITING_CHIPS.map((chip, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute"
+                                    style={{
+                                        left: '50%',
+                                        top: '50%',
+                                        marginLeft: -1,
+                                        marginTop: -1,
+                                        width: 2,
+                                        height: 2,
+                                        ['--start' as string]: `${chip.startAngle}deg`,
+                                        ['--radius' as string]: `${chip.radius}px`,
+                                        animation: `orbit ${ORBIT_DURATION}s linear infinite`,
+                                    }}
+                                >
+                                    <div className={`w-max flex items-center gap-2 px-5 py-2.5 ${chip.bg} border ${chip.border} rounded-full shadow-md whitespace-nowrap backdrop-blur-md -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110`}>
+                                        <chip.icon className={`w-4 h-4 ${chip.accent}`} />
+                                        <span className={`text-[13px] font-bold ${chip.accent}`}>{chip.label}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
 
-                    {/* ── Continuously orbiting chips (desktop) ─────────── */}
-                    <div className="hidden md:block absolute inset-0">
-                        {ORBITING_CHIPS.map((chip, i) => (
-                            <div
-                                key={i}
-                                className="absolute"
-                                style={{
-                                    left: '50%',
-                                    top: '50%',
-                                    marginLeft: -1,
-                                    marginTop: -1,
-                                    width: 2,
-                                    height: 2,
-                                    ['--start' as string]: `${chip.startAngle}deg`,
-                                    ['--radius' as string]: `${chip.radius}px`,
-                                    animation: `orbit ${ORBIT_DURATION}s linear infinite`,
-                                }}
-                            >
-                                <div className={`w-max flex items-center gap-2 px-4 py-2 ${chip.bg} border ${chip.border} rounded-full shadow-sm whitespace-nowrap backdrop-blur-sm -translate-x-1/2 -translate-y-1/2`}>
+                        {/* ── Central logo — mouse-reactive ─────────────────── */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.6 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.3, duration: 0.6, type: 'spring', bounce: 0.25 }}
+                            className="relative z-20"
+                            style={{ x: logoX, y: logoY, perspective: 600 }}
+                        >
+                            <motion.div
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#275085]/[0.1] dark:bg-[#4a9cdb]/[0.08] rounded-full blur-[100px] pointer-events-none"
+                                style={{ x: logoX, y: logoY }}
+                            />
+
+                            <div className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
+                                <img
+                                    src="/TaskTornado.svg"
+                                    alt="TaskTornado"
+                                    className="w-32 h-32 md:w-48 md:h-48 relative z-20 drop-shadow-[0_25px_60px_rgba(39,80,133,0.35)] transition-transform duration-500 hover:scale-110 dark:hidden"
+                                />
+                                <img
+                                    src="/TaskTornadoDark.svg"
+                                    alt="TaskTornado"
+                                    className="w-32 h-32 md:w-48 md:h-48 relative z-20 drop-shadow-[0_25px_60px_rgba(74,156,219,0.35)] transition-transform duration-500 hover:scale-110 hidden dark:block"
+                                />
+                            </div>
+                        </motion.div>
+
+                        {/* ── Mobile/Tablet chips (stacked, no orbit) ──────────────── */}
+                        <div className="lg:hidden absolute bottom-0 left-0 right-0 flex flex-wrap items-center justify-center gap-2.5 pb-12">
+                            {ORBITING_CHIPS.slice(0, 8).map((chip, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.6 + i * 0.08 }}
+                                    className={`flex items-center gap-2 px-4 py-2 ${chip.bg} border ${chip.border} rounded-full shadow-sm backdrop-blur-sm`}
+                                >
                                     <chip.icon className={`w-3.5 h-3.5 ${chip.accent}`} />
                                     <span className={`text-[12px] font-bold ${chip.accent}`}>{chip.label}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-
-                    {/* ── Central logo — mouse-reactive ─────────────────── */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.6 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3, duration: 0.6, type: 'spring', bounce: 0.25 }}
-                        className="relative z-10"
-                        style={{ x: logoX, y: logoY, perspective: 600 }}
-                    >
-                        {/* Glow behind logo — also shifts with mouse */}
-                        <motion.div
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-[#275085]/[0.12] rounded-full blur-[60px] pointer-events-none"
-                            style={{ x: logoX, y: logoY }}
-                        />
-
-                        {/* Logo container */}
-                        <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center">
-                            {/* Logo with drop-shadow */}
-                            <img
-                                src="/TaskTornado.svg"
-                                alt="TaskTornado"
-                                className="w-24 h-24 md:w-32 md:h-32 relative z-10 drop-shadow-[0_10px_30px_rgba(39,80,133,0.3)]"
-                            />
+                                </motion.div>
+                            ))}
                         </div>
-                    </motion.div>
-
-                    {/* ── Mobile chips (stacked, no orbit) ──────────────── */}
-                    <div className="md:hidden absolute -bottom-2 left-0 right-0 flex flex-wrap items-center justify-center gap-2">
-                        {ORBITING_CHIPS.slice(0, 4).map((chip, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 + i * 0.1 }}
-                                className={`flex items-center gap-1 px-2.5 py-1 ${chip.bg} border ${chip.border} rounded-full`}
-                            >
-                                <chip.icon className={`w-2.5 h-2.5 ${chip.accent}`} />
-                                <span className={`text-[10px] font-semibold ${chip.accent}`}>{chip.label}</span>
-                            </motion.div>
-                        ))}
                     </div>
                 </div>
-
-                {/* ── Trust line ───────────────────────────────────────── */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.2, duration: 0.5 }}
-                    className="text-center text-[10px] font-medium uppercase tracking-widest text-gray-400 dark:text-zinc-600"
-                >
-                    No credit card · 2-min setup · Works with Google Classroom
-                </motion.p>
             </div>
+
         </section>
     );
 }

@@ -12,7 +12,7 @@ import LandingFooter from '@/app/landing-sections/LandingFooter';
 
 export default function GuardiansContent() {
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans">
+        <div className="min-h-screen bg-[#f4f8da] dark:bg-gray-950 overflow-x-hidden font-sans">
             {/* 1. HERO — "Keep your child organized" */}
             <GuardiansHero />
 

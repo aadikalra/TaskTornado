@@ -1108,16 +1108,16 @@ const MainApp = () => {
       case 'classes':
         const effectivelyShowClasses = showTestsInClassCards || showClasses;
         return (
-          <div key="classes" className="mb-10" data-tour="classes">
+          <div key="classes" className="mt-8 mb-10" data-tour="classes">
             <div>
               <div
-                className={`mb-4 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
+                className={`mb-3 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
                 onClick={!showTestsInClassCards ? () => handleToggleClasses(!showClasses) : undefined}
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-lg sm:text-xl font-black text-[#264f84] dark:text-blue-400 transition-colors uppercase tracking-tight">
+                      <h2 className="text-lg sm:text-xl font-medium text-[#264f84] dark:text-blue-400 transition-colors uppercase tracking-tight">
                         My Classes
                       </h2>
                     </div>
@@ -1140,7 +1140,7 @@ const MainApp = () => {
                         e.stopPropagation();
                         setShowAddClass(true);
                       }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold uppercase tracking-wider px-4"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
                     >
                       <Plus className="mr-2 h-4 w-4" /> ADD CLASS
                     </Button>
@@ -1150,7 +1150,7 @@ const MainApp = () => {
                         e.stopPropagation();
                         setShowAddHomework(true);
                       }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold uppercase tracking-wider px-4"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
                     >
                       <Plus className="mr-2 h-4 w-4" /> ADD HOMEWORK
                     </Button>
@@ -1161,7 +1161,7 @@ const MainApp = () => {
                           e.stopPropagation();
                           setShowAddTest(true);
                         }}
-                        className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold uppercase tracking-wider px-4"
+                        className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
                       >
                         <Plus className="mr-2 h-4 w-4" /> ADD TEST
                       </Button>
@@ -1195,7 +1195,7 @@ const MainApp = () => {
             </div>
 
             <div
-              className={`overflow-hidden p-6 -mx-6 transition-all duration-400 ease-in-out ${effectivelyShowClasses
+              className={`overflow-hidden transition-all duration-400 ease-in-out ${effectivelyShowClasses
                 ? 'max-h-[5000px] opacity-100'
                 : 'max-h-0 opacity-0'
                 }`}
@@ -1432,7 +1432,7 @@ const MainApp = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-lg sm:text-xl font-semibold text-[#111827] dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                      <h2 className="text-lg sm:text-xl font-medium text-[#111827] dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
                         Tests & Exams
                       </h2>
                       <p className="text-[#6B7280] dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
@@ -1454,7 +1454,7 @@ const MainApp = () => {
                         e.stopPropagation();
                         setShowAddTest(true);
                       }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Test
                     </Button>
@@ -1756,7 +1756,7 @@ const MainApp = () => {
   const overdueEmoji = overdueCount === 0 ? '✅' : overdueCount <= 2 ? '😬' : '😰';
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
+    <div className="min-h-screen bg-[#f4f8da] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
       <main className={getContainerClass('max-w-7xl') + ' py-8'}>
         {/* Welcome Section — with Facehash Avatar */}
         <motion.div
@@ -1978,7 +1978,7 @@ const MainApp = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#264f84] dark:text-blue-400 mb-1 tracking-tight uppercase">
+              <h1 className="text-lg sm:text-xl font-medium text-[#264f84] dark:text-blue-400 mb-1 tracking-tight uppercase">
                 {timeGreeting.text} {full_name?.split(' ')[0] || 'Student'}!
               </h1>
               <p className="text-[#6B7280] dark:text-gray-400 text-sm">
@@ -1994,11 +1994,11 @@ const MainApp = () => {
           <motion.div
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
+            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
           >
-            <span className="text-base text-[#264f84] dark:text-blue-400 font-black uppercase tracking-tight">Complete</span>
+            <span className="text-base text-[#264f84] dark:text-blue-400 font-medium uppercase tracking-tight">Complete</span>
             <div className="flex items-center gap-2.5">
-              <span className="text-base font-black text-[#00c951] dark:text-[#00c951] tracking-tight">
+              <span className="text-base font-medium text-[#00c951] dark:text-[#00c951] tracking-tight">
                 {completionRate}%
               </span>
               <CheckCircle className="w-5 h-5 text-[#264f84] dark:text-blue-400" />
@@ -2010,11 +2010,11 @@ const MainApp = () => {
             ref={overdueCardRef}
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
+            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
           >
-            <span className={`text-base font-black uppercase tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
+            <span className={`text-base font-medium uppercase tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
             <div className="flex items-center gap-2.5">
-              <span className={`text-base font-black tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#00c951] dark:text-[#00c951]'}`}>
+              <span className={`text-base font-medium tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#00c951] dark:text-[#00c951]'}`}>
                 {overdueCount}
               </span>
               <div className="relative">
@@ -2030,11 +2030,11 @@ const MainApp = () => {
           <motion.div
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
+            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
           >
-            <span className="text-base text-[#264f84] dark:text-blue-400 font-black uppercase tracking-tight">Tests</span>
+            <span className="text-base text-[#264f84] dark:text-blue-400 font-medium uppercase tracking-tight">Tests</span>
             <div className="flex items-center gap-2.5">
-              <span className="text-base font-black text-[#00c951] dark:text-[#00c951] tracking-tight">
+              <span className="text-base font-medium text-[#00c951] dark:text-[#00c951] tracking-tight">
                 {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
               </span>
               <GraduationCap className="w-5 h-5 text-[#264f84] dark:text-blue-400" />
@@ -2045,9 +2045,9 @@ const MainApp = () => {
           <motion.div
             whileHover={{ y: -2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 group flex items-center justify-between gap-2"
+            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
           >
-            <span className={`text-base font-black uppercase tracking-tight ${(() => {
+            <span className={`text-base font-medium uppercase tracking-tight ${(() => {
               const nextItem = nextDueHomework && nextUpcomingTest
                 ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                 : (nextDueHomework || nextUpcomingTest);
@@ -2071,7 +2071,7 @@ const MainApp = () => {
               ) : 'Next Due'}
             </span>
             <div className="flex items-center gap-2.5">
-              <span className={`text-base font-black whitespace-nowrap tracking-tight ${(() => {
+              <span className={`text-base font-medium whitespace-nowrap tracking-tight ${(() => {
                 const nextItem = nextDueHomework && nextUpcomingTest
                   ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
                   : (nextDueHomework || nextUpcomingTest);

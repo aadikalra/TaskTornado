@@ -8,8 +8,9 @@ import BentoGridSection from '@/app/landing-sections/BentoGridSection';
 import ComparisonSection from '@/app/landing-sections/ComparisonSection';
 import WellbeingSection from '@/app/landing-sections/WellbeingSection';
 import PromiseSection from '@/app/landing-sections/PromiseSection';
-import FinalCTASection from '@/app/landing-sections/FinalCTASection';
+import SocialProofSection from '@/app/landing-sections/SocialProofSection';
 import LandingFooter from '@/app/landing-sections/LandingFooter';
+import UserReachSection from '@/app/landing-sections/UserReachSection';
 
 // Sample homework data for the organization section demo
 const sampleHomeworkItems = [
@@ -61,15 +62,15 @@ export default function StudentLandingContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#f4f8da] dark:bg-gray-950 overflow-x-hidden font-sans">
       {/* 1. HERO */}
       <Hero />
 
       {/* 2. ORGANIZATION - The Foundation */}
-      <OrganizationSection homeworkItems={homeworkItems} onItemToggle={handleItemToggle} />
+      <OrganizationSection id="features" homeworkItems={homeworkItems} onItemToggle={handleItemToggle} />
 
       {/* 3. BENTO GRID - Feature Showcase */}
-      <BentoGridSection />
+      <BentoGridSection id="ai" />
 
       {/* 4. COMPARISON */}
       <ComparisonSection comparisonSet={comparisonSet} onComparisonSetChange={setComparisonSet} />
@@ -78,10 +79,13 @@ export default function StudentLandingContent() {
       <WellbeingSection />
 
       {/* 8. THE PROMISE - Pricing */}
-      <PromiseSection />
+      <PromiseSection id="pricing" />
 
-      {/* 9. FINAL CTA */}
-      <FinalCTASection />
+      {/* 9. SOCIAL PROOF */}
+      <SocialProofSection />
+
+      {/* 10. USER REACH - Global Map */}
+      <UserReachSection />
 
       {/* FOOTER */}
       <LandingFooter />
