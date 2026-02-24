@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Check, X, Flame, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import Image from 'next/image';
 
 // ─── Before/After data ───────────────────────────────────────────────────────────
 const BEFORE_ITEMS = [
@@ -31,8 +32,8 @@ export default function AccountabilitySection() {
     const pct = Math.round((AFTER_STATS.completed / AFTER_STATS.total) * 100);
 
     return (
-        <section className="py-20 md:py-28 bg-white dark:bg-gray-950 overflow-hidden">
-            <div className="max-w-5xl mx-auto px-5 md:px-8">
+        <section className="py-20 md:py-28 bg-[#faf8ff] dark:bg-gray-950 overflow-hidden">
+            <div className="max-w-7xl 2xl:max-w-screen-2xl mx-auto px-5 md:px-8">
 
                 {/* Header */}
                 <motion.div
@@ -40,22 +41,21 @@ export default function AccountabilitySection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
-                    className="text-center mb-14 md:mb-16"
+                    className="text-center mb-8 md:mb-10"
                 >
-                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/8 dark:bg-amber-500/10 rounded-full mb-4">
+                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#6b29a5] dark:text-[#8a42cf] bg-[#6b29a5]/5 dark:bg-[#8a42cf]/5 border border-[#6b29a5]/10 dark:border-[#8a42cf]/10 rounded-full mb-6">
                         The Accountability
                     </span>
-                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-4">
-                        They actually do<br />
-                        <span className="text-gray-400 dark:text-zinc-500">the homework.</span>
+                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-semibold text-[#873fc6] dark:text-[#8a42cf] tracking-tight leading-[1.1] mb-4">
+                        Homework gets <span className="text-[#873fc6] dark:text-[#8a42cf]/50">done.</span>
                     </h2>
-                    <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
-                        Streak tracking, deadline reminders, and a satisfying dashboard that makes your students <em>want</em> to stay on top of their work.
+                    <p className="text-base md:text-lg text-[#6b29a5]/70 dark:text-[#8a42cf]/70 max-w-xl mx-auto leading-relaxed font-medium">
+                        Streaks, smart reminders, and a dashboard so satisfying — your students will actually <em>want</em> to stay ahead.
                     </p>
                 </motion.div>
 
                 {/* Before / After comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-3xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 md:gap-6 lg:gap-8 max-w-7xl 2xl:max-w-screen-2xl mx-auto items-center -mt-6 md:-mt-10">
 
                     {/* ── BEFORE ──────────────────────────────────────────── */}
                     <motion.div
@@ -65,45 +65,65 @@ export default function AccountabilitySection() {
                         transition={{ duration: 0.5 }}
                     >
                         <div className="mb-3 flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-red-500/10 flex items-center justify-center">
-                                <X className="w-3 h-3 text-red-500" />
+                            <div className="p-1.5 rounded-lg bg-[#6b29a5]/8 dark:bg-[#8a42cf]/10">
+                                <X className="w-4 h-4 text-[#6b29a5]/40 dark:text-[#8a42cf]/40" />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-red-500">Without TaskTornado</span>
+                            <span className="text-sm font-bold text-[#6b29a5] dark:text-[#8a42cf]">Without TaskTornado</span>
                         </div>
 
-                        <div className="bg-white dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700/50 rounded-[20px] p-5 md:p-6 shadow-lg shadow-gray-200/30 dark:shadow-black/20">
+                        <div className="bg-[#fffaf4] dark:bg-zinc-800/50 border border-[#6b29a5]/10 dark:border-zinc-700/50 rounded-[24px] p-6 md:p-8 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white">Missing assignments</p>
+                                <p className="text-sm font-bold text-[#6b29a5] dark:text-[#8a42cf]">Missing assignments</p>
                                 <span className="px-2 py-0.5 bg-red-50 dark:bg-red-950/20 text-[10px] font-bold text-red-500 rounded-full">
                                     5 missing
                                 </span>
                             </div>
 
-                            <div className="space-y-2.5">
+                            <div className="space-y-3">
                                 {BEFORE_ITEMS.map((item, i) => (
                                     <motion.div
                                         key={i}
-                                        initial={{ opacity: 0, x: -6 }}
+                                        initial={{ opacity: 0, x: -8 }}
                                         whileInView={{ opacity: 1, x: 0 }}
                                         viewport={{ once: true }}
-                                        transition={{ delay: 0.1 + i * 0.06 }}
-                                        className="flex items-center justify-between px-3 py-2 bg-red-50/50 dark:bg-red-950/10 rounded-[12px] border border-red-100/50 dark:border-red-900/20"
+                                        transition={{ delay: 0.15 + i * 0.06 }}
+                                        className="flex items-center justify-between"
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 rounded-full border-2 border-red-300 dark:border-red-700 shrink-0" />
-                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{item.student}</span>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-4 h-4 rounded-full bg-[#6b29a5]/10 dark:bg-[#8a42cf]/12 flex items-center justify-center shrink-0">
+                                                <X className="w-2.5 h-2.5 text-[#6b29a5]/35 dark:text-[#8a42cf]/35" strokeWidth={3} />
+                                            </div>
+                                            <span className="text-sm text-[#6b29a5]/80 dark:text-[#8a42cf]/80 font-medium">{item.student}</span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <Clock className="w-2.5 h-2.5 text-red-400" />
-                                            <span className="text-[10px] font-medium text-red-500">{item.days}</span>
+                                            <Clock className="w-2.5 h-2.5 text-[#6b29a5]/30 dark:text-[#8a42cf]/30" />
+                                            <span className="text-[10px] font-medium text-[#6b29a5]/40 dark:text-[#8a42cf]/40">{item.days}</span>
                                         </div>
                                     </motion.div>
                                 ))}
                             </div>
 
-                            <p className="text-[10px] text-gray-400 dark:text-zinc-500 text-center mt-4 italic">
+                            <p className="text-[10px] text-[#6b29a5]/50 dark:text-[#8a42cf]/40 text-center mt-4 italic font-medium">
                                 You spend 20 minutes chasing students after class
                             </p>
+                        </div>
+                    </motion.div>
+
+                    {/* ── VS IMAGE ────────────────────────────────────────── */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.15 }}
+                        className="hidden md:flex items-center justify-center relative z-10"
+                    >
+                        <div className="relative w-80 h-80 lg:w-[600px] lg:h-[600px] pointer-events-none">
+                            <Image
+                                src="/teachers-comparison-v2.png"
+                                alt="Comparison"
+                                fill
+                                className="object-contain"
+                            />
                         </div>
                     </motion.div>
 
@@ -115,13 +135,13 @@ export default function AccountabilitySection() {
                         transition={{ duration: 0.5, delay: 0.1 }}
                     >
                         <div className="mb-3 flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                <Check className="w-3 h-3 text-emerald-500" strokeWidth={3} />
+                            <div className="p-1.5 rounded-lg bg-[#873fc6]/10 dark:bg-[#873fc6]/15">
+                                <Check className="w-4 h-4 text-[#873fc6]" strokeWidth={3} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">With TaskTornado</span>
+                            <span className="text-sm font-bold text-[#6b29a5] dark:text-[#8a42cf]">With TaskTornado</span>
                         </div>
 
-                        <div className="bg-white dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700/50 rounded-[20px] p-5 md:p-6 shadow-lg shadow-gray-200/30 dark:shadow-black/20">
+                        <div className="bg-[#fffaf4] dark:bg-zinc-800/50 border border-[#6b29a5]/10 dark:border-zinc-700/50 rounded-[24px] p-6 md:p-8 shadow-sm">
                             {/* Stats bar */}
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
@@ -141,27 +161,25 @@ export default function AccountabilitySection() {
                             </div>
 
                             {/* Student list */}
-                            <div className="space-y-2.5">
+                            <div className="space-y-3">
                                 {AFTER_STUDENTS.map((student, i) => (
                                     <motion.div
                                         key={i}
-                                        initial={{ opacity: 0, x: -6 }}
+                                        initial={{ opacity: 0, x: -8 }}
                                         whileInView={{ opacity: 1, x: 0 }}
                                         viewport={{ once: true }}
                                         transition={{ delay: 0.2 + i * 0.06 }}
-                                        className={`flex items-center justify-between px-3 py-2 rounded-[12px] border ${student.done
-                                                ? 'bg-gray-50 dark:bg-zinc-800/60 border-gray-100 dark:border-zinc-700/50'
-                                                : 'bg-amber-50/50 dark:bg-amber-950/10 border-amber-100/50 dark:border-amber-900/20'
-                                            }`}
+                                        className="flex items-center justify-between"
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${student.done
-                                                    ? 'bg-emerald-500 border-emerald-500'
-                                                    : 'border-amber-300 dark:border-amber-700'
-                                                }`}>
-                                                {student.done && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-                                            </div>
-                                            <span className={`text-xs font-medium ${student.done ? 'text-gray-700 dark:text-gray-300' : 'text-amber-700 dark:text-amber-300'
+                                        <div className="flex items-center gap-3">
+                                            {student.done ? (
+                                                <div className="w-4 h-4 rounded-full bg-[#873fc6] flex items-center justify-center shrink-0">
+                                                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                                                </div>
+                                            ) : (
+                                                <div className="w-4 h-4 rounded-full border-2 border-amber-300 dark:border-amber-700 shrink-0" />
+                                            )}
+                                            <span className={`text-sm font-medium ${student.done ? 'text-[#6b29a5]/80 dark:text-[#8a42cf]/80' : 'text-amber-700 dark:text-amber-300'
                                                 }`}>{student.name}</span>
                                         </div>
                                         {student.done ? (
@@ -179,7 +197,7 @@ export default function AccountabilitySection() {
                                 ))}
                             </div>
 
-                            <p className="text-[10px] text-gray-400 dark:text-zinc-500 text-center mt-4 italic">
+                            <p className="text-[10px] text-[#6b29a5]/50 dark:text-[#8a42cf]/40 text-center mt-4 italic font-medium">
                                 Students track themselves. You teach.
                             </p>
                         </div>
@@ -192,7 +210,7 @@ export default function AccountabilitySection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.3 }}
-                    className="max-w-md mx-auto mt-12 grid grid-cols-3 gap-4 text-center"
+                    className="max-w-2xl mx-auto -mt-8 md:-mt-16 grid grid-cols-3 gap-4 text-center relative z-20"
                 >
                     {[
                         { value: 'Streaks', label: 'Gamify consistency' },
@@ -200,8 +218,8 @@ export default function AccountabilitySection() {
                         { value: 'Automatic', label: 'No chasing students' },
                     ].map((stat, i) => (
                         <div key={i}>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-zinc-500 mt-0.5">{stat.label}</p>
+                            <p className="text-sm font-bold text-[#6b29a5] dark:text-[#8a42cf]">{stat.value}</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6b29a5]/50 dark:text-[#8a42cf]/50 mt-0.5">{stat.label}</p>
                         </div>
                     ))}
                 </motion.div>

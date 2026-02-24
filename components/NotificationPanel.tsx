@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext, Homework, Test } from '@/context/ClassContext';
 import { useAI } from '@/context/AIContext';
 import {
+    Bell,
     BookOpen,
     FileText,
     Clock,
@@ -290,11 +291,11 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         return () => { clearTimeout(timer); document.removeEventListener('mousedown', handler); };
     }, [isOpen, onClose]);
 
-    const iconContainerStyles: Record<NotificationType, string> = {
-        urgent: 'bg-red-100 dark:bg-red-500/15 text-red-500',
-        warning: 'bg-amber-100 dark:bg-amber-500/15 text-amber-500',
-        info: 'bg-blue-100 dark:bg-blue-500/15 text-blue-500',
-        success: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-500',
+    const typeStyles: Record<NotificationType, { bg: string; iconBg: string; accent: string }> = {
+        urgent: { bg: 'bg-red-500/10', iconBg: 'bg-red-500/20', accent: 'text-red-300' },
+        warning: { bg: 'bg-amber-500/10', iconBg: 'bg-amber-500/20', accent: 'text-amber-300' },
+        info: { bg: 'bg-sky-500/10', iconBg: 'bg-sky-500/20', accent: 'text-sky-300' },
+        success: { bg: 'bg-emerald-500/10', iconBg: 'bg-emerald-500/20', accent: 'text-emerald-300' },
     };
 
     return (
@@ -302,21 +303,22 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             {isOpen && (
                 <motion.div
                     ref={panelRef}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                    className="fixed bottom-[90px] left-1/2 -translate-x-1/2 z-[60] w-[380px] max-w-[calc(100vw-32px)]"
+                    className="fixed top-[72px] right-4 sm:right-6 z-[60] w-[380px] max-w-[calc(100vw-32px)]"
                 >
-                    <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl rounded-2xl border border-gray-200/60 dark:border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+                    <div className="bg-[#275085]/95 backdrop-blur-2xl rounded-[20px] border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] overflow-hidden">
                         {/* Header */}
                         <div className="flex items-center justify-between px-5 pt-4 pb-3">
                             <div className="flex items-center gap-2.5">
-                                <span className="text-[13px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <Bell className="w-4 h-4 text-white/60" />
+                                <span className="text-[13px] font-bold text-white uppercase tracking-wider">
                                     Notifications
                                 </span>
                                 {notifications.length > 0 && (
-                                    <span className="text-[10px] font-semibold bg-gray-200/80 dark:bg-zinc-700/80 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full tabular-nums">
+                                    <span className="text-[10px] font-bold bg-white/15 text-white/70 px-2 py-0.5 rounded-full tabular-nums">
                                         {notifications.length}
                                     </span>
                                 )}
@@ -325,14 +327,14 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                                 {notifications.length > 0 && (
                                     <button
                                         onClick={dismissAll}
-                                        className="text-[11px] font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2.5 py-1 rounded-lg hover:bg-gray-100/80 dark:hover:bg-white/[0.06] transition-all"
+                                        className="text-[11px] font-semibold text-white/40 hover:text-white/70 px-2.5 py-1 rounded-full hover:bg-white/10 transition-all"
                                     >
                                         Clear all
                                     </button>
                                 )}
                                 <button
                                     onClick={onClose}
-                                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-white/[0.06] transition-all active:scale-95"
+                                    className="p-1.5 rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-all active:scale-95"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -340,69 +342,72 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                         </div>
 
                         {/* Divider */}
-                        <div className="mx-5 h-px bg-gray-100 dark:bg-white/[0.06]" />
+                        <div className="mx-4 h-px bg-white/10" />
 
                         {/* Notification List */}
-                        <div className="max-h-[400px] overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700">
+                        <div className="max-h-[400px] overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-white/10">
                             {notifications.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 flex items-center justify-center mb-4 ring-1 ring-emerald-200/50 dark:ring-emerald-500/20">
-                                        <CheckCircle className="w-6 h-6 text-emerald-500" />
+                                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center mb-4 ring-1 ring-emerald-500/20">
+                                        <CheckCircle className="w-6 h-6 text-emerald-400" />
                                     </div>
-                                    <p className="text-[14px] font-semibold text-gray-700 dark:text-gray-200">
+                                    <p className="text-[14px] font-bold text-white">
                                         All caught up
                                     </p>
-                                    <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-1 max-w-[200px] leading-relaxed">
+                                    <p className="text-[12px] text-white/40 mt-1 max-w-[200px] leading-relaxed">
                                         No upcoming deadlines or reminders right now.
                                     </p>
                                 </div>
                             ) : (
-                                notifications.map((n, i) => (
-                                    <motion.div
-                                        key={n.id}
-                                        initial={{ opacity: 0, y: 6 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.03, type: 'spring', stiffness: 400, damping: 25 }}
-                                        className="relative group rounded-xl p-3 transition-all duration-150 hover:bg-gray-50/80 dark:hover:bg-white/[0.04]"
-                                    >
-                                        {/* Dismiss button */}
-                                        <button
-                                            onClick={() => dismissNotification(n.id)}
-                                            className="absolute top-3 right-3 p-1 rounded-lg text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.08] opacity-0 group-hover:opacity-100 transition-all active:scale-90"
+                                notifications.map((n, i) => {
+                                    const styles = typeStyles[n.type];
+                                    return (
+                                        <motion.div
+                                            key={n.id}
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: i * 0.03, type: 'spring', stiffness: 400, damping: 25 }}
+                                            className="relative group rounded-2xl p-3 transition-all duration-150 hover:bg-white/[0.06]"
                                         >
-                                            <X className="w-3.5 h-3.5" />
-                                        </button>
+                                            {/* Dismiss button */}
+                                            <button
+                                                onClick={() => dismissNotification(n.id)}
+                                                className="absolute top-3 right-3 p-1 rounded-full text-white/20 hover:text-white/50 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
 
-                                        <div className="flex items-start gap-3 pr-6">
-                                            <div className={cn(
-                                                'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5',
-                                                iconContainerStyles[n.type]
-                                            )}>
-                                                {n.icon}
+                                            <div className="flex items-start gap-3 pr-6">
+                                                <div className={cn(
+                                                    'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5',
+                                                    styles.iconBg
+                                                )}>
+                                                    {n.icon}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className={cn("text-[13px] font-bold leading-tight", styles.accent)}>
+                                                        {n.title}
+                                                    </p>
+                                                    <p className="text-[12px] text-white/60 mt-0.5 leading-relaxed">
+                                                        {n.message}
+                                                    </p>
+                                                    {n.action && (
+                                                        <button
+                                                            onClick={() => {
+                                                                n.action!.onClick();
+                                                                onClose();
+                                                            }}
+                                                            className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-full transition-colors active:scale-95"
+                                                        >
+                                                            <Sparkles className="w-3 h-3" />
+                                                            {n.action.label}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[13px] font-semibold text-gray-800 dark:text-gray-100 leading-tight">
-                                                    {n.title}
-                                                </p>
-                                                <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                                                    {n.message}
-                                                </p>
-                                                {n.action && (
-                                                    <button
-                                                        onClick={() => {
-                                                            n.action!.onClick();
-                                                            onClose();
-                                                        }}
-                                                        className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 px-2.5 py-1 rounded-lg transition-colors"
-                                                    >
-                                                        <Sparkles className="w-3 h-3" />
-                                                        {n.action.label}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))
+                                        </motion.div>
+                                    );
+                                })
                             )}
                         </div>
                     </div>

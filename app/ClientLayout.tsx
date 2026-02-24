@@ -13,14 +13,18 @@ import dynamic from 'next/dynamic';
 import { useToast } from '@/context/ToastContext';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
+import ReboundNavbar from '@/components/ReboundNavbar';
 import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
 
 // Register custom eye types before any Facehash renders
 patchFacehashFaces();
 
 
-// Dynamically import DockNav with no SSR to avoid hydration issues
+// Dynamically import navs with no SSR to avoid hydration issues
 const DockNav = dynamic(() => import('@/components/DockNav'), {
+  ssr: false,
+});
+const AppNavbar = dynamic(() => import('@/components/AppNavbar'), {
   ssr: false,
 });
 
@@ -91,8 +95,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const shouldShowNavbar = false; // Always hide the top navbar
 
   // Routes that should hide navbar (public routes)
-  const isLandingPage = pathname === '/';
-  const isAuthPage = false; // Show DockNav on login/signup pages
+  const isLandingPage = pathname === '/' || pathname === '/guardians' || pathname === '/teachers';
+  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/translate' || pathname === '/tutorials' || pathname === '/changelog' || pathname === '/blog';
   const isAIGuidelinesPage = pathname === '/ai-guidelines';
   const isLegalPage = pathname?.startsWith('/legal');
   const is404Page = !isLandingPage && !isAuthPage && !isLegalPage;
@@ -104,7 +108,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         {/* SearchBar - rendered globally so it can be opened from anywhere */}
         <SearchBar />
         <main
-          className={`flex-1 bg-transparent overflow-x-hidden ${user ? 'pb-24 md:pb-0' : (isLandingPage ? 'pt-0' : 'pt-20 sm:pt-24')}`}
+          className={`flex-1 bg-transparent overflow-x-hidden pt-0`}
           style={{
             marginRight: showSidebarMargin ? 420 : 0,
             transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -112,9 +116,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         >
           {children}
         </main>
-        {/* Always show DockNav on all pages */}
-        <RoleSwitcher />
-        <DockNav />
+        {/* Nav: AppNavbar for logged-in, ReboundNavbar for logged-out */}
+        {user ? <AppNavbar /> : <ReboundNavbar />}
         <OnboardingTour />
         {contextMenu && (
           <CustomContextMenu

@@ -36,11 +36,11 @@ export default function WellbeingSection() {
     const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
     const wipePercent = useTransform(scrollYProgress, [0, 1], [0, 100]);
     const backgroundImage = useTransform(wipePercent, (v) =>
-        `linear-gradient(to right, #df96c9 ${v}%, ${isDarkMode ? 'rgba(74,156,219,0.4)' : 'rgba(39,80,133,0.4)'} ${v}%)`
+        `linear-gradient(to right, #fb7185 ${v}%, ${isDarkMode ? 'rgba(251,113,133,0.3)' : 'rgba(251,113,133,0.2)'} ${v}%)`
     );
 
     return (
-        <section className="bg-[#FFF8FA] dark:bg-gray-950 py-24 md:py-32 overflow-hidden">
+        <section className="bg-rose-50 dark:bg-gray-950 py-16 md:py-24 overflow-hidden">
             <div className="max-w-6xl mx-auto px-5 md:px-8">
 
                 {/* ── Header ──────────────────────────────────────────────── */}
@@ -49,12 +49,12 @@ export default function WellbeingSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="text-center mb-16 md:mb-24"
+                    className="text-center mb-12 md:mb-16"
                 >
-                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#275085] dark:text-[#4a9cdb] bg-[#275085]/5 dark:bg-[#275085]/10 border border-[#275085]/10 dark:border-[#4a9cdb]/10 rounded-full mb-4">
+                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-rose-600 dark:text-rose-400 bg-rose-600/5 dark:bg-rose-400/5 border border-rose-600/10 dark:border-rose-400/10 rounded-full mb-4">
                         Meet Aurora
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-semibold text-[#275085] dark:text-[#4a9cdb] tracking-tight leading-[1.15] mb-4">
+                    <h2 className="text-3xl md:text-5xl font-semibold text-rose-500 dark:text-rose-400 tracking-tight leading-[1.15] mb-4">
                         Your AI study partner<br />
                         <motion.span
                             ref={squiggleRef}
@@ -70,7 +70,7 @@ export default function WellbeingSection() {
                             <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 10" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                 <motion.path
                                     d="M2 6 C 10 2, 18 2, 26 6 S 42 10, 50 6 S 66 2, 74 6 S 90 10, 98 6 S 114 2, 122 6 S 138 10, 146 6 S 162 2, 170 6 S 186 10, 194 6 S 210 2, 218 6 S 234 10, 242 6 S 258 2, 266 6 S 282 10, 298 6"
-                                    stroke="#df96c9"
+                                    stroke="#fb7185"
                                     strokeWidth="2"
                                     strokeLinecap="round"
                                     fill="none"
@@ -79,13 +79,13 @@ export default function WellbeingSection() {
                             </svg>
                         </motion.span>
                     </h2>
-                    <p className="text-base md:text-lg text-[#275085]/55 dark:text-[#4a9cdb]/55 font-medium max-w-lg mx-auto leading-relaxed">
+                    <p className="text-base md:text-lg text-rose-900/60 dark:text-rose-400/60 font-medium max-w-lg mx-auto leading-relaxed mt-2">
                         Aurora teaches, organizes, quizzes, and supports you — all from one conversation.
                     </p>
                 </motion.div>
 
                 {/* ── Two heroes: Image + Chat ────────────────────────────── */}
-                <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-28">
+                <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-12 md:mb-16">
 
                     {/* Left — Illustration (transparent bg, no card) */}
                     <motion.div
@@ -122,7 +122,7 @@ export default function WellbeingSection() {
                                     <motion.div
                                         animate={{ y: [-4, 4, -4] }}
                                         transition={{ repeat: Infinity, duration: 3 + i * 0.5, ease: 'easeInOut' }}
-                                        className="px-3 py-1.5 bg-[#F1F6D1] dark:bg-zinc-800 border border-[#275085]/8 dark:border-[#4a9cdb]/10 rounded-full text-[11px] font-medium text-[#275085]/60 dark:text-[#4a9cdb]/60 whitespace-nowrap shadow-sm"
+                                        className="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-rose-500/10 dark:border-rose-400/10 rounded-full text-[11px] font-medium text-rose-900/60 dark:text-rose-400/60 whitespace-nowrap shadow-sm"
                                     >
                                         {topic.label}
                                     </motion.div>
@@ -136,7 +136,7 @@ export default function WellbeingSection() {
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: 0.2 }}
-                            className="h-[520px] w-full"
+                            className="h-[400px] w-full"
                         >
                             <AuroraDemo />
                         </motion.div>
@@ -159,11 +159,11 @@ export default function WellbeingSection() {
                             transition={{ delay: 0.1 + i * 0.06 }}
                             className="text-center"
                         >
-                            <div className="w-10 h-10 rounded-2xl bg-[#ebf6b5] dark:bg-[#275085]/30 flex items-center justify-center mx-auto mb-3">
-                                <item.icon className="w-5 h-5 text-[#275085] dark:text-[#4a9cdb]" />
+                            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 dark:bg-rose-400/10 flex items-center justify-center mx-auto mb-3">
+                                <item.icon className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                             </div>
-                            <h3 className="text-sm font-bold text-[#275085] dark:text-[#4a9cdb] mb-1">{item.label}</h3>
-                            <p className="text-[11px] text-[#275085]/45 dark:text-[#4a9cdb]/45 leading-relaxed">{item.desc}</p>
+                            <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 mb-1">{item.label}</h3>
+                            <p className="text-[11px] text-rose-900/40 dark:text-rose-400/40 leading-relaxed">{item.desc}</p>
                         </motion.div>
                     ))}
                 </div>

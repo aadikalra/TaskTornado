@@ -192,19 +192,27 @@ export default function GradeCalculatorPage() {
     const stepIndex = ['weights', 'paste', 'results'].indexOf(step);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950">
-            <div className="px-4 pt-4 pb-16 sm:px-6 sm:pt-6 sm:pb-20 lg:px-8 lg:pt-8 lg:pb-24">
+        <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans relative">
+
+            {/* ── Ambient glows ─────────────────────── */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+            </div>
+
+            <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
 
                 {/* Header — matching Translate's minimal heading */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-10">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 sm:mb-10">
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">
-                            Grade Calculator
+                        <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-3">
+                            Calculate grades.
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                        <p className="text-sm sm:text-base text-sky-600 dark:text-sky-300 font-medium">
                             Paste your grades and get an instant weighted percentage
                         </p>
                     </motion.div>
@@ -213,20 +221,20 @@ export default function GradeCalculatorPage() {
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500"
+                        className="hidden sm:flex items-center gap-2"
                     >
                         {(['weights', 'paste', 'results'] as Step[]).map((s, i) => (
                             <React.Fragment key={s}>
-                                <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${step === s
-                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${step === s
+                                    ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400'
                                     : i < stepIndex
-                                        ? 'text-gray-400 dark:text-gray-500'
-                                        : 'text-gray-300 dark:text-gray-600'
+                                        ? 'text-sky-600/60 dark:text-sky-400/60'
+                                        : 'text-sky-600/30 dark:text-sky-400/30'
                                     }`}>
                                     <span>{i + 1}.</span>
                                     <span>{s === 'weights' ? 'Weights' : s === 'paste' ? 'Paste' : 'Results'}</span>
                                 </div>
-                                {i < 2 && <span className="text-gray-300 dark:text-gray-700">→</span>}
+                                {i < 2 && <span className="text-sky-600/30 dark:text-sky-400/30">→</span>}
                             </React.Fragment>
                         ))}
                     </motion.div>
@@ -247,10 +255,10 @@ export default function GradeCalculatorPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.05 }}
-                                className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden"
+                                className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden"
                             >
                                 <div className="px-5 pt-4 pb-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                    <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                         Category Weights
                                     </span>
                                 </div>
@@ -259,8 +267,8 @@ export default function GradeCalculatorPage() {
                                     {/* Slider */}
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-700 dark:text-gray-300">Practice</span>
-                                            <span className="text-sm font-medium tabular-nums text-gray-900 dark:text-white">{practiceWeight}%</span>
+                                            <span className="text-sm text-sky-800 dark:text-sky-200">Practice</span>
+                                            <span className="text-sm font-medium tabular-nums text-sky-800 dark:text-sky-200">{practiceWeight}%</span>
                                         </div>
 
                                         <input
@@ -270,18 +278,18 @@ export default function GradeCalculatorPage() {
                                             step={5}
                                             value={practiceWeight}
                                             onChange={(e) => setPracticeWeight(Number(e.target.value))}
-                                            className="w-full h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gray-900 [&::-webkit-slider-thumb]:dark:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer"
+                                            className="w-full h-1.5 bg-sky-100 dark:bg-sky-900/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-500 [&::-webkit-slider-thumb]:dark:bg-sky-400 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer"
                                         />
 
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-700 dark:text-gray-300">Assessments</span>
-                                            <span className="text-sm font-medium tabular-nums text-gray-900 dark:text-white">{assessmentWeight}%</span>
+                                            <span className="text-sm text-sky-800 dark:text-sky-200">Assessments</span>
+                                            <span className="text-sm font-medium tabular-nums text-sky-800 dark:text-sky-200">{assessmentWeight}%</span>
                                         </div>
 
                                         {/* Colored split bar */}
                                         <div className="flex rounded-full overflow-hidden h-1.5">
                                             <div
-                                                className="bg-blue-500 transition-all duration-300"
+                                                className="bg-sky-500 transition-all duration-300"
                                                 style={{ width: `${practiceWeight}%` }}
                                             />
                                             <div
@@ -289,8 +297,8 @@ export default function GradeCalculatorPage() {
                                                 style={{ width: `${assessmentWeight}%` }}
                                             />
                                         </div>
-                                        <div className="flex justify-between text-[10px] font-medium">
-                                            <span className="text-blue-500">Practice ({practiceWeight}%)</span>
+                                        <div className="flex justify-between text-[10px] font-bold">
+                                            <span className="text-sky-500">Practice ({practiceWeight}%)</span>
                                             <span className="text-amber-500">Assessments ({assessmentWeight}%)</span>
                                         </div>
                                     </div>
@@ -301,9 +309,9 @@ export default function GradeCalculatorPage() {
                                             <button
                                                 key={preset.label}
                                                 onClick={() => setPracticeWeight(preset.practice)}
-                                                className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all ${practiceWeight === preset.practice
-                                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.04]'
+                                                className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-all ${practiceWeight === preset.practice
+                                                    ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400'
+                                                    : 'text-sky-600/50 dark:text-sky-400/50 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
                                                     }`}
                                             >
                                                 {preset.label}
@@ -313,10 +321,10 @@ export default function GradeCalculatorPage() {
                                 </div>
 
                                 {/* Bottom action bar — like Translate's button bar */}
-                                <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800/50 flex items-center justify-end">
+                                <div className="px-5 py-4 border-t border-sky-100 dark:border-sky-900/20 flex items-center justify-end">
                                     <button
                                         onClick={() => setStep('paste')}
-                                        className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all active:scale-95"
+                                        className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all active:scale-95"
                                     >
                                         Continue
                                         <ArrowRight className="w-3.5 h-3.5" />
@@ -340,7 +348,7 @@ export default function GradeCalculatorPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-1 p-0.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg w-fit"
+                                className="flex items-center gap-1 p-0.5 bg-[#ebf6b5]/40 dark:bg-sky-500/10 rounded-full w-fit"
                             >
                                 {(['paste', 'manual'] as const).map(mode => {
                                     const isDisabled = mode === 'paste' && !user;
@@ -349,11 +357,11 @@ export default function GradeCalculatorPage() {
                                             key={mode}
                                             disabled={isDisabled}
                                             onClick={() => !isDisabled && setEntryMode(mode)}
-                                            className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-all ${entryMode === mode
-                                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                            className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-all ${entryMode === mode
+                                                ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 shadow-sm'
                                                 : isDisabled
-                                                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                                    ? 'text-sky-600/20 dark:text-sky-400/20 cursor-not-allowed'
+                                                    : 'text-sky-600/50 dark:text-sky-400/50 hover:text-sky-600 dark:hover:text-sky-400'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-1.5">
@@ -371,13 +379,13 @@ export default function GradeCalculatorPage() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.05 }}
-                                    className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden"
+                                    className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden"
                                 >
                                     <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                        <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                             Grade Data
                                         </span>
-                                        <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">
+                                        <span className="text-[10px] font-medium text-sky-700/60 dark:text-sky-400/60">
                                             {rawText.length > 0 ? `${rawText.length.toLocaleString()} chars` : ''}
                                         </span>
                                     </div>
@@ -387,11 +395,11 @@ export default function GradeCalculatorPage() {
                                             value={rawText}
                                             onChange={(e) => setRawText(e.target.value)}
                                             placeholder={"Paste your grades table here...\n\nAssignment Name     Points     Grade\nHW 1.1              18/20      90%\nUnit 1 Test         45/50      90%\n..."}
-                                            className="w-full h-56 sm:h-64 resize-none bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-[15px] leading-relaxed outline-none scrollbar-hide px-5 pb-14 font-mono"
+                                            className="w-full h-56 sm:h-64 resize-none bg-transparent text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 text-[15px] leading-relaxed outline-none scrollbar-hide px-6 pb-14 font-mono"
                                         />
                                         <button
                                             onClick={pasteFromClipboard}
-                                            className="absolute top-2 right-3 flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.04] rounded-lg transition-colors"
+                                            className="absolute top-2 right-3 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-sky-600/60 dark:text-sky-400/60 hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 rounded-full transition-colors"
                                         >
                                             <Clipboard className="w-3 h-3" />
                                             Paste
@@ -406,17 +414,17 @@ export default function GradeCalculatorPage() {
                                     )}
 
                                     {/* Bottom action bar */}
-                                    <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800/50 flex items-center justify-between">
+                                    <div className="px-5 py-4 border-t border-sky-100 dark:border-sky-900/20 flex items-center justify-between">
                                         <button
                                             onClick={() => setStep('weights')}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.04]"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 transition-colors rounded-full hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10"
                                         >
                                             Back
                                         </button>
                                         {loading ? (
                                             <button
                                                 disabled
-                                                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-lg opacity-70"
+                                                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl opacity-70"
                                             >
                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                 Parsing...
@@ -425,7 +433,7 @@ export default function GradeCalculatorPage() {
                                             <button
                                                 onClick={parseGrades}
                                                 disabled={!rawText.trim()}
-                                                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                                                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
                                             >
                                                 Calculate
                                             </button>
@@ -443,9 +451,9 @@ export default function GradeCalculatorPage() {
                                     className="space-y-4"
                                 >
                                     {/* Add assignment form */}
-                                    <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+                                    <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
                                         <div className="px-5 pt-4 pb-2">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                            <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                                 Add Assignment
                                             </span>
                                         </div>
@@ -457,19 +465,19 @@ export default function GradeCalculatorPage() {
                                                 value={manualName}
                                                 onChange={(e) => setManualName(e.target.value)}
                                                 placeholder="Assignment name"
-                                                className="w-full px-3 py-2 text-sm bg-transparent border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-gray-900/10 dark:focus:ring-white/10"
+                                                className="w-full px-3 py-2 text-sm bg-white/60 dark:bg-zinc-700/50 border border-sky-100 dark:border-sky-900/30 rounded-xl text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 outline-none focus:ring-1 focus:ring-sky-500/20"
                                             />
 
                                             <div className="flex items-center gap-3">
                                                 {/* Category */}
-                                                <div className="flex items-center gap-1 p-0.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
+                                                <div className="flex items-center gap-1 p-0.5 bg-[#ebf6b5]/40 dark:bg-sky-500/10 rounded-full">
                                                     {(['practice', 'assessment'] as const).map(cat => (
                                                         <button
                                                             key={cat}
                                                             onClick={() => setManualCategory(cat)}
-                                                            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all capitalize ${manualCategory === cat
-                                                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                                                : 'text-gray-500 dark:text-gray-400'
+                                                            className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition-all capitalize ${manualCategory === cat
+                                                                ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 shadow-sm'
+                                                                : 'text-sky-600/50 dark:text-sky-400/50'
                                                                 }`}
                                                         >
                                                             {cat}
@@ -484,23 +492,23 @@ export default function GradeCalculatorPage() {
                                                         value={manualEarned}
                                                         onChange={(e) => setManualEarned(e.target.value)}
                                                         placeholder="Earned"
-                                                        className="w-full px-3 py-2 text-sm bg-transparent border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-gray-900/10 dark:focus:ring-white/10 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        className="w-full px-3 py-2 text-sm bg-white/60 dark:bg-zinc-700/50 border border-sky-100 dark:border-sky-900/30 rounded-xl text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 outline-none focus:ring-1 focus:ring-sky-500/20 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                     />
-                                                    <span className="text-xs text-gray-300 dark:text-gray-600 shrink-0">/</span>
+                                                    <span className="text-xs text-sky-600/40 dark:text-sky-400/40 shrink-0">/</span>
                                                     <input
                                                         type="number"
                                                         value={manualPossible}
                                                         onChange={(e) => setManualPossible(e.target.value)}
                                                         placeholder="Possible"
-                                                        className="w-full px-3 py-2 text-sm bg-transparent border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-gray-900/10 dark:focus:ring-white/10 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        className="w-full px-3 py-2 text-sm bg-white/60 dark:bg-zinc-700/50 border border-sky-100 dark:border-sky-900/30 rounded-xl text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 outline-none focus:ring-1 focus:ring-sky-500/20 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                     />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800/50 flex items-center justify-between">
+                                        <div className="px-5 py-3 border-t border-sky-100 dark:border-sky-900/20 flex items-center justify-between">
                                             {!user && (
-                                                <div className="flex items-center gap-1.5 px-2 text-[10px] text-gray-400 dark:text-gray-500 italic">
+                                                <div className="flex items-center gap-1.5 px-2 text-[10px] text-sky-600/50 dark:text-sky-400/50 italic">
                                                     <Lock className="w-2.5 h-2.5" />
                                                     AI Paste requires an account
                                                 </div>
@@ -508,7 +516,7 @@ export default function GradeCalculatorPage() {
                                             <button
                                                 onClick={addManualAssignment}
                                                 disabled={!manualName.trim() || !manualEarned || !manualPossible}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 ml-auto"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 ml-auto"
                                             >
                                                 <Plus className="w-3 h-3" />
                                                 Add
@@ -518,28 +526,28 @@ export default function GradeCalculatorPage() {
 
                                     {/* List of added assignments */}
                                     {assignments.length > 0 && (
-                                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+                                        <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
                                             <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-sky-500 dark:text-sky-400">
                                                     Assignments ({assignments.length})
                                                 </span>
                                             </div>
                                             <div className="px-4 pb-4 space-y-1">
                                                 {assignments.map((a, idx) => (
-                                                    <div key={idx} className="flex items-center gap-2 py-1.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.02] group transition-colors">
-                                                        <span className="text-[10px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500 w-12 shrink-0">
+                                                    <div key={idx} className="flex items-center gap-2 py-1.5 px-3 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-500/5 group transition-colors">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wide text-sky-500/70 dark:text-sky-400/70 w-12 shrink-0">
                                                             {a.category === 'practice' ? 'Prac' : 'Test'}
                                                         </span>
-                                                        <span className="flex-1 text-xs text-gray-700 dark:text-gray-300 truncate">
+                                                        <span className="flex-1 text-xs text-sky-800 dark:text-sky-200 truncate">
                                                             {a.name}
                                                         </span>
-                                                        <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400 shrink-0">
+                                                        <span className="text-xs font-medium tabular-nums text-sky-700/70 dark:text-sky-400/70 shrink-0">
                                                             {a.pointsEarned}/{a.pointsPossible}
                                                         </span>
                                                         <button
                                                             onClick={() => removeAssignment(idx)}
                                                             title="Remove"
-                                                            className="p-1 rounded text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                                            className="p-1 rounded text-sky-400/40 hover:text-red-500 dark:text-sky-600/40 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                         </button>
@@ -553,14 +561,14 @@ export default function GradeCalculatorPage() {
                                     <div className="flex items-center justify-between">
                                         <button
                                             onClick={() => setStep('weights')}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.04]"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 transition-colors rounded-full hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10"
                                         >
                                             Back
                                         </button>
                                         <button
                                             onClick={goToResultsManual}
                                             disabled={assignments.length === 0}
-                                            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                                            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
                                         >
                                             Calculate
                                         </button>
@@ -585,10 +593,10 @@ export default function GradeCalculatorPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.05 }}
-                                className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden"
+                                className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden"
                             >
                                 <div className="px-5 pt-4 pb-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                    <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                         Your Grade
                                     </span>
                                 </div>
@@ -608,11 +616,11 @@ export default function GradeCalculatorPage() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.2 }}
-                                            className="text-3xl font-bold tabular-nums text-gray-900 dark:text-white"
+                                            className="text-3xl font-bold tabular-nums text-sky-900 dark:text-sky-100"
                                         >
                                             {results.finalGrade.toFixed(1)}%
                                         </motion.p>
-                                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                        <p className="text-xs text-sky-700/60 dark:text-sky-400/60 mt-0.5">
                                             {results.totalAssignments} assignments · {practiceWeight}/{assessmentWeight} weighting
                                         </p>
                                     </div>
@@ -620,9 +628,9 @@ export default function GradeCalculatorPage() {
                             </motion.div>
 
                             {/* Edit hint */}
-                            <div className="flex items-start gap-2.5 px-4 py-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-xl">
-                                <AlertCircle className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                                <p className="text-[11px] text-blue-600 dark:text-blue-400 leading-relaxed">
+                            <div className="flex items-start gap-2.5 px-5 py-3 bg-[#ebf6b5]/30 dark:bg-sky-500/10 rounded-[16px]">
+                                <AlertCircle className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0 mt-0.5" />
+                                <p className="text-[11px] text-sky-700 dark:text-sky-300 leading-relaxed">
                                     Expand a category to edit names, scores, or swap categories. Changes recalculate instantly.
                                 </p>
                             </div>
@@ -630,32 +638,32 @@ export default function GradeCalculatorPage() {
                             {/* Category panels — styled like Translate's source/output panels */}
                             <div className="grid md:grid-cols-2 gap-4">
                                 {/* Practice */}
-                                <div className="border border-blue-200 dark:border-blue-900/40 rounded-xl overflow-hidden">
+                                <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
                                     <button
                                         onClick={() => setExpandedCategory(expandedCategory === 'practice' ? null : 'practice')}
-                                        className="w-full px-5 pt-4 pb-3 flex items-center justify-between hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors"
+                                        className="w-full px-5 pt-4 pb-3 flex items-center justify-between hover:bg-sky-50 dark:hover:bg-sky-500/5 transition-colors"
                                     >
                                         <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500 dark:text-blue-400">
+                                            <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                                 Practice
                                             </span>
-                                            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                            <p className="text-[11px] text-sky-700/60 dark:text-sky-400/60 mt-0.5">
                                                 {results.practice.count} items · {practiceWeight}% weight
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <div className="text-right">
-                                                <p className="text-sm font-medium tabular-nums text-gray-900 dark:text-white">
+                                                <p className="text-sm font-medium tabular-nums text-sky-800 dark:text-sky-200">
                                                     {results.practice.possible > 0 ? `${results.practice.percent.toFixed(1)}%` : '—'}
                                                 </p>
-                                                <p className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
+                                                <p className="text-[10px] text-sky-700/60 dark:text-sky-400/60 tabular-nums">
                                                     {results.practice.earned}/{results.practice.possible} pts
                                                 </p>
                                             </div>
                                             {expandedCategory === 'practice' ? (
-                                                <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+                                                <ChevronUp className="w-3.5 h-3.5 text-sky-500" />
                                             ) : (
-                                                <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                                                <ChevronDown className="w-3.5 h-3.5 text-sky-500/50" />
                                             )}
                                         </div>
                                     </button>
@@ -669,34 +677,34 @@ export default function GradeCalculatorPage() {
                                                 transition={{ duration: 0.2 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="px-4 pb-4 space-y-1 border-t border-gray-100 dark:border-gray-800/50 pt-3">
+                                                <div className="px-4 pb-4 space-y-1 border-t border-sky-100 dark:border-sky-900/20 pt-3">
                                                     {assignments.map((a, idx) => a.category !== 'practice' ? null : (
-                                                        <div key={idx} className="flex items-center gap-2 py-1.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.02] group transition-colors">
+                                                        <div key={idx} className="flex items-center gap-2 py-1.5 px-3 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-500/5 group transition-colors">
                                                             <input
                                                                 type="text"
                                                                 value={a.name}
                                                                 onChange={(e) => updateAssignment(idx, 'name', e.target.value)}
-                                                                className="flex-1 text-xs text-gray-700 dark:text-gray-300 bg-transparent min-w-0 truncate focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-800 rounded px-1 -mx-1"
+                                                                className="flex-1 text-xs text-sky-800 dark:text-sky-200 bg-transparent min-w-0 truncate focus:outline-none focus:bg-sky-50 dark:focus:bg-sky-900/30 rounded px-1 -mx-1"
                                                             />
                                                             <div className="flex items-center gap-0.5 shrink-0">
                                                                 <input
                                                                     type="number"
                                                                     value={a.pointsEarned}
                                                                     onChange={(e) => updateAssignment(idx, 'pointsEarned', e.target.value)}
-                                                                    className="w-10 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400 bg-transparent text-right focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-800 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    className="w-10 text-xs font-medium tabular-nums text-sky-700/70 dark:text-sky-400/70 bg-transparent text-right focus:outline-none focus:bg-sky-50 dark:focus:bg-sky-900/30 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 />
-                                                                <span className="text-xs text-gray-300 dark:text-gray-600">/</span>
+                                                                <span className="text-xs text-sky-600/40 dark:text-sky-400/40">/</span>
                                                                 <input
                                                                     type="number"
                                                                     value={a.pointsPossible}
                                                                     onChange={(e) => updateAssignment(idx, 'pointsPossible', e.target.value)}
-                                                                    className="w-10 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400 bg-transparent focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-800 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    className="w-10 text-xs font-medium tabular-nums text-sky-700/70 dark:text-sky-400/70 bg-transparent focus:outline-none focus:bg-sky-50 dark:focus:bg-sky-900/30 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 />
                                                             </div>
-                                                            <button onClick={() => toggleCategory(idx)} title="Move to Assessments" className="p-1 rounded text-gray-300 hover:text-blue-500 dark:text-gray-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <button onClick={() => toggleCategory(idx)} title="Move to Assessments" className="p-1 rounded text-sky-400/40 hover:text-sky-500 dark:text-sky-600/40 dark:hover:text-sky-400 opacity-0 group-hover:opacity-100 transition-all">
                                                                 <ArrowLeftRight className="w-3 h-3" />
                                                             </button>
-                                                            <button onClick={() => removeAssignment(idx)} title="Remove" className="p-1 rounded text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <button onClick={() => removeAssignment(idx)} title="Remove" className="p-1 rounded text-sky-400/40 hover:text-red-500 dark:text-sky-600/40 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                                                                 <Trash2 className="w-3 h-3" />
                                                             </button>
                                                         </div>
@@ -708,32 +716,32 @@ export default function GradeCalculatorPage() {
                                 </div>
 
                                 {/* Assessments */}
-                                <div className="border border-amber-200 dark:border-amber-900/40 rounded-xl overflow-hidden bg-amber-50/30 dark:bg-amber-950/10">
+                                <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
                                     <button
                                         onClick={() => setExpandedCategory(expandedCategory === 'assessment' ? null : 'assessment')}
-                                        className="w-full px-5 pt-4 pb-3 flex items-center justify-between hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-colors"
+                                        className="w-full px-5 pt-4 pb-3 flex items-center justify-between hover:bg-sky-50 dark:hover:bg-sky-500/5 transition-colors"
                                     >
                                         <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 dark:text-amber-400">
+                                            <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                                 Assessments
                                             </span>
-                                            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                            <p className="text-[11px] text-sky-700/60 dark:text-sky-400/60 mt-0.5">
                                                 {results.assessment.count} items · {assessmentWeight}% weight
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <div className="text-right">
-                                                <p className="text-sm font-medium tabular-nums text-gray-900 dark:text-white">
+                                                <p className="text-sm font-medium tabular-nums text-sky-800 dark:text-sky-200">
                                                     {results.assessment.possible > 0 ? `${results.assessment.percent.toFixed(1)}%` : '—'}
                                                 </p>
-                                                <p className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
+                                                <p className="text-[10px] text-sky-700/60 dark:text-sky-400/60 tabular-nums">
                                                     {results.assessment.earned}/{results.assessment.possible} pts
                                                 </p>
                                             </div>
                                             {expandedCategory === 'assessment' ? (
-                                                <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+                                                <ChevronUp className="w-3.5 h-3.5 text-sky-500" />
                                             ) : (
-                                                <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                                                <ChevronDown className="w-3.5 h-3.5 text-sky-500/50" />
                                             )}
                                         </div>
                                     </button>
@@ -747,34 +755,34 @@ export default function GradeCalculatorPage() {
                                                 transition={{ duration: 0.2 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="px-4 pb-4 space-y-1 border-t border-gray-100 dark:border-gray-800/50 pt-3">
+                                                <div className="px-4 pb-4 space-y-1 border-t border-sky-100 dark:border-sky-900/20 pt-3">
                                                     {assignments.map((a, idx) => a.category !== 'assessment' ? null : (
-                                                        <div key={idx} className="flex items-center gap-2 py-1.5 px-3 rounded-lg hover:bg-gray-100/50 dark:hover:bg-white/[0.03] group transition-colors">
+                                                        <div key={idx} className="flex items-center gap-2 py-1.5 px-3 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-500/5 group transition-colors">
                                                             <input
                                                                 type="text"
                                                                 value={a.name}
                                                                 onChange={(e) => updateAssignment(idx, 'name', e.target.value)}
-                                                                className="flex-1 text-xs text-gray-700 dark:text-gray-300 bg-transparent min-w-0 truncate focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-800 rounded px-1 -mx-1"
+                                                                className="flex-1 text-xs text-sky-800 dark:text-sky-200 bg-transparent min-w-0 truncate focus:outline-none focus:bg-sky-50 dark:focus:bg-sky-900/30 rounded px-1 -mx-1"
                                                             />
                                                             <div className="flex items-center gap-0.5 shrink-0">
                                                                 <input
                                                                     type="number"
                                                                     value={a.pointsEarned}
                                                                     onChange={(e) => updateAssignment(idx, 'pointsEarned', e.target.value)}
-                                                                    className="w-10 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400 bg-transparent text-right focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-800 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    className="w-10 text-xs font-medium tabular-nums text-sky-700/70 dark:text-sky-400/70 bg-transparent text-right focus:outline-none focus:bg-sky-50 dark:focus:bg-sky-900/30 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 />
-                                                                <span className="text-xs text-gray-300 dark:text-gray-600">/</span>
+                                                                <span className="text-xs text-sky-600/40 dark:text-sky-400/40">/</span>
                                                                 <input
                                                                     type="number"
                                                                     value={a.pointsPossible}
                                                                     onChange={(e) => updateAssignment(idx, 'pointsPossible', e.target.value)}
-                                                                    className="w-10 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400 bg-transparent focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-800 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    className="w-10 text-xs font-medium tabular-nums text-sky-700/70 dark:text-sky-400/70 bg-transparent focus:outline-none focus:bg-sky-50 dark:focus:bg-sky-900/30 rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 />
                                                             </div>
-                                                            <button onClick={() => toggleCategory(idx)} title="Move to Practice" className="p-1 rounded text-gray-300 hover:text-amber-500 dark:text-gray-600 dark:hover:text-amber-400 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <button onClick={() => toggleCategory(idx)} title="Move to Practice" className="p-1 rounded text-sky-400/40 hover:text-sky-500 dark:text-sky-600/40 dark:hover:text-sky-400 opacity-0 group-hover:opacity-100 transition-all">
                                                                 <ArrowLeftRight className="w-3 h-3" />
                                                             </button>
-                                                            <button onClick={() => removeAssignment(idx)} title="Remove" className="p-1 rounded text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <button onClick={() => removeAssignment(idx)} title="Remove" className="p-1 rounded text-sky-400/40 hover:text-red-500 dark:text-sky-600/40 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                                                                 <Trash2 className="w-3 h-3" />
                                                             </button>
                                                         </div>
@@ -787,14 +795,14 @@ export default function GradeCalculatorPage() {
                             </div>
 
                             {/* Weighted Breakdown — context panel like Translate's explanation */}
-                            <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+                            <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
                                 <div className="px-5 pt-4 pb-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                    <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                         Weighted Breakdown
                                     </span>
                                 </div>
                                 <div className="px-5 pb-5 space-y-2 text-xs">
-                                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                                    <div className="flex justify-between text-sky-800 dark:text-sky-200">
                                         <span>Practice ({practiceWeight}% weight)</span>
                                         <span className="font-medium tabular-nums">
                                             {results.practice.possible > 0
@@ -802,7 +810,7 @@ export default function GradeCalculatorPage() {
                                                 : 'No assignments'}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                                    <div className="flex justify-between text-sky-800 dark:text-sky-200">
                                         <span>Assessments ({assessmentWeight}% weight)</span>
                                         <span className="font-medium tabular-nums">
                                             {results.assessment.possible > 0
@@ -810,7 +818,7 @@ export default function GradeCalculatorPage() {
                                                 : 'No assignments'}
                                         </span>
                                     </div>
-                                    <div className="border-t border-gray-100 dark:border-gray-800 pt-2 flex justify-between font-semibold text-gray-900 dark:text-white">
+                                    <div className="border-t border-sky-100 dark:border-sky-900/20 pt-2 flex justify-between font-semibold text-sky-900 dark:text-sky-100">
                                         <span>Final Grade</span>
                                         <span className="tabular-nums">{results.finalGrade.toFixed(1)}%</span>
                                     </div>
@@ -820,7 +828,7 @@ export default function GradeCalculatorPage() {
                             {/* Reset — minimal, like Translate's bottom action */}
                             <button
                                 onClick={reset}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.04]"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 transition-colors rounded-full hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10"
                             >
                                 <RotateCcw className="w-3 h-3" />
                                 Start over
@@ -834,10 +842,10 @@ export default function GradeCalculatorPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+                    className="mt-20 pt-8 border-t border-sky-100 dark:border-sky-900/20"
                 >
                     <div className="flex items-center justify-between">
-                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-400/60 font-medium">
                             Built for students • Public Beta {getFullVersionString()}
                         </p>
                     </div>

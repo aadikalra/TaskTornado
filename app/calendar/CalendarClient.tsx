@@ -10,10 +10,10 @@ import {
   isToday as isDateToday,
   formatDistanceToNow,
 } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical, School, Sun, Flag, Snowflake, FlagTriangleRight, Bird, CalendarDays, Clock, AlertTriangle, AlertCircle, Menu, Home, GraduationCap, BookOpen } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical, School, Sun, Flag, Snowflake, FlagTriangleRight, Bird, CalendarDays, Clock, AlertTriangle, AlertCircle, Menu, Home, GraduationCap, BookOpen, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext, type Homework, type Test, type Class } from '@/context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
@@ -27,11 +27,13 @@ import { Button } from '@/components/ui/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
+
 // Touch device detection
 const isTouchDevice = () => {
   if (typeof window === 'undefined') return false;
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 };
+
 type DragState = {
   isDragging: boolean;
   itemId: string | null;
@@ -39,6 +41,7 @@ type DragState = {
   sourceDate: Date | null;
   currentHoverDate: Date | null;
 };
+
 // Custom hook for drag and drop
 function useDragAndDrop(
   updateHomeworkDueDate: (homeworkId: string, newDueDate: Date) => void,
@@ -53,131 +56,59 @@ function useDragAndDrop(
   });
 
   const handleDragStart = useCallback((e: React.DragEvent | React.TouchEvent, itemId: string, itemType: 'homework' | 'test', sourceDate: Date) => {
-    // For mouse drag events
     if ('dataTransfer' in e) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', itemId);
     }
-
-    setDragState({
-      isDragging: true,
-      itemId,
-      itemType,
-      sourceDate,
-      currentHoverDate: null
-    });
+    setDragState({ isDragging: true, itemId, itemType, sourceDate, currentHoverDate: null });
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, date: Date) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-
-    setDragState(prev => ({
-      ...prev,
-      currentHoverDate: date
-    }));
+    setDragState(prev => ({ ...prev, currentHoverDate: date }));
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent, targetDate: Date) => {
     e.preventDefault();
-
-    console.log('DROP EVENT:', {
-      targetDate: targetDate.toISOString(),
-      targetDateDay: targetDate.getDate(),
-      targetDateLocal: targetDate.toLocaleDateString(),
-      dragState: dragState
-    });
-
     if (dragState.itemId && dragState.itemType) {
-      // Normalize the target date to start of day
       const normalizedDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-
-      console.log('📅 NORMALIZED DATE:', {
-        normalizedDate: normalizedDate.toISOString(),
-        normalizedDay: normalizedDate.getDate(),
-        itemType: dragState.itemType
-      });
-
-      // Both homework and tests are 1 day behind - add 1 day consistently
       normalizedDate.setDate(normalizedDate.getDate());
-
-      console.log('📅 FINAL DATE (after +1):', {
-        finalDate: normalizedDate.toISOString(),
-        finalDay: normalizedDate.getDate(),
-        itemType: dragState.itemType
-      });
-
       if (dragState.itemType === 'homework') {
-        console.log('📚 HOMEWORK: using date +1:', normalizedDate.toISOString());
         updateHomeworkDueDate(dragState.itemId, normalizedDate);
       } else if (dragState.itemType === 'test') {
-        console.log('📝 TEST: using date +1:', normalizedDate.toISOString());
         updateTestDueDate(dragState.itemId, normalizedDate);
       }
     }
-
-    setDragState({
-      isDragging: false,
-      itemId: null,
-      itemType: null,
-      sourceDate: null,
-      currentHoverDate: null
-    });
+    setDragState({ isDragging: false, itemId: null, itemType: null, sourceDate: null, currentHoverDate: null });
   }, [dragState.itemId, dragState.itemType, updateHomeworkDueDate, updateTestDueDate]);
 
   const handleDragEnd = useCallback(() => {
-    setDragState({
-      isDragging: false,
-      itemId: null,
-      itemType: null,
-      sourceDate: null,
-      currentHoverDate: null
-    });
+    setDragState({ isDragging: false, itemId: null, itemType: null, sourceDate: null, currentHoverDate: null });
   }, []);
 
-  return {
-    dragState,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    handleDragEnd
-  };
+  return { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd };
 }
+
 // Mobile swipe handling
 const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
-  const onTouchStart = (e: TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const onTouchMove = (e: TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
+  const onTouchStart = (e: TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchMove = (e: TouchEvent) => { touchEndX.current = e.touches[0].clientX; };
   const onTouchEnd = () => {
     if (touchStartX.current === null || touchEndX.current === null) return;
-
     const diff = touchStartX.current - touchEndX.current;
-    const swipeThreshold = 50; // Minimum swipe distance
-
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0) {
-        onSwipeLeft();
-      } else {
-        onSwipeRight();
-      }
-    }
-
+    if (Math.abs(diff) > 50) { diff > 0 ? onSwipeLeft() : onSwipeRight(); }
     touchStartX.current = null;
     touchEndX.current = null;
   };
   useEffect(() => {
     const element = document.getElementById('calendar-grid');
     if (!element) return;
-
     element.addEventListener('touchstart', onTouchStart, { passive: true });
     element.addEventListener('touchmove', onTouchMove, { passive: true });
     element.addEventListener('touchend', onTouchEnd, { passive: true });
-
     return () => {
       element.removeEventListener('touchstart', onTouchStart);
       element.removeEventListener('touchmove', onTouchMove);
@@ -185,6 +116,7 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
     };
   }, [onSwipeLeft, onSwipeRight, onTouchStart, onTouchMove, onTouchEnd]);
 };
+
 export default function CalendarClient() {
   const { homeworks, classes, tests, updateHomeworkDueDate, updateTestDueDate, deleteTest, loading } = useClassContext();
   const { user } = useAuth();
@@ -208,46 +140,25 @@ export default function CalendarClient() {
 
   // Set up mobile detection
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    // Set initial value
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
-
-    // Add event listener
     window.addEventListener('resize', handleResize);
-
-    // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Month navigation handlers
-  const nextMonth = useCallback(() => {
-    setCurrentMonth(addMonths(currentMonth, 1));
-  }, [currentMonth]);
-  const prevMonth = useCallback(() => {
-    setCurrentMonth(subMonths(currentMonth, 1));
-  }, [currentMonth]);
-  const resetToToday = useCallback(() => {
-    setCurrentMonth(new Date());
-  }, []);
+  const nextMonth = useCallback(() => setCurrentMonth(addMonths(currentMonth, 1)), [currentMonth]);
+  const prevMonth = useCallback(() => setCurrentMonth(subMonths(currentMonth, 1)), [currentMonth]);
+  const resetToToday = useCallback(() => setCurrentMonth(new Date()), []);
 
   // Swipe handlers
   useSwipe(nextMonth, prevMonth);
 
-  const {
-    dragState,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    handleDragEnd
-  } = useDragAndDrop(updateHomeworkDueDate, updateTestDueDate);
+  const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } = useDragAndDrop(updateHomeworkDueDate, updateTestDueDate);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
 
-  // Define the type for calendar day items
   interface CalendarDay {
     day: number;
     date: Date;
@@ -262,7 +173,6 @@ export default function CalendarClient() {
   const { homeworkByDate, testsByDate } = useMemo(() => {
     const hwMap: Record<string, Homework[]> = {};
     const testMap: Record<string, Test[]> = {};
-
     homeworks.forEach((hw: Homework) => {
       try {
         const date = new Date(hw.dueDate);
@@ -273,7 +183,6 @@ export default function CalendarClient() {
         }
       } catch (e) { }
     });
-
     tests.forEach((test: Test) => {
       try {
         const date = new Date(test.testDate);
@@ -284,7 +193,6 @@ export default function CalendarClient() {
         }
       } catch (e) { }
     });
-
     return { homeworkByDate: hwMap, testsByDate: testMap };
   }, [homeworks, tests]);
 
@@ -293,7 +201,7 @@ export default function CalendarClient() {
     const firstDayOfWeek = monthStart.getDay();
     const result: CalendarDay[] = [];
 
-    // Add days from previous month
+    // Previous month padding
     if (firstDayOfWeek > 0) {
       const prevMonthEnd = new Date(monthStart);
       prevMonthEnd.setDate(0);
@@ -302,560 +210,558 @@ export default function CalendarClient() {
         prevDate.setDate(prevMonthEnd.getDate() - i);
         const dateStr = format(prevDate, 'yyyy-MM-dd');
         result.push({
-          day: prevDate.getDate(),
-          date: prevDate,
-          homeworks: homeworkByDate[dateStr] || [],
-          tests: testsByDate[dateStr] || [],
+          day: prevDate.getDate(), date: prevDate,
+          homeworks: homeworkByDate[dateStr] || [], tests: testsByDate[dateStr] || [],
           events: getEventsForDate(prevDate, schoolYear2025_2026),
-          isCurrentMonth: false,
-          isToday: isDateToday(prevDate),
+          isCurrentMonth: false, isToday: isDateToday(prevDate),
         });
       }
     }
 
-    // Add current month days
+    // Current month
     daysInMonth.forEach(day => {
       const dateStr = format(day, 'yyyy-MM-dd');
       result.push({
-        day: day.getDate(),
-        date: day,
-        homeworks: homeworkByDate[dateStr] || [],
-        tests: testsByDate[dateStr] || [],
+        day: day.getDate(), date: day,
+        homeworks: homeworkByDate[dateStr] || [], tests: testsByDate[dateStr] || [],
         events: getEventsForDate(day, schoolYear2025_2026),
-        isCurrentMonth: true,
-        isToday: isDateToday(day),
+        isCurrentMonth: true, isToday: isDateToday(day),
       });
     });
 
-    // Add next month days
+    // Next month padding
     const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
     const lastDayOfWeek = lastDayOfMonth.getDay();
     const daysInLastWeek = 6 - lastDayOfWeek;
-
     for (let i = 1; i <= daysInLastWeek; i++) {
       const nextDate = new Date(monthEnd);
       nextDate.setDate(monthEnd.getDate() + i);
       const dateStr = format(nextDate, 'yyyy-MM-dd');
       result.push({
-        day: nextDate.getDate(),
-        date: nextDate,
-        homeworks: homeworkByDate[dateStr] || [],
-        tests: testsByDate[dateStr] || [],
+        day: nextDate.getDate(), date: nextDate,
+        homeworks: homeworkByDate[dateStr] || [], tests: testsByDate[dateStr] || [],
         events: getEventsForDate(nextDate, schoolYear2025_2026),
-        isCurrentMonth: false,
-        isToday: isDateToday(nextDate),
+        isCurrentMonth: false, isToday: isDateToday(nextDate),
       });
     }
-
     return result;
   }, [currentMonth, homeworkByDate, testsByDate]);
 
-  // Get due date status for homework items
-  const getDueDateStatus = (dueDate: Date) => {
+  // Upcoming items for sidebar
+  const upcomingItems = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
+    const hwItems = homeworks
+      .filter((hw: Homework) => {
+        const d = new Date(hw.dueDate);
+        d.setHours(0, 0, 0, 0);
+        return d >= today;
+      })
+      .sort((a: Homework, b: Homework) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+      .slice(0, 5)
+      .map((hw: Homework) => {
+        const classItem = classes.find((c: Class) => c.id === hw.classId);
+        return { id: hw.id, title: hw.title, date: new Date(hw.dueDate), type: 'homework' as const, className: classItem?.name || '' };
+      });
 
+    const testItems = tests
+      .filter((t: Test) => {
+        const d = new Date(t.testDate);
+        d.setHours(0, 0, 0, 0);
+        return d >= today;
+      })
+      .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())
+      .slice(0, 5)
+      .map((t: Test) => {
+        const classItem = classes.find((c: Class) => c.id === t.classId);
+        return { id: t.id, title: t.title, date: new Date(t.testDate), type: 'test' as const, className: classItem?.name || '' };
+      });
+
+    return [...hwItems, ...testItems].sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 8);
+  }, [homeworks, tests, classes]);
+
+  // Stats
+  const stats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const hwCount = homeworks.filter((hw: Homework) => { const d = new Date(hw.dueDate); d.setHours(0, 0, 0, 0); return d >= today; }).length;
+    const testCount = tests.filter((t: Test) => { const d = new Date(t.testDate); d.setHours(0, 0, 0, 0); return d >= today; }).length;
+    const eventCount = days.filter(d => d.events.length > 0 && d.isCurrentMonth).length;
+    return { hwCount, testCount, eventCount };
+  }, [homeworks, tests, days]);
+
+  const getDueDateStatus = (dueDate: Date) => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate); due.setHours(0, 0, 0, 0);
     const diffDays = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
     if (diffDays < 0) return 'overdue';
     if (diffDays === 0) return 'today';
     if (diffDays === 1) return 'tomorrow';
     if (diffDays <= 7) return 'this-week';
     return 'upcoming';
   };
-  // Get due date icon based on status
-  const getDueDateIcon = (status: string) => {
-    switch (status) {
-      case 'overdue':
-        return <AlertCircle className="h-3.5 w-3.5 text-red-500 mr-1" />;
-      case 'today':
-        return <AlertTriangle className="h-3.5 w-3.5 text-yellow-500 mr-1" />;
-      case 'tomorrow':
-      case 'this-week':
-        return <Clock className="h-3.5 w-3.5 text-blue-500 mr-1" />;
-      default:
-        return <CalendarIcon className="h-3.5 w-3.5 text-gray-500 mr-1" />;
-    }
-  };
-  // Format due date for display
+
   const formatDueDate = (dueDate: Date, isTest: boolean = false) => {
     const status = getDueDateStatus(dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     if (isSameDay(dueDate, today)) return isTest ? 'Today' : 'Due today';
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
     if (isSameDay(dueDate, tomorrow)) return isTest ? 'Tomorrow' : 'Due tomorrow';
-
-    if (status === 'overdue') {
-      if (isTest) {
-        return `Completed`;
-      }
-      return `Overdue by ${Math.abs(Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))} days`;
-    }
-
-    return isTest
-      ? format(dueDate, 'MMM d')
-      : `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}`;
+    if (status === 'overdue') { return isTest ? 'Completed' : `Overdue by ${Math.abs(Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))} days`; }
+    return isTest ? format(dueDate, 'MMM d') : `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}`;
   };
-  // Toggle sidebar on mobile
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className={getContainerClass('max-w-6xl') + ' py-16'}>
+    <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans relative selection:bg-sky-100 dark:selection:bg-sky-900/30">
+
+      {/* Ambient glows */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-400/[0.05] dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+
+        {/* Loading indicator */}
         {loading && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-gray-500 bg-white/80 dark:bg-gray-900/80 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-800 backdrop-blur-sm z-50">
-            <div className="h-3 w-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+          <div className="fixed top-20 right-6 flex items-center gap-2 text-sm text-sky-700 dark:text-sky-300 bg-[#f5f9fc]/90 dark:bg-zinc-800/90 px-4 py-2 rounded-full border border-sky-200/60 dark:border-sky-800/30 backdrop-blur-sm z-50 shadow-lg">
+            <div className="h-3 w-3 border-2 border-sky-300 border-t-sky-600 rounded-full animate-spin" />
             Loading updates...
           </div>
         )}
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-16"
-        >
+        {/* ═══════════════════════════════════════════════════════════
+            HEADER — month title left, nav right
+           ═══════════════════════════════════════════════════════════ */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+              <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">
                 {format(currentMonth, 'MMMM yyyy')}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                {format(monthStart, 'MMM d')} - {format(monthEnd, 'MMM d, yyyy')}
+              <p className="text-sm sm:text-base text-sky-700 dark:text-sky-300 font-medium">
+                {format(monthStart, 'MMM d')} — {format(monthEnd, 'MMM d, yyyy')}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
+
+            <div className="flex items-center gap-2">
+              <button
                 onClick={prevMonth}
-                className="gap-2"
+                className="inline-flex items-center gap-1.5 h-10 px-4 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/60 dark:hover:bg-sky-500/20 transition-all active:scale-95"
               >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
+                <ChevronLeft className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Prev</span>
+              </button>
+              <button
                 onClick={resetToToday}
-                className="gap-2"
+                className="inline-flex items-center h-10 px-5 bg-sky-500 dark:bg-sky-600 rounded-full text-sm font-bold text-white hover:bg-sky-600 dark:hover:bg-sky-500 transition-all active:scale-95 shadow-lg shadow-sky-500/20"
               >
                 Today
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
+              </button>
+              <button
                 onClick={nextMonth}
-                className="gap-2"
+                className="inline-flex items-center gap-1.5 h-10 px-4 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/60 dark:hover:bg-sky-500/20 transition-all active:scale-95"
               >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
+
+          {/* Quick stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-wrap gap-2 mt-5"
+          >
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-[#ebf6b5]/50 dark:bg-sky-500/15 rounded-full">
+              <BookOpen className="w-3 h-3" />
+              {stats.hwCount} upcoming assignments
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-100/60 dark:bg-rose-500/15 rounded-full">
+              <GraduationCap className="w-3 h-3" />
+              {stats.testCount} upcoming tests
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-500/15 rounded-full">
+              <CalendarDays className="w-3 h-3" />
+              {stats.eventCount} event days
+            </span>
+          </motion.div>
         </motion.div>
 
-        {/* Calendar Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-        >
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+        {/* ═══════════════════════════════════════════════════════════
+            MAIN LAYOUT — calendar + sidebar
+           ═══════════════════════════════════════════════════════════ */}
+        <div className="flex gap-8">
 
-            {/* Weekday Headers */}
-            <div className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-7 gap-1 sm:gap-2 md:gap-4 mb-2 sm:mb-4">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="text-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {day}
-                </div>
-              ))}
-            </div>
+          {/* Calendar Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="flex-1 min-w-0"
+          >
+            <div id="calendar-grid" className="bg-[#f5f9fc] dark:bg-zinc-800/50 border border-sky-200/40 dark:border-sky-800/20 rounded-[24px] p-3 sm:p-5 md:p-6">
 
-            {/* Calendar Days */}
-            <div className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-7 gap-1 sm:gap-2 md:gap-4">
-              {days.map((calendarDay, index) => (
-                <motion.div
-                  key={`${calendarDay.date.toISOString()}-${index}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + index * 0.01 }}
-                  className={`
-                    relative p-1 sm:p-2 md:p-3 border rounded-lg min-h-[60px] sm:min-h-[80px] md:min-h-[100px] transition-colors
-                    ${calendarDay.isCurrentMonth
-                      ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
-                      : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950'
-                    }
-                    ${calendarDay.isToday
-                      ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-gray-800'
-                      : ''
-                    }
-                    ${dragState.currentHoverDate && isSameDay(calendarDay.date, dragState.currentHoverDate)
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
-                      : ''
-                    }
-                  `}
-                >
-                  <div className="flex items-start justify-between mb-1 sm:mb-2">
-                    <span className={`
-                      text-xs sm:text-sm font-medium
-                      ${calendarDay.isCurrentMonth
-                        ? calendarDay.isToday
-                          ? 'text-gray-900 dark:text-white'
-                          : 'text-gray-700 dark:text-gray-300'
-                        : 'text-gray-400 dark:text-gray-600'
-                      }
-                    `}>
-                      {calendarDay.day}
-                    </span>
-                    {calendarDay.isToday && (
-                      <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-gray-900 dark:bg-white rounded-full"></div>
-                    )}
+              {/* Weekday Headers */}
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                  <div key={day} className="text-center text-[10px] sm:text-xs font-bold uppercase tracking-widest text-sky-700 dark:text-sky-300 py-2">
+                    {day}
                   </div>
+                ))}
+              </div>
 
-                  {/* Events */}
-                  <TooltipProvider>
-                    <div className="space-y-0.5 sm:space-y-1">
-                      {/* Homework */}
-                      {calendarDay.homeworks.slice(0, 3).map((hw) => {
-                        const classItem = classes.find((c: Class) => c.id === hw.classId);
-                        return (
-                          <Tooltip key={hw.id}>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-blue-100 dark:bg-blue-900/30 rounded text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 truncate cursor-pointer">
-                                <BookOpen className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
-                                <span className="truncate hidden xs:inline sm:inline">{hw.title}</span>
-                                <span className="truncate xs:hidden sm:hidden">{hw.title.slice(0, 8)}...</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="w-64 p-2">
-                              <div className="space-y-1">
-                                <h4 className="font-medium">{hw.title}</h4>
-                                {classItem && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <BookOpen className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                                    <span className="truncate">{classItem.name}</span>
-                                  </div>
-                                )}
-                                {hw.description && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{hw.description}</p>
-                                )}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
+              {/* Calendar Days */}
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                {days.map((calendarDay, index) => {
+                  const totalItems = calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length;
+                  const isHoverTarget = dragState.currentHoverDate && isSameDay(calendarDay.date, dragState.currentHoverDate);
 
-                      {/* Tests */}
-                      {calendarDay.tests.slice(0, 4).map((test) => {
-                        const classItem = classes.find((c: Class) => c.id === test.classId);
-                        const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
-                        return (
-                          <Tooltip key={test.id}>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-red-100 dark:bg-red-900/30 rounded text-[10px] sm:text-xs text-red-700 dark:text-red-300 truncate cursor-pointer">
-                                <ClassIcon className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
-                                <span className="truncate hidden xs:inline sm:inline">{test.title}</span>
-                                <span className="truncate xs:hidden sm:hidden">{test.title.slice(0, 8)}...</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="w-72 p-3">
-                              <div className="space-y-2">
-                                <h4 className="font-medium text-base">{test.title}</h4>
-                                {classItem && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <ClassIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                                    <span className="truncate">{classItem.name}</span>
-                                  </div>
-                                )}
-                                <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                  {test.testType && (
-                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                      <span className="font-medium mr-2">Type:</span>
-                                      <span className="capitalize">{test.testType}</span>
-                                    </div>
-                                  )}
-                                  {test.testTime && (
-                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                      <Clock className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                                      <span>{format(new Date(test.testTime), 'h:mm a')}</span>
-                                    </div>
-                                  )}
-                                  {test.location && (
-                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                      <span className="font-medium mr-2">Location:</span>
-                                      <span>{test.location}</span>
-                                    </div>
-                                  )}
-                                  {test.duration && (
-                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                      <span className="font-medium mr-2">Duration:</span>
-                                      <span>{test.duration} minutes</span>
-                                    </div>
-                                  )}
-                                  {test.weight !== null && test.weight !== undefined && (
-                                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                      <span className="font-medium mr-2">Weight:</span>
-                                      <span>{test.weight}%</span>
-                                    </div>
-                                  )}
-                                  {test.notes && (
-                                    <div className="pt-1.5 border-t border-gray-200 dark:border-gray-700">
-                                      <p className="text-sm text-gray-600 dark:text-gray-400">{test.notes}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-
-                      {/* School Events */}
-                      {calendarDay.events.slice(0, 2).map((event) => (
-                        <Tooltip key={event.id}>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-green-100 dark:bg-green-900/30 rounded text-[10px] sm:text-xs text-green-700 dark:text-green-300 truncate cursor-pointer">
-                              <CalendarDays className="h-2.5 sm:h-3 w-2.5 sm:w-3 shrink-0" />
-                              <span className="truncate hidden xs:inline sm:inline">{event.title}</span>
-                              <span className="truncate xs:hidden sm:hidden">{event.title.slice(0, 8)}...</span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div>
-                              <h4 className="font-medium">{event.title}</h4>
-                              {event.description && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{event.description}</p>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      ))}
-
-                      {/* Show more indicator */}
-                      {(() => {
-                        const totalItems = calendarDay.homeworks.length + calendarDay.tests.length + calendarDay.events.length;
-                        const displayedItems = Math.min(calendarDay.homeworks.length, 3) + Math.min(calendarDay.tests.length, 4) + Math.min(calendarDay.events.length, 2);
-                        const remaining = totalItems - displayedItems;
-
-                        if (remaining > 0) {
-                          return (
-                            <button
-                              onClick={() => setExpandedDay(calendarDay.date)}
-                              className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-center w-full py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                            >
-                              +{remaining} more
-                            </button>
-                          );
+                  return (
+                    <motion.div
+                      key={`${calendarDay.date.toISOString()}-${index}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.02 + index * 0.005 }}
+                      onClick={() => totalItems > 0 ? setExpandedDay(calendarDay.date) : null}
+                      className={`
+                        relative p-1.5 sm:p-2 md:p-2.5 rounded-2xl min-h-[56px] sm:min-h-[80px] md:min-h-[96px] transition-all duration-200
+                        ${totalItems > 0 ? 'cursor-pointer hover:shadow-md hover:shadow-sky-500/[0.06] hover:-translate-y-0.5' : ''}
+                        ${calendarDay.isCurrentMonth
+                          ? 'bg-white dark:bg-zinc-900/60'
+                          : 'bg-white/40 dark:bg-zinc-900/20'
                         }
-                        return null;
-                      })()}
-                    </div>
-                  </TooltipProvider>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Expanded Day Modal */}
-        {expandedDay && (() => {
-          const expandedDayData = days.find(d => isSameDay(d.date, expandedDay));
-          if (!expandedDayData) return null;
-
-          return (
-            <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setExpandedDay(null)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-              >
-                {/* Modal Header */}
-                <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 z-10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-light text-gray-900 dark:text-white">
-                        {format(expandedDay, 'MMMM d, yyyy')}
-                      </h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {expandedDayData.homeworks.length + expandedDayData.tests.length + expandedDayData.events.length} items
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setExpandedDay(null)}
-                      className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        ${calendarDay.isToday
+                          ? 'ring-2 ring-sky-400 dark:ring-sky-500 bg-sky-50 dark:bg-sky-950/30 shadow-lg shadow-sky-500/10'
+                          : ''
+                        }
+                        ${isHoverTarget
+                          ? 'ring-2 ring-sky-400/50 bg-sky-50 dark:bg-sky-900/20'
+                          : ''
+                        }
+                      `}
+                      onDragOver={(e) => handleDragOver(e, calendarDay.date)}
+                      onDrop={(e) => handleDrop(e, calendarDay.date)}
                     >
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                      {/* Day number */}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`
+                          text-[11px] sm:text-sm font-bold
+                          ${calendarDay.isCurrentMonth
+                            ? calendarDay.isToday
+                              ? 'text-sky-600 dark:text-sky-400'
+                              : 'text-sky-800 dark:text-sky-200'
+                            : 'text-sky-400/50 dark:text-sky-600/50'
+                          }
+                        `}>
+                          {calendarDay.day}
+                        </span>
+                        {calendarDay.isToday && (
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-sky-500 dark:text-sky-400 hidden sm:block">
+                            Today
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Item indicators */}
+                      <TooltipProvider>
+                        <div className="space-y-0.5">
+                          {/* Homework chips */}
+                          {calendarDay.homeworks.slice(0, isMobile ? 1 : 2).map((hw) => (
+                            <Tooltip key={hw.id}>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-sky-100/80 dark:bg-sky-500/15 rounded-lg text-[9px] sm:text-[10px] text-sky-700 dark:text-sky-300 font-medium truncate">
+                                  <BookOpen className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
+                                  <span className="truncate">{hw.title}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="w-64 p-3 bg-white dark:bg-zinc-900 border border-sky-200/60 dark:border-sky-800/30 rounded-2xl shadow-xl">
+                                <div className="space-y-1.5">
+                                  <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{hw.title}</h4>
+                                  {(() => { const ci = classes.find((c: Class) => c.id === hw.classId); return ci ? <p className="text-xs text-sky-600 dark:text-sky-400">{ci.name}</p> : null; })()}
+                                  {hw.description && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 mt-1">{hw.description}</p>}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+
+                          {/* Test chips */}
+                          {calendarDay.tests.slice(0, isMobile ? 1 : 2).map((test) => {
+                            const classItem = classes.find((c: Class) => c.id === test.classId);
+                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
+                            return (
+                              <Tooltip key={test.id}>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-rose-100/80 dark:bg-rose-500/15 rounded-lg text-[9px] sm:text-[10px] text-rose-700 dark:text-rose-300 font-medium truncate">
+                                    <ClassIcon className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
+                                    <span className="truncate">{test.title}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="w-72 p-3 bg-white dark:bg-zinc-900 border border-sky-200/60 dark:border-sky-800/30 rounded-2xl shadow-xl">
+                                  <div className="space-y-2">
+                                    <h4 className="font-bold text-sky-800 dark:text-sky-200">{test.title}</h4>
+                                    {classItem && <p className="text-xs text-sky-600 dark:text-sky-400">{classItem.name}</p>}
+                                    <div className="space-y-1 pt-2 border-t border-sky-100 dark:border-sky-900/20">
+                                      {test.testType && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Type:</span> <span className="capitalize">{test.testType}</span></p>}
+                                      {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><Clock className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}
+                                      {test.location && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Location:</span> {test.location}</p>}
+                                      {test.duration && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Duration:</span> {test.duration} min</p>}
+                                      {test.notes && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 pt-1 border-t border-sky-100 dark:border-sky-900/20">{test.notes}</p>}
+                                    </div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+
+                          {/* School event chips */}
+                          {calendarDay.events.slice(0, isMobile ? 1 : 1).map((event) => (
+                            <Tooltip key={event.id}>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100/80 dark:bg-emerald-500/15 rounded-lg text-[9px] sm:text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
+                                  <CalendarDays className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
+                                  <span className="truncate">{event.title}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-white dark:bg-zinc-900 border border-sky-200/60 dark:border-sky-800/30 rounded-2xl shadow-xl p-3">
+                                <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{event.title}</h4>
+                                {event.description && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 mt-1">{event.description}</p>}
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+
+                          {/* "More" indicator */}
+                          {(() => {
+                            const displayed = Math.min(calendarDay.homeworks.length, isMobile ? 1 : 2) + Math.min(calendarDay.tests.length, isMobile ? 1 : 2) + Math.min(calendarDay.events.length, isMobile ? 1 : 1);
+                            const remaining = totalItems - displayed;
+                            if (remaining > 0) {
+                              return (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setExpandedDay(calendarDay.date); }}
+                                  className="text-[9px] sm:text-[10px] font-bold text-sky-500 dark:text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 text-center w-full py-0.5 rounded-lg hover:bg-sky-100/50 dark:hover:bg-sky-500/10 transition-colors"
+                                >
+                                  +{remaining} more
+                                </button>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
+                      </TooltipProvider>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ═══════════════════════════════════════════════════════
+              SIDEBAR — upcoming items
+             ═══════════════════════════════════════════════════════ */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15 }}
+            className="hidden lg:block w-72 shrink-0"
+          >
+            <div className="sticky top-24 space-y-5">
+              {/* Upcoming */}
+              <div className="bg-[#f5f9fc] dark:bg-zinc-800/50 border border-sky-200/40 dark:border-sky-800/20 rounded-[20px] p-5">
+                <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-4 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-sky-500" />
+                  Coming Up
+                </h3>
+                <div className="space-y-2.5">
+                  {upcomingItems.length === 0 && (
+                    <p className="text-xs text-sky-700/60 dark:text-sky-300/60 text-center py-4">Nothing upcoming 🎉</p>
+                  )}
+                  {upcomingItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-3 p-3 bg-white dark:bg-zinc-900/60 rounded-2xl hover:shadow-md hover:shadow-sky-500/[0.04] transition-all"
+                    >
+                      <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'homework'
+                        ? 'bg-sky-100 dark:bg-sky-500/15 text-sky-500'
+                        : 'bg-rose-100 dark:bg-rose-500/15 text-rose-500'
+                        }`}>
+                        {item.type === 'homework' ? <BookOpen className="w-3.5 h-3.5" /> : <GraduationCap className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-bold text-sky-800 dark:text-sky-200 truncate">{item.title}</p>
+                        <p className="text-[10px] text-sky-600/70 dark:text-sky-400/70">{item.className}</p>
+                        <p className="text-[10px] font-medium text-sky-500 dark:text-sky-400 mt-0.5">{format(item.date, 'MMM d')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="bg-[#f5f9fc] dark:bg-zinc-800/50 border border-sky-200/40 dark:border-sky-800/20 rounded-[20px] p-5">
+                <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-4">Legend</h3>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full bg-sky-400 dark:bg-sky-500" />
+                    <span className="text-xs font-medium text-sky-700 dark:text-sky-300">Homework</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full bg-rose-400 dark:bg-rose-500" />
+                    <span className="text-xs font-medium text-sky-700 dark:text-sky-300">Tests & Exams</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full bg-emerald-400 dark:bg-emerald-500" />
+                    <span className="text-xs font-medium text-sky-700 dark:text-sky-300">School Events</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
-                {/* Modal Content */}
-                <div className="p-6 space-y-6">
-                  {/* Homework Section */}
-                  {expandedDayData.homeworks.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-blue-500" />
-                        Homework ({expandedDayData.homeworks.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {expandedDayData.homeworks.map((hw) => {
-                          const classItem = classes.find((c: Class) => c.id === hw.classId);
-                          return (
-                            <div
-                              key={hw.id}
-                              className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
-                            >
-                              <h4 className="font-medium text-gray-900 dark:text-white">{hw.title}</h4>
-                              {classItem && (
-                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-                                  {classItem.name}
-                                </div>
-                              )}
-                              {hw.description && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{hw.description}</p>
-                              )}
-                            </div>
-                          );
-                        })}
+        {/* ═══════════════════════════════════════════════════════
+            EXPANDED DAY MODAL
+           ═══════════════════════════════════════════════════════ */}
+        <AnimatePresence>
+          {expandedDay && (() => {
+            const expandedDayData = days.find(d => isSameDay(d.date, expandedDay));
+            if (!expandedDayData) return null;
+
+            return (
+              <motion.div
+                key="expanded-day-modal"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setExpandedDay(null)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-[#fffaf4] dark:bg-zinc-900 rounded-[24px] border border-sky-200/40 dark:border-sky-800/20 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+                >
+                  {/* Modal Header */}
+                  <div className="sticky top-0 bg-[#fffaf4] dark:bg-zinc-900 border-b border-sky-100 dark:border-sky-900/20 px-6 py-5 z-10 rounded-t-[24px]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200">
+                          {format(expandedDay, 'MMMM d, yyyy')}
+                        </h2>
+                        <p className="text-sm text-sky-600/70 dark:text-sky-400/70 mt-0.5 font-medium">
+                          {expandedDayData.homeworks.length + expandedDayData.tests.length + expandedDayData.events.length} items
+                        </p>
                       </div>
+                      <button
+                        onClick={() => setExpandedDay(null)}
+                        className="w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-all"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Tests Section */}
-                  {expandedDayData.tests.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                        <GraduationCap className="h-5 w-5 text-red-500" />
-                        Tests & Exams ({expandedDayData.tests.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {expandedDayData.tests.map((test) => {
-                          const classItem = classes.find(c => c.id === test.classId);
-                          const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
-                          return (
-                            <div
-                              key={test.id}
-                              className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
-                            >
-                              <h4 className="font-medium text-gray-900 dark:text-white">{test.title}</h4>
-                              {classItem && (
-                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                  <ClassIcon className="h-3.5 w-3.5 mr-1.5" />
-                                  {classItem.name}
-                                </div>
-                              )}
-                              <div className="mt-3 space-y-1.5">
-                                {test.testType && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span className="font-medium mr-2">Type:</span>
-                                    <span className="capitalize">{test.testType}</span>
-                                  </div>
-                                )}
-                                {test.testTime && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <Clock className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                                    <span>{format(new Date(test.testTime), 'h:mm a')}</span>
-                                  </div>
-                                )}
-                                {test.location && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span className="font-medium mr-2">Location:</span>
-                                    <span>{test.location}</span>
-                                  </div>
-                                )}
-                                {test.duration && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span className="font-medium mr-2">Duration:</span>
-                                    <span>{test.duration} minutes</span>
-                                  </div>
-                                )}
-                                {test.weight !== null && test.weight !== undefined && (
-                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span className="font-medium mr-2">Weight:</span>
-                                    <span>{test.weight}%</span>
-                                  </div>
-                                )}
-                                {test.notes && (
-                                  <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-700">
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">{test.notes}</p>
-                                  </div>
-                                )}
+                  {/* Modal Content */}
+                  <div className="p-6 space-y-6">
+                    {/* Homework */}
+                    {expandedDayData.homeworks.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-3 flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-sky-500" />
+                          Homework ({expandedDayData.homeworks.length})
+                        </h3>
+                        <div className="space-y-2">
+                          {expandedDayData.homeworks.map((hw) => {
+                            const classItem = classes.find((c: Class) => c.id === hw.classId);
+                            return (
+                              <div key={hw.id} className="p-4 bg-sky-50 dark:bg-sky-500/10 rounded-2xl border border-sky-200/40 dark:border-sky-800/20">
+                                <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{hw.title}</h4>
+                                {classItem && <p className="text-xs text-sky-600 dark:text-sky-400 mt-1">{classItem.name}</p>}
+                                {hw.description && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 mt-2">{hw.description}</p>}
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* School Events Section */}
-                  {expandedDayData.events.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                        <CalendarDays className="h-5 w-5 text-green-500" />
-                        School Events ({expandedDayData.events.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {expandedDayData.events.map((event) => (
-                          <div
-                            key={event.id}
-                            className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
-                          >
-                            <h4 className="font-medium text-gray-900 dark:text-white">{event.title}</h4>
-                            {event.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{event.description}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Empty State */}
-                  {expandedDayData.homeworks.length === 0 &&
-                    expandedDayData.tests.length === 0 &&
-                    expandedDayData.events.length === 0 && (
-                      <div className="text-center py-12">
-                        <CalendarIcon className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                        <p className="text-gray-500 dark:text-gray-400">No items for this day</p>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
-                </div>
+
+                    {/* Tests */}
+                    {expandedDayData.tests.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-3 flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4 text-rose-500" />
+                          Tests & Exams ({expandedDayData.tests.length})
+                        </h3>
+                        <div className="space-y-2">
+                          {expandedDayData.tests.map((test) => {
+                            const classItem = classes.find(c => c.id === test.classId);
+                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
+                            return (
+                              <div key={test.id} className="p-4 bg-rose-50 dark:bg-rose-500/10 rounded-2xl border border-rose-200/40 dark:border-rose-800/20">
+                                <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{test.title}</h4>
+                                {classItem && <p className="text-xs text-sky-600 dark:text-sky-400 mt-1 flex items-center gap-1"><ClassIcon className="h-3 w-3" />{classItem.name}</p>}
+                                <div className="mt-3 space-y-1">
+                                  {test.testType && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Type:</span> <span className="capitalize">{test.testType}</span></p>}
+                                  {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><Clock className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}
+                                  {test.location && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Location:</span> {test.location}</p>}
+                                  {test.duration && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Duration:</span> {test.duration} min</p>}
+                                  {test.weight !== null && test.weight !== undefined && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Weight:</span> {test.weight}%</p>}
+                                  {test.notes && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 pt-2 mt-2 border-t border-rose-200/40 dark:border-rose-800/20">{test.notes}</p>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Events */}
+                    {expandedDayData.events.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-3 flex items-center gap-2">
+                          <CalendarDays className="h-4 w-4 text-emerald-500" />
+                          School Events ({expandedDayData.events.length})
+                        </h3>
+                        <div className="space-y-2">
+                          {expandedDayData.events.map((event) => (
+                            <div key={event.id} className="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-200/40 dark:border-emerald-800/20">
+                              <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{event.title}</h4>
+                              {event.description && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 mt-2">{event.description}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty */}
+                    {expandedDayData.homeworks.length === 0 && expandedDayData.tests.length === 0 && expandedDayData.events.length === 0 && (
+                      <div className="text-center py-12">
+                        <CalendarIcon className="h-12 w-12 text-sky-300/40 dark:text-sky-700/40 mx-auto mb-3" />
+                        <p className="text-sky-700/60 dark:text-sky-400/60 text-sm">No items for this day</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
               </motion.div>
-            </div>
-          );
-        })()}
+            );
+          })()}
+        </AnimatePresence>
 
         {/* Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+          className="mt-16 pt-8 border-t border-sky-100 dark:border-sky-900/20"
         >
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Built for students • Public Beta {getFullVersionString()}
-            </p>
-          </div>
+          <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-400/60 font-medium">
+            Built for students • Public Beta {getFullVersionString()}
+          </p>
         </motion.div>
       </div>
 

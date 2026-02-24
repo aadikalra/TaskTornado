@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Globe } from 'lucide-react';
+import { CountingNumber } from '@/components/animate-ui/primitives/texts/counting-number';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -18,14 +19,14 @@ const itemVariants = {
 };
 
 const stats = [
-    { value: '2+', label: 'States' },
-    { value: '50+', label: 'Students' },
-    { value: '1,000+', label: 'Hours' },
+    { value: '2+', num: 2, label: 'States' },
+    { value: '50+', num: 50, label: 'Students' },
+    { value: '1,000+', num: 1000, label: 'Hours' },
 ];
 
 export default function UserReachSection() {
     return (
-        <section className="py-24 md:py-32 bg-[#F4F7FF] dark:bg-zinc-950/50 overflow-hidden">
+        <section className="py-24 md:py-32 bg-fuchsia-50 dark:bg-zinc-950/50 overflow-hidden">
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -35,13 +36,13 @@ export default function UserReachSection() {
             >
                 {/* ── Header ──────────────────────────────── */}
                 <motion.div variants={itemVariants} className="text-center mb-12 md:mb-16">
-                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#275085] dark:text-[#4a9cdb] bg-[#275085]/5 dark:bg-[#275085]/10 border border-[#275085]/10 dark:border-[#4a9cdb]/10 rounded-full mb-4">
+                    <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-fuchsia-600 dark:text-fuchsia-400 bg-fuchsia-600/5 dark:bg-fuchsia-400/5 border border-fuchsia-600/10 dark:border-fuchsia-400/10 rounded-full mb-4">
                         Growing Fast
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-semibold text-[#275085] dark:text-[#4a9cdb] tracking-tight leading-[1.15] mb-4">
+                    <h2 className="text-3xl md:text-5xl font-semibold text-fuchsia-600 dark:text-fuchsia-400 tracking-tight leading-[1.15] mb-4">
                         Students everywhere.
                     </h2>
-                    <p className="text-base md:text-lg text-[#275085]/55 dark:text-[#4a9cdb]/55 font-medium max-w-lg mx-auto leading-relaxed">
+                    <p className="text-base md:text-lg text-fuchsia-900/60 dark:text-fuchsia-400/60 font-medium max-w-lg mx-auto leading-relaxed">
                         From California to Texas, TaskTornado helps students across the country stay on top of their education.
                     </p>
                 </motion.div>
@@ -49,7 +50,7 @@ export default function UserReachSection() {
                 {/* ── Map ──────────────────────────────────── */}
                 <motion.div
                     variants={itemVariants}
-                    className="relative w-full max-w-4xl mx-auto mb-16 md:mb-20"
+                    className="relative w-full max-w-2xl mx-auto mb-16 md:mb-20"
                 >
                     <Image
                         src="/userMap.png"
@@ -72,10 +73,10 @@ export default function UserReachSection() {
                             variants={itemVariants}
                             className="text-center"
                         >
-                            <p className="text-3xl md:text-5xl font-bold text-[#275085] dark:text-[#4a9cdb] tracking-tight mb-1">
-                                {stat.value}
+                            <p className="text-3xl md:text-5xl font-bold text-fuchsia-600 dark:text-fuchsia-400 tracking-tight mb-1">
+                                <CountingNumber number={stat.num} delay={300 + i * 100} />+
                             </p>
-                            <p className="text-xs md:text-sm font-semibold text-[#275085]/50 dark:text-[#4a9cdb]/50 uppercase tracking-widest">
+                            <p className="text-xs md:text-sm font-semibold text-fuchsia-900/40 dark:text-fuchsia-400/40 uppercase tracking-widest">
                                 {stat.label}
                             </p>
                         </motion.div>

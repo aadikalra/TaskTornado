@@ -6,7 +6,7 @@ import GoogleClassroomSection from '@/app/landing-sections/teachers/GoogleClassr
 import AccountabilitySection from '@/app/landing-sections/teachers/AccountabilitySection';
 import AITASection from '@/app/landing-sections/teachers/AITASection';
 import TeachersSafetySection from '@/app/landing-sections/teachers/TeachersSafetySection';
-import TeachersCostSection from '@/app/landing-sections/teachers/TeachersCostSection';
+import PromiseSection from '@/app/landing-sections/PromiseSection';
 import TeachersFinalCTA from '@/app/landing-sections/teachers/TeachersFinalCTA';
 import LandingFooter from '@/app/landing-sections/LandingFooter';
 
@@ -29,7 +29,7 @@ export default function TeachersContent() {
             <TeachersSafetySection />
 
             {/* 6. COST — "Free for every student. No exceptions." */}
-            <TeachersCostSection />
+            <PromiseSection id="pricing" />
 
             {/* 7. FINAL CTA — "Share it with your class" */}
             <TeachersFinalCTA />

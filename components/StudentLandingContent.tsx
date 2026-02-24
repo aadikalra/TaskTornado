@@ -72,11 +72,11 @@ export default function StudentLandingContent() {
       {/* 3. BENTO GRID - Feature Showcase */}
       <BentoGridSection id="ai" />
 
-      {/* 4. COMPARISON */}
-      <ComparisonSection comparisonSet={comparisonSet} onComparisonSetChange={setComparisonSet} />
-
-      {/* 5. WELLBEING - The Support */}
+      {/* 4. WELLBEING - The Support */}
       <WellbeingSection />
+
+      {/* 5. COMPARISON */}
+      <ComparisonSection comparisonSet={comparisonSet} onComparisonSetChange={setComparisonSet} />
 
       {/* 8. THE PROMISE - Pricing */}
       <PromiseSection id="pricing" />

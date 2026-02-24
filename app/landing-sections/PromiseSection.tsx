@@ -25,7 +25,7 @@ const itemVariants = {
 
 export default function PromiseSection({ id }: { id?: string }) {
     return (
-        <section id={id} className="py-24 md:py-32 bg-[#F8FAF0] dark:bg-gray-950 overflow-hidden transition-colors duration-300">
+        <section id={id} className="py-24 md:py-32 bg-green-50 dark:bg-gray-950 overflow-hidden transition-colors duration-300">
             <div className="max-w-6xl mx-auto px-5 md:px-8">
 
                 <motion.div
@@ -49,7 +49,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                             {/* The $0 */}
                             <motion.h2
                                 variants={itemVariants}
-                                className="text-[160px] md:text-[200px] leading-none font-black text-[#275085] dark:text-white tracking-tighter"
+                                className="text-[160px] md:text-[200px] leading-none font-black text-green-600 dark:text-green-400 tracking-tighter"
                             >
                                 $0
                             </motion.h2>
@@ -58,7 +58,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                         {/* "The Promise" Badge */}
                         <motion.span
                             variants={itemVariants}
-                            className="mt-4 bg-[#ebf6b5] dark:bg-emerald-900/40 text-[#2d5a27] dark:text-emerald-400 text-sm font-bold px-4 py-1.5 rounded-full"
+                            className="mt-4 bg-[#ebf6b5] dark:bg-emerald-900/40 text-green-600 dark:text-green-400 text-sm font-bold px-4 py-1.5 rounded-full"
                         >
                             The Promise
                         </motion.span>
@@ -68,7 +68,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                     <div className="lg:col-span-8 flex flex-col justify-center">
                         <motion.h3
                             variants={itemVariants}
-                            className="text-3xl md:text-5xl font-semibold text-[#275085] dark:text-[#4a9cdb] tracking-tight leading-[1.15] mb-4"
+                            className="text-3xl md:text-5xl font-semibold text-green-600 dark:text-green-400 tracking-tight leading-[1.15] mb-4"
                         >
                             No hidden fees.<br />
                             No bait-and-switch.
@@ -113,7 +113,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                             </div>
 
                             {/* Card 3: TaskTornado */}
-                            <div className="bg-[#275085] dark:bg-blue-600 rounded-[28px] p-2 shadow-lg flex flex-col md:-translate-y-2">
+                            <div className="bg-green-600 dark:bg-green-700 rounded-[28px] p-2 shadow-lg flex flex-col md:-translate-y-2">
                                 <div className="bg-white/10 dark:bg-black/20 px-5 py-3 rounded-[20px] flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <img src="/TaskTornadoDark.svg" alt="Logo" className="w-5 h-5 block" />
@@ -155,10 +155,10 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 {/* Top Half: Icon/Header + Image */}
                                 <div className="flex justify-between items-start gap-4 mb-0">
                                     <div className="flex-1">
-                                        <div className="text-[#275085] dark:text-[#4a9cdb] mb-4">
+                                        <div className="text-green-600 dark:text-green-400 mb-4">
                                             <Github className="w-8 h-8 stroke-[2.5]" />
                                         </div>
-                                        <h4 className="font-bold text-xl text-[#275085] dark:text-[#4a9cdb]">Open-source models</h4>
+                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">Open-source models</h4>
                                     </div>
                                     <div className="relative w-28 h-28 shrink-0 -mt-3 -mr-3 transition-transform duration-500 ease-out">
                                         <Image
@@ -171,7 +171,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 </div>
                                 {/* Bottom Half: Text content (full width) */}
                                 <div className="-mt-1">
-                                    <p className="text-sm text-[#275085]/65 dark:text-[#4a9cdb]/65 leading-relaxed">
+                                    <p className="text-sm text-green-900/60 dark:text-green-400/60 leading-relaxed">
                                         Open-source models like Gemma allow us to operate near zero cost.
                                     </p>
                                 </div>
@@ -182,10 +182,10 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 {/* Top Half: Icon/Header + Image */}
                                 <div className="flex justify-between items-start gap-4 mb-0">
                                     <div className="flex-1">
-                                        <div className="text-[#275085] dark:text-[#4a9cdb] mb-4">
+                                        <div className="text-green-600 dark:text-green-400 mb-4">
                                             <Scale className="w-8 h-8 stroke-[2.5]" />
                                         </div>
-                                        <h4 className="font-bold text-xl text-[#275085] dark:text-[#4a9cdb]">Fair usage limits</h4>
+                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">Fair usage limits</h4>
                                     </div>
                                     <div className="relative w-28 h-28 shrink-0 -mt-2 -mr-2 transition-transform duration-500 ease-out">
                                         <Image
@@ -198,7 +198,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 </div>
                                 {/* Bottom Half: Text content (full width) */}
                                 <div className="-mt-1">
-                                    <p className="text-sm text-[#275085]/65 dark:text-[#4a9cdb]/65 leading-relaxed">
+                                    <p className="text-sm text-green-900/60 dark:text-green-400/60 leading-relaxed">
                                         Sensible caps ensure everyone gets equal access to our resources.
                                     </p>
                                 </div>
@@ -209,10 +209,10 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 {/* Top Half: Icon/Header + Image */}
                                 <div className="flex justify-between items-start gap-4 mb-0">
                                     <div className="flex-1">
-                                        <div className="text-[#275085] dark:text-[#4a9cdb] mb-4">
+                                        <div className="text-green-600 dark:text-green-400 mb-4">
                                             <Ban className="w-8 h-8 stroke-[2.5]" />
                                         </div>
-                                        <h4 className="font-bold text-xl text-[#275085] dark:text-[#4a9cdb]">No investor pressure</h4>
+                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">No investor pressure</h4>
                                     </div>
                                     <div className="relative w-28 h-28 shrink-0 -mt-2 -mr-2 transition-transform duration-500 ease-out">
                                         <Image
@@ -225,7 +225,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 </div>
                                 {/* Bottom Half: Text content (full width) */}
                                 <div className="-mt-1">
-                                    <p className="text-sm text-[#275085]/65 dark:text-[#4a9cdb]/65 leading-relaxed">
+                                    <p className="text-sm text-green-900/60 dark:text-green-400/60 leading-relaxed">
                                         We answer to students, not shareholders looking for infinite growth.
                                     </p>
                                 </div>

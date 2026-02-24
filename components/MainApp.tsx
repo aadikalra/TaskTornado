@@ -200,6 +200,7 @@ import { Input } from '@/components/ui/input';
 
 import { SubjectMastery } from './SubjectMastery';
 import { MiniCalendar } from './MiniCalendar';
+import { ComingUp } from './ComingUp';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -1117,7 +1118,7 @@ const MainApp = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-lg sm:text-xl font-medium text-[#264f84] dark:text-blue-400 transition-colors uppercase tracking-tight">
+                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
                         My Classes
                       </h2>
                     </div>
@@ -1134,38 +1135,41 @@ const MainApp = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Button
-                      variant="default"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowAddClass(true);
-                      }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> ADD CLASS
-                    </Button>
-                    <Button
-                      variant="default"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowAddHomework(true);
-                      }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> ADD HOMEWORK
-                    </Button>
-                    {showTestsInClassCards && (
-                      <Button
-                        variant="default"
+                    {/* Nav-pill style action buttons */}
+                    <div className="flex items-center gap-1.5 p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setShowAddTest(true);
+                          setShowAddClass(true);
                         }}
-                        className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
+                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-white hover:text-white/80 rounded-full bg-white/10 hover:bg-white/15 transition-all active:scale-95"
                       >
-                        <Plus className="mr-2 h-4 w-4" /> ADD TEST
-                      </Button>
-                    )}
+                        <Plus className="h-3.5 w-3.5" />
+                        Class
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAddHomework(true);
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-white hover:text-white/80 rounded-full bg-white/10 hover:bg-white/15 transition-all active:scale-95"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Homework
+                      </button>
+                      {showTestsInClassCards && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowAddTest(true);
+                          }}
+                          className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-white hover:text-white/80 rounded-full bg-white/10 hover:bg-white/15 transition-all active:scale-95"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Test
+                        </button>
+                      )}
+                    </div>
                     {!showTestsInClassCards && (
                       <Button
                         variant="default"
@@ -1755,16 +1759,35 @@ const MainApp = () => {
   const completionEmoji = completionRate === 100 ? '🏆' : completionRate >= 80 ? '🔥' : completionRate >= 50 ? '💪' : completionRate > 0 ? '🌱' : '📝';
   const overdueEmoji = overdueCount === 0 ? '✅' : overdueCount <= 2 ? '😬' : '😰';
 
+  // Compute the Facehash background color to use on the heading
+  const FACEHASH_COLORS = [
+    '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899',
+    '#f43f5e', '#f59e0b', '#10b981', '#14b8a6',
+    '#06b6d4', '#0ea5e9', '#f97316', '#64748b',
+  ];
+  const facehashColor = useMemo(() => {
+    const name = (full_name?.split(' ')[0]) || user?.email || 'Student';
+    // Exact replica of facehash's stringHash
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      const char = name.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash &= hash;
+    }
+    hash = Math.abs(hash);
+    return FACEHASH_COLORS[hash % FACEHASH_COLORS.length];
+  }, [full_name, user?.email]);
+
   return (
-    <div className="min-h-screen bg-[#f4f8da] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
-      <main className={getContainerClass('max-w-7xl') + ' py-8'}>
+    <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
+      <main className="w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-8">
         {/* Welcome Section — with Facehash Avatar */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="flex items-start gap-4 sm:gap-5">
+          <div className="flex items-center gap-4 sm:gap-5">
             {/* Facehash Avatar — clickable for jokes */}
             <div className="relative shrink-0" ref={facehashRef}>
               <div className="relative">
@@ -1978,162 +2001,97 @@ const MainApp = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-xl font-medium text-[#264f84] dark:text-blue-400 mb-1 tracking-tight uppercase">
-                {timeGreeting.text} {full_name?.split(' ')[0] || 'Student'}!
+              <h1 className="text-3xl sm:text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight">
+                {timeGreeting.text}, {full_name?.split(' ')[0] || 'Student'}!
               </h1>
-              <p className="text-[#6B7280] dark:text-gray-400 text-sm">
-                Here's what's happening with your classes today
-              </p>
+            </div>
+
+            {/* Stats pill — green bg, sky-500 text, inner segment pills */}
+            <div className="hidden lg:flex items-center gap-2.5 p-1.5 bg-[#f5f9fc] dark:bg-gray-800 rounded-full shadow-sm border border-sky-100 dark:border-gray-700 shrink-0">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full">
+                <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">{completionRate}%</span>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Complete</span>
+              </div>
+              <div className="w-px h-5 bg-blue-700/20 dark:bg-blue-400/20" />
+              <div ref={overdueCardRef} className="flex items-center gap-2 px-4 py-2 rounded-full">
+                <Clock className={`w-4 h-4 ${overdueCount > 0 ? 'text-red-500' : 'text-blue-700 dark:text-blue-400'}`} />
+                <span className={`text-sm font-bold ${overdueCount > 0 ? 'text-red-500' : 'text-blue-700 dark:text-blue-400'}`}>{overdueCount}</span>
+                <span className={`text-xs font-medium ${overdueCount > 0 ? 'text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>Overdue</span>
+              </div>
+              <div className="w-px h-5 bg-blue-700/20 dark:bg-blue-400/20" />
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full">
+                <GraduationCap className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">{tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}</span>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Tests</span>
+              </div>
+              <div className="w-px h-5 bg-blue-700/20 dark:bg-blue-400/20" />
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full">
+                <CalendarIcon className={`w-4 h-4 ${(() => {
+                  const nextItem = nextDueHomework && nextUpcomingTest
+                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                    : (nextDueHomework || nextUpcomingTest);
+                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                  if (daysUntil === 0) return 'text-red-500';
+                  if (daysUntil === 1) return 'text-amber-500';
+                  return 'text-blue-700 dark:text-blue-400';
+                })()}`} />
+                <span className={`text-sm font-bold whitespace-nowrap ${(() => {
+                  const nextItem = nextDueHomework && nextUpcomingTest
+                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                    : (nextDueHomework || nextUpcomingTest);
+                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                  if (daysUntil === 0) return 'text-red-500';
+                  if (daysUntil === 1) return 'text-amber-500';
+                  return 'text-blue-700 dark:text-blue-400';
+                })()}`}>
+                  {nextDueHomework || nextUpcomingTest ? (
+                    (() => {
+                      const nextItem = nextDueHomework && nextUpcomingTest
+                        ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                        : (nextDueHomework || nextUpcomingTest);
+                      const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
+                      const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
+
+                      if (daysUntil !== null) {
+                        if (daysUntil === 0) return 'Today';
+                        if (daysUntil === 1) return 'Tomorrow';
+
+                        if (daysUntil < 7) {
+                          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                          const currentDay = new Date().getDay();
+                          const testDay = itemDate.getDay();
+                          const itemDayName = dayNames[testDay];
+                          const daysUntilItem = testDay - currentDay;
+                          const isSameWeek = daysUntilItem > 0 && daysUntilItem <= 6;
+                          if (isSameWeek) return `This ${itemDayName}`;
+                          return `Next ${itemDayName}`;
+                        }
+                        return format(itemDate, 'MMM d');
+                      }
+                      return `${daysUntil}d`;
+                    })()
+                  ) : '-'}
+                </span>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                  {nextDueHomework || nextUpcomingTest ? (
+                    (() => {
+                      const nextItem = nextDueHomework && nextUpcomingTest
+                        ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
+                        : (nextDueHomework || nextUpcomingTest);
+                      return nextItem === nextUpcomingTest ? 'Next Test' : 'Next Due';
+                    })()
+                  ) : 'Next Due'}
+                </span>
+              </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Stats Section - Enhanced with emoji reactions */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {/* Completion Rate */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
-          >
-            <span className="text-base text-[#264f84] dark:text-blue-400 font-medium uppercase tracking-tight">Complete</span>
-            <div className="flex items-center gap-2.5">
-              <span className="text-base font-medium text-[#00c951] dark:text-[#00c951] tracking-tight">
-                {completionRate}%
-              </span>
-              <CheckCircle className="w-5 h-5 text-[#264f84] dark:text-blue-400" />
-            </div>
-          </motion.div>
-
-          {/* Overdue Items */}
-          <motion.div
-            ref={overdueCardRef}
-            whileHover={{ y: -2 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
-          >
-            <span className={`text-base font-medium uppercase tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`}>Overdue</span>
-            <div className="flex items-center gap-2.5">
-              <span className={`text-base font-medium tracking-tight ${overdueCount > 0 ? 'text-red-500' : 'text-[#00c951] dark:text-[#00c951]'}`}>
-                {overdueCount}
-              </span>
-              <div className="relative">
-                <Clock className={`w-5 h-5 ${overdueCount > 0 ? 'text-red-500' : 'text-[#264f84] dark:text-blue-400'}`} />
-                {overdueCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full border-2 border-white dark:border-gray-900"></span>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Test Stats */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
-          >
-            <span className="text-base text-[#264f84] dark:text-blue-400 font-medium uppercase tracking-tight">Tests</span>
-            <div className="flex items-center gap-2.5">
-              <span className="text-base font-medium text-[#00c951] dark:text-[#00c951] tracking-tight">
-                {tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}
-              </span>
-              <GraduationCap className="w-5 h-5 text-[#264f84] dark:text-blue-400" />
-            </div>
-          </motion.div>
-
-          {/* Next Deadline */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="bg-[#ebf6b5] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 group flex items-center justify-between gap-2"
-          >
-            <span className={`text-base font-medium uppercase tracking-tight ${(() => {
-              const nextItem = nextDueHomework && nextUpcomingTest
-                ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                : (nextDueHomework || nextUpcomingTest);
-              const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-
-              if (!daysUntil && daysUntil !== 0) return 'text-[#264f84] dark:text-blue-400';
-              if (daysUntil === 0) return 'text-red-500';
-              if (daysUntil === 1) return 'text-amber-500';
-              if (daysUntil <= 3) return 'text-orange-500';
-              return 'text-[#264f84] dark:text-blue-400';
-            })()
-              }`}>
-              {nextDueHomework || nextUpcomingTest ? (
-                (() => {
-                  const nextItem = nextDueHomework && nextUpcomingTest
-                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                    : (nextDueHomework || nextUpcomingTest);
-                  const isTest = nextItem === nextUpcomingTest;
-                  return `Next ${isTest ? 'Test' : 'Due'}`;
-                })()
-              ) : 'Next Due'}
-            </span>
-            <div className="flex items-center gap-2.5">
-              <span className={`text-base font-medium whitespace-nowrap tracking-tight ${(() => {
-                const nextItem = nextDueHomework && nextUpcomingTest
-                  ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                  : (nextDueHomework || nextUpcomingTest);
-                const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                if (!daysUntil && daysUntil !== 0) return 'text-[#00c951] dark:text-[#00c951]';
-                if (daysUntil === 0) return 'text-red-500';
-                if (daysUntil === 1) return 'text-amber-500';
-                if (daysUntil <= 3) return 'text-orange-500';
-                return 'text-[#00c951] dark:text-[#00c951]';
-              })()}`}>
-                {nextDueHomework || nextUpcomingTest ? (
-                  (() => {
-                    const nextItem = nextDueHomework && nextUpcomingTest
-                      ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                      : (nextDueHomework || nextUpcomingTest);
-                    const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                    const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
-
-                    if (daysUntil !== null) {
-                      if (daysUntil === 0) return 'Today';
-                      if (daysUntil === 1) return 'Tomorrow';
-
-                      if (daysUntil < 7) {
-                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                        const currentDay = new Date().getDay();
-                        const testDay = itemDate.getDay();
-                        const itemDayName = dayNames[testDay];
-                        const daysUntilItem = testDay - currentDay;
-                        const isSameWeek = daysUntilItem > 0 && daysUntilItem <= 6;
-
-                        if (isSameWeek) {
-                          return `This ${itemDayName}`;
-                        } else {
-                          return `Next ${itemDayName}`;
-                        }
-                      }
-
-                      return format(itemDate, 'MMM d');
-                    }
-
-                    return `${daysUntil}d`;
-                  })()
-                ) : '-'}
-              </span>
-              <CalendarIcon className={`w-5 h-5 ${(() => {
-                const nextItem = nextDueHomework && nextUpcomingTest
-                  ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                  : (nextDueHomework || nextUpcomingTest);
-                const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-
-                if (!daysUntil && daysUntil !== 0) return 'text-[#264f84] dark:text-blue-400';
-                if (daysUntil === 0) return 'text-red-500';
-                if (daysUntil === 1) return 'text-amber-500';
-                if (daysUntil <= 3) return 'text-orange-500';
-                return 'text-[#264f84] dark:text-blue-400';
-              })()
-                }`} />
-            </div>
-          </motion.div>
-        </div>
-        <div className="mb-8 h-[280px]">
+        {/* Calendar + Coming Up */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8 h-[300px]">
           <MiniCalendar />
+          <ComingUp />
         </div>
 
         {/* Render sections in user-defined order */}
@@ -2589,68 +2547,64 @@ const MainApp = () => {
 
       {/* Onboarding Modal */}
       <AnimatePresence>
-        {
-          showOnboarding && (
-            <OnboardingModal
-              isOpen={showOnboarding}
-              onClose={() => setShowOnboarding(false)}
-            />
-          )
-        }
+        {showOnboarding && (
+          <OnboardingModal
+            isOpen={showOnboarding}
+            onClose={() => setShowOnboarding(false)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Delete Confirmation Dialog */}
       <AnimatePresence>
-        {
-          deleteConfirm && (
-            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-800"
-              >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Delete Recurring Homework
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Are you sure you want to delete "<span className="font-medium">{deleteConfirm.title}</span>"?
-                </p>
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-800"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Delete Recurring Homework
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete &quot;<span className="font-medium">{deleteConfirm.title}</span>&quot;?
+              </p>
 
-                <div className="space-y-3 mb-6">
-                  <button
-                    onClick={() => handleDeleteConfirm(false)}
-                    className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
-                  >
-                    Delete only this instance
-                  </button>
-                  <button
-                    onClick={() => handleDeleteConfirm(true)}
-                    className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                  >
-                    Delete entire recurring series
-                  </button>
-                </div>
+              <div className="space-y-3 mb-6">
+                <button
+                  onClick={() => handleDeleteConfirm(false)}
+                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                >
+                  Delete only this instance
+                </button>
+                <button
+                  onClick={() => handleDeleteConfirm(true)}
+                  className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                >
+                  Delete entire recurring series
+                </button>
+              </div>
 
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => setDeleteConfirm(null)}
-                    className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )
-        }
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Delete Class Confirmation Dialog */}
       <AlertDialog open={!!classToDelete} onOpenChange={(open) => { if (!open) setClassToDelete(null); }}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{classToDelete?.name}"?</AlertDialogTitle>
+            <AlertDialogTitle>Delete &quot;{classToDelete?.name}&quot;?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this class and all of its homework and tests. This action cannot be undone.
             </AlertDialogDescription>
@@ -2671,7 +2625,7 @@ const MainApp = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   );
 }
 

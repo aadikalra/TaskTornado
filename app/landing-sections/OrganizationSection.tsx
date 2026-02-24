@@ -32,7 +32,7 @@ export default function OrganizationSection({ id, homeworkItems, onItemToggle }:
         <section id={id || "organization"} className="py-12 md:py-20 bg-[#FCFDF5] dark:bg-zinc-950">
             <div className="max-w-7xl mx-auto px-6 md:px-12">
                 {/* ── Feature Grid ───────────────────────────────────────── */}
-                <div className="bg-[#F1F6D1] dark:bg-zinc-900 rounded-[40px] md:rounded-[64px] py-16 md:py-24 px-8 md:px-16">
+                <div className="bg-[#F1F6D1] dark:bg-zinc-900 rounded-[40px] md:rounded-[64px] p-8 md:p-16">
                     {/* ── Header ────────────────────────────────────────────── */}
                     <motion.div
                         initial={{ opacity: 0, y: 16 }}
@@ -57,7 +57,7 @@ export default function OrganizationSection({ id, homeworkItems, onItemToggle }:
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                                className="bg-white dark:bg-zinc-800 rounded-[32px] p-8 md:p-10 flex flex-col items-center text-center shadow-sm border border-[#275085]/5 dark:border-zinc-700 h-full hover:shadow-md transition-shadow"
+                                className="bg-[#fff8fa] dark:bg-zinc-800 rounded-[32px] p-8 md:p-10 flex flex-col items-center text-center shadow-sm border border-[#275085]/5 dark:border-zinc-700 h-full hover:shadow-md transition-shadow"
                             >
                                 {/* Graphic */}
                                 <div className="h-44 flex items-center justify-center mb-8 w-full">

@@ -104,11 +104,11 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100/80 dark:hover:bg-white/[0.04] rounded-xl transition-all duration-150 group"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#ebf6b5]/60 dark:bg-sky-500/20 rounded-full transition-all duration-150 hover:bg-[#ebf6b5] dark:hover:bg-sky-500/30 group"
             >
-                <span className="text-lg leading-none">{selectedLang?.flag}</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedLang?.name}</span>
-                <ChevronDown className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                <span className="text-base leading-none">{selectedLang?.flag}</span>
+                <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400">{selectedLang?.name}</span>
+                <ChevronDown className={`h-3 w-3 text-sky-600/60 dark:text-sky-400/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -118,15 +118,15 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -8, scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                        className="absolute top-full left-0 mt-1.5 z-50 w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 rounded-xl shadow-xl overflow-hidden"
+                        className="absolute top-full left-0 mt-1.5 z-50 w-64 bg-[#eff6fe]/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-[#275085]/10 dark:border-[#4a9cdb]/10 rounded-xl shadow-xl overflow-hidden"
                     >
-                        <div className="p-2 border-b border-gray-100 dark:border-white/5">
+                        <div className="p-2 border-b border-[#275085]/5 dark:border-[#4a9cdb]/5">
                             <input
                                 type="text"
                                 placeholder="Search languages..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-white/5 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-1 focus:ring-[#264f84]/30"
+                                className="w-full px-3 py-2 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] rounded-lg text-sm text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/30 dark:placeholder:text-[#4a9cdb]/30 outline-none focus:ring-1 focus:ring-[#275085]/20 dark:focus:ring-[#4a9cdb]/20"
                                 autoFocus
                             />
                         </div>
@@ -139,15 +139,15 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
                                         setIsOpen(false);
                                         setSearch('');
                                     }}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100/80 dark:hover:bg-white/5 transition-colors ${value === lang.code ? 'bg-[#264f84]/5 dark:bg-[#264f84]/10' : ''
+                                    className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] transition-colors ${value === lang.code ? 'bg-emerald-500/5 dark:bg-emerald-400/5' : ''
                                         }`}
                                 >
                                     <span className="text-lg">{lang.flag}</span>
-                                    <span className={`text-sm ${value === lang.code ? 'text-[#264f84] dark:text-blue-400 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
+                                    <span className={`text-sm ${value === lang.code ? 'text-emerald-500 dark:text-emerald-400 font-semibold' : 'text-[#275085]/70 dark:text-[#4a9cdb]/70'}`}>
                                         {lang.name}
                                     </span>
                                     {value === lang.code && (
-                                        <Check className="h-3.5 w-3.5 text-[#264f84] dark:text-blue-400 ml-auto" />
+                                        <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 ml-auto" />
                                     )}
                                 </button>
                             ))}
@@ -404,19 +404,28 @@ export default function TranslatePage() {
     const targetLang = LANGUAGES.find(l => l.code === targetLanguage);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950">
-            <div className="px-4 pt-4 pb-16 sm:px-6 sm:pt-6 sm:pb-20 lg:px-8 lg:pt-8 lg:pb-24">
+        <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans relative">
+
+            {/* ── Ambient glows ─────────────────────── */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+            </div>
+
+            {/* ── Main Content ─────────────────── */}
+            <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-10">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">
-                            Translate
+                        <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-3">
+                            Translate anything.
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                        <p className="text-sm sm:text-base text-sky-600 dark:text-sky-300 font-medium">
                             AI-powered translation across 55+ languages
                         </p>
                     </motion.div>
@@ -427,21 +436,23 @@ export default function TranslatePage() {
                         className="flex flex-col items-end gap-2"
                     >
                         {!user && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-lg">
-                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">
-                                    Usage: {translationsCount}/10
-                                </span>
-                                {translationsCount >= 10 && <Lock className="w-2.5 h-2.5 text-amber-500" />}
+                            <div className="flex flex-col gap-1.5">
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#ebf6b5]/60 dark:bg-sky-500/20 rounded-full">
+                                    <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400">
+                                        {translationsCount}/10 free translations
+                                    </span>
+                                    {translationsCount >= 10 && <Lock className="w-2.5 h-2.5 text-sky-600 dark:text-sky-400" />}
+                                </div>
+                                {/* Progress bar */}
+                                <div className="h-1 w-full bg-sky-100 dark:bg-sky-900/40 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-500 ${translationsCount >= 10 ? 'bg-red-400' : 'bg-sky-500 dark:bg-sky-400'}`}
+                                        style={{ width: `${Math.min((translationsCount / 10) * 100, 100)}%` }}
+                                    />
+                                </div>
                             </div>
                         )}
-                        <div className="hidden sm:flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">
-                                <kbd>⌘</kbd>
-                                <span>+</span>
-                                <kbd>Enter</kbd>
-                            </div>
-                            <span>to translate</span>
-                        </div>
+
                     </motion.div>
                 </div>
 
@@ -460,10 +471,10 @@ export default function TranslatePage() {
 
                     <button
                         onClick={swapLanguages}
-                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-colors group active:scale-95"
+                        className="p-2 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] transition-colors group active:scale-95"
                         title="Swap languages"
                     >
-                        <ArrowRightLeft className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                        <ArrowRightLeft className="h-3.5 w-3.5 text-sky-600/50 dark:text-sky-400/50 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" />
                     </button>
 
                     <LanguageSelector
@@ -481,12 +492,12 @@ export default function TranslatePage() {
                     className="grid md:grid-cols-2 gap-4 mb-4"
                 >
                     {/* Source Panel */}
-                    <div className="relative border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden group/panel focus-within:border-gray-300 dark:focus-within:border-gray-700 transition-colors">
-                        <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                    <div className="relative bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
+                        <div className="px-6 pt-5 pb-2 flex items-center justify-between">
+                            <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                 {sourceLang?.flag} {sourceLang?.name}
                             </span>
-                            <span className={`text-[10px] font-medium tabular-nums tracking-tight ${charCount > MAX_CHARS * 0.9 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                            <span className={`text-[10px] font-medium tabular-nums tracking-tight ${charCount > MAX_CHARS * 0.9 ? 'text-amber-500' : 'text-sky-700/60 dark:text-sky-400/60'}`}>
                                 {charCount > 0 ? `${charCount.toLocaleString()} / ${MAX_CHARS.toLocaleString()}` : ''}
                             </span>
                         </div>
@@ -495,17 +506,17 @@ export default function TranslatePage() {
                             value={sourceText}
                             onChange={handleSourceTextChange}
                             placeholder="Enter text to translate..."
-                            className="w-full h-56 sm:h-64 resize-none bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-[15px] leading-relaxed outline-none scrollbar-hide px-5 pb-14"
+                            className="w-full h-56 sm:h-64 resize-none bg-transparent text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 text-[15px] leading-relaxed outline-none scrollbar-hide px-6 pb-14"
                         />
-                        <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                        <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between">
                             <div className="flex items-center gap-1">
                                 <button
                                     onClick={() => speakText(sourceText, sourceLanguage)}
                                     disabled={!sourceText}
-                                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                     title="Listen"
                                 >
-                                    <Volume2 className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                    <Volume2 className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                 </button>
                                 {sourceText && (
                                     <button
@@ -516,17 +527,17 @@ export default function TranslatePage() {
                                             setPronunciation('');
                                             setExplanation('');
                                         }}
-                                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                                        className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] transition-colors"
                                         title="Clear"
                                     >
-                                        <X className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                        <X className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                     </button>
                                 )}
                             </div>
                             {isTranslating ? (
                                 <button
                                     onClick={cancelTranslation}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-500/5 active:scale-95"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-700/70 dark:text-sky-400/70 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-500/5 active:scale-95"
                                 >
                                     <X className="h-3 w-3" />
                                     Stop
@@ -535,7 +546,7 @@ export default function TranslatePage() {
                                 <button
                                     onClick={translate}
                                     disabled={!sourceText.trim()}
-                                    className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                                    className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15"
                                 >
                                     Translate
                                 </button>
@@ -544,15 +555,15 @@ export default function TranslatePage() {
                     </div>
 
                     {/* Output Panel */}
-                    <div className="relative border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-gray-50/50 dark:bg-white/[0.02]">
-                        <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                    <div className="relative bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden">
+                        <div className="px-6 pt-5 pb-2 flex items-center justify-between">
+                            <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                 {targetLang?.flag} {targetLang?.name}
                             </span>
                             {isTranslating && (
                                 <div className="flex items-center gap-1.5">
-                                    <Loader2 className="h-3 w-3 text-gray-400 animate-spin" />
-                                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">Translating...</span>
+                                    <Loader2 className="h-3 w-3 text-emerald-500/60 animate-spin" />
+                                    <span className="text-[10px] font-medium text-sky-700/70 dark:text-sky-400/70">Translating...</span>
                                 </div>
                             )}
                         </div>
@@ -560,48 +571,48 @@ export default function TranslatePage() {
                         {isTranslating && !translatedText ? (
                             <div className="flex items-center justify-center h-56 sm:h-64">
                                 <div className="flex flex-col items-center gap-3">
-                                    <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
-                                    <span className="text-xs text-gray-400 dark:text-gray-500">Processing...</span>
+                                    <Loader2 className="h-6 w-6 text-emerald-500/50 animate-spin" />
+                                    <span className="text-xs text-sky-700/70 dark:text-sky-400/70">Processing...</span>
                                 </div>
                             </div>
                         ) : (
                             <>
-                                <div className="h-56 sm:h-64 overflow-y-auto scrollbar-hide px-5 pb-14">
-                                    <div className={`text-[15px] leading-relaxed ${translatedText ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+                                <div className="h-56 sm:h-64 overflow-y-auto scrollbar-hide px-6 pb-14">
+                                    <div className={`text-[15px] leading-relaxed ${translatedText ? 'text-sky-900 dark:text-sky-100' : 'text-sky-700/50 dark:text-sky-400/50'}`}>
                                         {translatedText || 'Translation will appear here...'}
                                     </div>
                                     {pronunciation && (
                                         <motion.div
                                             initial={{ opacity: 0, y: 5 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="mt-4 inline-flex items-center gap-2 px-2.5 py-1 bg-gray-100 dark:bg-white/5 rounded-lg"
+                                            className="mt-4 inline-flex items-center gap-2 px-2.5 py-1 bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.04] rounded-xl"
                                         >
-                                            <Volume2 className="h-3 w-3 text-gray-400" />
-                                            <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                            <Volume2 className="h-3 w-3 text-sky-600/60 dark:text-sky-400/60" />
+                                            <span className="text-xs text-sky-700/70 dark:text-sky-400/70 italic">
                                                 {pronunciation}
                                             </span>
                                         </motion.div>
                                     )}
                                 </div>
-                                <div className="absolute bottom-3 left-4 right-4 flex items-center gap-1">
+                                <div className="absolute bottom-4 left-5 right-5 flex items-center gap-1">
                                     <button
                                         onClick={() => speakText(translatedText, targetLanguage)}
                                         disabled={!translatedText}
-                                        className="p-1.5 rounded-lg hover:bg-gray-200/80 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                         title="Listen"
                                     >
-                                        <Volume2 className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                        <Volume2 className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                     </button>
                                     <button
                                         onClick={copyToClipboard}
                                         disabled={!translatedText}
-                                        className="p-1.5 rounded-lg hover:bg-gray-200/80 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                         title="Copy"
                                     >
                                         {copied ? (
-                                            <Check className="h-3.5 w-3.5 text-green-500" />
+                                            <Check className="h-3.5 w-3.5 text-emerald-500" />
                                         ) : (
-                                            <Copy className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                            <Copy className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                         )}
                                     </button>
                                 </div>
@@ -619,11 +630,11 @@ export default function TranslatePage() {
                             exit={{ opacity: 0, height: 0 }}
                             className="overflow-hidden mb-4"
                         >
-                            <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-5">
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
+                            <div className="bg-[#eff6fe]/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-[#275085]/8 dark:border-[#4a9cdb]/10 rounded-3xl p-6 shadow-[0_20px_60px_rgba(39,80,133,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+                                <div className="text-[13px] font-black uppercase tracking-[0.1em] text-emerald-500 dark:text-emerald-400 mb-3">
                                     Translation Context
                                 </div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                <div className="text-sm text-sky-900/80 dark:text-sky-200/80 leading-relaxed">
                                     {explanation}
                                 </div>
                             </div>
@@ -636,10 +647,10 @@ export default function TranslatePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+                    className="mt-20 pt-8 border-t border-[#275085]/8 dark:border-[#4a9cdb]/8"
                 >
                     <div className="flex items-center justify-between">
-                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-400/60 font-medium">
                             Built for students • Public Beta {getFullVersionString()}
                         </p>
                     </div>

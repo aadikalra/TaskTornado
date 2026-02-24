@@ -9,17 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/animate-ui/radix/checkbox';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';
 import { useDarkMode } from '@/context/DarkModeContext';
-import DotGrid from '../DotGrid';
-
-const TaskTornadoIcon = ({ size = 24, isDarkMode = false }: { size?: number; isDarkMode?: boolean }) => (
-  <img
-    width={size}
-    height={size}
-    src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
-    alt="TaskTornado Logo"
-    style={{ display: 'block' }}
-  />
-);
+import Image from 'next/image';
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -65,81 +55,79 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black flex flex-col md:flex-row overflow-hidden font-sans">
-      {/* Left Section: Branding & Immersive Visuals */}
-      <div className="hidden md:flex md:w-[45%] lg:w-[40%] bg-[#F7F7F9] dark:bg-zinc-900/50 relative flex-col p-12 justify-between border-r border-gray-100 dark:border-zinc-800">
-        <DotGrid
-          dotSize={4}
-          gap={20}
-          darkMode={isDark}
-          className="absolute inset-0 z-0 opacity-40"
-          style={{ pointerEvents: 'none' }}
-        />
+    <div className="min-h-screen bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-gray-950 dark:via-gray-950 dark:to-gray-900 flex flex-col md:flex-row overflow-hidden font-sans relative">
 
-        <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <TaskTornadoIcon size={32} isDarkMode={isDark} />
-            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">TaskTornado</span>
-          </Link>
-        </div>
-
-        <div className="relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-[1.1] tracking-tight"
-          >
-            Start your <br />
-            <span className="text-blue-600">adventure here.</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-gray-500 dark:text-gray-400 mt-6 text-lg max-w-sm leading-relaxed"
-          >
-            Create an account to unlock personalized AI focus tools and seamless organization.
-          </motion.p>
-        </div>
-
-        <div className="relative z-10 flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-          <span>© {new Date().getFullYear()} SchoolOrganizer</span>
-          <span className="w-1 h-1 bg-gray-300 dark:bg-zinc-700 rounded-full" />
-          <span>v2.4</span>
-        </div>
+      {/* ── Ambient glows (matching hero) ─────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
       </div>
 
-      {/* Right Section: Sign Up Form */}
-      <div className="flex-1 flex items-center justify-center p-8 md:p-12 lg:p-24 bg-white dark:bg-black relative overflow-y-auto">
-        {/* Mobile Header Only */}
-        <div className="absolute top-8 left-8 md:hidden">
-          <TaskTornadoIcon size={32} isDarkMode={isDark} />
-        </div>
+      {/* ── Main Layout Wrapper ─────────────────── */}
+      <div className="flex-1 w-full max-w-[1400px] mx-auto flex flex-col md:flex-row relative z-10 min-h-screen px-4 sm:px-6 md:px-12 lg:px-16">
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-[440px] py-12"
-        >
-          <div className="mb-10">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-              Create Account
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Join TaskTornado and master your workload.
-            </p>
+        {/* ── Left Section: Branding & Features ─────────────────── */}
+        <div className="hidden md:flex flex-1 relative flex-col justify-center pt-8 pr-8 lg:pr-12">
+          <div className="relative z-10 flex flex-col gap-6 w-full">
+            {/* Headline */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+            >
+              <h2 className="text-4xl lg:text-[52px] font-bold text-[#275085] dark:text-[#4a9cdb] leading-[1.08] tracking-tight">
+                Welcome <span className="text-emerald-500">aboard.</span>
+              </h2>
+            </motion.div>
+
+            {/* Hero illustration */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="w-full"
+            >
+              <Image
+                src="/signup-hero.png"
+                alt="Student using TaskTornado"
+                width={800}
+                height={800}
+                className="w-full h-auto max-h-[55vh] max-w-[480px] object-contain object-left drop-shadow-sm"
+                priority
+              />
+            </motion.div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider ml-1">
+
+        </div>
+
+        {/* ── Right Section: Sign Up Form ──────────────────────── */}
+        <div className="flex-1 flex items-center justify-center md:justify-end py-20 relative">
+          {/* Form card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="w-full max-w-[460px] bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-[#275085]/8 dark:border-[#4a9cdb]/10 rounded-3xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-[0_20px_60px_rgba(39,80,133,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
+          >
+
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-[#275085] dark:text-[#4a9cdb] tracking-tight">
+                Signup
+              </h1>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
                   Full Name
                 </label>
                 <div className="group relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                    <User size={18} />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
+                    <User size={16} />
                   </div>
                   <input
                     type="text"
@@ -147,18 +135,19 @@ export default function SignUpPage() {
                     placeholder="Alex Johnson"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-4 bg-[#F7F7F9] dark:bg-zinc-900/50 border border-transparent focus:bg-white dark:focus:bg-black focus:border-blue-600 rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-600/5 transition-all text-gray-900 dark:text-white"
+                    className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider ml-1">
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
                   Email Address
                 </label>
                 <div className="group relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                    <Mail size={18} />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
+                    <Mail size={16} />
                   </div>
                   <input
                     type="email"
@@ -166,19 +155,20 @@ export default function SignUpPage() {
                     placeholder="name@school.edu"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-4 bg-[#F7F7F9] dark:bg-zinc-900/50 border border-transparent focus:bg-white dark:focus:bg-black focus:border-blue-600 rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-600/5 transition-all text-gray-900 dark:text-white"
+                    className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider ml-1">
+              {/* Password row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
                     Password
                   </label>
                   <div className="group relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                      <Lock size={18} />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
+                      <Lock size={16} />
                     </div>
                     <input
                       type="password"
@@ -187,17 +177,17 @@ export default function SignUpPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-11 pr-4 py-4 bg-[#F7F7F9] dark:bg-zinc-900/50 border border-transparent focus:bg-white dark:focus:bg-black focus:border-blue-600 rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-600/5 transition-all text-gray-900 dark:text-white"
+                      className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider ml-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
                     Confirm
                   </label>
                   <div className="group relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                      <ShieldCheck size={18} />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
+                      <ShieldCheck size={16} />
                     </div>
                     <input
                       type="password"
@@ -205,54 +195,59 @@ export default function SignUpPage() {
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-11 pr-4 py-4 bg-[#F7F7F9] dark:bg-zinc-900/50 border border-transparent focus:bg-white dark:focus:bg-black focus:border-blue-600 rounded-2xl text-[15px] focus:outline-none focus:ring-4 focus:ring-blue-600/5 transition-all text-gray-900 dark:text-white"
+                      className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
                     />
                   </div>
                 </div>
               </div>
+
+              {/* Terms */}
+              <label className="flex items-center justify-start gap-3 cursor-pointer py-1 group">
+                <Checkbox
+                  checked={termsAccepted}
+                  onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                  className="data-[state=checked]:bg-emerald-500 dark:data-[state=checked]:bg-emerald-400 data-[state=checked]:border-emerald-500 dark:data-[state=checked]:border-emerald-400 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] rounded-md border border-[#275085]/8 dark:border-[#4a9cdb]/8 transition-colors"
+                />
+                <span className="text-[12px] text-[#275085]/50 dark:text-[#4a9cdb]/50 leading-relaxed font-medium mt-0.5">
+                  I agree to the <Link href="/terms" className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline">Terms</Link> and <Link href="/privacy" className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline">Privacy Policy</Link>.
+                </span>
+              </label>
+
+              {/* Error */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200/50 dark:border-red-900/20 text-xs text-red-600 dark:text-red-400 text-center font-medium"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#4a9cdb] dark:hover:bg-[#3d8bc4] text-white rounded-2xl text-sm font-bold shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <>Signup <ArrowRight size={16} /></>}
+              </Button>
+            </form>
+
+            {/* Sign in link */}
+            <div className="mt-8 text-center">
+              <p className="text-[12px] text-[#275085]/40 dark:text-[#4a9cdb]/40 font-medium">
+                Already have an account?{' '}
+                <Link href="/login" className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline underline-offset-4 decoration-2">
+                  Sign in instead
+                </Link>
+              </p>
             </div>
-
-            <label className="flex items-start gap-3 cursor-pointer py-2 group">
-              <Checkbox
-                checked={termsAccepted}
-                onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                className="data-[state=checked]:bg-blue-600 rounded-md border-gray-200 dark:border-zinc-800 mt-1"
-              />
-              <span className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                I agree to the <Link href="/terms" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">Terms</Link> and <Link href="/privacy" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">Privacy Policy</Link>.
-              </span>
-            </label>
-
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-xs text-red-600 dark:text-red-400 text-center font-medium"
-                >
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-xl shadow-blue-600/10 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <>Create Account <ArrowRight size={18} /></>}
-            </Button>
-          </form>
-
-          <div className="mt-12 text-center text-[13px]">
-            <p className="text-gray-500 dark:text-gray-400 font-medium">
-              Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 dark:text-blue-400 font-bold hover:underline underline-offset-4 decoration-2">
-                Sign in instead
-              </Link>
-            </p>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

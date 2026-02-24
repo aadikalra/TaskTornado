@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { Facehash } from 'facehash';
 import Image from 'next/image';
+import { CountingNumber } from '@/components/animate-ui/primitives/texts/counting-number';
 
 const COLORS = [
     '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899',
@@ -131,15 +132,17 @@ export default function SocialProofSection() {
                         className="text-center mb-12 md:mb-16 px-6 md:px-0"
                     >
                         {/* Top Badge */}
-                        <div className="inline-flex items-center gap-2 bg-[#ebf6b5] text-[#275085] rounded-full pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#275085]/10 mb-6 sm:mb-8">
-                            <div className="w-6 h-6 rounded-full bg-[#275085] flex items-center justify-center">
+                        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 rounded-full pl-1.5 pr-4 py-1.5 shadow-xl shadow-blue-500/10 mb-6 sm:mb-8">
+                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
                                 <Star className="w-3.5 h-3.5 fill-white text-white" />
                             </div>
-                            <span className="text-[12px] font-bold tracking-wide">Rated a stunning 4.9/5 average by students</span>
+                            <span className="text-[12px] font-bold tracking-wide">
+                                Rated a stunning <CountingNumber number={4.9} decimalPlaces={1} delay={300} />/5 average by students
+                            </span>
                         </div>
 
                         {/* Headline */}
-                        <h2 className="text-3xl md:text-5xl font-semibold text-[#275085] dark:text-[#4a9cdb] tracking-tight leading-[1.15] mb-4 max-w-3xl mx-auto">
+                        <h2 className="text-3xl md:text-5xl font-semibold text-blue-500 dark:text-blue-400 tracking-tight leading-[1.15] mb-4 max-w-3xl mx-auto">
                             What other students are saying.
                         </h2>
                     </motion.div>

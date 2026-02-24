@@ -78,7 +78,7 @@ export default function ComparisonSection({ comparisonSet, onComparisonSetChange
     const usWins = data.features.filter(f => !f.them || !f.themPartial).length;
 
     return (
-        <section className="bg-white dark:bg-gray-950 py-20 md:py-28">
+        <section className="bg-[#f5f9fc] dark:bg-gray-950 py-20 md:py-28">
             <div className="max-w-5xl mx-auto px-5 md:px-8">
 
                 {/* ── Header ──────────────────────────────────────────────── */}
@@ -132,7 +132,7 @@ export default function ComparisonSection({ comparisonSet, onComparisonSetChange
                                 {comparisonSet === key && (
                                     <motion.div
                                         layoutId="comparison-switcher-pill"
-                                        className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-full shadow-sm"
+                                        className="absolute inset-0 bg-[#fff8fa] dark:bg-zinc-800 rounded-full shadow-sm"
                                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                                     />
                                 )}
