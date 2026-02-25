@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { Button } from '@/components/animate-ui/components/buttons/button';
 
 interface RouteIntroPopupProps {
     isOpen: boolean;
@@ -30,7 +29,7 @@ export function RouteIntroPopup({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm z-50"
                         onClick={onClose}
                     />
 
@@ -39,65 +38,62 @@ export function RouteIntroPopup({
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        transition={{ type: 'spring', duration: 0.5 }}
-                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4"
+                        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
                     >
-                        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-                            {/* Header */}
-                            <div className="relative p-6 sm:p-8 border-b border-gray-200 dark:border-gray-800">
-                                <button
-                                    onClick={onClose}
-                                    className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                    aria-label="Close"
-                                >
-                                    <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                                </button>
+                        <div className="bg-white dark:bg-gray-900 rounded-[32px] shadow-2xl shadow-sky-500/5 border border-sky-100 dark:border-gray-800 overflow-hidden">
+                            <div className="p-7">
+                                {/* Close button */}
+                                <div className="flex justify-end mb-1">
+                                    <button
+                                        onClick={onClose}
+                                        className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400/30 hover:text-sky-900 dark:hover:text-white hover:bg-sky-500/[0.06] transition-colors"
+                                        aria-label="Close"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                </div>
 
-                                <div className="flex items-start gap-4 pr-8">
+                                {/* Icon + Title */}
+                                <div className="text-center mb-6">
                                     {icon && (
-                                        <div className="flex-shrink-0 w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400">
+                                        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-sky-100/40 dark:bg-sky-500/10 border border-sky-100/50 dark:border-sky-500/10 flex items-center justify-center text-sky-500">
                                             {icon}
                                         </div>
                                     )}
-                                    <div className="flex-1">
-                                        <h2 className="text-xl sm:text-2xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">
-                                            {title}
-                                        </h2>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                            {description}
-                                        </p>
-                                    </div>
+                                    <h2 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">
+                                        {title}
+                                    </h2>
+                                    <p className="text-sm text-sky-600/40 dark:text-sky-400/40 leading-relaxed max-w-sm mx-auto">
+                                        {description}
+                                    </p>
                                 </div>
-                            </div>
 
-                            {/* Content */}
-                            <div className="p-6 sm:p-8">
+                                {/* Features */}
                                 {features && features.length > 0 && (
-                                    <div className="space-y-3 mb-6">
-                                        <ul className="space-y-3">
-                                            {features.map((feature, index) => (
-                                                <motion.li
-                                                    key={index}
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: 0.1 + index * 0.05 }}
-                                                    className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400"
-                                                >
-                                                    <span className="text-gray-400 dark:text-gray-600 mt-0.5 shrink-0">•</span>
-                                                    <span className="leading-relaxed">{feature}</span>
-                                                </motion.li>
-                                            ))}
-                                        </ul>
+                                    <div className="space-y-2 mb-7">
+                                        {features.map((feature, index) => (
+                                            <motion.div
+                                                key={index}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.1 + index * 0.05 }}
+                                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/60 dark:bg-gray-800/40 border border-sky-100/60 dark:border-gray-700"
+                                            >
+                                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                                                <span className="text-sm text-sky-900 dark:text-sky-100 leading-snug">{feature}</span>
+                                            </motion.div>
+                                        ))}
                                     </div>
                                 )}
 
                                 {/* Action Button */}
-                                <Button
+                                <button
                                     onClick={onClose}
-                                    className="w-full"
+                                    className="w-full h-12 rounded-full flex items-center justify-center text-[14px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 transition-colors"
                                 >
                                     Got it!
-                                </Button>
+                                </button>
                             </div>
                         </div>
                     </motion.div>

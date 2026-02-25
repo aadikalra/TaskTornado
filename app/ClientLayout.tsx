@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { Analytics } from '@vercel/analytics/next';
-import Navbar from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { useAI } from '@/context/AIContext';
 import { useAuth } from '@/context/AuthContext';
@@ -10,9 +9,7 @@ import { CustomContextMenu } from '@/components/CustomContextMenu';
 import { DictionaryPopup } from '@/components/DictionaryPopup';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
-import { useToast } from '@/context/ToastContext';
 import { OnboardingTour } from '@/components/OnboardingTour';
-import { RoleSwitcher } from '@/components/RoleSwitcher';
 import ReboundNavbar from '@/components/ReboundNavbar';
 import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
 
@@ -21,9 +18,7 @@ patchFacehashFaces();
 
 
 // Dynamically import navs with no SSR to avoid hydration issues
-const DockNav = dynamic(() => import('@/components/DockNav'), {
-  ssr: false,
-});
+
 const AppNavbar = dynamic(() => import('@/components/AppNavbar'), {
   ssr: false,
 });

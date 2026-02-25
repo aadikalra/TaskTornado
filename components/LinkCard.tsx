@@ -1,8 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ExternalLink } from 'lucide-react';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { GoogleDocsIcon, GoogleSheetsIcon, GoogleSlidesIcon, GoogleDriveIcon, GoogleClassroomIcon, GoogleFormsIcon } from './BrandIcons';
 

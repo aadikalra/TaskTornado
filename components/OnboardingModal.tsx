@@ -3,14 +3,10 @@
 import * as React from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe, FlaskConical, Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle, ChevronRight, Loader2, Rocket } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe,  Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle, ChevronRight, Loader2, Rocket } from 'lucide-react';
 import { Button } from '@/components/animate-ui/components/buttons/button';
-import { X } from '@/components/animate-ui/icons/x';
-import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
-import { AnimateIcon } from './animate-ui/animate-icon';
+import { X } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Hook to detect dark mode
@@ -685,9 +681,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         {/* Header - Compact */}
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-2">
-            <img 
-              src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"} 
-              alt="TaskTornado" 
+            <img
+              src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
+              alt="TaskTornado"
               className="w-5 h-5"
             />
             <h1 className="text-lg font-medium" style={{ color: isDarkMode ? '#ffffff' : '#264f84' }}>

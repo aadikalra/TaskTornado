@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Globe } from 'lucide-react';
 import { CountingNumber } from '@/components/animate-ui/primitives/texts/counting-number';
 
 const containerVariants = {

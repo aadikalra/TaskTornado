@@ -15,7 +15,6 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { RecurringHomework } from '@/context/ClassContext';
-import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 
 interface RecurringHomeworkIndicatorProps {
   homework: {

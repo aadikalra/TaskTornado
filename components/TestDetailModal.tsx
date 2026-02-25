@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, BookOpen, Target, Zap, GraduationCap, FileText, Presentation, Trash2, Edit2, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { X, Calendar, Clock, BookOpen, Target, Zap, GraduationCap, FileText, Presentation, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
 import { Test, Class } from '@/context/ClassContext';
 import { getDueDateLabel } from '@/lib/dateUtils';
 import Link from 'next/link';
@@ -29,14 +28,14 @@ export const TestDetailModal = ({
     if (!test) return null;
 
     const testTypeInfo = {
-        alpha: { icon: Target, label: 'ALPHA', color: 'text-purple-600', bg: 'bg-purple-100', darkColor: 'dark:text-purple-400', darkBg: 'dark:bg-purple-900/30' },
-        beta: { icon: Zap, label: 'BETA', color: 'text-orange-600', bg: 'bg-orange-100', darkColor: 'dark:text-orange-400', darkBg: 'dark:bg-orange-900/30' },
-        exam: { icon: GraduationCap, label: 'EXAM', color: 'text-red-600', bg: 'bg-red-100', darkColor: 'dark:text-red-400', darkBg: 'dark:bg-red-900/30' },
-        final: { icon: GraduationCap, label: 'FINAL', color: 'text-red-600', bg: 'bg-red-100', darkColor: 'dark:text-red-400', darkBg: 'dark:bg-red-900/30' },
-        midterm: { icon: GraduationCap, label: 'MIDTERM', color: 'text-red-600', bg: 'bg-red-100', darkColor: 'dark:text-red-400', darkBg: 'dark:bg-red-900/30' },
-        quiz: { icon: FileText, label: 'QUIZ', color: 'text-blue-600', bg: 'bg-blue-100', darkColor: 'dark:text-blue-400', darkBg: 'dark:bg-blue-900/30' },
-        project: { icon: Presentation, label: 'PROJECT', color: 'text-emerald-600', bg: 'bg-emerald-100', darkColor: 'dark:text-emerald-400', darkBg: 'dark:bg-emerald-900/30' },
-        default: { icon: BookOpen, label: 'TEST', color: 'text-gray-600', bg: 'bg-gray-100', darkColor: 'dark:text-gray-400', darkBg: 'dark:bg-gray-800' }
+        alpha: { icon: Target, label: 'ALPHA' },
+        beta: { icon: Zap, label: 'BETA' },
+        exam: { icon: GraduationCap, label: 'EXAM' },
+        final: { icon: GraduationCap, label: 'FINAL' },
+        midterm: { icon: GraduationCap, label: 'MIDTERM' },
+        quiz: { icon: FileText, label: 'QUIZ' },
+        project: { icon: Presentation, label: 'PROJECT' },
+        default: { icon: BookOpen, label: 'TEST' }
     };
 
     const type = (test.testType?.toLowerCase() || 'default') as keyof typeof testTypeInfo;
@@ -44,78 +43,78 @@ export const TestDetailModal = ({
     const TypeIcon = config.icon;
 
     const dueDateLabel = getDueDateLabel(new Date(test.testDate), true);
+    const hasScore = test.grade || (test.score !== null && test.maxScore !== null);
+    const displayScore = test.grade || (test.score !== null ? `${test.score}/${test.maxScore}` : '');
 
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]" onClick={onClose}>
+                <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl flex items-center justify-center p-4 z-[100]" onClick={onClose}>
                     <motion.div
                         layoutId={layoutId}
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+                        className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-sky-500/5 w-full max-w-md overflow-hidden border border-sky-100 dark:border-gray-800"
                     >
-                        {/* Header / Banner */}
-                        <div className={`h-24 px-8 flex items-center justify-between ${config.bg} ${config.darkBg}`}>
-                            <div className="flex items-center gap-4">
-                                <div className="h-14 w-14 rounded-2xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm">
-                                    <TypeIcon className={`h-8 w-8 ${config.color} ${config.darkColor}`} />
-                                </div>
-                                <div>
-                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${config.color} ${config.darkColor}`}>
-                                        {config.label}
-                                    </span>
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate max-w-[280px]">
-                                        {test.title}
-                                    </h2>
-                                </div>
+                        <div className="p-7">
+                            {/* Top row: type pill + close */}
+                            <div className="flex items-center justify-between mb-5">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100/60 dark:bg-sky-500/10 text-[11px] font-bold tracking-wider text-sky-600 dark:text-sky-400 uppercase">
+                                    <TypeIcon className="h-3 w-3" />
+                                    {config.label}
+                                </span>
+                                <button
+                                    onClick={onClose}
+                                    className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400/30 hover:text-sky-900 dark:hover:text-white hover:bg-sky-500/[0.06] transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
                             </div>
-                            <button
-                                onClick={onClose}
-                                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700 rounded-full transition-colors"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
 
-                        <div className="p-8 space-y-6">
-                            {/* Info Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
-                                    <Calendar className="h-5 w-5 text-gray-400" />
+                            {/* Title */}
+                            <h2 className="text-2xl font-bold text-sky-900 dark:text-white mb-6 leading-tight">
+                                {test.title}
+                            </h2>
+
+                            {/* Info pills row */}
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
+                                    <Calendar className="h-4 w-4 text-sky-500" />
                                     <div>
-                                        <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-tight">Date</p>
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{dueDateLabel}</p>
+                                        <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Date</p>
+                                        <p className="text-sm font-semibold text-sky-900 dark:text-white leading-tight">{dueDateLabel}</p>
                                     </div>
                                 </div>
+
                                 {test.testTime && (
-                                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
-                                        <Clock className="h-5 w-5 text-gray-400" />
+                                    <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
+                                        <Clock className="h-4 w-4 text-sky-500" />
                                         <div>
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-tight">Time</p>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{test.testTime}</p>
+                                            <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Time</p>
+                                            <p className="text-sm font-semibold text-sky-900 dark:text-white leading-tight">{test.testTime}</p>
                                         </div>
                                     </div>
                                 )}
+
                                 {classInfo && (
-                                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
-                                        <BookOpen className="h-5 w-5 text-gray-400" />
+                                    <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
+                                        <BookOpen className="h-4 w-4 text-sky-500" />
                                         <div>
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-tight">Class</p>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{classInfo.name}</p>
+                                            <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Class</p>
+                                            <p className="text-sm font-semibold text-sky-900 dark:text-white leading-tight">{classInfo.name}</p>
                                         </div>
                                     </div>
                                 )}
-                                {(test.grade || (test.score !== null && test.maxScore !== null)) && (
-                                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-                                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+
+                                {hasScore && (
+                                    <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-[#ebf6b5]/30 dark:bg-[#ebf6b5]/5 border border-[#d4e88e]/30 dark:border-[#d4e88e]/10">
+                                        <CheckCircle2 className="h-4 w-4 text-sky-600" />
                                         <div>
-                                            <p className="text-[10px] text-green-600 dark:text-green-400 uppercase font-bold tracking-tight">Grade</p>
-                                            <p className="text-sm font-bold text-green-700 dark:text-green-400">
-                                                {test.grade || (test.score !== null ? `${test.score}/${test.maxScore}` : '')}
-                                            </p>
+                                            <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Grade</p>
+                                            <p className="text-sm font-bold text-sky-900 dark:text-white leading-tight">{displayScore}</p>
                                         </div>
                                     </div>
                                 )}
@@ -123,10 +122,10 @@ export const TestDetailModal = ({
 
                             {/* Description */}
                             {test.description && (
-                                <div className="space-y-2">
-                                    <h3 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1">Description</h3>
-                                    <div className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
-                                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                                <div className="mb-6">
+                                    <p className="text-[10px] font-semibold text-sky-600/30 dark:text-sky-400/30 uppercase tracking-widest mb-2 px-1">Description</p>
+                                    <div className="px-5 py-4 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
+                                        <p className="text-sm text-sky-800 dark:text-sky-200 leading-relaxed">
                                             {test.description}
                                         </p>
                                     </div>
@@ -135,14 +134,14 @@ export const TestDetailModal = ({
 
                             {/* Study Materials */}
                             {test.studyMaterials && test.studyMaterials.length > 0 && (
-                                <div className="space-y-2">
-                                    <h3 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1">Study Materials</h3>
-                                    <div className="flex flex-wrap gap-2 pt-1">
+                                <div className="mb-6">
+                                    <p className="text-[10px] font-semibold text-sky-600/30 dark:text-sky-400/30 uppercase tracking-widest mb-2 px-1">Study Materials</p>
+                                    <div className="flex flex-wrap gap-2">
                                         {(test.studyMaterials as any[]).map((material, idx) => {
                                             const url = typeof material === 'string' ? material : material.url;
                                             const title = typeof material === 'string' ? `Material ${idx + 1}` : (material.title || `Material ${idx + 1}`);
                                             return (
-                                                <LinkCard key={idx} url={url} title={title} className="bg-gray-50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-700" />
+                                                <LinkCard key={idx} url={url} title={title} className="bg-white/60 dark:bg-gray-800/40 border-sky-100 dark:border-gray-700" />
                                             );
                                         })}
                                     </div>
@@ -150,24 +149,23 @@ export const TestDetailModal = ({
                             )}
 
                             {/* Actions */}
-                            <div className="flex gap-3 pt-6 border-t border-gray-100 dark:border-gray-700">
+                            <div className="flex gap-2.5 pt-5 border-t border-sky-100/60 dark:border-gray-800">
                                 <Link href={`/tests/edit/${test.id}`} className="flex-1">
-                                    <Button variant="outline" className="w-full h-12 rounded-xl border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <Edit2 className="h-4 w-4 mr-2" />
+                                    <button className="w-full h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors">
+                                        <Edit2 className="h-3.5 w-3.5" />
                                         Edit Details
-                                    </Button>
+                                    </button>
                                 </Link>
-                                <Button
-                                    variant="destructive"
-                                    className="flex-1 h-12 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 border-none shadow-none"
+                                <button
+                                    className="flex-1 h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-red-500 hover:text-white bg-red-50 dark:bg-red-500/10 hover:bg-red-500 border border-red-200/60 dark:border-red-500/20 hover:border-red-500 transition-all"
                                     onClick={async () => {
                                         await onDelete(test.id);
                                         onClose();
                                     }}
                                 >
-                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    <Trash2 className="h-3.5 w-3.5" />
                                     Delete Test
-                                </Button>
+                                </button>
                             </div>
                         </div>
                     </motion.div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Check, Cpu, Users, Heart, Scale, Ban, Github, Terminal } from 'lucide-react';
+import { Check,    Scale, Ban, Github } from 'lucide-react';
 import Image from 'next/image';
 
 const containerVariants = {

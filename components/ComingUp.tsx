@@ -6,12 +6,36 @@ import { useClassContext, type Homework, type Test } from '@/context/ClassContex
 import { BookOpen, GraduationCap, CalendarDays } from 'lucide-react';
 import { schoolYear2025_2026 } from '@/data/schoolEvents';
 
+const CLASS_COLORS = [
+    '#F9A8A8',  // pastel red
+    '#93C5FD',  // pastel blue
+    '#FCD39D',  // pastel amber
+    '#86EFAC',  // pastel green
+    '#C4B5FD',  // pastel purple
+    '#F9A8D4',  // pastel pink
+    '#99F6E4',  // pastel teal
+    '#CBD5E1',  // pastel slate
+];
+
+const HEADER_COLORS = [
+    '#DC2626',  // red-600
+    '#2563EB',  // blue-600
+    '#D97706',  // amber-600
+    '#16A34A',  // green-600
+    '#7C3AED',  // purple-600
+    '#DB2777',  // pink-600
+    '#0D9488',  // teal-600
+    '#475569',  // slate-600
+];
+
 type UpcomingItem = {
     id: string;
     title: string;
     className: string;
     date: Date;
     type: 'homework' | 'test' | 'event';
+    classColor: string;      // pastel bg
+    classAccent: string;      // header/text color
 };
 
 export const ComingUp = () => {
@@ -21,6 +45,21 @@ export const ComingUp = () => {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const items: UpcomingItem[] = [];
+
+        // Build class index map for consistent color assignment
+        const classIndexMap = new Map<string, number>();
+        classes.forEach((cls: any, idx: number) => {
+            classIndexMap.set(cls.id, idx);
+        });
+
+        const getColor = (classId: string) => {
+            const idx = classIndexMap.get(classId) ?? 0;
+            return CLASS_COLORS[idx % CLASS_COLORS.length];
+        };
+        const getAccent = (classId: string) => {
+            const idx = classIndexMap.get(classId) ?? 0;
+            return HEADER_COLORS[idx % HEADER_COLORS.length];
+        };
 
         // Add incomplete homework
         homeworks.forEach((hw: Homework) => {
@@ -35,6 +74,8 @@ export const ComingUp = () => {
                         className: classItem?.name || 'Unknown',
                         date,
                         type: 'homework',
+                        classColor: getColor(hw.classId),
+                        classAccent: getAccent(hw.classId),
                     });
                 }
             } catch { }
@@ -53,12 +94,14 @@ export const ComingUp = () => {
                         className: classItem?.name || 'Unknown',
                         date,
                         type: 'test',
+                        classColor: getColor(test.classId),
+                        classAccent: getAccent(test.classId),
                     });
                 }
             } catch { }
         });
 
-        // Add school events
+        // Add school events (no class, use emerald)
         schoolYear2025_2026.forEach(event => {
             const date = new Date(event.startDate);
             if (date >= today) {
@@ -68,6 +111,8 @@ export const ComingUp = () => {
                     className: 'School Event',
                     date,
                     type: 'event',
+                    classColor: '#A7F3D0',   // pastel emerald
+                    classAccent: '#059669',   // emerald-600
                 });
             }
         });
@@ -95,17 +140,6 @@ export const ComingUp = () => {
                 return <CalendarDays className="w-3.5 h-3.5" />;
             default:
                 return <BookOpen className="w-3.5 h-3.5" />;
-        }
-    };
-
-    const getAccentColor = (type: string) => {
-        switch (type) {
-            case 'test':
-                return 'text-red-500 bg-red-500/10 border-red-200 dark:border-red-800/50';
-            case 'event':
-                return 'text-emerald-500 bg-emerald-500/10 border-emerald-200 dark:border-emerald-800/50';
-            default:
-                return 'text-blue-600 bg-blue-600/10 border-blue-200 dark:border-blue-800/50';
         }
     };
 
@@ -139,8 +173,11 @@ export const ComingUp = () => {
                             key={item.id}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-700/5 dark:hover:bg-blue-400/5 transition-colors group"
                         >
-                            {/* Icon */}
-                            <div className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 ${getAccentColor(item.type)}`}>
+                            {/* Icon — colored by class */}
+                            <div
+                                className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
+                                style={{ backgroundColor: `${item.classColor}40`, color: item.classAccent }}
+                            >
                                 {getIcon(item.type)}
                             </div>
 
@@ -149,7 +186,7 @@ export const ComingUp = () => {
                                 <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 truncate leading-tight">
                                     {item.title}
                                 </p>
-                                <p className="text-[11px] text-blue-700/50 dark:text-blue-400/50 truncate">
+                                <p className="text-[11px] truncate" style={{ color: item.classAccent }}>
                                     {item.className}
                                 </p>
                             </div>

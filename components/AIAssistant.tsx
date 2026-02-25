@@ -19,16 +19,16 @@ import { useDarkMode } from '@/context/DarkModeContext';
 import {
   MessageSquare,
   Sparkles,
-  Image as ImageIcon,
-  Paperclip,
+  
+  
   X as XIcon,
   ArrowUp,
   BookOpen,
-  CheckCircle,
+  
   PlusCircle,
   Plus,
   Search,
-  BookType,
+  
   Zap,
   Brain,
   Calculator,
@@ -39,13 +39,13 @@ import {
   PanelRightOpen,
 } from 'lucide-react';
 
-import { Bot } from '@/components/animate-ui/icons/bot';
-import { UserRound } from '@/components/animate-ui/icons/user-round';
-import { AnimateIcon } from '@/components/animate-ui/animate-icon';
+// import { Bot } from '@/components/animate-ui/icons/bot';
+// import { UserRound } from '@/components/animate-ui/icons/user-round';
+// import { AnimateIcon } from '@/components/animate-ui/animate-icon';
+import { UserRound } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from './ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Select,
   SelectContent,
@@ -53,18 +53,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { Markdown } from './markdown';
-import { ResizablePanel } from './ui/resizable-panel';
-import { X } from './animate-ui/icons/x';
-import { Flashcard, FlashcardDeck } from './Flashcard';
-import { QuizQuestion, InteractiveQuiz } from './Quiz';
-import { ShimmeringText } from './animate-ui/primitives/texts/shimmering';
-import { Tabs, TabsList, TabsTab, TabsPanels, TabsPanel } from '@/components/animate-ui/components/base/tabs';
+import {  FlashcardDeck } from './Flashcard';
+import { QuizQuestion } from './Quiz';
 import { Class, Homework, Test } from '@/context/ClassContext';
-import IconSparkle from './glass-icons/IconSparkle';
-import { SplittingText } from './animate-ui/primitives/texts/splitting';
 import { useAuth } from '@/context/AuthContext';
 import { rateLimitService } from '@/lib/services/rateLimitService';
 import { Toast, ToastContainer } from './Toast';
@@ -144,6 +137,63 @@ function parseChecklist(content: string): { content: string; checklist?: AICheck
     return { content };
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Generation Progress Bar (quiz / flashcards)                                 */
+/* -------------------------------------------------------------------------- */
+const GenerationProgressBar = () => {
+  const [progress, setProgress] = useState(0);
+  const [label, setLabel] = useState('Preparing...');
+
+  useEffect(() => {
+    const stages = [
+      { at: 5, label: 'Analyzing topic...' },
+      { at: 20, label: 'Crafting questions...' },
+      { at: 45, label: 'Building answer options...' },
+      { at: 65, label: 'Adding explanations...' },
+      { at: 80, label: 'Finalizing...' },
+    ];
+
+    // Fast initial ramp, then slow crawl
+    let frame: number;
+    let start: number | null = null;
+
+    const tick = (ts: number) => {
+      if (!start) start = ts;
+      const elapsed = (ts - start) / 1000; // seconds
+
+      // ease-out curve: fast start → slow finish, caps at 88%
+      const p = Math.min(88, 88 * (1 - Math.exp(-elapsed / 5)));
+      setProgress(p);
+
+      // Update label based on progress
+      for (let i = stages.length - 1; i >= 0; i--) {
+        if (p >= stages[i].at) { setLabel(stages[i].label); break; }
+      }
+
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  return (
+    <div className="mt-3 w-full max-w-[260px]">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] font-bold text-white/30 tabular-nums">{Math.round(progress)}%</span>
+      </div>
+      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-sky-400 rounded-full"
+          style={{ width: `${progress}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </div>
+    </div>
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* Aura Video Icon Component                                                  */
@@ -2461,7 +2511,7 @@ Examples of correct button prompts:
                   onClick={onClose || (() => setInternalIsOpen(false))}
                   className="h-8 w-8 flex items-center justify-center rounded-full text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all font-medium"
                 >
-                  <X size={18} animateOnHover animation='default' />
+                  <XIcon size={18} />
                 </motion.button>
               </div>
             </motion.div>
@@ -2531,21 +2581,9 @@ Examples of correct button prompts:
                       transition={{ delay: 0.2 }}
                       className="relative -top-10 max-w-[450px]"
                     >
-                      <SplittingText
-                        text={`Hey ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}! What are we studying today?`}
-                        aria-hidden="true"
-                        className="block text-xl font-semibold text-center text-neutral-200 dark:text-neutral-800"
-                        disableAnimation
-                      />
-                      <SplittingText
-                        text={`Hey ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}! What are we studying today?`}
-                        className="block text-xl font-semibold text-center absolute inset-0"
-                        type="chars"
-                        inView
-                        initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
-                        animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
-                        transition={{ duration: 0.4, ease: 'easeOut' }}
-                      />
+                      <h2 className="block text-xl font-semibold text-center text-neutral-800 dark:text-neutral-200">
+                        Hey {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}! What are we studying today?
+                      </h2>
                     </motion.div>
                   </motion.div>
                 ) : (
@@ -2610,13 +2648,14 @@ Examples of correct button prompts:
                             {/* Always render the content, even if it's just "Thinking..." */}
                             {msg.isLoading ? (
                               msg.content === "Thinking..." ? (
-                                <ShimmeringText
-                                  text={"Thinking..."}
-                                  duration={1.5}
-                                  wave={true}
-                                />
+                                <span className="animate-pulse opacity-70">Thinking...</span>
                               ) : (
-                                <Markdown>{msg.content}</Markdown>
+                                <>
+                                  <Markdown>{msg.content}</Markdown>
+                                  {(msg.content.startsWith('Generating quiz') || msg.content.startsWith('Generating flashcards')) && (
+                                    <GenerationProgressBar />
+                                  )}
+                                </>
                               )
                             ) : (
                               <Markdown>{msg.content}</Markdown>

@@ -1,9 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Github, Twitter, Linkedin, Mail, MapPin, Briefcase, Calendar, Star, Code, Award } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Github,   Mail, MapPin, Briefcase, Calendar, Star, Code, Award } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tilt, TiltContent } from '@/components/animate-ui/primitives/effects/tilt';
 import { useWideLayout } from '@/hooks/use-wide-layout';

@@ -7,13 +7,13 @@ import {
   Search, BookOpen, GraduationCap, FileText, Presentation, Target,
   Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield,
   PenTool, Bookmark, HelpCircle, Scroll, User, History,
-  CreditCard, Gamepad2, Trophy, MessageSquare, Video, Folder, CornerDownLeft
+  CreditCard, Gamepad2, Trophy, MessageSquare, Video,  CornerDownLeft,
+  Calculator, Languages, Newspaper, Fingerprint,  Star, Repeat, ClipboardList, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import { Button } from '@/components/animate-ui/components/buttons/button';
 
@@ -41,29 +41,45 @@ const getTestTypeIcon = (testType: string) => {
 
 // Default search route shortcuts
 const routeSearchItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: Home, keywords: ['home', 'dashboard', 'overview'] },
-  { title: 'Tests', href: '/tests', icon: GraduationCap, keywords: ['tests', 'exams', 'quiz'] },
-  { title: 'Interactive Quizzes', href: '/quiz', icon: FileText, keywords: ['quiz', 'quizzes', 'interactive'] },
-  { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events'] },
-  { title: 'Discussion Boards', href: '/discussions', icon: MessageSquare, keywords: ['discussion', 'boards', 'forums', 'community', 'threads'] },
-  { title: 'Settings', href: '/settings', icon: Settings, keywords: ['settings', 'preferences'] },
+  // ── Core ──
+  { title: 'Dashboard', href: '/dashboard', icon: Home, keywords: ['home', 'dashboard', 'overview', 'main'] },
+  { title: 'Tests', href: '/tests', icon: GraduationCap, keywords: ['tests', 'exams', 'quiz', 'assessments'] },
+  { title: 'Interactive Quizzes', href: '/quiz', icon: FileText, keywords: ['quiz', 'quizzes', 'interactive', 'practice', 'study'] },
+  { title: 'Calendar', href: '/calendar', icon: Calendar, keywords: ['calendar', 'schedule', 'events', 'dates', 'planner'] },
+  { title: 'Discussion Boards', href: '/discussions', icon: MessageSquare, keywords: ['discussion', 'boards', 'forums', 'community', 'threads', 'chat'] },
+  { title: 'Flashcards', href: '/flashcards', icon: CreditCard, keywords: ['flashcards', 'study', 'memorize', 'cards', 'review'] },
+  { title: 'Groups', href: '/groups', icon: Users, keywords: ['groups', 'study groups', 'collaborate', 'team'] },
+
+  // ── Tools ──
+  { title: 'Writing Assist', href: '/writing-assist', icon: PenTool, keywords: ['writing', 'essay', 'assist', 'compose', 'editor'] },
+  { title: 'Web Saves', href: '/web-saves', icon: Bookmark, keywords: ['web saves', 'links', 'bookmarks', 'saved'] },
+  { title: 'Grade Calculator', href: '/grade-calculator', icon: Calculator, keywords: ['grade', 'calculator', 'gpa', 'grades', 'score', 'average'] },
+  { title: 'Translate', href: '/translate', icon: Languages, keywords: ['translate', 'translation', 'language', 'languages', 'convert'] },
+
+  // ── Games ──
+  { title: 'Games', href: '/games', icon: Gamepad2, keywords: ['games', 'play', 'fun'] },
+  { title: 'Snake Game', href: '/snake', icon: Trophy, keywords: ['snake', 'game', 'arcade'] },
+  { title: 'Task Tower', href: '/task-tower', icon: BarChart, keywords: ['task tower', 'tower', 'productivity'] },
+
+  // ── Tutorials ──
   { title: 'Tutorials', href: '/tutorials', icon: Video, keywords: ['tutorials', 'guides', 'help', 'learn', 'how to'] },
+  { title: 'Aurora Assistant Tutorial', href: '/tutorials/aurora-assistant', icon: Sparkles, keywords: ['aurora', 'assistant', 'ai', 'tutorial', 'guide'] },
+  { title: 'Onboarding Tutorial', href: '/tutorials/onboarding', icon: Video, keywords: ['onboarding', 'getting started', 'tutorial', 'setup'] },
+  { title: 'Recurring Homeworks Tutorial', href: '/tutorials/recurring-homeworks', icon: Repeat, keywords: ['recurring', 'homework', 'repeat', 'tutorial'] },
+  { title: 'Starring Homeworks Tutorial', href: '/tutorials/starring-homeworks', icon: Star, keywords: ['starring', 'pin', 'favorite', 'homework', 'tutorial'] },
+  { title: 'Test Details Tutorial', href: '/tutorials/test-details', icon: ClipboardList, keywords: ['test', 'details', 'view', 'tutorial'] },
 
-  { title: 'Flashcards', href: '/flashcards', icon: CreditCard, keywords: ['flashcards'] },
-  { title: 'Groups', href: '/groups', icon: Users, keywords: ['groups'] },
-  { title: 'Writing Assist', href: '/writing-assist', icon: PenTool, keywords: ['writing', 'essay'] },
-  { title: 'Web Saves', href: '/web-saves', icon: Bookmark, keywords: ['web saves', 'links'] },
-
-  { title: 'Games', href: '/games', icon: Gamepad2, keywords: ['games'] },
-  { title: 'Snake Game', href: '/snake', icon: Trophy, keywords: ['snake'] },
-  { title: 'Task Tower', href: '/task-tower', icon: BarChart, keywords: ['task tower'] },
-
-  { title: 'AI Guidelines', href: '/ai-guidelines', icon: HelpCircle, keywords: ['ai', 'guidelines'] },
-
-  { title: 'About Creator', href: '/about-creator', icon: User, keywords: ['about'] },
-  { title: 'Changelog', href: '/changelog', icon: History, keywords: ['changelog'] },
-  { title: 'Privacy Policy', href: '/legal/privacy', icon: Shield, keywords: ['privacy'] },
-  { title: 'Terms of Service', href: '/legal/terms', icon: Scroll, keywords: ['terms'] },
+  // ── Info & Legal ──
+  { title: 'Blog', href: '/blog', icon: Newspaper, keywords: ['blog', 'articles', 'journal', 'news', 'posts'] },
+  { title: 'FaceHash', href: '/hash', icon: Fingerprint, keywords: ['facehash', 'hash', 'face', 'identity'] },
+  { title: 'AI Guidelines', href: '/ai-guidelines', icon: HelpCircle, keywords: ['ai', 'guidelines', 'rules', 'safety'] },
+  { title: 'About Creator', href: '/about-creator', icon: User, keywords: ['about', 'creator', 'developer'] },
+  { title: 'Changelog', href: '/changelog', icon: History, keywords: ['changelog', 'updates', 'version', 'release notes'] },
+  { title: 'Guardians', href: '/guardians', icon: Shield, keywords: ['guardians', 'parents', 'family'] },
+  { title: 'Teachers', href: '/teachers', icon: GraduationCap, keywords: ['teachers', 'educators', 'instructors'] },
+  { title: 'Settings', href: '/settings', icon: Settings, keywords: ['settings', 'preferences', 'account', 'profile'] },
+  { title: 'Privacy Policy', href: '/legal/privacy', icon: Shield, keywords: ['privacy', 'policy', 'data'] },
+  { title: 'Terms of Service', href: '/legal/terms', icon: Scroll, keywords: ['terms', 'service', 'legal'] },
 ];
 
 export function SearchResults() {

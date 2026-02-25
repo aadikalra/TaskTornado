@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
-import { Play, Pause, RotateCcw, Minimize2, Maximize2, CheckCircle2, Circle, ChevronRight, Trash2, X, Check } from 'lucide-react';
-import { Timer } from './animate-ui/icons/timer';
+import { Play, Pause,  Minimize2,  CheckCircle2, Circle, ChevronRight,  X, Check, Timer } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
 
 interface TimerProps {
   trigger?: React.ReactNode;
   onComplete?: () => void;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onMinimizedInfo?: (info: { isMinimized: boolean; isRunning: boolean; timeLeft: number; totalTime: number; formattedTime: string; progress: number }) => void;
+  onRestore?: () => void;
+  restoreSignal?: number;
 }
 
 type TimerStep = 'task-selection' | 'timer' | 'completion-check' | 'progress-tracking' | 'productivity-reflection' | 'next-session-suggestion';
@@ -27,7 +27,7 @@ interface TimerSession {
   endTime: Date | null;
 }
 
-export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpenChange }: TimerProps) {
+export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpenChange, onMinimizedInfo, restoreSignal }: TimerProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const setIsOpen = onOpenChange || setInternalIsOpen;
@@ -333,27 +333,24 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
 
   const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 100;
 
-  // Floating pill component
-  const FloatingPill = () => {
-    if (!isMinimized || !isRunning) return null;
+  // Report minimized state to parent
+  useEffect(() => {
+    onMinimizedInfo?.({
+      isMinimized,
+      isRunning,
+      timeLeft,
+      totalTime,
+      formattedTime: formatTime(timeLeft),
+      progress,
+    });
+  }, [isMinimized, isRunning, timeLeft, totalTime]);
 
-    return (
-      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-2 bg-background/95 backdrop-blur-xl border border-border rounded-full shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200"
-        onClick={() => setIsMinimized(false)}>
-        <Timer className="w-4 h-4 text-foreground" />
-        <span className="text-sm font-medium text-foreground tabular-nums">
-          {formatTime(timeLeft)}
-        </span>
-        <div className="w-1 h-4 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-foreground transition-all duration-1000 ease-linear"
-            style={{ height: `${progress}%` }}
-          />
-        </div>
-        <Maximize2 className="w-3 h-3 text-muted-foreground" />
-      </div>
-    );
-  };
+  // Un-minimize when parent signals restore
+  useEffect(() => {
+    if (restoreSignal && restoreSignal > 0) {
+      setIsMinimized(false);
+    }
+  }, [restoreSignal]);
 
   // Render different steps
   const renderContent = () => {
@@ -362,46 +359,44 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
         return (
           <div className="py-6 space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">What are you working on?</h3>
-              <p className="text-sm text-muted-foreground">Select a task to focus on</p>
+              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">What are you working on?</h3>
+              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">Select a task to focus on</p>
             </div>
 
             <div className="space-y-2 max-h-64 overflow-y-auto px-4">
               {/* Custom task option */}
               <div className="space-y-2 mb-4">
-                <Input
+                <input
                   placeholder="Enter custom task name..."
                   value={customTaskName}
                   onChange={(e) => setCustomTaskName(e.target.value)}
-                  className="text-sm"
+                  className="w-full px-4 py-2.5 text-sm bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30"
                 />
                 {customTaskName && (
-                  <Button
+                  <button
                     onClick={() => handleTaskSelection(null, customTaskName)}
-                    className="w-full justify-start gap-2 text-left"
-                    variant="outline"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
                   >
-                    <Circle className="w-4 h-4" />
-                    <span className="truncate">{customTaskName}</span>
-                  </Button>
+                    <Circle className="w-4 h-4 text-sky-400/50 shrink-0" />
+                    <span className="text-sm font-medium text-sky-900 dark:text-white truncate">{customTaskName}</span>
+                  </button>
                 )}
               </div>
 
               {/* Homework tasks */}
               {homework.filter(hw => !hw.completed).slice(0, 5).map((task) => (
-                <Button
+                <button
                   key={task.id}
                   onClick={() => handleTaskSelection(task.id, task.title)}
-                  className="w-full justify-start gap-2 text-left"
-                  variant="outline"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
                 >
-                  <Circle className="w-4 h-4" />
-                  <span className="truncate">{task.title}</span>
-                </Button>
+                  <Circle className="w-4 h-4 text-sky-400/50 shrink-0" />
+                  <span className="text-sm font-medium text-sky-900 dark:text-white truncate">{task.title}</span>
+                </button>
               ))}
 
               {homework.filter(hw => !hw.completed).length === 0 && !customTaskName && (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-sm text-sky-600/40 dark:text-sky-400/40 text-center py-4">
                   No pending tasks. Enter a custom task above.
                 </p>
               )}
@@ -452,20 +447,20 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 <div className="flex items-center justify-center gap-2">
                   <button
                     onClick={handleChangeTask}
-                    className="group flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-sky-500/[0.04] transition-colors"
                   >
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Working on</p>
-                    <p className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors max-w-[200px] truncate">
+                    <p className="text-[10px] text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider">Working on</p>
+                    <p className="text-sm font-semibold text-sky-900 dark:text-white group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors max-w-[200px] truncate">
                       {currentSession.taskTitle}
                     </p>
-                    <ChevronRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight className="w-3 h-3 text-sky-400/30 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                   <button
                     onClick={handleRemoveTask}
-                    className="p-1 rounded-full hover:bg-muted transition-colors"
+                    className="p-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
                     title="Remove task"
                   >
-                    <span className="text-muted-foreground hover:text-foreground text-sm">×</span>
+                    <span className="text-sky-400/40 hover:text-sky-600 dark:hover:text-sky-400 text-sm">×</span>
                   </button>
                 </div>
               </div>
@@ -473,16 +468,16 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
 
             {/* Timer Display */}
             <div className="text-center">
-              <div className="text-7xl font-extralight tracking-tight text-foreground tabular-nums">
+              <div className="text-7xl font-extralight tracking-tight text-sky-900 dark:text-white tabular-nums">
                 {formatTime(timeLeft)}
               </div>
             </div>
 
             {/* Progress Bar */}
             <div className="px-4">
-              <div className="w-full h-0.5 bg-muted rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-sky-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-foreground/60 transition-all duration-1000 ease-linear"
+                  className="h-full bg-sky-500 dark:bg-sky-400 transition-all duration-1000 ease-linear rounded-full"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -492,70 +487,64 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             {!isRunning && (
               <div className="px-4 space-y-4">
                 <div className="text-center">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Duration</p>
+                  <p className="text-[10px] text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider mb-3">Duration</p>
                 </div>
 
                 {/* Preset Duration Buttons */}
                 <div className="grid grid-cols-4 gap-2">
                   {presetDurations.map((preset) => (
-                    <Button
+                    <button
                       key={preset.minutes}
                       onClick={() => setPresetDuration(preset.minutes)}
-                      variant="outline"
-                      className={`h-12 text-sm font-medium transition-all ${currentTotalMinutes === preset.minutes
-                        ? 'bg-foreground text-background border-foreground hover:bg-foreground/90 hover:text-background'
-                        : 'hover:bg-muted'
+                      className={`h-11 text-sm font-semibold rounded-xl border transition-all ${currentTotalMinutes === preset.minutes
+                        ? 'bg-sky-500 text-white border-sky-500 shadow-md shadow-sky-500/20'
+                        : 'border-sky-100 dark:border-gray-700 text-sky-700 dark:text-sky-300 hover:bg-sky-500/[0.04]'
                         }`}
                     >
                       {preset.label}
-                      <span className="text-[10px] ml-1 opacity-60">min</span>
-                    </Button>
+                      <span className="text-[10px] ml-0.5 opacity-60">m</span>
+                    </button>
                   ))}
 
                   {/* Custom time button */}
-                  <Button
+                  <button
                     onClick={() => {
                       const customMins = parseInt(prompt('Enter custom duration in minutes (1-180):', '25') || '25');
                       if (customMins && customMins > 0 && customMins <= 180) {
                         setPresetDuration(customMins);
                       }
                     }}
-                    variant="outline"
-                    className="h-12 text-sm font-medium hover:bg-muted"
+                    className="h-11 text-sm font-semibold rounded-xl border border-sky-100 dark:border-gray-700 text-sky-500 hover:bg-sky-500/[0.04] transition-all"
                   >
                     <span className="text-lg">+</span>
-                  </Button>
+                  </button>
                 </div>
 
                 {/* Quick adjust buttons */}
                 <div className="flex items-center justify-center gap-3">
-                  <Button
+                  <button
                     onClick={() => {
                       const newMins = Math.max(1, currentTotalMinutes - 5);
                       setPresetDuration(newMins);
                     }}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-full"
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
                   >
                     <span className="text-lg">−</span>
-                  </Button>
+                  </button>
 
                   <div className="text-center min-w-[80px]">
-                    <p className="text-sm font-medium text-foreground">{currentTotalMinutes} min</p>
+                    <p className="text-sm font-semibold text-sky-900 dark:text-white">{currentTotalMinutes} min</p>
                   </div>
 
-                  <Button
+                  <button
                     onClick={() => {
                       const newMins = Math.min(180, currentTotalMinutes + 5);
                       setPresetDuration(newMins);
                     }}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-full"
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
                   >
                     <span className="text-lg">+</span>
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
@@ -563,49 +552,40 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             {/* Controls */}
             <div className="flex justify-center gap-3">
               {!isRunning ? (
-                <Button
+                <button
                   onClick={startTimer}
                   disabled={totalTime === 0}
-                  size="lg"
-                  className="w-14 h-14 rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 shadow-lg hover:shadow-xl transition-all"
+                  className="w-14 h-14 rounded-full bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-30 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all flex items-center justify-center"
                 >
                   <Play className="w-5 h-5 ml-0.5" />
-                </Button>
+                </button>
               ) : (
                 <>
-                  <Button
+                  <button
                     onClick={pauseTimer}
-                    variant="ghost"
-                    size="lg"
-                    className="w-12 h-12 rounded-full hover:bg-muted"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
                   >
                     {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={resetTimer}
-                    variant="ghost"
-                    size="lg"
-                    className="w-12 h-12 rounded-full hover:bg-muted"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-sky-400/50 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
                   >
                     <X className="w-4 h-4" />
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={endTimerEarly}
-                    variant="ghost"
-                    size="lg"
-                    className="w-12 h-12 rounded-full hover:bg-muted"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
                     title="End early"
                   >
                     <Check className="w-4 h-4" />
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={() => setIsMinimized(true)}
-                    variant="ghost"
-                    size="lg"
-                    className="w-12 h-12 rounded-full hover:bg-muted"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-sky-400/50 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
                   >
                     <Minimize2 className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </>
               )}
             </div>
@@ -613,7 +593,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             {/* Status */}
             {isRunning && (
               <div className="text-center">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+                <span className="text-[10px] text-sky-600/40 dark:text-sky-400/40 uppercase tracking-[0.2em] font-medium">
                   {isPaused ? 'paused' : 'focus'}
                 </span>
               </div>
@@ -625,34 +605,32 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
         return (
           <div className="py-6 space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">Timer Complete!</h3>
-              <p className="text-sm text-muted-foreground">Did you finish the task?</p>
+              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Timer Complete!</h3>
+              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">Did you finish the task?</p>
             </div>
 
             <div className="px-4 space-y-3">
-              <Button
+              <button
                 onClick={() => handleCompletionCheck(true)}
-                className="w-full justify-start gap-3 h-auto py-3"
-                variant="outline"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left border border-[#d4e88e] bg-[#ebf6b5]/20 rounded-xl hover:bg-[#ebf6b5]/40 transition-colors"
               >
-                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                <div className="text-left">
-                  <p className="font-medium">Yes, I completed it</p>
-                  <p className="text-xs text-muted-foreground">Task is done!</p>
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div>
+                  <p className="font-semibold text-sky-900 dark:text-white text-sm">Yes, I completed it</p>
+                  <p className="text-xs text-sky-600/40 dark:text-sky-400/40">Task is done!</p>
                 </div>
-              </Button>
+              </button>
 
-              <Button
+              <button
                 onClick={() => handleCompletionCheck(false)}
-                className="w-full justify-start gap-3 h-auto py-3"
-                variant="outline"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
               >
-                <Circle className="w-5 h-5 shrink-0" />
-                <div className="text-left">
-                  <p className="font-medium">No, still in progress</p>
-                  <p className="text-xs text-muted-foreground">Let me track my progress</p>
+                <Circle className="w-5 h-5 text-sky-400/40 shrink-0" />
+                <div>
+                  <p className="font-semibold text-sky-900 dark:text-white text-sm">No, still in progress</p>
+                  <p className="text-xs text-sky-600/40 dark:text-sky-400/40">Let me track my progress</p>
                 </div>
-              </Button>
+              </button>
             </div>
           </div>
         );
@@ -661,15 +639,15 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
         return (
           <div className="py-6 space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">Track Your Progress</h3>
-              <p className="text-sm text-muted-foreground">How much of the task did you complete?</p>
+              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Track Your Progress</h3>
+              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">How much of the task did you complete?</p>
             </div>
 
             <div className="px-6 space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Progress</span>
-                  <span className="text-2xl font-medium text-foreground">{progressPercentage}%</span>
+                  <span className="text-sm text-sky-600/50 dark:text-sky-400/50">Progress</span>
+                  <span className="text-2xl font-bold text-sky-900 dark:text-white">{progressPercentage}%</span>
                 </div>
                 <Slider
                   value={[progressPercentage]}
@@ -679,17 +657,20 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                   step={5}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs text-sky-600/30 dark:text-sky-400/30">
                   <span>0%</span>
                   <span>50%</span>
                   <span>100%</span>
                 </div>
               </div>
 
-              <Button onClick={handleProgressTracking} className="w-full">
+              <button
+                onClick={handleProgressTracking}
+                className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+              >
                 Continue
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         );
@@ -698,15 +679,15 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
         return (
           <div className="py-6 space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">Productivity Reflection</h3>
-              <p className="text-sm text-muted-foreground">How was your focus quality?</p>
+              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Productivity Reflection</h3>
+              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">How was your focus quality?</p>
             </div>
 
             <div className="px-6 space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Focus Quality</span>
-                  <span className="text-lg font-medium text-foreground">{focusQuality}/10</span>
+                  <span className="text-sm text-sky-600/50 dark:text-sky-400/50">Focus Quality</span>
+                  <span className="text-lg font-bold text-sky-900 dark:text-white">{focusQuality}/10</span>
                 </div>
                 <Slider
                   value={[focusQuality]}
@@ -716,7 +697,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs text-sky-600/30 dark:text-sky-400/30">
                   <span>Poor</span>
                   <span>Good</span>
                   <span>Excellent</span>
@@ -724,19 +705,23 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">Notes (optional)</label>
-                <Textarea
+                <label className="text-sm text-sky-600/50 dark:text-sky-400/50 font-medium">Notes (optional)</label>
+                <textarea
                   placeholder="Any thoughts on this session?"
                   value={productivityNotes}
                   onChange={(e) => setProductivityNotes(e.target.value)}
-                  className="min-h-20 text-sm"
+                  rows={3}
+                  className="w-full px-4 py-2.5 text-sm bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30 resize-none"
                 />
               </div>
 
-              <Button onClick={handleProductivityReflection} className="w-full">
+              <button
+                onClick={handleProductivityReflection}
+                className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+              >
                 Continue
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         );
@@ -745,28 +730,34 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
         return (
           <div className="py-6 space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">Great Work!</h3>
-              <p className="text-sm text-muted-foreground">Ready for another session?</p>
+              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Great Work!</h3>
+              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">Ready for another session?</p>
             </div>
 
             <div className="px-6 space-y-4">
               {!taskCompleted && (
-                <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                  <p className="text-sm font-medium text-foreground">Suggested Next Session</p>
-                  <p className="text-2xl font-semibold text-foreground">{suggestedNextDuration} minutes</p>
-                  <p className="text-xs text-muted-foreground">
+                <div className="p-4 bg-[#ebf6b5]/20 dark:bg-sky-500/5 border border-[#d4e88e]/50 dark:border-sky-800/30 rounded-xl space-y-2">
+                  <p className="text-sm font-semibold text-sky-900 dark:text-white">Suggested Next Session</p>
+                  <p className="text-2xl font-bold text-sky-500 dark:text-sky-400">{suggestedNextDuration} minutes</p>
+                  <p className="text-xs text-sky-600/40 dark:text-sky-400/40">
                     Based on {progressPercentage}% completion, you have about {100 - progressPercentage}% remaining
                   </p>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Button onClick={handleStartNewSession} className="w-full">
+                <button
+                  onClick={handleStartNewSession}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                >
                   Start Another Session
-                </Button>
-                <Button onClick={handleFinishSession} variant="outline" className="w-full">
+                </button>
+                <button
+                  onClick={handleFinishSession}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-sky-600/60 dark:text-sky-400/60 border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
+                >
                   Finish for Now
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -789,7 +780,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
           )}
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-md border-0 shadow-2xl bg-background/95 backdrop-blur-xl">
+        <DialogContent className="sm:max-w-md border border-sky-100 dark:border-gray-800 shadow-2xl shadow-sky-500/5 bg-[#fffaf4]/98 dark:bg-gray-950/98 backdrop-blur-xl">
           <DialogTitle className="sr-only">Study Timer</DialogTitle>
           {renderContent()}
 
@@ -800,7 +791,6 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
           />
         </DialogContent>
       </Dialog>
-      <FloatingPill />
     </>
   );
 }

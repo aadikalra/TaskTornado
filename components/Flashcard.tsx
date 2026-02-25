@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FlipHorizontal, ArrowLeft, ArrowRight, Save, Loader2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, Save, Loader2, X, Sparkle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { toast } from 'sonner';
@@ -35,7 +34,6 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
   const currentCard = cards[currentIndex];
 
   useEffect(() => {
-    // Set a default title based on the topic or current date
     if (cards.length > 0) {
       const topic = cards[0]?.topic || 'Study Session';
       setDeckTitle(`${topic} - ${new Date().toLocaleDateString()}`);
@@ -84,7 +82,6 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
         onSave(cards);
       }
 
-      // Close the save dialog
       setShowSaveDialog(false);
     } catch (error) {
       console.error('Error saving flashcard deck:', error);
@@ -96,20 +93,21 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
 
   if (!currentCard) return null;
 
+  const progress = ((currentIndex + 1) / cards.length) * 100;
+
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-4xl mx-auto">
-      {/* Progress Indicator */}
-      <div className="w-full">
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
-          <span>Question {currentIndex + 1}</span>
-          <span>{cards.length}</span>
-        </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+    <div className="flex flex-col items-center gap-6 w-full max-w-3xl mx-auto">
+      {/* Top bar — counter + progress */}
+      <div className="w-full flex items-center gap-4">
+        <span className="text-sm font-bold text-sky-500 dark:text-sky-400 shrink-0 tabular-nums">
+          {currentIndex + 1} / {cards.length}
+        </span>
+        <div className="flex-1 h-1.5 bg-sky-500/10 dark:bg-sky-400/10 rounded-full overflow-hidden">
           <motion.div
-            className="bg-gray-900 dark:bg-white h-1 rounded-full"
-            initial={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
-            animate={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
-            transition={{ duration: 0.3 }}
+            className="h-full bg-sky-500 dark:bg-sky-400 rounded-full"
+            initial={{ width: `${progress}%` }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           />
         </div>
       </div>
@@ -117,68 +115,72 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
       {/* Flashcard */}
       <div className="w-full">
         <motion.div
-          className="relative w-full aspect-3/2 cursor-pointer"
-          initial={false}
-          animate={{ rotateY: isFlipped ? 180 : 0 }}
-          transition={{ duration: 0.6 }}
+          className="relative w-full cursor-pointer"
+          style={{ perspective: 1200 }}
           onClick={() => setIsFlipped(!isFlipped)}
-          style={{
-            transformStyle: 'preserve-3d',
-            position: 'relative',
-            width: '100%',
-          }}
         >
-          {/* Front of card */}
           <motion.div
-            className="absolute inset-0 backface-hidden"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-            }}
+            className="relative w-full h-[380px]"
             initial={false}
-            animate={{ opacity: isFlipped ? 0 : 1 }}
+            animate={{ rotateY: isFlipped ? 180 : 0 }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            style={{ transformStyle: 'preserve-3d' }}
           >
-            <div className="w-full h-full bg-white dark:bg-gray-900 rounded-2xl flex flex-col">
-              <div className="flex items-center justify-between mb-6 px-8 pt-8">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Question
-                </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  Click to reveal
-                </span>
-              </div>
-              <div className="flex-1 flex items-center justify-center px-8 pb-8">
-                <p className="text-xl text-center text-gray-900 dark:text-white leading-relaxed wrap-break-word">
-                  {currentCard.question}
-                </p>
+            {/* Front — Question */}
+            <div
+              className="absolute inset-0 w-full h-full"
+              style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+            >
+              <div className="w-full h-full bg-white dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-700 shadow-sm flex flex-col overflow-hidden">
+                {/* Card header */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkle className="w-3.5 h-3.5 text-sky-500/40 dark:text-sky-400/40" />
+                    <span className="text-[11px] font-bold text-sky-500/40 dark:text-sky-400/40 uppercase tracking-widest">
+                      Question
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-medium text-sky-500/30 dark:text-sky-400/30">
+                    Tap to reveal
+                  </span>
+                </div>
+                {/* Card body */}
+                <div className="flex-1 flex items-center justify-center px-8 pb-8">
+                  <p className="text-lg sm:text-xl text-center text-sky-900 dark:text-white leading-relaxed font-medium break-words">
+                    {currentCard.question}
+                  </p>
+                </div>
               </div>
             </div>
-          </motion.div>
 
-          {/* Back of card */}
-          <motion.div
-            className="absolute inset-0 backface-hidden"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-            }}
-            initial={false}
-            animate={{ opacity: isFlipped ? 1 : 0 }}
-          >
-            <div className="w-full h-full bg-gray-50 dark:bg-gray-800 rounded-2xl flex flex-col">
-              <div className="flex items-center justify-between mb-6 px-8 pt-8">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Answer
-                </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  Click to flip back
-                </span>
-              </div>
-              <div className="flex-1 flex items-center justify-center px-8 pb-8">
-                <p className="text-xl text-center text-gray-900 dark:text-white leading-relaxed wrap-break-word whitespace-pre-line">
-                  {currentCard.answer}
-                </p>
+            {/* Back — Answer */}
+            <div
+              className="absolute inset-0 w-full h-full"
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+              }}
+            >
+              <div className="w-full h-full bg-[#ebf6b5] dark:bg-gray-800 rounded-2xl border border-[#d4e88e] dark:border-gray-700 shadow-sm flex flex-col overflow-hidden">
+                {/* Card header */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkle className="w-3.5 h-3.5 text-sky-700/40 dark:text-sky-400/40" />
+                    <span className="text-[11px] font-bold text-sky-700/40 dark:text-sky-400/40 uppercase tracking-widest">
+                      Answer
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-medium text-sky-700/30 dark:text-sky-400/30">
+                    Tap to flip back
+                  </span>
+                </div>
+                {/* Card body */}
+                <div className="flex-1 flex items-center justify-center px-8 pb-8 overflow-y-auto">
+                  <p className="text-lg sm:text-xl text-center text-sky-900 dark:text-white leading-relaxed font-medium break-words whitespace-pre-line">
+                    {currentCard.answer}
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -187,64 +189,72 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
 
       {/* Controls */}
       <div className="flex items-center justify-between w-full">
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={handlePrevious}
           disabled={cards.length <= 1}
-          className="gap-2"
+          className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Previous
-        </Button>
+          <ChevronLeft className="h-4 w-4" />
+          Prev
+        </button>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
+        <div className="flex items-center gap-2">
+          <button
             onClick={() => setIsFlipped(!isFlipped)}
-            className="gap-2"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors"
           >
-            <FlipHorizontal className="h-4 w-4" />
-            {isFlipped ? 'Question' : 'Answer'}
-          </Button>
+            <RotateCcw className="h-3.5 w-3.5" />
+            Flip
+          </button>
 
           {onSave && (
-            <Button
-              variant="default"
-              size="sm"
+            <button
               onClick={() => setShowSaveDialog(true)}
               disabled={isSaving}
-              className="gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors disabled:opacity-50"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Saving
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4" />
+                  <Save className="h-3.5 w-3.5" />
                   Save
                 </>
               )}
-            </Button>
+            </button>
           )}
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={handleNext}
           disabled={cards.length <= 1}
-          className="gap-2"
+          className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Next
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
 
-      {/* Save Deck Modal */}
+      {/* Dot nav */}
+      {cards.length > 1 && cards.length <= 20 && (
+        <div className="flex items-center gap-1.5">
+          {cards.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => { setIsFlipped(false); setCurrentIndex(idx); }}
+              className={`w-2 h-2 rounded-full transition-all ${idx === currentIndex
+                ? 'bg-sky-500 dark:bg-sky-400 scale-125'
+                : 'bg-sky-500/20 dark:bg-sky-400/20 hover:bg-sky-500/40 dark:hover:bg-sky-400/40'
+                }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Save Dialog */}
       <AnimatePresence>
         {showSaveDialog && (
           <>
@@ -252,36 +262,34 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
               onClick={() => setShowSaveDialog(false)}
             />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
                 transition={{ duration: 0.2 }}
-                className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl"
+                className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-sky-100 dark:border-gray-700"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-medium text-gray-900 dark:text-white">
-                      Save Flashcard Deck
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-lg font-bold text-sky-900 dark:text-white">
+                      Save Deck
                     </h2>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
                       onClick={() => setShowSaveDialog(false)}
-                      className="h-8 w-8 p-0"
+                      className="p-1.5 rounded-lg text-sky-500/40 hover:text-sky-600 dark:text-sky-400/40 dark:hover:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 transition-colors"
                     >
                       <X className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="deckTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label htmlFor="deckTitle" className="block text-xs font-bold text-sky-500/50 dark:text-sky-400/50 mb-2 uppercase tracking-wider">
                         Deck Title
                       </label>
                       <Input
@@ -289,36 +297,33 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
                         type="text"
                         value={deckTitle}
                         onChange={(e) => setDeckTitle(e.target.value)}
-                        className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                        className="border-sky-100 dark:border-gray-700 bg-[#f5f9fc] dark:bg-gray-900 text-sky-900 dark:text-white rounded-xl focus:border-sky-500 dark:focus:border-sky-400"
                         placeholder="Enter a title for your deck"
                         autoFocus
                       />
                     </div>
-                    <div className="flex justify-end gap-3 pt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                    <div className="flex justify-end gap-2 pt-1">
+                      <button
                         onClick={() => setShowSaveDialog(false)}
                         disabled={isSaving}
-                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        className="px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors"
                       >
                         Cancel
-                      </Button>
-                      <Button
+                      </button>
+                      <button
                         onClick={handleSave}
                         disabled={isSaving || !deckTitle.trim()}
-                        size="sm"
-                        className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+                        className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors disabled:opacity-50"
                       >
                         {isSaving ? (
                           <>
-                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             Saving...
                           </>
                         ) : (
                           'Save Deck'
                         )}
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </div>

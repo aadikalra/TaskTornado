@@ -2,18 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Button } from '@/components/animate-ui/primitives/buttons/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import {
   CheckCircle,
   AlertCircle,
   ExternalLink,
   RefreshCw,
-  BookOpen,
-  Calendar,
   XCircle,
-  Globe
 } from 'lucide-react';
 import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 
@@ -172,96 +167,82 @@ export default function GoogleClassroomSection() {
 
   return (
     <div className="space-y-4">
-      {/* Content */}
       <div className="space-y-4">
         {success === 'classroom_authorized' && (
-          <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-900/30">
-            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
-            <p className="text-sm text-green-800 dark:text-green-200">Connected successfully</p>
+          <div className="flex items-center gap-3 p-3 bg-[#ebf6b5]/30 dark:bg-[#ebf6b5]/5 rounded-xl border border-[#d4e88e]/50 dark:border-[#d4e88e]/20">
+            <CheckCircle className="h-4 w-4 text-sky-500 shrink-0" />
+            <p className="text-sm font-medium text-sky-900 dark:text-sky-100">Connected successfully</p>
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-900/30">
-            <XCircle className="h-4 w-4 text-red-600 shrink-0" />
-            <p className="text-sm text-red-800 dark:text-red-200">Connection failed</p>
+          <div className="flex items-center gap-3 p-3 bg-red-50/50 dark:bg-red-950/10 rounded-xl border border-red-200/50 dark:border-red-900/30">
+            <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">Connection failed</p>
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center justify-start py-8">
+            <div className="flex items-center gap-2 text-sky-600/40">
               <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Authenticating...</span>
+              <span className="text-sm font-medium">Authenticating...</span>
             </div>
           </div>
         ) : authStatus?.isAuthorized ? (
           <div className="space-y-4">
             {/* Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700">
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Courses</p>
-                <p className="text-xl font-semibold text-gray-900 dark:text-white">{authStatus.coursesCount || 0}</p>
+              <div className="p-4 bg-white/60 dark:bg-gray-900/40 rounded-xl border border-sky-100 dark:border-gray-800">
+                <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider mb-1">Courses</p>
+                <p className="text-2xl font-bold text-sky-900 dark:text-white">{authStatus.coursesCount || 0}</p>
               </div>
-              <div className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700">
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Last Sync</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{authStatus.lastSync?.split(',')[0] || 'Recently'}</p>
+              <div className="p-4 bg-white/60 dark:bg-gray-900/40 rounded-xl border border-sky-100 dark:border-gray-800">
+                <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider mb-1">Last Sync</p>
+                <p className="text-sm font-bold text-sky-900 dark:text-white">{authStatus.lastSync?.split(',')[0] || 'Recently'}</p>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button
+              <button
                 onClick={handleSync}
                 disabled={isSyncing}
-                className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
-                hoverScale={1}
+                className="flex items-center px-4 py-2.5 bg-[#ebf6b5]/60 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 text-sky-900 dark:text-sky-100 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
               >
-                {isSyncing ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Syncing
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Sync
-                  </>
-                )}
-              </Button>
+                <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? 'Syncing' : 'Sync'}
+              </button>
 
-              <Button
+              <button
                 onClick={handleUnsync}
                 disabled={isUnsyncing}
-                className="px-4 py-2 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
-                hoverScale={1}
+                className="flex items-center px-4 py-2.5 bg-white/40 dark:bg-gray-900/40 text-sky-900 dark:text-sky-100 border border-sky-100 dark:border-gray-700 rounded-xl text-sm font-semibold hover:bg-sky-500/[0.04] transition-colors disabled:opacity-50"
               >
                 Disconnect
-              </Button>
+              </button>
 
-              <Button
+              <button
                 onClick={() => window.open('https://classroom.google.com', '_blank')}
-                className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm font-medium transition-colors"
-                hoverScale={1}
+                className="flex items-center px-4 py-2.5 text-sky-600/40 dark:text-sky-400/40 hover:text-sky-900 dark:hover:text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 px-3 py-2">
-              <AlertCircle className="h-4 w-4 text-green-500/60 shrink-0" />
-              <span className="text-sm text-gray-500 dark:text-zinc-400">Link your Google Classroom to sync classes automatically.</span>
+            <div className="flex items-center gap-2 py-2">
+              <AlertCircle className="h-4 w-4 text-sky-500/40 shrink-0" />
+              <span className="text-sm text-sky-600/50 dark:text-sky-400/50">Link your Google Classroom to sync classes automatically.</span>
             </div>
 
             {/* Connect Button */}
-            <Button
+            <button
               onClick={handleAuthorize}
               disabled={isAuthorizing}
-              className="w-full px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-              hoverScale={1}
+              className="w-full px-4 py-3 bg-[#ebf6b5]/60 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 text-sky-900 dark:text-sky-100 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isAuthorizing ? (
                 <>
@@ -274,7 +255,7 @@ export default function GoogleClassroomSection() {
                   Connect Google Workspace
                 </>
               )}
-            </Button>
+            </button>
           </div>
         )}
       </div>
@@ -287,4 +268,3 @@ export default function GoogleClassroomSection() {
     </div>
   );
 }
-

@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
-import { RefreshCcw, Calendar, Trash2, Plus, X, ChevronDown } from 'lucide-react';
+import { RefreshCcw, Calendar, Trash2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RecurringOptions } from '@/components/RecurringOptions';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,7 +19,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function RecurringHomeworkTutorialPage() {
     return (

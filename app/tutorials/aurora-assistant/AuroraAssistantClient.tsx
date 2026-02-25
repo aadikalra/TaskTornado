@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import Link from 'next/link';
-import { Sparkles, Zap, Brain, Cloud, MessageSquare, BookOpen, PlusCircle, Search, Bookmark, HelpCircle, Calculator, Heart, Image as ImageIcon, CheckCircle, ShieldAlert, ArrowRight, Timer } from 'lucide-react';
+import { Sparkles, Zap, Brain, Cloud, MessageSquare, BookOpen, PlusCircle,  Bookmark, HelpCircle,  Heart,  CheckCircle, ShieldAlert, ArrowRight, Timer } from 'lucide-react';
 
 export default function AuroraTutorialPage() {
     return (

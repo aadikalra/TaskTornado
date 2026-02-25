@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, {  useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
-import { Button } from '@/components/ui/button';
-import { Plus, GraduationCap, Calendar, Filter, Target, Zap, Brain } from 'lucide-react';
-import Link from 'next/link';
+import {  GraduationCap, Calendar,  Target, Zap, Brain } from 'lucide-react';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWideLayout } from '@/hooks/use-wide-layout';

@@ -8,7 +8,7 @@ import {
 import {
   $getSelection,
   $isRangeSelection,
-  $setSelection,
+  
   BaseSelection,
 } from "lexical"
 import { PaintBucketIcon } from "lucide-react"

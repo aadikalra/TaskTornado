@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Plus, Brain, ArrowUp } from 'lucide-react';
+import {  Plus, Brain, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Markdown } from './markdown';
 import { useDarkMode } from '@/context/DarkModeContext';
-import { X } from './animate-ui/icons/x';
-import { UserRound } from '@/components/animate-ui/icons/user-round';
+import { X } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 
 // Re-implementing the Aurora Video Icon for the demo
 const AuraVideoIcon = ({ isLoading, isDark }: { isLoading?: boolean; isDark: boolean }) => {

@@ -2,28 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Home, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Plus, HelpCircle, Sparkle, Layers, AlertTriangle, Trash2 } from 'lucide-react';
 import { InteractiveQuiz, QuizQuestion } from '@/components/Quiz';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { toast } from 'sonner';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { useAI } from '@/context/AIContext';
-import { getFullVersionString } from '@/config/version';
+
+interface SavedQuiz {
+    title: string;
+    questions: QuizQuestion[];
+    createdAt: string;
+}
 
 export default function QuizPage() {
     const { authenticated } = useRequireAuth();
     if (!authenticated) return null;
     const router = useRouter();
     const { user } = useAuth();
-    const { getContainerClass } = useWideLayout();
-    const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+    const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [studying, setStudying] = useState(false);
+    const [studyingTitle, setStudyingTitle] = useState('');
+    const [tempQuestions, setTempQuestions] = useState<QuizQuestion[]>([]);
+    const [savedQuizzes, setSavedQuizzes] = useState<SavedQuiz[]>([]);
     const { showIntro, dismissIntro } = useRouteIntro('quiz');
     const { setAIAssistantOpen, setAIInput } = useAI();
 
@@ -32,48 +37,56 @@ export default function QuizPage() {
         setAIAssistantOpen(true);
     };
 
-    // Check for quiz in localStorage
+    // Load temp quiz + saved quizzes from localStorage
     useEffect(() => {
         const savedQuiz = localStorage.getItem('currentQuiz');
         if (savedQuiz) {
-            try {
-                setQuestions(JSON.parse(savedQuiz));
-            } catch (error) {
-                console.error('Error parsing quiz:', error);
-                toast.error('Failed to load quiz questions');
-            }
+            try { setTempQuestions(JSON.parse(savedQuiz)); } catch { }
+        }
+        const saved = localStorage.getItem('savedQuizzes');
+        if (saved) {
+            try { setSavedQuizzes(JSON.parse(saved)); } catch { }
         }
         setIsLoading(false);
     }, []);
 
-    const handleSave = (updatedQuestions: QuizQuestion[]) => {
-        // Update the local state to reflect any changes
-        setQuestions(updatedQuestions);
+    const studyQuiz = (questions: QuizQuestion[], title: string) => {
+        setCurrentQuestions(questions);
+        setStudyingTitle(title);
+        setStudying(true);
     };
 
+    const deleteQuiz = (index: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm('Delete this quiz?')) return;
+        const updated = savedQuizzes.filter((_, i) => i !== index);
+        setSavedQuizzes(updated);
+        localStorage.setItem('savedQuizzes', JSON.stringify(updated));
+        toast.success('Quiz deleted');
+    };
+
+    const BackgroundOrbs = () => (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+            <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+            <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+        </div>
+    );
+
+    // ── Loading ──
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-950">
-                <div className={getContainerClass() + ' py-16'}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-16"
-                    >
-                        <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
-                            Quiz
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Test your knowledge with interactive quizzes
-                        </p>
-                    </motion.div>
-
-                    <div className="space-y-6">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="border-b border-gray-200 dark:border-gray-800 pb-6">
-                                <div className="h-6 w-48 bg-gray-100 dark:bg-gray-800 rounded mb-2 animate-pulse" />
-                                <div className="h-4 w-32 bg-gray-100 dark:bg-gray-800 rounded mb-4 animate-pulse" />
-                                <div className="h-10 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+            <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+                <BackgroundOrbs />
+                <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+                    <h1 className="text-4xl sm:text-5xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+                        Quizzes
+                    </h1>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="bg-[#f5f9fc] dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-gray-800 p-6">
+                                <div className="h-5 w-32 bg-sky-100 rounded-lg mb-3 animate-pulse" />
+                                <div className="h-4 w-24 bg-sky-50 rounded-lg animate-pulse" />
                             </div>
                         ))}
                     </div>
@@ -82,143 +95,230 @@ export default function QuizPage() {
         );
     }
 
-    // If we have no questions to display
-    if (questions.length === 0) {
+    // ── Taking a quiz ──
+    if (studying && currentQuestions.length > 0) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-950">
-                <div className={getContainerClass() + ' py-16'}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-16"
-                    >
-                        <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
-                            Quiz
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Test your knowledge with interactive quizzes
-                        </p>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 }}
-                    >
-                        <div className="text-center py-16">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-                                <HelpCircle className="h-8 w-8 text-gray-400" />
+            <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+                <BackgroundOrbs />
+                <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <h1 className="text-4xl sm:text-5xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-2">
+                                    {studyingTitle}
+                                </h1>
+                                <p className="text-sky-600/50 dark:text-sky-400/50 text-sm font-medium">
+                                    {currentQuestions.length} questions
+                                </p>
                             </div>
-                            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                                No Quiz Questions Found
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md text-center mx-auto">
-                                It looks like you don't have any quiz questions to answer. Generate some from the Aurora!
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                <Button onClick={openQuizAssistant} className="gap-2">
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => { setStudying(false); setCurrentQuestions([]); }}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 rounded-xl transition-colors"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    All Quizzes
+                                </button>
+                                <button
+                                    onClick={openQuizAssistant}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                                >
                                     <Plus className="h-4 w-4" />
-                                    Open Aurora
-                                </Button>
+                                    New
+                                </button>
                             </div>
                         </div>
                     </motion.div>
 
-                    {/* Footer */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
-                    >
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Built for students • Public Beta {getFullVersionString()}
-                            </p>
-                        </div>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+                        <InteractiveQuiz questions={currentQuestions} />
                     </motion.div>
                 </div>
+
+                <RouteIntroPopup
+                    isOpen={showIntro}
+                    onClose={dismissIntro}
+                    title="Welcome to Quizzes!"
+                    description="Test your knowledge with AI-generated quizzes"
+                    icon={<HelpCircle className="h-6 w-6" />}
+                    features={[
+                        'Generate quizzes using the AI Aurora',
+                        'Answer multiple-choice questions',
+                        'Get instant feedback and explanations',
+                        'Track your score per session',
+                    ]}
+                />
             </div>
         );
     }
 
-    const quizTopic = questions[0]?.topic || 'Quiz';
+    // ── Default: All Quizzes view ──
+    const hasTempQuiz = tempQuestions.length > 0;
+    const hasSaved = savedQuizzes.length > 0;
+    const isEmpty = !hasTempQuiz && !hasSaved;
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950">
-            <div className={getContainerClass() + ' py-16'}>
+        <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+            <BackgroundOrbs />
+            <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
 
                 {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-16"
-                >
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
-                                {quizTopic}
+                            <h1 className="text-4xl sm:text-5xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-2">
+                                Quizzes
                             </h1>
-                            <p className="text-gray-500 dark:text-gray-400">
-                                {questions.length} multiple-choice questions
+                            <p className="text-sky-600/50 dark:text-sky-400/50 text-sm font-medium">
+                                Test your knowledge with interactive quizzes
                             </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => router.back()}
-                                className="gap-2"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Back
-                            </Button>
-                            <Button onClick={openQuizAssistant} className="gap-2">
-                                <Plus className="h-4 w-4" />
-                                New
-                            </Button>
-                        </div>
+                        <button
+                            onClick={openQuizAssistant}
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                        >
+                            <Sparkle className="h-4 w-4" />
+                            Create with Aurora
+                        </button>
                     </div>
                 </motion.div>
 
-                {/* Quiz */}
+                {/* Info notice */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 }}
+                    transition={{ delay: 0.03 }}
+                    className="mb-8 flex items-center gap-2 px-4 py-3 bg-[#f5f9fc] dark:bg-gray-900 rounded-xl border border-sky-100 dark:border-gray-800"
                 >
-                    <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-6 bg-white dark:bg-gray-900">
-                        <InteractiveQuiz questions={questions} onSave={handleSave} />
-                    </div>
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <p className="text-xs text-sky-600/60 dark:text-sky-400/60">
+                        Quizzes are saved locally in your browser and will be cleared when you log out or clear browser data.
+                    </p>
                 </motion.div>
 
-                {/* Footer */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
-                >
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Built for students • Public Beta {getFullVersionString()}
+                {/* Empty state */}
+                {isEmpty && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 }}
+                        className="flex flex-col items-center justify-center py-24"
+                    >
+                        <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
+                            <HelpCircle className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                        </div>
+                        <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">
+                            No Quizzes Yet
+                        </h3>
+                        <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-8 max-w-sm text-center">
+                            Generate a quiz with Aurora AI to test your knowledge
                         </p>
-                    </div>
-                </motion.div>
+                        <button
+                            onClick={openQuizAssistant}
+                            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                        >
+                            <Sparkle className="h-4 w-4" />
+                            Open Aurora
+                        </button>
+                    </motion.div>
+                )}
+
+                {/* Temporarily Saved (current session) */}
+                {hasTempQuiz && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 }}
+                        className="mb-10"
+                    >
+                        <div className="flex items-center gap-2 mb-4">
+                            <h2 className="text-sm font-bold text-sky-500 dark:text-sky-400 uppercase tracking-widest">
+                                Current Session
+                            </h2>
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-500/20 rounded-full">
+                                <AlertTriangle className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
+                                <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">Temporary</span>
+                            </div>
+                        </div>
+                        <div
+                            onClick={() => studyQuiz(tempQuestions, tempQuestions[0]?.topic || 'Quiz')}
+                            className="group cursor-pointer bg-[#ebf6b5]/40 dark:bg-gray-900 rounded-2xl border border-[#d4e88e]/60 dark:border-gray-800 p-5 hover:shadow-lg hover:border-[#d4e88e] dark:hover:border-gray-700 transition-all max-w-sm"
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className="w-9 h-9 bg-[#ebf6b5] dark:bg-emerald-500/10 rounded-xl flex items-center justify-center border border-[#d4e88e]/50">
+                                    <HelpCircle className="h-4 w-4 text-sky-700 dark:text-emerald-400" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base font-bold text-sky-900 dark:text-white truncate">
+                                        {tempQuestions[0]?.topic || 'Recent Quiz'}
+                                    </h3>
+                                    <p className="text-xs text-sky-600/50 dark:text-sky-400/50">
+                                        {tempQuestions.length} question{tempQuestions.length !== 1 ? 's' : ''}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Saved Quizzes (localStorage) */}
+                {hasSaved && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: hasTempQuiz ? 0.1 : 0.05 }}
+                    >
+                        <h2 className="text-sm font-bold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-4">
+                            Saved Quizzes
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {savedQuizzes.map((quiz, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 + index * 0.03 }}
+                                    onClick={() => studyQuiz(quiz.questions, quiz.title)}
+                                    className="group cursor-pointer bg-[#f5f9fc] dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-gray-800 p-5 hover:shadow-lg hover:border-sky-200 dark:hover:border-gray-700 transition-all"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="w-9 h-9 bg-sky-100 dark:bg-sky-500/10 rounded-xl flex items-center justify-center">
+                                            <Layers className="h-4 w-4 text-sky-500 dark:text-sky-400" />
+                                        </div>
+                                        <button
+                                            onClick={(e) => deleteQuiz(index, e)}
+                                            className="p-1.5 rounded-lg text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                    <h3 className="text-base font-bold text-sky-900 dark:text-white mb-1 truncate group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors">
+                                        {quiz.title}
+                                    </h3>
+                                    <p className="text-xs text-sky-600/50 dark:text-sky-400/50 mb-3">
+                                        {quiz.questions.length} questions
+                                    </p>
+                                    <p className="text-[10px] font-medium text-sky-500/30 dark:text-sky-400/30 uppercase tracking-wider">
+                                        {new Date(quiz.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </div>
 
-            {/* Route Intro Popup */}
             <RouteIntroPopup
                 isOpen={showIntro}
                 onClose={dismissIntro}
-                title="Welcome to Interactive Quizzes!"
-                description="Test your knowledge with AI-generated multiple-choice quizzes"
+                title="Welcome to Quizzes!"
+                description="Test your knowledge with AI-generated quizzes"
                 icon={<HelpCircle className="h-6 w-6" />}
                 features={[
                     'Generate quizzes using the AI Aurora',
                     'Answer multiple-choice questions',
-                    'Get instant feedback on your answers',
-                    'Track your score and review explanations',
+                    'Get instant feedback and explanations',
+                    'Track your score per session',
                 ]}
             />
         </div>

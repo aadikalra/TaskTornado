@@ -11,11 +11,9 @@ import {
   Presentation,
   Target,
   Zap,
-  Clock,
+  
   CheckCircle2
 } from 'lucide-react';
-import { Button } from '@/components/animate-ui/components/buttons/button';
-import Link from 'next/link';
 
 type EnhancedTestCardProps = {
   test: Test;
@@ -46,58 +44,58 @@ const EnhancedTestCard = ({
       alpha: {
         icon: Target,
         label: 'ALPHA',
-        color: 'text-purple-600 dark:text-purple-400',
-        border: 'border-l-purple-500',
-        bg: 'bg-purple-50/50 dark:bg-purple-900/10',
-        badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+        color: 'text-sky-600 dark:text-sky-400',
+        border: 'border-l-sky-500',
+        bg: 'bg-sky-100/40 dark:bg-sky-500/10',
+        badge: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300'
       },
       beta: {
         icon: Zap,
         label: 'BETA',
-        color: 'text-orange-600 dark:text-orange-400',
-        border: 'border-l-orange-500',
-        bg: 'bg-orange-50/50 dark:bg-orange-900/10',
-        badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+        color: 'text-sky-500 dark:text-sky-400',
+        border: 'border-l-sky-400',
+        bg: 'bg-sky-100/30 dark:bg-sky-500/[0.07]',
+        badge: 'bg-[#ebf6b5]/60 text-sky-800 dark:bg-[#ebf6b5]/10 dark:text-sky-200'
       },
       final: {
         icon: GraduationCap,
         label: 'FINAL',
-        color: 'text-red-600 dark:text-red-400',
-        border: 'border-l-red-500',
-        bg: 'bg-red-50/50 dark:bg-red-900/10',
-        badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+        color: 'text-sky-700 dark:text-sky-300',
+        border: 'border-l-sky-600',
+        bg: 'bg-sky-100/50 dark:bg-sky-500/15',
+        badge: 'bg-sky-200/60 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200'
       },
       exam: {
         icon: GraduationCap,
         label: 'EXAM',
-        color: 'text-red-600 dark:text-red-400',
-        border: 'border-l-red-500',
-        bg: 'bg-red-50/50 dark:bg-red-900/10',
-        badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+        color: 'text-sky-700 dark:text-sky-300',
+        border: 'border-l-sky-600',
+        bg: 'bg-sky-100/50 dark:bg-sky-500/15',
+        badge: 'bg-sky-200/60 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200'
       },
       quiz: {
         icon: FileText,
         label: 'QUIZ',
-        color: 'text-blue-600 dark:text-blue-400',
-        border: 'border-l-blue-500',
-        bg: 'bg-blue-50/50 dark:bg-blue-900/10',
-        badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+        color: 'text-sky-500 dark:text-sky-400',
+        border: 'border-l-sky-400',
+        bg: 'bg-sky-100/30 dark:bg-sky-500/[0.07]',
+        badge: 'bg-sky-100/60 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300'
       },
       project: {
         icon: Presentation,
         label: 'PROJECT',
-        color: 'text-emerald-600 dark:text-emerald-400',
-        border: 'border-l-emerald-500',
-        bg: 'bg-emerald-50/50 dark:bg-emerald-900/10',
-        badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+        color: 'text-sky-500 dark:text-sky-400',
+        border: 'border-l-sky-400',
+        bg: 'bg-[#ebf6b5]/20 dark:bg-[#ebf6b5]/5',
+        badge: 'bg-[#ebf6b5]/50 text-sky-800 dark:bg-[#ebf6b5]/10 dark:text-sky-200'
       },
       default: {
         icon: BookOpen,
         label: 'TEST',
-        color: 'text-gray-600 dark:text-gray-400',
-        border: 'border-l-gray-500',
-        bg: 'bg-gray-50/50 dark:bg-gray-800/50',
-        badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+        color: 'text-sky-500/70 dark:text-sky-400/50',
+        border: 'border-l-sky-300',
+        bg: 'bg-sky-50/50 dark:bg-sky-500/5',
+        badge: 'bg-sky-100/40 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400'
       }
     };
 
@@ -120,27 +118,26 @@ const EnhancedTestCard = ({
         onClick={onClick}
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        className={`group flex items-center gap-3 py-1 cursor-pointer ${className || ''}`}
+        className={`group flex items-center gap-3 py-2 cursor-pointer transition-colors ${className || ''}`}
       >
         <div className={`
           shrink-0 flex items-center justify-center rounded-lg h-5 w-5
           ${testTypeConfig.bg}
-          border border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-700
           transition-colors duration-200
         `}>
           <TestTypeIcon className={`h-3 w-3 ${testTypeConfig.color}`} />
         </div>
 
         <div className="flex-1 min-w-0 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+          <span className="text-sm font-medium text-sky-900 dark:text-sky-100 truncate group-hover:text-sky-700 dark:group-hover:text-white transition-colors">
             {test.title}
           </span>
 
-          <div className="flex items-center gap-2">
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${testTypeConfig.badge}`}>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${testTypeConfig.badge}`}>
               {testTypeConfig.label}
             </span>
-            <span className={`text-xs ${dueDateLabel.includes('Today') ? 'text-amber-600 dark:text-amber-500 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+            <span className={`text-xs tabular-nums ${dueDateLabel.includes('Today') ? 'text-sky-600 dark:text-sky-400 font-medium' : 'text-sky-600/35 dark:text-sky-400/35'}`}>
               {dueDateLabel}
             </span>
           </div>
@@ -159,7 +156,7 @@ const EnhancedTestCard = ({
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      className={`group relative bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md rounded-[24px] border border-gray-200/80 dark:border-white/5 shadow-sm hover:shadow-xl transition-all duration-300 ${className || ''}`}
+      className={`group relative bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-2xl border border-sky-100 dark:border-sky-500/10 shadow-sm hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300 ${className || ''}`}
     >
       {/* Background decoration */}
       <div className={`flex ${isCompact ? 'p-3 gap-3' : 'p-4 gap-4'} items-start relative`}>
@@ -168,7 +165,7 @@ const EnhancedTestCard = ({
           shrink-0 flex items-center justify-center rounded-xl
           ${isCompact ? 'h-10 w-10' : 'h-12 w-12'}
           ${testTypeConfig.bg}
-          border border-black/5 dark:border-white/5
+          border border-sky-100/50 dark:border-sky-500/10
         `}>
           <ClassIconComponent className={`
             ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}
@@ -180,15 +177,15 @@ const EnhancedTestCard = ({
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           {/* Header: Title Only */}
           <div>
-            <h3 className={`font-semibold text-gray-900 dark:text-gray-100 truncate ${isCompact ? 'text-sm' : 'text-base'}`}>
+            <h3 className={`font-semibold text-sky-900 dark:text-sky-100 truncate ${isCompact ? 'text-sm' : 'text-base'}`}>
               {test.title}
             </h3>
           </div>
 
           {/* Metadata Row */}
-          <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-500 dark:text-gray-400 ${isCompact ? 'mt-1 text-xs' : 'mt-3 text-sm'}`}>
+          <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sky-600/40 dark:text-sky-400/40 ${isCompact ? 'mt-1 text-xs' : 'mt-3 text-sm'}`}>
             {/* Date Info */}
-            <div className={`flex items-center gap-1.5 ${dueDateLabel.includes('Today') || dueDateLabel.includes('Tomorrow') ? 'text-amber-600 dark:text-amber-500 font-medium' : ''}`}>
+            <div className={`flex items-center gap-1.5 ${dueDateLabel.includes('Today') || dueDateLabel.includes('Tomorrow') ? 'text-sky-600 dark:text-sky-400 font-medium' : ''}`}>
               <DueIcon className="h-3.5 w-3.5" />
               <span>{dueDateLabel}</span>
             </div>
@@ -208,9 +205,9 @@ const EnhancedTestCard = ({
           {/* Score Display */}
           {hasScore ? (
             <div className={`
-              flex items-center gap-1.5 rounded-md px-2 py-1 font-mono font-medium
+              flex items-center gap-1.5 rounded-lg px-2 py-1 font-mono font-medium
               ${isCompact ? 'text-xs' : 'text-sm'}
-              bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-900/30
+              bg-[#ebf6b5]/30 text-sky-800 dark:bg-[#ebf6b5]/10 dark:text-sky-200 border border-[#d4e88e]/30 dark:border-[#d4e88e]/10
             `}>
               <CheckCircle2 className="h-3 w-3" />
               {displayScore}

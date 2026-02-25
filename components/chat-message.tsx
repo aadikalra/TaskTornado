@@ -35,8 +35,8 @@ export const ChatMessageItem = ({ message, isOwnMessage, showHeader }: ChatMessa
           className={cn(
             'py-2 px-3 rounded-xl text-sm w-fit',
             isOwnMessage
-              ? 'bg-[#264f84] dark:bg-blue-600 text-white'
-              : 'bg-muted text-foreground'
+              ? 'bg-sky-500 dark:bg-sky-500 text-white'
+              : 'bg-white dark:bg-gray-800 text-sky-900 dark:text-white shadow-sm'
           )}
         >
           {message.content}

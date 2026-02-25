@@ -2,10 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Home, Layers, Waves } from 'lucide-react';
-import Link from 'next/link';
+import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Layers, Waves, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import WorthinessCheckModal from '@/components/WorthinessCheckModal';
@@ -48,13 +46,10 @@ export default function GamesPage() {
         {
             id: 'snake',
             title: 'Snake',
-            description: 'Classic snake game with a twist - difficulty scales with your remaining homework!',
+            description: 'Classic snake game with a twist — difficulty scales with your remaining homework!',
             icon: Waves,
             href: '/snake',
-            color: 'from-green-500 to-emerald-600',
-            bgColor: 'bg-green-500/10',
-            borderColor: 'border-green-200/50 dark:border-green-800/50',
-            textColor: 'text-green-600 dark:text-green-400',
+            accent: 'sky',
             unlockThreshold: 75,
             stats: {
                 label: 'Unlocked',
@@ -67,100 +62,109 @@ export default function GamesPage() {
             description: 'Tetris-style game where blocks are your tasks! Clear lines by organizing assignments efficiently.',
             icon: Layers,
             href: '/task-tower',
-            color: 'from-purple-500 to-pink-600',
-            bgColor: 'bg-purple-500/10',
-            borderColor: 'border-purple-200/50 dark:border-purple-800/50',
-            textColor: 'text-purple-600 dark:text-purple-400',
+            accent: 'emerald',
             unlockThreshold: 80,
             stats: {
                 label: 'Unlocked',
                 value: 'Complete 80% homework',
             }
         },
-        // Future games can be added here
     ];
 
+    const unlockedCount = games.filter(g => completionPercentage >= g.unlockThreshold).length;
+
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950">
-            <div className={getContainerClass() + ' py-16'}>
+        <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+            {/* Background orbs */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+            </div>
+
+            <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
 
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-16"
+                    className="mb-12"
                 >
-                    <h1 className="text-4xl font-light text-gray-900 dark:text-white mb-3 tracking-tight">
+                    <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-3">
                         Game Center
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400">
-                        Take a break and play games - earn them by completing your work!
+                    <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
+                        Take a break and play games — earn them by completing your work!
                     </p>
                 </motion.div>
 
-                {/* Stats Section */}
+                {/* Stats Cards */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="mb-12"
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12"
                 >
-                    <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-                        <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                            Your Progress
-                        </h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Track your homework completion and game unlocks
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="text-center">
-                            <div className="text-3xl font-light text-gray-900 dark:text-white mb-1">
+                    <div className="flex items-center gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <div className="w-11 h-11 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
+                            <Gamepad2 className="w-5 h-5 text-sky-500 dark:text-sky-400" />
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-sky-900 dark:text-white leading-none mb-0.5">
                                 {games.length}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-sky-600/40 dark:text-sky-400/40 font-medium">
                                 Available Games
                             </div>
                         </div>
+                    </div>
 
-                        <div className="text-center">
-                            <div className="text-3xl font-light text-purple-600 dark:text-purple-400 mb-1">
+                    <div className="flex items-center gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <div className="w-11 h-11 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center shrink-0">
+                            <Sparkles className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-sky-900 dark:text-white leading-none mb-0.5">
                                 {completionPercentage}%
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                Homework Completed
+                            <div className="text-xs text-sky-600/40 dark:text-sky-400/40 font-medium">
+                                Homework Done
                             </div>
                         </div>
+                    </div>
 
-                        <div className="text-center">
-                            <div className="text-3xl font-light text-blue-600 dark:text-blue-400 mb-1">
-                                {games.filter(g => completionPercentage >= g.unlockThreshold).length}/{games.length}
+                    <div className="flex items-center gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <div className="w-11 h-11 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
+                            <Trophy className="w-5 h-5 text-sky-500 dark:text-sky-400" />
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-sky-900 dark:text-white leading-none mb-0.5">
+                                {unlockedCount}/{games.length}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-sky-600/40 dark:text-sky-400/40 font-medium">
                                 Games Unlocked
                             </div>
                         </div>
                     </div>
                 </motion.div>
 
-                {/* Games Section */}
+                {/* Games List */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     className="mb-12"
                 >
-                    <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-                        <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    <div className="mb-6">
+                        <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">
                             Games
                         </h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Choose a game to play - complete more homework to unlock additional games
+                        <p className="text-sm text-sky-600/40 dark:text-sky-400/40">
+                            Complete more homework to unlock additional games
                         </p>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-0">
                         {games.map((game, index) => {
                             const Icon = game.icon;
                             const isUnlocked = completionPercentage >= game.unlockThreshold;
@@ -171,61 +175,49 @@ export default function GamesPage() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.15 + index * 0.05 }}
-                                    className={`group border-b border-gray-200 dark:border-gray-800 pb-6 last:border-0 ${!isUnlocked ? 'opacity-50' : ''}`}
+                                    className={`flex items-center gap-4 py-5 border-b border-sky-100 dark:border-gray-800 group ${isUnlocked ? 'hover:bg-sky-500/[0.02] cursor-pointer' : 'opacity-50'} transition-colors px-1`}
+                                    onClick={() => isUnlocked && handleGameClick({ title: game.title, href: game.href })}
                                 >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-start gap-4">
-                                            <div className={`p-3 rounded-lg ${game.bgColor} border ${game.borderColor} relative`}>
-                                                <Icon className={`h-6 w-6 ${game.textColor}`} />
-                                                {!isUnlocked && (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-lg">
-                                                        <Lock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1">
-                                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                                                    {game.title}
-                                                    {!isUnlocked && <Lock className="h-4 w-4 text-gray-400" />}
-                                                </h3>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
-                                                    {game.description}
-                                                </p>
-                                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${game.bgColor} border ${game.borderColor}`}>
-                                                    {isUnlocked ? (
-                                                        <>
-                                                            <Trophy className={`h-3.5 w-3.5 ${game.textColor}`} />
-                                                            <span className={`text-xs font-medium ${game.textColor}`}>
-                                                                Unlocked!
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Lock className="h-3.5 w-3.5 text-gray-500" />
-                                                            <span className="text-xs font-medium text-gray-500">
-                                                                {game.stats.value}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {isUnlocked && (
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="gap-2"
-                                                    onClick={() => handleGameClick({ title: game.title, href: game.href })}
-                                                >
-                                                    Play
-                                                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
-                                                </Button>
+                                    {/* Icon */}
+                                    <div className="relative w-12 h-12 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
+                                        <Icon className="w-6 h-6 text-sky-500 dark:text-sky-400" />
+                                        {!isUnlocked && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-xl backdrop-blur-[1px]">
+                                                <Lock className="w-4 h-4 text-sky-400/50" />
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2.5 mb-1">
+                                            <h3 className="text-base font-semibold text-sky-900 dark:text-white">
+                                                {game.title}
+                                            </h3>
+                                            {isUnlocked ? (
+                                                <span className="flex items-center gap-1 px-2.5 py-0.5 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 text-sky-600 dark:text-sky-400 rounded-full text-[11px] font-bold">
+                                                    <Trophy className="w-3 h-3" />
+                                                    Unlocked
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 px-2.5 py-0.5 bg-sky-50 dark:bg-sky-500/10 text-sky-500/50 dark:text-sky-400/50 rounded-full text-[11px] font-medium">
+                                                    <Lock className="w-3 h-3" />
+                                                    {game.stats.value}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-sky-700/50 dark:text-sky-300/50 line-clamp-1">
+                                            {game.description}
+                                        </p>
+                                    </div>
+
+                                    {/* Play button */}
+                                    {isUnlocked && (
+                                        <button className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors shrink-0">
+                                            Play
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                                        </button>
+                                    )}
                                 </motion.div>
                             );
                         })}
@@ -235,44 +227,35 @@ export default function GamesPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25 }}
-                            className="border-b border-gray-200 dark:border-gray-800 pb-6 last:border-0"
+                            className="flex items-center gap-4 py-5 px-1"
                         >
-                            <div className="flex items-start gap-4">
-                                <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                                    <Zap className="h-6 w-6 text-gray-400" />
-                                </div>
-
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        More Games Coming Soon
-                                    </h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        Keep completing your homework to unlock new games!
-                                    </p>
-                                </div>
+                            <div className="w-12 h-12 bg-sky-50 dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl flex items-center justify-center shrink-0">
+                                <Zap className="w-6 h-6 text-sky-400/30 dark:text-sky-400/20" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold text-sky-700/40 dark:text-sky-300/40 mb-0.5">
+                                    More Games Coming Soon
+                                </h3>
+                                <p className="text-sm text-sky-600/30 dark:text-sky-400/30">
+                                    Keep completing your homework to unlock new games!
+                                </p>
                             </div>
                         </motion.div>
                     </div>
                 </motion.div>
 
-                {/* Info Section */}
+                {/* How It Works */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                     className="mb-12"
                 >
-                    <div className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
-                        <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    <div className="px-6 py-5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <h2 className="text-sm font-bold text-sky-900 dark:text-white mb-2">
                             How It Works
                         </h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Learn more about the game system
-                        </p>
-                    </div>
-
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                        <p className="text-sm text-sky-700/50 dark:text-sky-300/50 leading-relaxed">
                             The more homework you complete, the easier the games become! Game difficulty dynamically adjusts based on your remaining homework count. Stay on top of your assignments to unlock a more relaxed gaming experience as your reward.
                         </p>
                     </div>
@@ -283,13 +266,11 @@ export default function GamesPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
-                    className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800"
+                    className="pt-8 border-t border-sky-100 dark:border-gray-800"
                 >
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Built for students • Public Beta {getFullVersionString()}
-                        </p>
-                    </div>
+                    <p className="text-xs text-sky-600/30 dark:text-sky-400/30">
+                        Built for students • Public Beta {getFullVersionString()}
+                    </p>
                 </motion.div>
             </div>
 

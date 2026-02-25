@@ -3,14 +3,13 @@
 import { useSearch } from '@/context/SearchContext';
 import {
   Search,
-  Folder,
-  Hash,
-  PlusSquare,
-  Command,
+  
+  
+  
+  
   CornerDownLeft,
   ArrowUp,
-  ArrowDown,
-  X
+  ArrowDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHotkeys } from 'react-hotkeys-hook';

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { X, Plus, Link as LinkIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 type HomeworkLink = {
@@ -23,7 +22,7 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
 
   const handleAddLink = () => {
     if (!newLink.trim()) return;
-    
+
     const newLinkObj: HomeworkLink = {
       id: Date.now().toString(),
       url: newLink.startsWith('http') ? newLink : `https://${newLink}`,
@@ -43,59 +42,56 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Links (Optional)</label>
+        <label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Links <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span></label>
         {!isAdding && (
           <button
             type="button"
             onClick={() => setIsAdding(true)}
-            className="text-xs text-[#264f84] hover:text-[#1f3f6b] flex items-center"
+            className="text-xs font-semibold text-sky-500 hover:text-sky-600 flex items-center gap-1 transition-colors"
           >
-            <Plus className="h-3 w-3 mr-1" /> Add Link
+            <Plus className="h-3 w-3" /> Add Link
           </button>
         )}
       </div>
 
       {isAdding && (
-        <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-600">
+        <div className="space-y-2 p-3 bg-sky-50 dark:bg-gray-800 rounded-xl border border-sky-100 dark:border-gray-700">
           <div className="space-y-2">
             <Input
               type="url"
               value={newLink}
               onChange={(e) => setNewLink(e.target.value)}
               placeholder="https://example.com"
-              className="text-sm bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className="text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
             <Input
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Link title (optional)"
-              className="text-sm bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className="text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button
+          <div className="flex justify-end gap-2">
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={() => {
                 setIsAdding(false);
                 setNewLink('');
                 setNewTitle('');
               }}
-              className="text-xs h-8 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="h-8 px-3 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
               Cancel
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
               onClick={handleAddLink}
-              size="sm"
-              className="bg-[#264f84] hover:bg-[#1f3f6b] text-white text-xs h-8"
               disabled={!newLink.trim()}
+              className="h-8 px-4 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Add Link
-            </Button>
+            </button>
           </div>
         </div>
       )}
@@ -103,21 +99,21 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
       {links.length > 0 && (
         <div className="space-y-2 mt-2">
           {links.map((link) => (
-            <div key={link.id} className="flex items-center justify-between group bg-gray-50 dark:bg-gray-700 p-2 rounded-md">
+            <div key={link.id} className="flex items-center justify-between group bg-sky-50 dark:bg-gray-800 p-2.5 rounded-xl border border-sky-100 dark:border-gray-700">
               <a
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-[#264f84] hover:underline flex items-center flex-1 min-w-0"
+                className="text-sm text-sky-600 hover:text-sky-700 hover:underline flex items-center flex-1 min-w-0"
                 title={link.url}
               >
-                <LinkIcon className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
+                <LinkIcon className="h-3.5 w-3.5 mr-2 flex-shrink-0 text-sky-500" />
                 <span className="truncate">{link.title || link.url}</span>
               </a>
               <button
                 type="button"
                 onClick={() => removeLink(link.id)}
-                className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 -mr-1"
+                className="text-sky-400 hover:text-red-500 dark:text-sky-500 dark:hover:text-red-400 p-1 -mr-1 transition-colors"
                 title="Remove link"
               >
                 <X className="h-3.5 w-3.5" />

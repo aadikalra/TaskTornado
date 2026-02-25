@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import IconHouse from './glass-icons/IconHouse';
 import IconGear from './glass-icons/IconGear';
@@ -14,7 +13,6 @@ import IconUsers from './glass-icons/IconUsers';
 import IconPin from './glass-icons/IconPin';
 import IconBox from './glass-icons/IconBox';
 import IconFile from './glass-icons/IconFile';
-import IconProgressBar from './glass-icons/IconProgressBar';
 import IconSparkle from './glass-icons/IconSparkle';
 import IconMessageSquare from './glass-icons/IconMessageSquare';
 

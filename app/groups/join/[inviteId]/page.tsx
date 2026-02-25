@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStudyGroups } from '@/context/StudyGroupsContext';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ArrowLeft, CheckCircle, XCircle, Users } from 'lucide-react';
 import Link from 'next/link';
 

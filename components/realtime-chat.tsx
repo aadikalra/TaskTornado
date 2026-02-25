@@ -176,8 +176,8 @@ export const RealtimeChat = ({
         {allMessages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-sm text-muted-foreground p-8">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <Send className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-sky-500/10 flex items-center justify-center mx-auto mb-2">
+                <Send className="w-6 h-6 text-sky-500" />
               </div>
               <p>No messages yet.</p>
               <p className="text-xs opacity-70">Start the conversation!</p>
@@ -206,10 +206,10 @@ export const RealtimeChat = ({
       </div>
 
       {/* Floating Glassmorphic Input Area - Matches AIAssistant.tsx */}
-      <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-black dark:via-black/40 dark:to-transparent pt-12">
+      <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-gradient-to-t from-[#f5f9fc] via-[#f5f9fc]/40 to-transparent dark:from-gray-900 dark:via-gray-900/40 dark:to-transparent pt-12">
         <form
           onSubmit={handleSendMessage}
-          className="pointer-events-auto bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md shadow-xl rounded-[28px] border border-gray-200 dark:border-zinc-800"
+          className="pointer-events-auto bg-white/60 dark:bg-gray-900/60 backdrop-blur-md shadow-xl rounded-[28px] border border-sky-100 dark:border-gray-800"
         >
           <div className="flex items-center gap-2 p-1">
             <Input
@@ -223,7 +223,7 @@ export const RealtimeChat = ({
             <Button
               className={cn(
                 "h-10 w-10 rounded-full flex-shrink-0 mr-1",
-                "bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 shadow-md",
+                "bg-sky-500 hover:bg-sky-600 text-white dark:bg-sky-500 dark:hover:bg-sky-600 shadow-md",
                 "transition-all duration-300",
                 !newMessage.trim() && "opacity-50"
               )}

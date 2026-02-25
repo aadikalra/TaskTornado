@@ -1,4 +1,4 @@
-import { LogOut, Trash2, AlertTriangle, X, ShieldAlert } from 'lucide-react';
+import { LogOut, Trash2, X, ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,27 +48,27 @@ export default function AccountSection({
     <>
       <div className="space-y-1">
         {/* Sign Out */}
-        <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
           {isLoggingOut ? (
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
                 Redirecting in {countdown}...
               </span>
             </div>
           ) : (
             <>
               <div className="flex items-center gap-3">
-                <LogOut className="h-[18px] w-[18px] text-rose-500/70" />
-                <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+                <LogOut className="h-[18px] w-[18px] text-sky-500/50" />
+                <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
                   Sign Out
                 </span>
               </div>
               <Button
                 onClick={onSignOut}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${showLogoutConfirm
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${showLogoutConfirm
+                  ? 'bg-red-500 text-white hover:bg-red-600 shadow-md shadow-red-500/20'
+                  : 'text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hover:bg-[#ebf6b5]'
                   }`}
                 hoverScale={1.02}
               >
@@ -79,25 +79,25 @@ export default function AccountSection({
         </div>
 
         {/* Delete Account */}
-        <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+        <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
           {isDeleting ? (
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
                 Deleting your account...
               </span>
             </div>
           ) : (
             <>
               <div className="flex items-center gap-3">
-                <Trash2 className="h-[18px] w-[18px] text-rose-500/70" />
-                <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+                <Trash2 className="h-[18px] w-[18px] text-sky-500/50" />
+                <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
                   Delete Account
                 </span>
               </div>
               <Button
                 onClick={handleDeleteClick}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hover:bg-[#ebf6b5] transition-colors"
                 hoverScale={1.02}
               >
                 Delete Account
@@ -116,23 +116,23 @@ export default function AccountSection({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleModalCancel}
-              className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-xl"
+              className="absolute inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl"
             />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-sky-100 dark:border-gray-800 shadow-2xl shadow-sky-500/5 overflow-hidden"
             >
-              {/* Brand Strip */}
+              {/* Danger Strip */}
               <div className="h-1 w-full bg-red-500" />
 
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <ShieldAlert className="h-5 w-5 text-red-500" />
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Account</h2>
+                    <h2 className="text-lg font-bold text-sky-900 dark:text-white">Delete Account</h2>
                     <p className="text-xs text-red-500 font-medium mt-0.5">This action is permanent</p>
                   </div>
                 </div>
@@ -145,7 +145,7 @@ export default function AccountSection({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-500 dark:text-zinc-500 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-sky-600/50 dark:text-sky-400/50 uppercase tracking-wider">
                       Type &ldquo;{userName}&rdquo; to confirm
                     </label>
                     <input
@@ -153,14 +153,14 @@ export default function AccountSection({
                       value={confirmationText}
                       onChange={(e) => setConfirmationText(e.target.value)}
                       placeholder={userName}
-                      className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all"
+                      className="w-full px-4 py-3 bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sm text-sky-900 dark:text-white placeholder:text-sky-600/25 dark:placeholder:text-sky-400/25 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all"
                     />
                   </div>
 
                   <div className="flex gap-3 pt-2">
                     <Button
                       onClick={handleModalCancel}
-                      className="flex-1 py-3 px-4 rounded-xl text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors"
+                      className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold text-sky-600/50 dark:text-sky-400/50 hover:text-sky-900 dark:hover:text-white hover:bg-sky-500/[0.04] transition-colors"
                       hoverScale={1.02}
                     >
                       Cancel
@@ -168,9 +168,9 @@ export default function AccountSection({
                     <Button
                       onClick={handleModalConfirm}
                       disabled={confirmationText.trim() !== userName.trim() || isDeleting}
-                      className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all ${confirmationText.trim() === userName.trim()
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-gray-100 dark:bg-zinc-900 text-gray-300 dark:text-zinc-700 cursor-not-allowed'
+                      className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${confirmationText.trim() === userName.trim()
+                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-md shadow-red-500/20'
+                        : 'bg-sky-100/40 dark:bg-gray-800 text-sky-600/25 dark:text-sky-400/25 cursor-not-allowed'
                         }`}
                       hoverScale={confirmationText.trim() === userName.trim() ? 1.02 : 1}
                     >
@@ -182,7 +182,7 @@ export default function AccountSection({
 
               <button
                 onClick={handleModalCancel}
-                className="absolute top-6 right-6 p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
+                className="absolute top-6 right-6 p-1.5 text-sky-600/30 hover:text-sky-900 dark:hover:text-white transition-colors rounded-lg hover:bg-sky-500/[0.04]"
               >
                 <X className="w-4 h-4" />
               </button>

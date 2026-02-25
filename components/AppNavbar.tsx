@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Menu, X, Search, Sparkles, Calendar, Home, LogOut, Bell, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle, Newspaper, FileText } from 'lucide-react';
+import { ChevronDown, Menu, X, Search, Sparkle, Calendar, Home, LogOut, Bell, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle,  FileText } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
@@ -14,16 +14,15 @@ import { NotificationPanel, useNotifications } from '@/components/NotificationPa
 const NAV_ITEMS = [
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'Calendar', href: '/calendar', icon: Calendar },
-    { label: 'Translate', href: '/translate', icon: Languages },
-    { label: 'Grades', href: '/grade-calculator', icon: Calculator },
-    { label: 'Blog', href: '/blog', icon: Newspaper },
+    { label: 'Flashcards', href: '/flashcards', icon: BookOpen },
+    { label: 'Quizzes', href: '/quiz', icon: Grid2x2 },
+    { label: 'Writing', href: '/writing-assist', icon: PenTool },
 ];
 
 const TOOL_ITEMS = [
-    { label: 'Flashcards', href: '/flashcards', icon: BookOpen, requiresAuth: true },
-    { label: 'Quizzes', href: '/quiz', icon: Grid2x2, requiresAuth: true },
+    { label: 'Translate', href: '/translate', icon: Languages, requiresAuth: true },
+    { label: 'Grades', href: '/grade-calculator', icon: Calculator, requiresAuth: true },
     { label: 'Web Saves', href: '/web-saves', icon: Pin, requiresAuth: true },
-    { label: 'Writing', href: '/writing-assist', icon: PenTool, requiresAuth: true },
     { label: 'Groups', href: '/groups', icon: Users, requiresAuth: true },
     { label: 'Discuss', href: '/discussions', icon: MessageSquare, requiresAuth: true },
     { label: 'Games', href: '/games', icon: Gamepad2, requiresAuth: true },
@@ -43,6 +42,8 @@ export default function AppNavbar() {
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
+    const [timerInfo, setTimerInfo] = useState<{ isMinimized: boolean; isRunning: boolean; timeLeft: number; totalTime: number; formattedTime: string; progress: number } | null>(null);
+    const [timerRestoreSignal, setTimerRestoreSignal] = useState(0);
 
     const toolsRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
@@ -93,7 +94,9 @@ export default function AppNavbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-5 sm:py-7 pointer-events-none">
+            {/* Gradient fade behind navbar */}
+            <div className="fixed top-0 left-0 right-0 h-24 z-40 pointer-events-none bg-gradient-to-b from-[#fffaf4] via-[#fffaf4]/80 to-transparent dark:from-gray-950 dark:via-gray-950/80" />
+            <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 pointer-events-none">
                 <div className="pointer-events-auto flex items-center justify-between w-full max-w-7xl mx-auto">
                     {/* Logo */}
                     <button onClick={() => handleNavClick('/dashboard')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
@@ -132,6 +135,15 @@ export default function AppNavbar() {
                         {/* Divider */}
                         <div className="w-px h-5 bg-white/20 mx-1" />
 
+                        {/* Aurora */}
+                        <button
+                            onClick={() => setAIAssistantOpen(!isAIAssistantOpen)}
+                            className={`relative px-3 py-2 rounded-full transition-colors ${isAIAssistantOpen ? 'text-amber-300' : 'text-white/70 hover:text-white'}`}
+                            title="Aurora AI"
+                        >
+                            <Sparkle className="w-4 h-4" />
+                        </button>
+
                         {/* Search */}
                         <button
                             onClick={openSearch}
@@ -139,15 +151,6 @@ export default function AppNavbar() {
                             title="Search (⌘K)"
                         >
                             <Search className="w-4 h-4" />
-                        </button>
-
-                        {/* Aurora */}
-                        <button
-                            onClick={() => setAIAssistantOpen(!isAIAssistantOpen)}
-                            className={`relative px-3 py-2 rounded-full transition-colors ${isAIAssistantOpen ? 'text-amber-300' : 'text-white/70 hover:text-white'}`}
-                            title="Aurora AI"
-                        >
-                            <Sparkles className="w-4 h-4" />
                         </button>
                     </div>
 
@@ -178,47 +181,43 @@ export default function AppNavbar() {
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 4, scale: 0.95 }}
                                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                        className="absolute top-full right-0 mt-2 z-[100] w-[320px]"
+                                        className="absolute top-full right-0 mt-2 z-[100] w-[280px]"
                                     >
-                                        <div className="bg-[#275085]/95 backdrop-blur-xl rounded-[20px] border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
-                                            <div className="grid grid-cols-3 gap-1">
+                                        <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
+                                            <div className="grid grid-cols-4 gap-1">
                                                 {TOOL_ITEMS.map((tool, idx) => {
                                                     const Icon = tool.icon;
                                                     const active = isActive(tool.href);
                                                     return (
                                                         <motion.button
                                                             key={tool.label}
-                                                            initial={{ opacity: 0, y: 6 }}
+                                                            initial={{ opacity: 0, y: 4 }}
                                                             animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ delay: idx * 0.03 }}
+                                                            transition={{ delay: idx * 0.02 }}
                                                             onClick={() => handleNavClick(tool.href)}
-                                                            className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl transition-all active:scale-95 ${active
+                                                            className={`flex flex-col items-center gap-1.5 py-2.5 px-1.5 rounded-xl transition-all active:scale-95 ${active
                                                                 ? 'bg-white/15 text-white'
                                                                 : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                                 }`}
                                                         >
-                                                            <div className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all ${active ? 'bg-white/20' : 'bg-white/5'}`}>
-                                                                <Icon className="w-4.5 h-4.5" />
-                                                            </div>
-                                                            <span className="text-[10px] font-semibold leading-tight">{tool.label}</span>
+                                                            <Icon className="w-4 h-4" />
+                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
                                                         </motion.button>
                                                     );
                                                 })}
                                                 {/* Timer (special — not a route) */}
                                                 <motion.button
-                                                    initial={{ opacity: 0, y: 6 }}
+                                                    initial={{ opacity: 0, y: 4 }}
                                                     animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: TOOL_ITEMS.length * 0.03 }}
+                                                    transition={{ delay: TOOL_ITEMS.length * 0.02 }}
                                                     onClick={() => { setIsStudyTimerOpen(true); setToolsOpen(false); }}
-                                                    className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl transition-all active:scale-95 ${isStudyTimerOpen
+                                                    className={`flex flex-col items-center gap-1.5 py-2.5 px-1.5 rounded-xl transition-all active:scale-95 ${isStudyTimerOpen
                                                         ? 'bg-white/15 text-white'
                                                         : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                         }`}
                                                 >
-                                                    <div className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all ${isStudyTimerOpen ? 'bg-white/20' : 'bg-white/5'}`}>
-                                                        <Timer className="w-4.5 h-4.5" />
-                                                    </div>
-                                                    <span className="text-[10px] font-semibold leading-tight">Timer</span>
+                                                    <Timer className="w-4 h-4" />
+                                                    <span className="text-[9px] font-semibold leading-tight">Timer</span>
                                                 </motion.button>
                                             </div>
                                         </div>
@@ -226,6 +225,35 @@ export default function AppNavbar() {
                                 )}
                             </AnimatePresence>
                         </div>
+
+                        {/* Mini Timer Pill — appears next to Tools when timer is minimized */}
+                        <AnimatePresence>
+                            {timerInfo?.isMinimized && timerInfo?.isRunning && (
+                                <motion.div
+                                    key="mini-timer-pill"
+                                    initial={{ opacity: 0, scale: 0.9, x: -8 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, x: -8 }}
+                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                >
+                                    <button
+                                        onClick={() => { setIsStudyTimerOpen(true); setTimerRestoreSignal(s => s + 1); }}
+                                        className="flex items-center gap-2 px-3.5 py-2 bg-[#275085]/90 backdrop-blur-md rounded-full border border-[#275085]/30 shadow-[0_4px_24px_rgba(39,80,133,0.3)] hover:bg-[#275085] transition-all active:scale-95"
+                                    >
+                                        <Timer className="w-3.5 h-3.5 text-white/70" />
+                                        <span className="text-[13px] font-bold text-white tabular-nums">
+                                            {timerInfo.formattedTime}
+                                        </span>
+                                        <div className="w-6 h-1 bg-white/20 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-white/80 rounded-full transition-all duration-1000 ease-linear"
+                                                style={{ width: `${timerInfo.progress}%` }}
+                                            />
+                                        </div>
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Notifications + Profile pill */}
                         <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
@@ -362,7 +390,7 @@ export default function AppNavbar() {
                                     onClick={() => { setMobileOpen(false); setAIAssistantOpen(!isAIAssistantOpen); }}
                                     className={`w-full flex items-center gap-3 text-left px-4 py-3 text-[15px] font-semibold rounded-2xl transition-all ${isAIAssistantOpen ? 'bg-white/15 text-amber-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
                                 >
-                                    <Sparkles className="w-4.5 h-4.5" />
+                                    <Sparkle className="w-4.5 h-4.5" />
                                     Aurora AI
                                 </motion.button>
                             </div>
@@ -432,7 +460,7 @@ export default function AppNavbar() {
 
             {/* Floating components */}
             <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setAIAssistantOpen(false)} />
-            <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} />
+            <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} onMinimizedInfo={setTimerInfo} restoreSignal={timerRestoreSignal} />
             <NotificationPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
         </>
     );

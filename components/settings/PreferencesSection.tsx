@@ -1,34 +1,26 @@
 'use client';
 
-import { Sparkles, Trophy, Award, Brain, Check, Maximize2, Calendar as CalendarIcon, BookOpen, RotateCcw } from 'lucide-react';
+import {    Brain, Check, Maximize2,  BookOpen, RotateCcw } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
-import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 import { useOnboardingTour } from '@/components/OnboardingTour';
 
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
 interface PreferencesSectionProps {
-
-
   aiPersonality: AIPersonality;
   onPersonalityChange: (value: AIPersonality) => void;
   useWideLayout: boolean;
   onToggleWideLayout: (checked: boolean) => void;
-
   showTestsInClassCards: boolean;
   onToggleTestsInClassCards: (checked: boolean) => void;
 }
 
 export default function PreferencesSection({
-
-
   aiPersonality,
   onPersonalityChange,
   useWideLayout,
   onToggleWideLayout,
-
   showTestsInClassCards,
   onToggleTestsInClassCards
 }: PreferencesSectionProps) {
@@ -36,38 +28,36 @@ export default function PreferencesSection({
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3">
-          <Maximize2 className="h-[18px] w-[18px] text-blue-500/70" />
-          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+          <Maximize2 className="h-[18px] w-[18px] text-sky-500/50" />
+          <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
             Full Width Mode
           </span>
         </div>
         <Switch
           checked={useWideLayout}
           onCheckedChange={onToggleWideLayout}
-          className="data-[state=checked]:bg-blue-500"
         />
       </div>
 
-      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3">
-          <BookOpen className="h-[18px] w-[18px] text-blue-500/70" />
-          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+          <BookOpen className="h-[18px] w-[18px] text-sky-500/50" />
+          <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
             Show Tests in Class Cards
           </span>
         </div>
         <Switch
           checked={showTestsInClassCards}
           onCheckedChange={onToggleTestsInClassCards}
-          className="data-[state=checked]:bg-blue-500"
         />
       </div>
 
-      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3 flex-1">
-          <Brain className="h-[18px] w-[18px] text-blue-500/70" />
-          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+          <Brain className="h-[18px] w-[18px] text-sky-500/50" />
+          <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
             Aurora Personality
           </span>
         </div>
@@ -77,23 +67,21 @@ export default function PreferencesSection({
         />
       </div>
 
-      <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3">
-          <RotateCcw className="h-[18px] w-[18px] text-blue-500/70" />
-          <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+          <RotateCcw className="h-[18px] w-[18px] text-sky-500/50" />
+          <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
             Replay Onboarding Tour
           </span>
         </div>
         <button
           onClick={resetTour}
-          className="px-3.5 py-1.5 text-xs font-medium text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+          className="px-3.5 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
         >
           Restart
         </button>
       </div>
     </div>
-
-
   );
 }
 
@@ -124,13 +112,13 @@ const CustomPersonalitySelect = ({ value, onValueChange }: CustomPersonalitySele
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-[180px] h-10 px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+        className="w-[180px] h-10 px-3 py-2 text-sm bg-white/60 dark:bg-gray-900/40 border border-sky-100 dark:border-gray-700 rounded-xl shadow-sm hover:bg-sky-500/[0.03] focus:outline-none focus:ring-2 focus:ring-sky-400/30 flex items-center justify-between transition-colors"
       >
-        <span className="text-gray-900 dark:text-white">
+        <span className="text-sky-900 dark:text-white font-medium">
           {selectedPersonality?.name || 'Select personality'}
         </span>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-sky-400/50 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -140,7 +128,7 @@ const CustomPersonalitySelect = ({ value, onValueChange }: CustomPersonalitySele
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-sky-100 dark:border-gray-700 rounded-xl shadow-lg shadow-sky-500/5 max-h-60 overflow-auto">
           <div className="py-1">
             {personalities.map((personality) => (
               <button
@@ -150,18 +138,15 @@ const CustomPersonalitySelect = ({ value, onValueChange }: CustomPersonalitySele
                   onValueChange(personality.value);
                   setIsOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-50 dark:focus:bg-gray-800 focus:outline-none"
+                className="w-full px-3 py-2 text-left hover:bg-sky-500/[0.04] focus:bg-sky-500/[0.04] focus:outline-none transition-colors"
               >
-                <div className="flex flex-col items-start">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {personality.name}
-                    </span>
-                    {value === personality.value && (
-                      <Check className="w-4 h-4 text-blue-500" />
-                    )}
-                  </div>
-
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sky-900 dark:text-white text-sm">
+                    {personality.name}
+                  </span>
+                  {value === personality.value && (
+                    <Check className="w-4 h-4 text-sky-500" />
+                  )}
                 </div>
               </button>
             ))}

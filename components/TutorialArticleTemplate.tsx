@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Calendar, User, List } from 'lucide-react';
+import { ArrowLeft,  Calendar, User, List } from 'lucide-react';
 import { TutorialShareMenu } from '@/components/TutorialShareMenu';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';

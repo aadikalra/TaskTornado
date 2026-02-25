@@ -1,0 +1,434 @@
+Unused files (185)
+app/(landing)/folderContent.tsx                                          
+app/calendar/page.new.tsx                                                
+app/DotGrid.tsx                                                          
+app/head.tsx                                                             
+app/landing-sections/AITutorSection.tsx                                  
+app/landing-sections/CollaborationSection.tsx                            
+app/landing-sections/CommandFlowSection.tsx                              
+app/landing-sections/FinalCTASection.tsx                                 
+app/landing-sections/teachers/TeachersCostSection.tsx                    
+app/landing-sections/TrustBarSection.tsx                                 
+components/animate-ui/base/checkbox.tsx                                  
+components/animate-ui/buttons/copy.tsx                                   
+components/animate-ui/components/tooltip.tsx                             
+components/animate-ui/headless/checkbox.tsx                              
+components/animate-ui/icons/circle-x.tsx                                 
+components/animate-ui/primitives/radix/checkbox.tsx                      
+components/animate-ui/primitives/texts/morphing.tsx                      
+components/animate-ui/primitives/texts/rotating.tsx                      
+components/animate-ui/text/shimmering.tsx                                
+components/animate-ui/text/typing.tsx                                    
+components/animate-ui/text/writing.tsx                                   
+components/animate-ui/ui-elements/playful-todolist.tsx                   
+components/ClassHomeworkList.tsx                                         
+components/customcss.css                                                 
+components/DarkModeIndicator.tsx                                         
+components/editor/context/toolbar-context.tsx                            
+components/editor/editor-hooks/use-debounce.ts                           
+components/editor/editor-hooks/use-modal.tsx                             
+components/editor/editor-hooks/use-report.ts                             
+components/editor/editor-hooks/use-update-toolbar.ts                     
+components/editor/editor-ui/code-button.tsx                              
+components/editor/editor-ui/color-picker.tsx                             
+components/editor/editor-ui/content-editable.tsx                         
+components/editor/editor-ui/image-component.tsx                          
+components/editor/editor-ui/image-resizer.tsx                            
+components/editor/nodes/autocomplete-node.tsx                            
+components/editor/nodes/embeds/tweet-node.tsx                            
+components/editor/nodes/embeds/youtube-node.tsx                          
+components/editor/nodes/emoji-node.tsx                                   
+components/editor/nodes/image-node.tsx                                   
+components/editor/nodes/keyword-node.tsx                                 
+components/editor/nodes/layout-container-node.tsx                        
+components/editor/nodes/layout-item-node.tsx                             
+components/editor/nodes/mention-node.ts                                  
+components/editor/plate-types.ts                                         
+components/editor/plugins/actions/actions-plugin.tsx                     
+components/editor/plugins/actions/character-limit-plugin.tsx             
+components/editor/plugins/actions/clear-editor-plugin.tsx                
+components/editor/plugins/actions/counter-character-plugin.tsx           
+components/editor/plugins/actions/edit-mode-toggle-plugin.tsx            
+components/editor/plugins/actions/import-export-plugin.tsx               
+components/editor/plugins/actions/markdown-toggle-plugin.tsx             
+components/editor/plugins/actions/max-length-plugin.tsx                  
+components/editor/plugins/actions/share-content-plugin.tsx               
+components/editor/plugins/actions/speech-to-text-plugin.tsx              
+components/editor/plugins/actions/tree-view-plugin.tsx                   
+components/editor/plugins/auto-link-plugin.tsx                           
+components/editor/plugins/autocomplete-plugin.tsx                        
+components/editor/plugins/basic-nodes-kit.tsx                            
+components/editor/plugins/code-action-menu-plugin.tsx                    
+components/editor/plugins/code-highlight-plugin.tsx                      
+components/editor/plugins/component-picker-menu-plugin.tsx               
+components/editor/plugins/context-menu-plugin.tsx                        
+components/editor/plugins/drag-drop-paste-plugin.tsx                     
+components/editor/plugins/draggable-block-plugin.tsx                     
+components/editor/plugins/embeds/auto-embed-plugin.tsx                   
+components/editor/plugins/embeds/twitter-plugin.tsx                      
+components/editor/plugins/embeds/youtube-plugin.tsx                      
+components/editor/plugins/emoji-picker-plugin.tsx                        
+components/editor/plugins/emojis-plugin.tsx                              
+components/editor/plugins/floating-link-editor-plugin.tsx                
+components/editor/plugins/floating-text-format-plugin.tsx                
+components/editor/plugins/images-plugin.tsx                              
+components/editor/plugins/keywords-plugin.tsx                            
+components/editor/plugins/layout-plugin.tsx                              
+components/editor/plugins/link-plugin.tsx                                
+components/editor/plugins/list-max-indent-level-plugin.tsx               
+components/editor/plugins/mentions-plugin.tsx                            
+components/editor/plugins/picker/alignment-picker-plugin.tsx             
+components/editor/plugins/picker/bulleted-list-picker-plugin.tsx         
+components/editor/plugins/picker/check-list-picker-plugin.tsx            
+components/editor/plugins/picker/code-picker-plugin.tsx                  
+components/editor/plugins/picker/columns-layout-picker-plugin.tsx        
+components/editor/plugins/picker/component-picker-option.tsx             
+components/editor/plugins/picker/divider-picker-plugin.tsx               
+components/editor/plugins/picker/embeds-picker-plugin.tsx                
+components/editor/plugins/picker/heading-picker-plugin.tsx               
+components/editor/plugins/picker/image-picker-plugin.tsx                 
+components/editor/plugins/picker/numbered-list-picker-plugin.tsx         
+components/editor/plugins/picker/paragraph-picker-plugin.tsx             
+components/editor/plugins/picker/quote-picker-plugin.tsx                 
+components/editor/plugins/picker/table-picker-plugin.tsx                 
+components/editor/plugins/tab-focus-plugin.tsx                           
+components/editor/plugins/table-plugin.tsx                               
+components/editor/plugins/toolbar/block-format-toolbar-plugin.tsx        
+components/editor/plugins/toolbar/block-format/block-format-data.tsx     
+components/editor/plugins/toolbar/block-format/format-bulleted-list.tsx  
+components/editor/plugins/toolbar/block-format/format-check-list.tsx     
+components/editor/plugins/toolbar/block-format/format-code-block.tsx     
+components/editor/plugins/toolbar/block-format/format-heading.tsx        
+components/editor/plugins/toolbar/block-format/format-numbered-list.tsx  
+components/editor/plugins/toolbar/block-format/format-paragraph.tsx      
+components/editor/plugins/toolbar/block-format/format-quote.tsx          
+components/editor/plugins/toolbar/block-insert-plugin.tsx                
+components/editor/plugins/toolbar/block-insert/insert-columns-layout.tsx 
+components/editor/plugins/toolbar/block-insert/insert-embeds.tsx         
+components/editor/plugins/toolbar/block-insert/insert-horizontal-rule.tsx
+components/editor/plugins/toolbar/block-insert/insert-image.tsx          
+components/editor/plugins/toolbar/block-insert/insert-table.tsx          
+components/editor/plugins/toolbar/clear-formatting-toolbar-plugin.tsx    
+components/editor/plugins/toolbar/code-language-toolbar-plugin.tsx       
+components/editor/plugins/toolbar/element-format-toolbar-plugin.tsx      
+components/editor/plugins/toolbar/font-background-toolbar-plugin.tsx     
+components/editor/plugins/toolbar/font-color-toolbar-plugin.tsx          
+components/editor/plugins/toolbar/font-family-toolbar-plugin.tsx         
+components/editor/plugins/toolbar/font-format-toolbar-plugin.tsx         
+components/editor/plugins/toolbar/font-size-toolbar-plugin.tsx           
+components/editor/plugins/toolbar/history-toolbar-plugin.tsx             
+components/editor/plugins/toolbar/horizontal-rule-toolbar-plugin.tsx     
+components/editor/plugins/toolbar/image-toolbar-plugin.tsx               
+components/editor/plugins/toolbar/link-toolbar-plugin.tsx                
+components/editor/plugins/toolbar/subsuper-toolbar-plugin.tsx            
+components/editor/plugins/toolbar/table-toolbar-plugin.tsx               
+components/editor/plugins/toolbar/toolbar-plugin.tsx                     
+components/editor/plugins/typing-pref-plugin.tsx                         
+components/editor/shared/can-use-dom.ts                                  
+components/editor/shared/caret-from-point.ts                             
+components/editor/shared/environment.ts                                  
+components/editor/shared/invariant.ts                                    
+components/editor/shared/normalize-class-names.ts                        
+components/editor/shared/react-patches.ts                                
+components/editor/shared/react-test-utils.ts                             
+components/editor/shared/simple-diff-with-cursor.ts                      
+components/editor/shared/use-layout-effect.ts                            
+components/editor/shared/warn-only-once.ts                               
+components/editor/themes/editor-theme.css                                
+components/editor/themes/editor-theme.ts                                 
+components/editor/transformers/markdown-emoji-transformer.ts             
+components/editor/transformers/markdown-hr-transformer.ts                
+components/editor/transformers/markdown-image-transformer.ts             
+components/editor/transformers/markdown-table-transformer.ts             
+components/editor/transformers/markdown-tweet-transformer.ts             
+components/editor/utils/doc-serialization.ts                             
+components/editor/utils/emoji-list.ts                                    
+components/editor/utils/get-dom-range-rect.ts                            
+components/editor/utils/get-selected-node.ts                             
+components/editor/utils/guard.ts                                         
+components/editor/utils/is-mobile-width.ts                               
+components/editor/utils/set-floating-elem-position-for-link-editor.ts    
+components/editor/utils/set-floating-elem-position.ts                    
+components/editor/utils/swipe.ts                                         
+components/editor/utils/url.ts                                           
+components/FullScreenAIAssistant.tsx                                     
+components/glass-icons/IconBadgeSparkle.tsx                              
+components/GoogleClassroomIntegration.tsx                                
+components/GroupChatDemo.tsx                                             
+components/LandingNavbar.tsx                                             
+components/LandingPageTransition.tsx                                     
+components/LaTeXMathMLRenderer.tsx                                       
+components/ProfileCard.tsx                                               
+components/SideNav.tsx                                                   
+components/ui/alert.tsx                                                  
+components/ui/button-group.tsx                                           
+components/ui/dock.tsx                                                   
+components/ui/hover-card.tsx                                             
+components/ui/sonner.tsx                                                 
+components/ui/switch.tsx                                                 
+components/ui/tabs.tsx                                                   
+components/ui/toggle-group.tsx                                           
+components/ui/toggle.tsx                                                 
+context/ClassContext.fixed.tsx                                           
+context/LandingViewContext.tsx                                           
+context/ThemeContext.tsx                                                 
+hooks/use-media-query.ts                                                 
+hooks/useGoogleClassroom.ts                                              
+lib/colors.d.ts                                                          
+lib/colors.ts                                                            
+lib/googleClassroomAuth.ts                                               
+lib/rate-limiter.ts                                                      
+lib/supabase/admin.ts                                                    
+lib/supabase/middleware.ts                                               
+scripts/print-users-simple.ts                                            
+scripts/print-users.ts                                                   
+scripts/test-auth-system.ts                                              
+test-icons.js                                                            
+Unused dependencies (56)
+@diceui/mention                    package.json:17:6 
+@dnd-kit/core                      package.json:18:6 
+@dnd-kit/sortable                  package.json:19:6 
+@dnd-kit/utilities                 package.json:20:6 
+@headlessui/react                  package.json:23:6 
+@heroicons/react                   package.json:24:6 
+@lexical/code                      package.json:25:6 
+@lexical/file                      package.json:26:6 
+@lexical/hashtag                   package.json:27:6 
+@lexical/link                      package.json:28:6 
+@lexical/list                      package.json:29:6 
+@lexical/markdown                  package.json:30:6 
+@lexical/overflow                  package.json:31:6 
+@lexical/react                     package.json:32:6 
+@lexical/rich-text                 package.json:33:6 
+@lexical/selection                 package.json:34:6 
+@lexical/table                     package.json:35:6 
+@lexical/text                      package.json:36:6 
+@lexical/utils                     package.json:37:6 
+@radix-ui/react-icons              package.json:75:6 
+@radix-ui/react-switch             package.json:83:6 
+@radix-ui/react-tabs               package.json:84:6 
+@radix-ui/react-toast              package.json:85:6 
+@radix-ui/react-toggle             package.json:86:6 
+@radix-ui/react-toggle-group       package.json:87:6 
+@supabase/auth-ui-react            package.json:91:6 
+@supabase/auth-ui-shared           package.json:92:6 
+@tabler/icons-react                package.json:95:6 
+@tiptap/extension-blockquote       package.json:96:6 
+@tiptap/extension-bullet-list      package.json:97:6 
+@tiptap/extension-character-count  package.json:98:6 
+@tiptap/extension-code-block       package.json:99:6 
+@tiptap/extension-heading          package.json:100:6
+@tiptap/extension-image            package.json:101:6
+@tiptap/extension-link             package.json:102:6
+@tiptap/extension-list-item        package.json:103:6
+@tiptap/extension-ordered-list     package.json:104:6
+@tiptap/extension-placeholder      package.json:105:6
+@tiptap/extension-text-style       package.json:106:6
+@tiptap/pm                         package.json:107:6
+@tiptap/react                      package.json:108:6
+@tiptap/starter-kit                package.json:109:6
+@types/marked                      package.json:111:6
+@types/react-katex                 package.json:112:6
+@types/react-syntax-highlighter    package.json:113:6
+critters                           package.json:122:6
+gsap                               package.json:128:6
+lexical                            package.json:132:6
+markdown-it                        package.json:136:6
+marked                             package.json:137:6
+react-error-boundary               package.json:149:6
+react-katex                        package.json:152:6
+react-syntax-highlighter           package.json:156:6
+rehype-highlight                   package.json:159:6
+supabase                           package.json:165:6
+tweakpane                          package.json:168:6
+Unused devDependencies (3)
+@types/uuid         package.json:182:6
+eslint              package.json:183:6
+eslint-config-next  package.json:184:6
+Unlisted dependencies (1)
+postcss  postcss.config.mjs
+Unused exports (85)
+tag                                     app/api/ai/command/utils.ts:17:14                           
+inlineTag                               app/api/ai/command/utils.ts:29:14                           
+sections                                app/api/ai/command/utils.ts:36:14                           
+list                                    app/api/ai/command/utils.ts:40:14                           
+getTextFromMessage            function  app/api/ai/command/utils.ts:156:17                          
+comparisonData                          app/landing-sections/ComparisonSection.tsx:295:25           
+buttonVariants                          components/animate-ui/components/buttons/button.tsx:57:18   
+animations                              components/animate-ui/icons/arrow-right.tsx:149:3           
+ArrowRightIcon                          components/animate-ui/icons/arrow-right.tsx:151:17          
+animations                              components/animate-ui/icons/bot.tsx:167:3                   
+BotIcon                                 components/animate-ui/icons/bot.tsx:169:10                  
+pathClassName                           components/animate-ui/icons/icon.tsx:645:3                  
+staticAnimations                        components/animate-ui/icons/icon.tsx:646:3                  
+AnimateIcon                             components/animate-ui/icons/icon.tsx:647:3                  
+animations                              components/animate-ui/icons/search.tsx:90:3                 
+SearchIcon                              components/animate-ui/icons/search.tsx:92:13                
+animations                              components/animate-ui/icons/timer.tsx:93:3                  
+TimerIcon                               components/animate-ui/icons/timer.tsx:95:12                 
+animations                              components/animate-ui/icons/user-round.tsx:84:3             
+UserRoundIcon                           components/animate-ui/icons/user-round.tsx:86:16            
+animations                              components/animate-ui/icons/x.tsx:121:10                    
+XIcon                                   components/animate-ui/icons/x.tsx:121:30                    
+useHighlight                            components/animate-ui/primitives/effects/highlight.tsx:608:3
+useEditor                               components/editor/editor-kit.tsx:95:14                      
+models                                  components/editor/settings-dialog.tsx:51:14                 
+getGlobalActiveView           function  components/RoleSwitcher.tsx:32:17                           
+DangerZoneItem                          components/settings/index.ts:6:21                           
+AIMenuItems                             components/ui/ai-menu.tsx:555:14                            
+AlertDialogPortal                       components/ui/alert-dialog.tsx:147:3                        
+AlertDialogOverlay                      components/ui/alert-dialog.tsx:148:3                        
+badgeVariants                           components/ui/badge.tsx:46:17                               
+CalendarDayButton                       components/ui/calendar.tsx:213:20                           
+CardFooter                              components/ui/card.tsx:87:3                                 
+CardAction                              components/ui/card.tsx:89:3                                 
+CommandDialog                           components/ui/command.tsx:176:3                             
+CommandShortcut                         components/ui/command.tsx:182:3                             
+CommandSeparator                        components/ui/command.tsx:183:3                             
+ContextMenuCheckboxItem                 components/ui/context-menu.tsx:241:3                        
+ContextMenuRadioItem                    components/ui/context-menu.tsx:242:3                        
+ContextMenuLabel                        components/ui/context-menu.tsx:243:3                        
+ContextMenuSeparator                    components/ui/context-menu.tsx:244:3                        
+ContextMenuShortcut                     components/ui/context-menu.tsx:245:3                        
+ContextMenuPortal                       components/ui/context-menu.tsx:247:3                        
+ContextMenuRadioGroup                   components/ui/context-menu.tsx:251:3                        
+DialogClose                             components/ui/dialog.tsx:134:3                              
+DialogFooter                            components/ui/dialog.tsx:137:3                              
+DialogOverlay                           components/ui/dialog.tsx:139:3                              
+DialogPortal                            components/ui/dialog.tsx:140:3                              
+DropdownMenuShortcut                    components/ui/dropdown-menu.tsx:253:3                       
+EditorView                    function  components/ui/editor.tsx:119:17                             
+HeadingElement                function  components/ui/heading-node.tsx:23:17                        
+InlineComboboxRow                       components/ui/inline-combobox.tsx:402:3                     
+ImageProgress                 function  components/ui/media-placeholder-node.tsx:185:17             
+ScrollBar                               components/ui/scroll-area.tsx:58:22                         
+SelectScrollDownButton                  components/ui/select.tsx:182:3                              
+SelectScrollUpButton                    components/ui/select.tsx:183:3                              
+SelectSeparator                         components/ui/select.tsx:184:3                              
+ToolbarToggleGroup            function  components/ui/toolbar.tsx:31:17                             
+ToolbarLink                   function  components/ui/toolbar.tsx:43:17                             
+ToolbarSeparator              function  components/ui/toolbar.tsx:55:17                             
+ToolbarToggleItem             function  components/ui/toolbar.tsx:250:17                            
+turnIntoItems                           components/ui/turn-into-toolbar-button.tsx:42:14            
+getAppVersion                           config/version.ts:3:14                                      
+useUploadThing                          hooks/use-upload-file.ts:107:29                             
+getErrorMessage               function  hooks/use-upload-file.ts:110:17                             
+showErrorToast                function  hooks/use-upload-file.ts:124:17                             
+getDueDateStatus                        lib/dateUtils.ts:12:14                                      
+DiamondFace                             lib/facehash-custom-faces.tsx:161:5                         
+StarFace                                lib/facehash-custom-faces.tsx:162:5                         
+DotFace                                 lib/facehash-custom-faces.tsx:163:5                         
+OvalFace                                lib/facehash-custom-faces.tsx:164:5                         
+SquareFace                              lib/facehash-custom-faces.tsx:165:5                         
+HalfMoonFace                            lib/facehash-custom-faces.tsx:166:5                         
+CUSTOM_FACES                            lib/facehash-custom-faces.tsx:167:5                         
+MarkdownJoiner                class     lib/markdown-joiner-transform.ts:72:14                      
+SCHOOL_SCHEDULES                        lib/school-schedule.ts:22:14                                
+isDuringSchoolHours           function  lib/school-schedule.ts:104:17                               
+isAppUsageAllowed             function  lib/school-schedule.ts:124:17                               
+getCurrentPeriod              function  lib/school-schedule.ts:156:17                               
+getSchoolWarningMessage       function  lib/school-schedule.ts:185:17                               
+getTimeUntilSchoolEnds        function  lib/school-schedule.ts:225:17                               
+getGoogleClassroomCourseWork  function  lib/services/GoogleClassroomService.ts:51:23                
+RateLimitService              class     lib/services/rateLimitService.ts:13:14                      
+default                                 lib/supabase/client.ts:96:16                                
+Constants                               types/database.types.ts:1266:14                             
+Unused exported types (94)
+StructuredPromptSections   type       app/api/ai/command/utils.ts:48:13                          
+SwitchProps                type       components/animate-ui/components/base/switch.tsx:71:23     
+TabsProps                  type       components/animate-ui/components/base/tabs.tsx:85:8        
+TabsListProps              type       components/animate-ui/components/base/tabs.tsx:86:8        
+TabsTabProps               type       components/animate-ui/components/base/tabs.tsx:87:8        
+TabsPanelsProps            type       components/animate-ui/components/base/tabs.tsx:88:8        
+TabsPanelProps             type       components/animate-ui/components/base/tabs.tsx:89:8        
+ButtonProps                type       components/animate-ui/components/buttons/button.tsx:57:39  
+PinListProps               type       components/animate-ui/components/pin-list.tsx:258:24       
+PinListItem                type       components/animate-ui/components/pin-list.tsx:258:43       
+ArrowRightProps            type       components/animate-ui/icons/arrow-right.tsx:152:8          
+ArrowRightIconProps        type       components/animate-ui/icons/arrow-right.tsx:153:27         
+BotProps                   type       components/animate-ui/icons/bot.tsx:170:8                  
+BotIconProps               type       components/animate-ui/icons/bot.tsx:171:20                 
+IconWrapperProps           type       components/animate-ui/icons/icon.tsx:652:8                 
+AnimateIconProps           type       components/animate-ui/icons/icon.tsx:653:8                 
+AnimateIconContextValue    type       components/animate-ui/icons/icon.tsx:654:8                 
+SearchProps                type       components/animate-ui/icons/search.tsx:93:8                
+SearchIconProps            type       components/animate-ui/icons/search.tsx:94:23               
+TimerProps                 type       components/animate-ui/icons/timer.tsx:96:8                 
+TimerIconProps             type       components/animate-ui/icons/timer.tsx:97:22                
+UserRoundProps             type       components/animate-ui/icons/user-round.tsx:87:8            
+UserRoundIconProps         type       components/animate-ui/icons/user-round.tsx:88:26           
+XProps                     type       components/animate-ui/icons/x.tsx:121:42                   
+XIconProps                 type       components/animate-ui/icons/x.tsx:121:65                   
+SlotProps                  type       components/animate-ui/primitives/animate/slot.tsx:92:8     
+DOMMotionProps             type       components/animate-ui/primitives/animate/slot.tsx:94:8     
+AnyProps                   type       components/animate-ui/primitives/animate/slot.tsx:95:8     
+SwitchThumbProps           type       components/animate-ui/primitives/base/switch.tsx:154:8     
+SwitchIconProps            type       components/animate-ui/primitives/base/switch.tsx:155:8     
+SwitchIconPosition         type       components/animate-ui/primitives/base/switch.tsx:156:8     
+SwitchContextType          type       components/animate-ui/primitives/base/switch.tsx:157:8     
+TabsHighlightProps         type       components/animate-ui/primitives/base/tabs.tsx:196:8       
+TabsHighlightItemProps     type       components/animate-ui/primitives/base/tabs.tsx:197:8       
+TiltProps                  type       components/animate-ui/primitives/effects/tilt.tsx:124:34   
+TiltContentProps           type       components/animate-ui/primitives/effects/tilt.tsx:124:50   
+ShimmeringTextProps        type       components/animate-ui/primitives/texts/shimmering.tsx:82:31
+SplittingTextProps         type       components/animate-ui/primitives/texts/splitting.tsx:198:30
+CheckboxProps              type       components/animate-ui/radix/checkbox.tsx:86:25             
+DockItemData               type       components/Dock.tsx:15:13                                  
+DockProps                  type       components/Dock.tsx:26:13                                  
+MyEditor                   type       components/editor/editor-kit.tsx:93:13                     
+TComment                   type       components/editor/use-chat.ts:21:13                        
+Chat                       type       components/editor/use-chat.ts:35:13                        
+IconProps                  interface  components/glass-icons/IconBell.tsx:3:18                   
+IconProps                  interface  components/glass-icons/IconBlog.tsx:3:18                   
+IconProps                  interface  components/glass-icons/IconBookOpen.tsx:3:18               
+IconProps                  interface  components/glass-icons/IconBox.tsx:3:18                    
+IconProps                  interface  components/glass-icons/IconCalendar.tsx:3:18               
+IconProps                  interface  components/glass-icons/IconCircleCopyPlus.tsx:3:18         
+IconProps                  interface  components/glass-icons/IconFile.tsx:3:18                   
+IconProps                  interface  components/glass-icons/IconGear.tsx:3:18                   
+IconProps                  interface  components/glass-icons/IconGrid2.tsx:3:18                  
+IconProps                  interface  components/glass-icons/IconHouse.tsx:3:18                  
+IconProps                  interface  components/glass-icons/IconMagnifier.tsx:3:18              
+IconProps                  interface  components/glass-icons/IconMessageSquare.tsx:3:18          
+IconProps                  interface  components/glass-icons/IconPen.tsx:3:18                    
+IconProps                  interface  components/glass-icons/IconPin.tsx:3:18                    
+IconProps                  interface  components/glass-icons/IconProgressBar.tsx:3:18            
+IconProps                  interface  components/glass-icons/IconQuestions.tsx:3:18              
+IconProps                  interface  components/glass-icons/IconSparkle.tsx:3:18                
+IconProps                  interface  components/glass-icons/IconTabOpen.tsx:3:18                
+IconProps                  interface  components/glass-icons/IconTranslate.tsx:3:18              
+IconProps                  interface  components/glass-icons/IconUsers.tsx:3:18                  
+NotificationType           type       components/NotificationPanel.tsx:20:13                     
+AppNotification            interface  components/NotificationPanel.tsx:22:18                     
+TodoItem                   type       components/PlayfulHomeworkList.tsx:24:13                   
+ResolvedSuggestion         interface  components/ui/block-suggestion.tsx:42:18                   
+EditorProps                type       components/ui/editor.tsx:90:13                             
+AIResponse                 type       context/AIContext.tsx:11:13                                
+DiscussionBoard            interface  context/DiscussionBoardsContext.tsx:9:18                   
+DiscussionThread           interface  context/DiscussionBoardsContext.tsx:22:18                  
+DiscussionPost             interface  context/DiscussionBoardsContext.tsx:38:18                  
+DiscussionResource         interface  context/DiscussionBoardsContext.tsx:51:18                  
+UserLevel                  type       context/GamificationContext.tsx:7:13                       
+SubjectMastery             interface  context/GamificationContext.tsx:9:18                       
+GamificationData           interface  context/GamificationContext.tsx:18:18                      
+UploadedFile               type       hooks/use-upload-file.ts:13:13                             
+SyncedHomeworkItem         interface  lib/classroomSyncService.ts:4:18                           
+ClassroomCourseRecord      interface  lib/database/classroomService.ts:4:18                      
+ClassroomCourseworkRecord  interface  lib/database/classroomService.ts:19:18                     
+ClassroomSubmissionRecord  interface  lib/database/classroomService.ts:37:18                     
+DueDateStatus              type       lib/dateUtils.ts:10:13                                     
+SchoolSchedule             interface  lib/school-schedule.ts:2:18                                
+SchoolPeriod               interface  lib/school-schedule.ts:9:18                                
+RateLimitData              interface  lib/services/rateLimitService.ts:6:18                      
+RecurringHomeworkConfig    interface  lib/services/RecurringHomeworkService.ts:6:18              
+RecurringInstance          interface  lib/services/RecurringHomeworkService.ts:13:18             
+Database                   type       lib/supabase/client.ts:94:15                               
+Tables                     type       types/database.types.ts:1153:13                            
+TablesInsert               type       types/database.types.ts:1182:13                            
+TablesUpdate               type       types/database.types.ts:1207:13                            
+Enums                      type       types/database.types.ts:1232:13                            
+CompositeTypes             type       types/database.types.ts:1249:13                            
+Duplicate exports (1)
+supabase|default  lib/supabase/client.ts
+Configuration hints (1)
+. (root)    .  Create knip.json configuration file, and add entry and/or refine project files (185 unused files)

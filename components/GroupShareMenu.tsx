@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import {
     Share2,
-    Copy,
+    
     Twitter,
     Linkedin,
     Link as LinkIcon,

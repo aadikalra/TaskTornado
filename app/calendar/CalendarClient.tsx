@@ -10,20 +10,16 @@ import {
   isToday as isDateToday,
   formatDistanceToNow,
 } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical, School, Sun, Flag, Snowflake, FlagTriangleRight, Bird, CalendarDays, Clock, AlertTriangle, AlertCircle, Menu, Home, GraduationCap, BookOpen, X } from 'lucide-react';
-import Link from 'next/link';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight,        CalendarDays, Clock,     GraduationCap, BookOpen, X } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext, type Homework, type Test, type Class } from '@/context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LinkCard } from '@/components/LinkCard';
 import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
 import { getFullVersionString } from '@/config/version';
-import CalendarTestItem from '@/components/CalendarTestItem';
 import { getClassIcon } from '@/lib/icon-map';
-import { Button } from '@/components/ui/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
@@ -317,8 +313,9 @@ export default function CalendarClient() {
 
       {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-400/[0.05] dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
       </div>
 
       <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">

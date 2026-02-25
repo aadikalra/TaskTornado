@@ -1,0 +1,803 @@
+
+       summary               unimported v1.31.0 (next)
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+       unresolved imports  : 0
+       unused dependencies : 145
+       unimported files    : 636
+
+
+─────┬────────────────────────────────────────────────────────────────────────────────────────────────────────
+     │ 145 unused dependencies
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ @ai-sdk/google
+   2 │ @ai-sdk/react
+   3 │ @ariakit/react
+   4 │ @base-ui-components/react
+   5 │ @diceui/mention
+   6 │ @dnd-kit/sortable
+   7 │ @dnd-kit/utilities
+   8 │ @faker-js/faker
+   9 │ @headlessui/react
+  10 │ @heroicons/react
+  11 │ @lexical/code
+  12 │ @lexical/file
+  13 │ @lexical/hashtag
+  14 │ @lexical/link
+  15 │ @lexical/list
+  16 │ @lexical/markdown
+  17 │ @lexical/overflow
+  18 │ @lexical/react
+  19 │ @lexical/rich-text
+  20 │ @lexical/selection
+  21 │ @lexical/table
+  22 │ @lexical/text
+  23 │ @lexical/utils
+  24 │ @platejs/ai
+  25 │ @platejs/autoformat
+  26 │ @platejs/basic-nodes
+  27 │ @platejs/basic-styles
+  28 │ @platejs/callout
+  29 │ @platejs/caption
+  30 │ @platejs/code-block
+  31 │ @platejs/combobox
+  32 │ @platejs/comment
+  33 │ @platejs/date
+  34 │ @platejs/dnd
+  35 │ @platejs/docx
+  36 │ @platejs/emoji
+  37 │ @platejs/excalidraw
+  38 │ @platejs/floating
+  39 │ @platejs/indent
+  40 │ @platejs/juice
+  41 │ @platejs/layout
+  42 │ @platejs/link
+  43 │ @platejs/list
+  44 │ @platejs/markdown
+  45 │ @platejs/math
+  46 │ @platejs/media
+  47 │ @platejs/mention
+  48 │ @platejs/resizable
+  49 │ @platejs/selection
+  50 │ @platejs/slash-command
+  51 │ @platejs/suggestion
+  52 │ @platejs/table
+  53 │ @platejs/toc
+  54 │ @platejs/toggle
+  55 │ @radix-ui/react-alert-dialog
+  56 │ @radix-ui/react-avatar
+  57 │ @radix-ui/react-checkbox
+  58 │ @radix-ui/react-context-menu
+  59 │ @radix-ui/react-dialog
+  60 │ @radix-ui/react-dropdown-menu
+  61 │ @radix-ui/react-icons
+  62 │ @radix-ui/react-label
+  63 │ @radix-ui/react-popover
+  64 │ @radix-ui/react-scroll-area
+  65 │ @radix-ui/react-select
+  66 │ @radix-ui/react-separator
+  67 │ @radix-ui/react-slider
+  68 │ @radix-ui/react-slot
+  69 │ @radix-ui/react-switch
+  70 │ @radix-ui/react-tabs
+  71 │ @radix-ui/react-toast
+  72 │ @radix-ui/react-toggle
+  73 │ @radix-ui/react-toggle-group
+  74 │ @radix-ui/react-toolbar
+  75 │ @radix-ui/react-tooltip
+  76 │ @supabase/auth-helpers-nextjs
+  77 │ @supabase/auth-ui-react
+  78 │ @supabase/auth-ui-shared
+  79 │ @supabase/ssr
+  80 │ @tabler/icons-react
+  81 │ @tiptap/extension-blockquote
+  82 │ @tiptap/extension-bullet-list
+  83 │ @tiptap/extension-character-count
+  84 │ @tiptap/extension-code-block
+  85 │ @tiptap/extension-heading
+  86 │ @tiptap/extension-image
+  87 │ @tiptap/extension-link
+  88 │ @tiptap/extension-list-item
+  89 │ @tiptap/extension-ordered-list
+  90 │ @tiptap/extension-placeholder
+  91 │ @tiptap/extension-text-style
+  92 │ @tiptap/react
+  93 │ @tiptap/starter-kit
+  94 │ @types/js-cookie
+  95 │ @types/marked
+  96 │ @types/react-katex
+  97 │ @types/react-syntax-highlighter
+  98 │ @udecode/cn
+  99 │ @uploadthing/react
+ 100 │ @vercel/analytics
+ 101 │ ai
+ 102 │ canvas-confetti
+ 103 │ clsx
+ 104 │ cmdk
+ 105 │ critters
+ 106 │ date-fns
+ 107 │ dedent
+ 108 │ facehash
+ 109 │ framer-motion
+ 110 │ googleapis
+ 111 │ gsap
+ 112 │ html2canvas-pro
+ 113 │ js-cookie
+ 114 │ katex
+ 115 │ lexical
+ 116 │ lodash
+ 117 │ lowlight
+ 118 │ lucide-react
+ 119 │ markdown-it
+ 120 │ marked
+ 121 │ motion
+ 122 │ next-themes
+ 123 │ pdf-lib
+ 124 │ radix-ui
+ 125 │ react-day-picker
+ 126 │ react-error-boundary
+ 127 │ react-hotkeys-hook
+ 128 │ react-icons
+ 129 │ react-katex
+ 130 │ react-lite-youtube-embed
+ 131 │ react-markdown
+ 132 │ react-player
+ 133 │ react-syntax-highlighter
+ 134 │ react-textarea-autosize
+ 135 │ react-tweet
+ 136 │ rehype-highlight
+ 137 │ rehype-katex
+ 138 │ remark-gfm
+ 139 │ remark-math
+ 140 │ sonner
+ 141 │ supabase
+ 142 │ tailwind-scrollbar-hide
+ 143 │ tweakpane
+ 144 │ use-file-picker
+ 145 │ uuid
+─────┴────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+─────┬────────────────────────────────────────────────────────────────────────────────────────────────────────
+     │ 636 unimported files
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/(landing)/folderContent.tsx
+   2 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/about-creator/page.tsx
+   3 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/ai-guidelines/layout.tsx
+   4 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/ai-guidelines/page.tsx
+   5 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/ai/check-worthiness/route.ts
+   6 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/ai/command/prompts.ts
+   7 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/ai/command/route.ts
+   8 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/ai/command/utils.ts
+   9 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/ai/copilot/route.ts
+  10 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/ai/route.ts
+  11 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/auth/classroom-session/route.ts
+  12 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/auth/google-classroom-init/route.ts
+  13 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/auth/google-classroom/route.ts
+  14 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/auth/google-signin/route.ts
+  15 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/auth/link-google-account/route.ts
+  16 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/classroom/assignments/route.ts
+  17 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/classroom/courses/route.ts
+  18 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/classroom/coursework/route.ts
+  19 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/classroom/debug-log/route.ts
+  20 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/classroom/sync/route.ts
+  21 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/grades/parse/route.ts
+  22 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/translate/route.ts
+  23 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/api/uploadthing/route.ts
+  24 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/auth/callback/route.ts
+  25 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/adaptive-quizzes/page.tsx
+  26 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/BlogClient.tsx
+  27 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/facehash/page.tsx
+  28 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/flashcards-reimagined/page.tsx
+  29 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/focus-timer/page.tsx
+  30 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/global-translation/page.tsx
+  31 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/grade-calculator/page.tsx
+  32 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/learning-center/page.tsx
+  33 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/learning-through-play/page.tsx
+  34 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/making-of-aurora/page.tsx
+  35 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/meet-aurora/page.tsx
+  36 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/page.tsx
+  37 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/peer-discussions/page.tsx
+  38 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/research-hub/page.tsx
+  39 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/smart-calendar/page.tsx
+  40 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/study-groups/page.tsx
+  41 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/the-command-center/page.tsx
+  42 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/blog/writing-companion/page.tsx
+  43 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/calendar/CalendarClient.tsx
+  44 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/calendar/page.new.tsx
+  45 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/calendar/page.tsx
+  46 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/changelog/ChangelogClient.tsx
+  47 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/changelog/page.tsx
+  48 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/ClientLayout.tsx
+  49 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/complete-signup/page.tsx
+  50 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/dashboard/DashboardClient.tsx
+  51 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/dashboard/page.tsx
+  52 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/discussions/page.tsx
+  53 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/DotGrid.tsx
+  54 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/flashcards/page.tsx
+  55 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/games/page.tsx
+  56 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/grade-calculator/page.tsx
+  57 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/groups/[groupId]/page.tsx
+  58 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/groups/join/[inviteId]/page.tsx
+  59 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/groups/page.tsx
+  60 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/guardians/page.tsx
+  61 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/hash/eyes/page.tsx
+  62 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/hash/page.tsx
+  63 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/head.tsx
+  64 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/homework/[id]/page.tsx
+  65 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/homework/edit/[id]/page.tsx
+  66 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/AITutorSection.tsx
+  67 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/BentoGridSection.tsx
+  68 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/CollaborationSection.tsx
+  69 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/CommandFlowSection.tsx
+  70 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/ComparisonSection.tsx
+  71 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/FinalCTASection.tsx
+  72 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/guardians/AcademicToolkitSection.tsx
+  73 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/guardians/GuardiansFinalCTA.tsx
+  74 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/guardians/GuardiansHero.tsx
+  75 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/guardians/SafetySection.tsx
+  76 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/guardians/SocialProofSection.tsx
+  77 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/guardians/VisibilitySection.tsx
+  78 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/Hero.tsx
+  79 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/LandingFooter.tsx
+  80 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/OrganizationSection.tsx
+  81 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/PromiseSection.tsx
+  82 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/SocialProofSection.tsx
+  83 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/AccountabilitySection.tsx
+  84 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/AITASection.tsx
+  85 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/GoogleClassroomSection.tsx
+  86 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/TeachersCostSection.tsx
+  87 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/TeachersFinalCTA.tsx
+  88 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/TeachersHero.tsx
+  89 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/teachers/TeachersSafetySection.tsx
+  90 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/TrustBarSection.tsx
+  91 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/UserReachSection.tsx
+  92 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/landing-sections/WellbeingSection.tsx
+  93 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/LandingClient.tsx
+  94 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/layout.tsx
+  95 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/legal/privacy/page.tsx
+  96 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/legal/terms/page.tsx
+  97 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/login/page.tsx
+  98 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/not-found.tsx
+  99 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/page.tsx
+ 100 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/quiz/page.tsx
+ 101 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/settings/page.tsx
+ 102 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/signup/page.tsx
+ 103 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/snake/page.tsx
+ 104 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/task-tower/page.tsx
+ 105 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/teachers/page.tsx
+ 106 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/test/page.tsx
+ 107 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/translate/page.tsx
+ 108 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/aurora-assistant/AuroraAssistantClient.tsx
+ 109 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/aurora-assistant/page.tsx
+ 110 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/onboarding/OnboardingClient.tsx
+ 111 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/onboarding/page.tsx
+ 112 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/page.tsx
+ 113 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/recurring-homeworks/page.tsx
+ 114 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/recurring-homeworks/RecurringHomeworksClient.tsx
+ 115 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/starring-homeworks/page.tsx
+ 116 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/starring-homeworks/StarringHomeworksClient.tsx
+ 117 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/test-details/page.tsx
+ 118 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/test-details/TestDetailsClient.tsx
+ 119 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/tutorials/TutorialsClient.tsx
+ 120 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/web-saves/page.tsx
+ 121 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/app/writing-assist/page.tsx
+ 122 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/AddTestModal.tsx
+ 123 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ai-checklist.tsx
+ 124 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/AIAssistant.tsx
+ 125 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/animate-icon.tsx
+ 126 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/base/checkbox.tsx
+ 127 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/buttons/copy.tsx
+ 128 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/components/base/switch.tsx
+ 129 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/components/base/tabs.tsx
+ 130 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/components/buttons/button.tsx
+ 131 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/components/pin-list.tsx
+ 132 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/components/tooltip.tsx
+ 133 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/headless/checkbox.tsx
+ 134 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/arrow-right.tsx
+ 135 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/bot.tsx
+ 136 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/circle-x.tsx
+ 137 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/icon.tsx
+ 138 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/search.tsx
+ 139 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/timer.tsx
+ 140 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/user-round.tsx
+ 141 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/icons/x.tsx
+ 142 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/animate/slot.tsx
+ 143 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/base/switch.tsx
+ 144 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/base/tabs.tsx
+ 145 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/buttons/button.tsx
+ 146 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/effects/auto-height.tsx
+ 147 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/effects/highlight.tsx
+ 148 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/effects/tilt.tsx
+ 149 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/radix/checkbox.tsx
+ 150 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/texts/counting-number.tsx
+ 151 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/texts/morphing.tsx
+ 152 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/texts/rotating.tsx
+ 153 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/texts/shimmering.tsx
+ 154 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/primitives/texts/splitting.tsx
+ 155 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/radix/checkbox.tsx
+ 156 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/text/shimmering.tsx
+ 157 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/text/typing.tsx
+ 158 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/text/writing.tsx
+ 159 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/animate-ui/ui-elements/playful-todolist.tsx
+ 160 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/AppNavbar.tsx
+ 161 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/AuroraDemo.tsx
+ 162 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/AuthWrapper.tsx
+ 163 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/BetaPasswordModal.tsx
+ 164 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/BlogArticleTemplate.tsx
+ 165 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/BrandIcons.tsx
+ 166 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/CalendarTestItem.tsx
+ 167 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/chat-message.tsx
+ 168 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ClassDiscussionBoards.tsx
+ 169 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ClassHomeworkList.tsx
+ 170 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ComingUp.tsx
+ 171 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/CustomContextMenu.tsx
+ 172 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/DarkModeIndicator.tsx
+ 173 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/DictionaryPopup.tsx
+ 174 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/Dock.tsx
+ 175 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/DockNav.tsx
+ 176 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/context/toolbar-context.tsx
+ 177 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-base-kit.tsx
+ 178 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-hooks/use-debounce.ts
+ 179 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-hooks/use-modal.tsx
+ 180 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-hooks/use-report.ts
+ 181 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-hooks/use-update-toolbar.ts
+ 182 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-kit.tsx
+ 183 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-ui/code-button.tsx
+ 184 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-ui/color-picker.tsx
+ 185 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-ui/content-editable.tsx
+ 186 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-ui/image-component.tsx
+ 187 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/editor-ui/image-resizer.tsx
+ 188 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/autocomplete-node.tsx
+ 189 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/embeds/tweet-node.tsx
+ 190 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/embeds/youtube-node.tsx
+ 191 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/emoji-node.tsx
+ 192 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/image-node.tsx
+ 193 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/keyword-node.tsx
+ 194 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/layout-container-node.tsx
+ 195 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/layout-item-node.tsx
+ 196 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/nodes/mention-node.ts
+ 197 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plate-editor.tsx
+ 198 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plate-types.ts
+ 199 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/actions-plugin.tsx
+ 200 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/character-limit-plugin.tsx
+ 201 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/clear-editor-plugin.tsx
+ 202 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/counter-character-plugin.tsx
+ 203 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/edit-mode-toggle-plugin.tsx
+ 204 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/import-export-plugin.tsx
+ 205 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/markdown-toggle-plugin.tsx
+ 206 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/max-length-plugin.tsx
+ 207 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/share-content-plugin.tsx
+ 208 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/speech-to-text-plugin.tsx
+ 209 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/actions/tree-view-plugin.tsx
+ 210 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/ai-kit.tsx
+ 211 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/align-base-kit.tsx
+ 212 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/align-kit.tsx
+ 213 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/auto-link-plugin.tsx
+ 214 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/autocomplete-plugin.tsx
+ 215 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/autoformat-kit.tsx
+ 216 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/basic-blocks-base-kit.tsx
+ 217 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/basic-blocks-kit.tsx
+ 218 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/basic-marks-base-kit.tsx
+ 219 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/basic-marks-kit.tsx
+ 220 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/basic-nodes-kit.tsx
+ 221 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/block-menu-kit.tsx
+ 222 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/block-placeholder-kit.tsx
+ 223 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/block-selection-kit.tsx
+ 224 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/callout-base-kit.tsx
+ 225 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/callout-kit.tsx
+ 226 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/code-action-menu-plugin.tsx
+ 227 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/code-block-base-kit.tsx
+ 228 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/code-block-kit.tsx
+ 229 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/code-highlight-plugin.tsx
+ 230 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/column-base-kit.tsx
+ 231 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/column-kit.tsx
+ 232 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/comment-base-kit.tsx
+ 233 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/comment-kit.tsx
+ 234 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/component-picker-menu-plugin.tsx
+ 235 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/context-menu-plugin.tsx
+ 236 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/copilot-kit.tsx
+ 237 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/cursor-overlay-kit.tsx
+ 238 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/date-base-kit.tsx
+ 239 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/date-kit.tsx
+ 240 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/discussion-kit.tsx
+ 241 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/dnd-kit.tsx
+ 242 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/docx-kit.tsx
+ 243 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/drag-drop-paste-plugin.tsx
+ 244 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/draggable-block-plugin.tsx
+ 245 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/embeds/auto-embed-plugin.tsx
+ 246 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/embeds/twitter-plugin.tsx
+ 247 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/embeds/youtube-plugin.tsx
+ 248 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/emoji-kit.tsx
+ 249 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/emoji-picker-plugin.tsx
+ 250 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/emojis-plugin.tsx
+ 251 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/exit-break-kit.tsx
+ 252 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/fixed-toolbar-kit.tsx
+ 253 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/floating-link-editor-plugin.tsx
+ 254 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/floating-text-format-plugin.tsx
+ 255 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/floating-toolbar-kit.tsx
+ 256 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/font-base-kit.tsx
+ 257 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/font-kit.tsx
+ 258 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/images-plugin.tsx
+ 259 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/indent-base-kit.tsx
+ 260 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/indent-kit.tsx
+ 261 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/keywords-plugin.tsx
+ 262 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/layout-plugin.tsx
+ 263 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/line-height-base-kit.tsx
+ 264 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/line-height-kit.tsx
+ 265 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/link-base-kit.tsx
+ 266 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/link-kit.tsx
+ 267 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/link-plugin.tsx
+ 268 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/list-base-kit.tsx
+ 269 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/list-kit.tsx
+ 270 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/list-max-indent-level-plugin.tsx
+ 271 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/markdown-kit.tsx
+ 272 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/math-base-kit.tsx
+ 273 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/math-kit.tsx
+ 274 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/media-base-kit.tsx
+ 275 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/media-kit.tsx
+ 276 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/mention-base-kit.tsx
+ 277 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/mention-kit.tsx
+ 278 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/mentions-plugin.tsx
+ 279 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/alignment-picker-plugin.tsx
+ 280 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/bulleted-list-picker-plugin.tsx
+ 281 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/check-list-picker-plugin.tsx
+ 282 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/code-picker-plugin.tsx
+ 283 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/columns-layout-picker-plugin.tsx
+ 284 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/component-picker-option.tsx
+ 285 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/divider-picker-plugin.tsx
+ 286 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/embeds-picker-plugin.tsx
+ 287 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/heading-picker-plugin.tsx
+ 288 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/image-picker-plugin.tsx
+ 289 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/numbered-list-picker-plugin.tsx
+ 290 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/paragraph-picker-plugin.tsx
+ 291 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/quote-picker-plugin.tsx
+ 292 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/picker/table-picker-plugin.tsx
+ 293 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/slash-kit.tsx
+ 294 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/suggestion-base-kit.tsx
+ 295 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/suggestion-kit.tsx
+ 296 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/tab-focus-plugin.tsx
+ 297 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/table-base-kit.tsx
+ 298 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/table-kit.tsx
+ 299 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/table-plugin.tsx
+ 300 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toc-base-kit.tsx
+ 301 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toc-kit.tsx
+ 302 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toggle-base-kit.tsx
+ 303 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toggle-kit.tsx
+ 304 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format-toolbar-plugin.tsx
+ 305 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/block-format-data.tsx
+ 306 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-bulleted-list.tsx
+ 307 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-check-list.tsx
+ 308 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-code-block.tsx
+ 309 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-heading.tsx
+ 310 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-numbered-list.tsx
+ 311 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-paragraph.tsx
+ 312 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-format/format-quote.tsx
+ 313 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-insert-plugin.tsx
+ 314 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-insert/insert-columns-layout.tsx
+ 315 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-insert/insert-embeds.tsx
+ 316 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-insert/insert-horizontal-rule.tsx
+ 317 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-insert/insert-image.tsx
+ 318 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/block-insert/insert-table.tsx
+ 319 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/clear-formatting-toolbar-plugin.tsx
+ 320 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/code-language-toolbar-plugin.tsx
+ 321 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/element-format-toolbar-plugin.tsx
+ 322 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/font-background-toolbar-plugin.tsx
+ 323 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/font-color-toolbar-plugin.tsx
+ 324 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/font-family-toolbar-plugin.tsx
+ 325 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/font-format-toolbar-plugin.tsx
+ 326 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/font-size-toolbar-plugin.tsx
+ 327 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/history-toolbar-plugin.tsx
+ 328 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/horizontal-rule-toolbar-plugin.tsx
+ 329 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/image-toolbar-plugin.tsx
+ 330 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/link-toolbar-plugin.tsx
+ 331 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/subsuper-toolbar-plugin.tsx
+ 332 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/table-toolbar-plugin.tsx
+ 333 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/toolbar/toolbar-plugin.tsx
+ 334 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/plugins/typing-pref-plugin.tsx
+ 335 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/settings-dialog.tsx
+ 336 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/can-use-dom.ts
+ 337 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/caret-from-point.ts
+ 338 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/environment.ts
+ 339 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/invariant.ts
+ 340 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/normalize-class-names.ts
+ 341 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/react-patches.ts
+ 342 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/react-test-utils.ts
+ 343 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/simple-diff-with-cursor.ts
+ 344 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/use-layout-effect.ts
+ 345 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/shared/warn-only-once.ts
+ 346 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/themes/editor-theme.ts
+ 347 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/transformers/markdown-emoji-transformer.ts
+ 348 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/transformers/markdown-hr-transformer.ts
+ 349 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/transformers/markdown-image-transformer.ts
+ 350 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/transformers/markdown-table-transformer.ts
+ 351 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/transformers/markdown-tweet-transformer.ts
+ 352 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/transforms.ts
+ 353 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/use-chat.ts
+ 354 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/doc-serialization.ts
+ 355 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/emoji-list.ts
+ 356 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/get-dom-range-rect.ts
+ 357 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/get-selected-node.ts
+ 358 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/guard.ts
+ 359 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/is-mobile-width.ts
+ 360 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/set-floating-elem-position-for-link-editor.ts
+ 361 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/set-floating-elem-position.ts
+ 362 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/swipe.ts
+ 363 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/editor/utils/url.ts
+ 364 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/EnhancedTestCard.tsx
+ 365 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/FacehashAnimationDemos.tsx
+ 366 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/Flashcard.tsx
+ 367 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/FullScreenAIAssistant.tsx
+ 368 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconBadgeSparkle.tsx
+ 369 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconBell.tsx
+ 370 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconBlog.tsx
+ 371 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconBookOpen.tsx
+ 372 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconBox.tsx
+ 373 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconCalendar.tsx
+ 374 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconCircleCopyPlus.tsx
+ 375 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconFile.tsx
+ 376 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconGear.tsx
+ 377 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconGrid2.tsx
+ 378 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconHouse.tsx
+ 379 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconMagnifier.tsx
+ 380 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconMessageSquare.tsx
+ 381 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconPen.tsx
+ 382 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconPin.tsx
+ 383 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconProgressBar.tsx
+ 384 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconQuestions.tsx
+ 385 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconSparkle.tsx
+ 386 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconTabOpen.tsx
+ 387 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconTranslate.tsx
+ 388 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/glass-icons/IconUsers.tsx
+ 389 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/GoogleClassroomIntegration.tsx
+ 390 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/GroupChatDemo.tsx
+ 391 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/GroupShareMenu.tsx
+ 392 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/GuardiansContent.tsx
+ 393 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/HomeworkLinkInput.tsx
+ 394 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/HomeworkPinList.tsx
+ 395 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/LandingNavbar.tsx
+ 396 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/LandingPageTransition.tsx
+ 397 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/LandingSlider.tsx
+ 398 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/LaTeXMathMLRenderer.tsx
+ 399 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/LinkCard.tsx
+ 400 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/MainApp.tsx
+ 401 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/markdown.tsx
+ 402 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/MarkTestAsTakenModal.tsx
+ 403 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/MiniCalendar.tsx
+ 404 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/MinimalistTimer.tsx
+ 405 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/Navbar.tsx
+ 406 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/NotificationPanel.tsx
+ 407 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/OnboardingModal.tsx
+ 408 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/OnboardingTour.tsx
+ 409 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/PlayfulHomeworkList.tsx
+ 410 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ProfileCard.tsx
+ 411 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/Quiz.tsx
+ 412 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/realtime-chat.tsx
+ 413 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ReboundNavbar.tsx
+ 414 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/RecurringHomeworkIndicator.tsx
+ 415 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/RecurringOptions.tsx
+ 416 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/RoleSwitcher.tsx
+ 417 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/RouteIntroPopup.tsx
+ 418 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/SearchBar.tsx
+ 419 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/SearchResults.tsx
+ 420 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/AccessibilitySection.tsx
+ 421 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/AccountSection.tsx
+ 422 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/DangerZoneItem.tsx
+ 423 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/DataManagementSection.tsx
+ 424 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/GoogleClassroomSection.tsx
+ 425 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/index.ts
+ 426 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/settings/PreferencesSection.tsx
+ 427 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/SideNav.tsx
+ 428 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/StatusGroupedTestList.tsx
+ 429 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/StudentLandingContent.tsx
+ 430 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/StudyTimer.tsx
+ 431 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/SubjectMastery.tsx
+ 432 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/TeacherAuroraDemo.tsx
+ 433 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/TeachersContent.tsx
+ 434 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/TestDetailModal.tsx
+ 435 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/TestTimePicker.tsx
+ 436 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/Toast.tsx
+ 437 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/TutorialArticleTemplate.tsx
+ 438 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/TutorialShareMenu.tsx
+ 439 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/ai-chat-editor.tsx
+ 440 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/ai-menu.tsx
+ 441 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/ai-node.tsx
+ 442 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/ai-toolbar-button.tsx
+ 443 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/alert-dialog.tsx
+ 444 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/alert.tsx
+ 445 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/align-toolbar-button.tsx
+ 446 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/avatar.tsx
+ 447 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/badge.tsx
+ 448 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-context-menu.tsx
+ 449 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-discussion.tsx
+ 450 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-draggable.tsx
+ 451 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-list-static.tsx
+ 452 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-list.tsx
+ 453 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-selection.tsx
+ 454 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/block-suggestion.tsx
+ 455 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/blockquote-node-static.tsx
+ 456 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/blockquote-node.tsx
+ 457 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/button-group.tsx
+ 458 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/button.tsx
+ 459 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/calendar.tsx
+ 460 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/callout-node-static.tsx
+ 461 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/callout-node.tsx
+ 462 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/caption.tsx
+ 463 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/card.tsx
+ 464 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/checkbox.tsx
+ 465 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/code-block-node-static.tsx
+ 466 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/code-block-node.tsx
+ 467 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/code-node-static.tsx
+ 468 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/code-node.tsx
+ 469 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/column-node-static.tsx
+ 470 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/column-node.tsx
+ 471 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/command.tsx
+ 472 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/comment-node-static.tsx
+ 473 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/comment-node.tsx
+ 474 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/comment-toolbar-button.tsx
+ 475 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/comment.tsx
+ 476 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/context-menu.tsx
+ 477 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/cursor-overlay.tsx
+ 478 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/date-node-static.tsx
+ 479 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/date-node.tsx
+ 480 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/dialog.tsx
+ 481 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/dock.tsx
+ 482 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/dropdown-menu.tsx
+ 483 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/editor-static.tsx
+ 484 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/editor.tsx
+ 485 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/emoji-node.tsx
+ 486 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/emoji-toolbar-button.tsx
+ 487 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/equation-node-static.tsx
+ 488 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/equation-node.tsx
+ 489 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/equation-toolbar-button.tsx
+ 490 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/export-toolbar-button.tsx
+ 491 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/fixed-toolbar-buttons.tsx
+ 492 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/fixed-toolbar.tsx
+ 493 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/floating-toolbar-buttons.tsx
+ 494 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/floating-toolbar.tsx
+ 495 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/font-color-toolbar-button.tsx
+ 496 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/font-size-toolbar-button.tsx
+ 497 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/ghost-text.tsx
+ 498 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/heading-node-static.tsx
+ 499 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/heading-node.tsx
+ 500 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/highlight-node-static.tsx
+ 501 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/highlight-node.tsx
+ 502 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/history-toolbar-button.tsx
+ 503 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/hover-card.tsx
+ 504 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/hr-node-static.tsx
+ 505 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/hr-node.tsx
+ 506 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/import-toolbar-button.tsx
+ 507 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/indent-toolbar-button.tsx
+ 508 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/inline-combobox.tsx
+ 509 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/input.tsx
+ 510 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/insert-toolbar-button.tsx
+ 511 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/kbd-node-static.tsx
+ 512 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/kbd-node.tsx
+ 513 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/label.tsx
+ 514 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/line-height-toolbar-button.tsx
+ 515 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/link-node-static.tsx
+ 516 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/link-node.tsx
+ 517 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/link-toolbar-button.tsx
+ 518 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/link-toolbar.tsx
+ 519 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/list-toolbar-button.tsx
+ 520 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/mark-toolbar-button.tsx
+ 521 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-audio-node-static.tsx
+ 522 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-audio-node.tsx
+ 523 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-embed-node.tsx
+ 524 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-file-node-static.tsx
+ 525 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-file-node.tsx
+ 526 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-image-node-static.tsx
+ 527 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-image-node.tsx
+ 528 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-placeholder-node.tsx
+ 529 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-preview-dialog.tsx
+ 530 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-toolbar-button.tsx
+ 531 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-toolbar.tsx
+ 532 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-upload-toast.tsx
+ 533 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-video-node-static.tsx
+ 534 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/media-video-node.tsx
+ 535 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/mention-node-static.tsx
+ 536 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/mention-node.tsx
+ 537 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/mode-toolbar-button.tsx
+ 538 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/more-toolbar-button.tsx
+ 539 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/paragraph-node-static.tsx
+ 540 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/paragraph-node.tsx
+ 541 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/popover.tsx
+ 542 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/resizable-panel.tsx
+ 543 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/resize-handle.tsx
+ 544 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/scroll-area.tsx
+ 545 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/select.tsx
+ 546 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/separator.tsx
+ 547 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/skeleton.tsx
+ 548 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/slash-node.tsx
+ 549 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/slider.tsx
+ 550 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/sonner.tsx
+ 551 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/suggestion-node-static.tsx
+ 552 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/suggestion-node.tsx
+ 553 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/suggestion-toolbar-button.tsx
+ 554 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/switch.tsx
+ 555 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/table-icons.tsx
+ 556 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/table-node-static.tsx
+ 557 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/table-node.tsx
+ 558 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/table-toolbar-button.tsx
+ 559 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/tabs.tsx
+ 560 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/textarea.tsx
+ 561 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toc-node-static.tsx
+ 562 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toc-node.tsx
+ 563 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toggle-group.tsx
+ 564 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toggle-node-static.tsx
+ 565 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toggle-node.tsx
+ 566 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toggle-toolbar-button.tsx
+ 567 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toggle.tsx
+ 568 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/toolbar.tsx
+ 569 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/tooltip.tsx
+ 570 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/ui/turn-into-toolbar-button.tsx
+ 571 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/components/WorthinessCheckModal.tsx
+ 572 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/config/languages.ts
+ 573 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/config/version.ts
+ 574 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/AIContext.tsx
+ 575 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/AuthContext.tsx
+ 576 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/ClassContext.fixed.tsx
+ 577 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/ClassContext.tsx
+ 578 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/DarkModeContext.tsx
+ 579 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/DataContext.tsx
+ 580 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/DiscussionBoardsContext.tsx
+ 581 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/GamificationContext.tsx
+ 582 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/index.ts
+ 583 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/LandingViewContext.tsx
+ 584 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/SearchContext.tsx
+ 585 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/StudyGroupsContext.tsx
+ 586 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/ThemeContext.tsx
+ 587 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/ToastContext.tsx
+ 588 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/context/WebSavesContext.tsx
+ 589 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/data/schoolEvents.ts
+ 590 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-auto-height.tsx
+ 591 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-chat-scroll.tsx
+ 592 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-controlled-state.tsx
+ 593 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-debounce.ts
+ 594 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-is-in-view.tsx
+ 595 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-is-touch-device.ts
+ 596 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-media-query.ts
+ 597 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-mounted.ts
+ 598 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-realtime-chat.tsx
+ 599 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-require-auth.ts
+ 600 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-route-intro.ts
+ 601 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-upload-file.ts
+ 602 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/use-wide-layout.tsx
+ 603 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/useGoogleClassroom.ts
+ 604 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/hooks/useRateLimitReset.ts
+ 605 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/classroomSyncService.ts
+ 606 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/colors.ts
+ 607 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/data-loader.ts
+ 608 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/database/classroomService.ts
+ 609 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/dateUtils.ts
+ 610 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/facehash-custom-faces.tsx
+ 611 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/get-strict-context.tsx
+ 612 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/google-classroom-transformer.ts
+ 613 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/googleClassroom.ts
+ 614 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/googleClassroomAuth.ts
+ 615 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/icon-map.ts
+ 616 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/markdown-joiner-transform.ts
+ 617 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/rate-limiter.ts
+ 618 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/school-schedule.ts
+ 619 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/services/GoogleClassroomService.ts
+ 620 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/services/rateLimitService.ts
+ 621 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/services/RecurringHomeworkService.ts
+ 622 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/supabase/admin.ts
+ 623 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/supabase/client.ts
+ 624 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/supabase/db.ts
+ 625 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/supabase/flashcards.ts
+ 626 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/supabase/middleware.ts
+ 627 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/supabase/server.ts
+ 628 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/uploadthing.ts
+ 629 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/lib/utils.ts
+ 630 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/next.config.ts
+ 631 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/scripts/print-users-simple.ts
+ 632 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/scripts/print-users.ts
+ 633 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/scripts/test-auth-system.ts
+ 634 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/tailwind.config.ts
+ 635 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/test-icons.js
+ 636 │ /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/types/database.types.ts
+─────┴────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+       Inspect the results and run npx unimported -u to update ignore lists

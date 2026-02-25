@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, ChevronDown, Sparkles, DollarSign, GraduationCap, Layers } from 'lucide-react';
+import { Check, X, ChevronDown,  DollarSign, GraduationCap, Layers } from 'lucide-react';
 
 // ─── Data ────────────────────────────────────────────────────────────────────────
 

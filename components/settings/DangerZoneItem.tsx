@@ -4,7 +4,6 @@ import { Button } from '@/components/animate-ui/primitives/buttons/button';
 
 interface DangerZoneItemProps {
   title: string;
-
   buttonText: string;
   confirmText: string;
   onConfirm: () => void;
@@ -17,7 +16,6 @@ interface DangerZoneItemProps {
 
 export default function DangerZoneItem({
   title,
-
   buttonText,
   confirmText,
   onConfirm,
@@ -28,21 +26,21 @@ export default function DangerZoneItem({
   variant = 'destructive'
 }: DangerZoneItemProps) {
   return (
-    <div className="flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900/50">
+    <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
       <div className="flex items-center gap-3">
-        <Icon className="h-[18px] w-[18px] text-amber-500/70" />
-        <span className="text-[14px] font-medium text-gray-700 dark:text-zinc-300">
+        <Icon className="h-[18px] w-[18px] text-sky-500/50" />
+        <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
           {title}
         </span>
-        <span className="text-[11px] font-medium text-gray-400 dark:text-zinc-600 tabular-nums">
+        <span className="text-[11px] font-semibold text-sky-600/30 dark:text-sky-400/30 tabular-nums">
           ({count})
         </span>
       </div>
       <Button
         onClick={onConfirm}
-        className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${isConfirming
-          ? 'bg-red-500 text-white hover:bg-red-600'
-          : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'
+        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${isConfirming
+          ? 'bg-red-500 text-white hover:bg-red-600 shadow-md shadow-red-500/20'
+          : 'text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hover:bg-[#ebf6b5]'
           }`}
         hoverScale={1.02}
       >

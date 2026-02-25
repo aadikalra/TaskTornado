@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import { Facehash } from 'facehash';
 import { format } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
 import { AddTestModal } from './AddTestModal';
 import { TestDetailModal } from './TestDetailModal';
 import { Button } from '@/components/animate-ui/components/buttons/button';
-import { SplittingText } from './animate-ui/primitives/texts/splitting';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
   AlertDialog,
@@ -48,21 +46,14 @@ type HomeworkLink = {
 };
 
 import {
-  AlertCircle,
-  AlertTriangle,
   Archive,
-  Clock,
   Calendar as CalendarIcon,
   Trash2,
   BookOpen,
   Calculator,
   Code,
-  Globe,
   GraduationCap,
   Layers,
-  Library,
-  PenTool,
-  Ruler,
   School,
   Atom,
   Award,
@@ -95,72 +86,17 @@ import {
   Speaker,
   Target,
   Terminal,
-  TestTube,
   TrendingUp,
   Type,
   Video,
   Wifi,
   Zap,
-  BookKey,
-  BookLock,
-  BookPlus,
-  BookType,
-  BookUp2,
-  BookUser,
-  BookX,
-  BrainCircuit,
-  BrainCog,
-  CalendarCheck,
-  CalendarDays,
-  CalendarHeart,
-  CalendarPlus,
-  Camera,
-  Cast,
-  CheckSquare,
-  Cloud,
-  Code2,
-  CreditCard,
-  Crop,
-  Crosshair,
-  DollarSign,
-  Download,
-  Edit,
-  FileArchive,
-  FileAudio,
-  FileCode,
-  FileJson,
-  FileVideo,
-  FileVolume2,
-  FileWarning,
-  Filter,
-  Flag,
-  Folder,
-  FolderOpen,
-  Gift,
-  GitCommit,
-  Github,
-  Gitlab,
-  GitPullRequest,
-  GitCompare,
-  GitFork,
-  GitMerge,
-  GitPullRequestClosed,
-  Gavel,
-  GitGraph,
-  GitCommitVertical,
-  GitCompareArrows,
-  GitBranchPlus,
-  ChevronDown,
   ChevronRight,
   Plus,
   X,
-  CheckCircle,
   Loader2,
   Sparkles,
   Book,
-  MapPin,
-  Pin,
-  PinOff,
   Dumbbell,
   Music2,
   Languages,
@@ -168,16 +104,12 @@ import {
   Microscope,
   Sigma,
   Variable,
-  FunctionSquare,
   Binary,
   Heart,
   Stethoscope,
-  Dna,
   Landmark,
   Mountain,
   Telescope,
-  Microchip,
-  CircuitBoard,
   Brush,
   Theater,
   Quote,
@@ -185,11 +117,7 @@ import {
   Gamepad,
   Music4,
   Coffee,
-  Sun,
-  Moon,
-  Star,
-  ZapOff,
-  ArrowRight
+  Star
 } from "lucide-react";
 
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
@@ -198,27 +126,22 @@ import { HomeworkLinkInput } from './HomeworkLinkInput';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
-import { SubjectMastery } from './SubjectMastery';
 import { MiniCalendar } from './MiniCalendar';
 import { ComingUp } from './ComingUp';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
-import { HomeworkPinList } from '@/components/HomeworkPinList';
 import { RecurringOptions } from './RecurringOptions';
 import { iconMap, IconName } from '@/lib/icon-map';
-import { RecurringHomework, RecurringFrequency, Class, Homework, Test } from '@/context/ClassContext';
+import { RecurringHomework, Class, Homework, Test } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useGamification } from '@/context/GamificationContext';
 import { useClassContext } from '../context/ClassContext';
@@ -784,25 +707,25 @@ const MainApp = () => {
 
   // Color mapping for class icons
   const classColors = {
-    red: '#C53030',    // red-700
-    blue: '#2B6CB0',   // blue-700
-    yellow: '#C2410C', // orange-700
-    green: '#2F855A',  // green-700
-    purple: '#6B46C1', // purple-700
-    pink: '#B83280',   // pink-700
-    teal: '#285E61',   // teal-800
-    gray: '#2D3748'    // gray-700
+    red: '#F9A8A8',     // pastel red
+    blue: '#93C5FD',    // pastel blue
+    yellow: '#FCD39D',  // pastel amber
+    green: '#86EFAC',   // pastel green
+    purple: '#C4B5FD',  // pastel purple
+    pink: '#F9A8D4',    // pastel pink
+    teal: '#99F6E4',    // pastel teal
+    gray: '#CBD5E1'     // pastel slate
   };
 
   const headerColors = {
-    red: '#9B2C2C',    // red-800
-    blue: '#2A4365',   // blue-900
-    yellow: '#9A3412', // orange-800
-    green: '#22543D',  // green-800
-    purple: '#44337A', // purple-800
-    pink: '#82274A',   // pink-800
-    teal: '#1D4044',   // teal-900
-    gray: '#1A202C'    // gray-900
+    red: '#DC2626',     // red-600
+    blue: '#2563EB',    // blue-600
+    yellow: '#D97706',  // amber-600
+    green: '#16A34A',   // green-600
+    purple: '#7C3AED',  // purple-600
+    pink: '#DB2777',    // pink-600
+    teal: '#0D9488',    // teal-600
+    gray: '#475569'     // slate-600
   };
 
   // Get initials from class name
@@ -1246,15 +1169,15 @@ const MainApp = () => {
                           duration: 0.3,
                           delay: index * 0.05,
                         }}
-                        className={`group rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-500 border bg-white dark:bg-gray-900 ${showFrowny && hasOverdueHomework
+                        className={`group rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-500 border bg-[#f5f9fc] dark:bg-gray-900 ${showFrowny && hasOverdueHomework
                           ? 'border-red-300 dark:border-red-500/40 shadow-red-100 dark:shadow-red-900/20 shadow-md'
-                          : 'border-gray-200/70 dark:border-white/5'
+                          : 'border-sky-100 dark:border-white/5'
                           }`}
 
                       >
                         <div
                           className="p-3 mb-3 rounded-xl transition-colors duration-500"
-                          style={{ backgroundColor: `${getClassColor(index)}12` }}
+                          style={{ backgroundColor: `${getClassColor(index)}40` }}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex items-center w-full gap-3">
@@ -1272,11 +1195,26 @@ const MainApp = () => {
                                 >
                                   {cls.name}
                                 </h3>
-                                {!hasHomework && !hasTests && !hasArchivedHomework && (
-                                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
-                                    0 assignments
-                                  </p>
-                                )}
+                              </div>
+
+                              {/* Summary counts */}
+                              <div className="shrink-0 translate-x-10 group-hover:translate-x-0 transition-transform duration-300">
+                                {(() => {
+                                  const activeCount = classHomeworks.filter((hw: any) => !hw.completed).length;
+                                  const testCount = classTests.length;
+                                  const parts: string[] = [];
+                                  if (activeCount > 0) parts.push(`${activeCount} task${activeCount !== 1 ? 's' : ''}`);
+                                  if (testCount > 0) parts.push(`${testCount} test${testCount !== 1 ? 's' : ''}`);
+                                  const summary = parts.length > 0 ? parts.join(' · ') : 'No tasks';
+                                  return (
+                                    <span
+                                      className="text-[11px] font-semibold tracking-wide opacity-50"
+                                      style={{ color: getHeaderColor(index) }}
+                                    >
+                                      {summary}
+                                    </span>
+                                  );
+                                })()}
                               </div>
 
                               <button
@@ -1324,12 +1262,12 @@ const MainApp = () => {
                             <>
                               {hasHomework && (
                                 <div className="flex items-center gap-3 my-3">
-                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
-                                  <span className="text-[12px] uppercase font-bold text-gray-400 tracking-wider">Upcoming Tests</span>
-                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
+                                  <span className="text-[11px] uppercase font-semibold text-sky-600/30 dark:text-sky-400/30 tracking-wider">Upcoming Tests</span>
+                                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
                                 </div>
                               )}
-                              <div className="space-y-1">
+                              <div className="space-y-0.5">
                                 {classTests.map((test: any) => (
                                   <EnhancedTestCard
                                     key={test.id}
@@ -1337,7 +1275,7 @@ const MainApp = () => {
                                     classIcon={iconMap[cls.icon as keyof typeof iconMap] || BookOpen}
                                     variant="list-item"
                                     onClick={() => handleTestClick(test)}
-                                    className="hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg -mx-2 px-2"
+                                    className="hover:bg-sky-500/[0.03] rounded-lg -mx-2 px-2"
                                   />
                                 ))}
                               </div>
@@ -1345,18 +1283,18 @@ const MainApp = () => {
                           )}
 
                           {classHomeworks.length > 3 && (
-                            <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-1">
+                            <div className="text-xs text-center text-sky-600/30 dark:text-sky-400/30 pt-1">
                               {expandedClasses[cls.id] ? (
                                 <button
                                   onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: false })}
-                                  className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                  className="hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
                                 >
                                   Hide
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
-                                  className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                  className="hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
                                 >
                                   +{classHomeworks.length - 3} more assignments
                                 </button>
@@ -1371,7 +1309,7 @@ const MainApp = () => {
                             <div className="text-center py-2">
                               <button
                                 onClick={() => setShowArchivedForClass(prev => ({ ...prev, [cls.id]: true }))}
-                                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-1.5 mx-auto"
+                                className="text-xs text-sky-600/40 hover:text-sky-600 dark:text-sky-400/40 dark:hover:text-sky-300 transition-colors flex items-center justify-center gap-1.5 mx-auto"
                               >
                                 <Archive className="w-3.5 h-3.5" />
                                 View {classArchivedHomeworks.length} archived assignment{classArchivedHomeworks.length > 1 ? 's' : ''}
@@ -1390,25 +1328,38 @@ const MainApp = () => {
                                 style={{ overflow: 'hidden' }}
                               >
                                 <div className="flex items-center gap-3 my-3">
-                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
-                                  <span className="text-[12px] uppercase font-bold text-gray-400 tracking-wider flex items-center gap-1.5">
+                                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
+                                  <span className="text-[11px] uppercase font-semibold text-sky-600/30 dark:text-sky-400/30 tracking-wider flex items-center gap-1.5">
                                     <Archive className="w-3 h-3" />
                                     Archived
                                   </span>
-                                  <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
                                 </div>
                                 <PlayfulHomeworkList
                                   items={classArchivedHomeworks}
                                   onItemToggle={handleHomeworkToggle}
                                   onPinToggle={togglePinHomework}
-                                  className="space-y-2 opacity-60"
+                                  className="space-y-2 opacity-50"
                                 />
-                                <div className="text-center pt-2">
+                                <div className="flex items-center justify-center gap-3 pt-3">
                                   <button
                                     onClick={() => setShowArchivedForClass(prev => ({ ...prev, [cls.id]: false }))}
-                                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                    className="text-xs text-sky-600/30 hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
                                   >
                                     Hide archived
+                                  </button>
+                                  <span className="text-sky-200 dark:text-gray-700">·</span>
+                                  <button
+                                    onClick={async () => {
+                                      if (!window.confirm(`Delete all ${classArchivedHomeworks.length} archived assignment${classArchivedHomeworks.length > 1 ? 's' : ''}?`)) return;
+                                      for (const hw of classArchivedHomeworks) {
+                                        await deleteHomework(hw.id);
+                                      }
+                                      setShowArchivedForClass(prev => ({ ...prev, [cls.id]: false }));
+                                    }}
+                                    className="text-xs text-red-400/60 hover:text-red-500 transition-colors"
+                                  >
+                                    Delete all archived
                                   </button>
                                 </div>
                               </motion.div>
@@ -2005,86 +1956,6 @@ const MainApp = () => {
                 {timeGreeting.text}, {full_name?.split(' ')[0] || 'Student'}!
               </h1>
             </div>
-
-            {/* Stats pill — green bg, sky-500 text, inner segment pills */}
-            <div className="hidden lg:flex items-center gap-2.5 p-1.5 bg-[#f5f9fc] dark:bg-gray-800 rounded-full shadow-sm border border-sky-100 dark:border-gray-700 shrink-0">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full">
-                <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
-                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">{completionRate}%</span>
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Complete</span>
-              </div>
-              <div className="w-px h-5 bg-blue-700/20 dark:bg-blue-400/20" />
-              <div ref={overdueCardRef} className="flex items-center gap-2 px-4 py-2 rounded-full">
-                <Clock className={`w-4 h-4 ${overdueCount > 0 ? 'text-red-500' : 'text-blue-700 dark:text-blue-400'}`} />
-                <span className={`text-sm font-bold ${overdueCount > 0 ? 'text-red-500' : 'text-blue-700 dark:text-blue-400'}`}>{overdueCount}</span>
-                <span className={`text-xs font-medium ${overdueCount > 0 ? 'text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>Overdue</span>
-              </div>
-              <div className="w-px h-5 bg-blue-700/20 dark:bg-blue-400/20" />
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full">
-                <GraduationCap className="w-4 h-4 text-blue-700 dark:text-blue-400" />
-                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">{tests.length > 0 ? tests.filter((test: Test) => test.status === 'upcoming').length : 0}</span>
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Tests</span>
-              </div>
-              <div className="w-px h-5 bg-blue-700/20 dark:bg-blue-400/20" />
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full">
-                <CalendarIcon className={`w-4 h-4 ${(() => {
-                  const nextItem = nextDueHomework && nextUpcomingTest
-                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                    : (nextDueHomework || nextUpcomingTest);
-                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                  if (daysUntil === 0) return 'text-red-500';
-                  if (daysUntil === 1) return 'text-amber-500';
-                  return 'text-blue-700 dark:text-blue-400';
-                })()}`} />
-                <span className={`text-sm font-bold whitespace-nowrap ${(() => {
-                  const nextItem = nextDueHomework && nextUpcomingTest
-                    ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                    : (nextDueHomework || nextUpcomingTest);
-                  const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                  if (daysUntil === 0) return 'text-red-500';
-                  if (daysUntil === 1) return 'text-amber-500';
-                  return 'text-blue-700 dark:text-blue-400';
-                })()}`}>
-                  {nextDueHomework || nextUpcomingTest ? (
-                    (() => {
-                      const nextItem = nextDueHomework && nextUpcomingTest
-                        ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                        : (nextDueHomework || nextUpcomingTest);
-                      const daysUntil = nextItem === nextUpcomingTest ? daysUntilNextTest : daysUntilNextDue;
-                      const itemDate = new Date(nextItem === nextUpcomingTest ? (nextItem as Test).testDate : (nextItem as Homework).dueDate);
-
-                      if (daysUntil !== null) {
-                        if (daysUntil === 0) return 'Today';
-                        if (daysUntil === 1) return 'Tomorrow';
-
-                        if (daysUntil < 7) {
-                          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                          const currentDay = new Date().getDay();
-                          const testDay = itemDate.getDay();
-                          const itemDayName = dayNames[testDay];
-                          const daysUntilItem = testDay - currentDay;
-                          const isSameWeek = daysUntilItem > 0 && daysUntilItem <= 6;
-                          if (isSameWeek) return `This ${itemDayName}`;
-                          return `Next ${itemDayName}`;
-                        }
-                        return format(itemDate, 'MMM d');
-                      }
-                      return `${daysUntil}d`;
-                    })()
-                  ) : '-'}
-                </span>
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">
-                  {nextDueHomework || nextUpcomingTest ? (
-                    (() => {
-                      const nextItem = nextDueHomework && nextUpcomingTest
-                        ? (daysUntilNextDue! < daysUntilNextTest! ? nextDueHomework : nextUpcomingTest)
-                        : (nextDueHomework || nextUpcomingTest);
-                      return nextItem === nextUpcomingTest ? 'Next Test' : 'Next Due';
-                    })()
-                  ) : 'Next Due'}
-                </span>
-              </div>
-            </div>
           </div>
         </motion.div>
 
@@ -2099,22 +1970,22 @@ const MainApp = () => {
 
         <AnimatePresence>
           {showAddClass && (
-            <div className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-100">
+            <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-100">
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 20 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white dark:bg-gray-950 rounded-lg shadow-lg w-full max-w-md relative border border-gray-200 dark:border-gray-800"
+                className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-500/5 w-full max-w-md relative border border-sky-100 dark:border-gray-800"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-sky-100/60 dark:border-gray-800">
+                  <h2 className="text-lg font-bold text-sky-900 dark:text-white">
                     Add New Class
                   </h2>
                   <button
                     onClick={() => setShowAddClass(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+                    className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -2124,7 +1995,7 @@ const MainApp = () => {
                 <div className="p-6 space-y-4">
                   {/* Class Name Input */}
                   <div>
-                    <Label htmlFor="className" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <Label htmlFor="className" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                       Class Name
                     </Label>
                     <Input
@@ -2133,7 +2004,7 @@ const MainApp = () => {
                       value={newClassName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewClassName(e.target.value)}
                       placeholder="e.g., Mathematics 101"
-                      className="w-full h-10 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                      className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleAddClass()}
                     />
                   </div>
@@ -2149,7 +2020,7 @@ const MainApp = () => {
                       >
                         <div className="mb-2">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-[#264f84] dark:text-blue-400 flex items-center gap-1.5">
+                            <span className="text-[11px] font-semibold text-sky-500 flex items-center gap-1.5">
                               <Sparkles className="h-3 w-3" />
                               Semantic Suggestions
                             </span>
@@ -2159,7 +2030,7 @@ const MainApp = () => {
                                 handleAISuggest();
                               }}
                               disabled={isSuggestingIcons}
-                              className="text-[10px] text-gray-500 hover:text-[#264f84] transition-colors flex items-center gap-1"
+                              className="text-[10px] text-sky-500 hover:text-sky-600 transition-colors flex items-center gap-1"
                             >
                               {isSuggestingIcons ? (
                                 <Loader2 className="h-2 w-2 animate-spin" />
@@ -2169,15 +2040,15 @@ const MainApp = () => {
                               {isSuggestingIcons ? 'Analyzing...' : 'Refresh Suggestions'}
                             </button>
                           </div>
-                          <div className="flex gap-2 p-2 bg-blue-50/30 dark:bg-blue-900/10 rounded-lg border border-blue-100/50 dark:border-blue-900/20 overflow-x-auto min-h-[52px]">
+                          <div className="flex gap-2 p-2 bg-sky-50/40 dark:bg-sky-500/5 rounded-xl border border-sky-100/50 dark:border-sky-500/10 overflow-x-auto min-h-[52px]">
                             {aiSuggestions.map((icon) => (
                               <button
                                 key={`suggest-${icon.name}`}
                                 type="button"
                                 onClick={() => setNewClassIcon(icon.name)}
-                                className={`p-2.5 rounded-lg transition-all shrink-0 ${newClassIcon === icon.name
-                                  ? 'bg-[#264f84] text-white shadow-sm scale-110'
-                                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                className={`p-2.5 rounded-xl transition-all shrink-0 ${newClassIcon === icon.name
+                                  ? 'bg-sky-500 text-white shadow-sm scale-110'
+                                  : 'bg-white dark:bg-gray-800 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-gray-700 hover:scale-105'
                                   }`}
                                 title={icon.name}
                               >
@@ -2189,7 +2060,7 @@ const MainApp = () => {
                             ))}
                             {aiSuggestions.length === 0 && !isSuggestingIcons && (
                               <div className="flex items-center justify-center w-full min-h-[36px]">
-                                <span className="text-[10px] text-gray-400 italic">
+                                <span className="text-[10px] text-sky-500 italic">
                                   Type more to get AI suggestions...
                                 </span>
                               </div>
@@ -2197,7 +2068,7 @@ const MainApp = () => {
                             {isSuggestingIcons && aiSuggestions.length === 0 && (
                               <div className="flex gap-2">
                                 {[1, 2, 3, 4, 5, 6].map(i => (
-                                  <div key={i} className="w-10 h-10 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg" />
+                                  <div key={i} className="w-10 h-10 bg-sky-100/40 dark:bg-gray-800 animate-pulse rounded-xl" />
                                 ))}
                               </div>
                             )}
@@ -2209,29 +2080,29 @@ const MainApp = () => {
 
                   {/* Icon Selection */}
                   <div>
-                    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                       Choose an Icon
                     </Label>
 
                     {/* Search Input */}
                     <div className="relative mb-3">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-400 dark:text-sky-500" />
                       <Input
                         type="text"
                         placeholder="Search icons..."
                         value={searchQuery}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                        className="pl-10 w-full h-10 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                        className="pl-10 w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                         autoComplete="off"
                       />
                     </div>
 
                     {/* Icon Grid */}
-                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-950">
+                    <div className="border border-sky-100 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-900">
                       <div className="max-h-64 overflow-y-auto">
                         {Object.entries(groupedIcons).map(([category, icons]) => (
                           <div key={category}>
-                            <div className="sticky top-0 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
+                            <div className="sticky top-0 bg-sky-50 dark:bg-gray-800 px-3 py-2 text-[10px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider border-b border-sky-100 dark:border-gray-700">
                               {category}
                             </div>
                             <div className="grid grid-cols-7 gap-1 p-2">
@@ -2243,15 +2114,15 @@ const MainApp = () => {
                                     setNewClassIcon(name as LucideIconName);
                                     setSearchQuery('');
                                   }}
-                                  className={`relative p-2.5 rounded-lg flex items-center justify-center transition-all ${newClassIcon === name
-                                    ? 'bg-[#264f84] text-white scale-105 shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 hover:scale-105'
+                                  className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${newClassIcon === name
+                                    ? 'bg-sky-500 text-white scale-105 shadow-sm'
+                                    : 'text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 hover:text-sky-600 hover:scale-105'
                                     }`}
                                   title={name}
                                 >
                                   <IconComponent className="h-5 w-5" />
                                   {newClassIcon === name && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-950" />
+                                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#b5d565] rounded-full border-2 border-white dark:border-gray-900" />
                                   )}
                                 </button>
                               ))}
@@ -2261,13 +2132,13 @@ const MainApp = () => {
 
                         {filteredIcons.length === 0 && (
                           <div className="p-8 text-center">
-                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-900 mb-3">
-                              <Search className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-sky-100/40 dark:bg-gray-800 mb-3">
+                              <Search className="w-5 h-5 text-sky-500" />
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-sm text-sky-800 dark:text-sky-300">
                               No icons found
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-sky-500 mt-1">
                               Try a different search term
                             </p>
                           </div>
@@ -2276,9 +2147,9 @@ const MainApp = () => {
                     </div>
 
                     {/* Icon Info */}
-                    <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-sky-500 dark:text-sky-400">
                       <span>
-                        Selected: <span className="font-medium text-gray-900 dark:text-white">{newClassIcon}</span>
+                        Selected: <span className="font-semibold text-sky-900 dark:text-white">{newClassIcon}</span>
                       </span>
                       <span>{filteredIcons.length} icons available</span>
                     </div>
@@ -2286,21 +2157,20 @@ const MainApp = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-800">
-                  <Button
-                    variant="outline"
+                <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-sky-100/60 dark:border-gray-800">
+                  <button
                     onClick={() => setShowAddClass(false)}
-                    className="h-10 px-4 text-sm border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg"
+                    className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
                   >
                     Cancel
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={handleAddClass}
                     disabled={!newClassName.trim()}
-                    className="h-10 px-6 text-sm bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
+                    className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     Add Class
-                  </Button>
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -2309,17 +2179,17 @@ const MainApp = () => {
         {/* Add Homework Modal */}
         <AnimatePresence>
           {showAddHomework && (
-            <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
+            <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 20 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md relative border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
+                className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-500/5 w-full max-w-md relative border border-sky-100 dark:border-gray-800 max-h-[90vh] overflow-y-auto"
               >
                 {/* Header */}
-                <div className="sticky top-0 bg-white dark:bg-gray-800 flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 rounded-t-2xl z-10">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <div className="sticky top-0 bg-white dark:bg-gray-900 flex items-center justify-between px-6 py-4 border-b border-sky-100 dark:border-gray-800 rounded-t-[28px] z-10">
+                  <h2 className="text-lg font-bold text-sky-900 dark:text-white">
                     Add New Homework
                   </h2>
                   <button
@@ -2328,7 +2198,7 @@ const MainApp = () => {
                       setIsRecurringEnabled(false);
                       setRecurringConfig({ frequency: 'weekly' });
                     }}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -2338,7 +2208,7 @@ const MainApp = () => {
                 <div className="p-6 space-y-5">
                   {/* Title Input */}
                   <div>
-                    <Label htmlFor="homeworkTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <Label htmlFor="homeworkTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                       Title
                     </Label>
                     <Input
@@ -2347,14 +2217,14 @@ const MainApp = () => {
                       value={newHomework.title}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHomework({ ...newHomework, title: e.target.value })}
                       placeholder="e.g., Chapter 5 Exercises"
-                      className="w-full h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
+                      className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                     />
                   </div>
 
                   {/* Description Input */}
                   <div>
-                    <Label htmlFor="homeworkDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Description <span className="text-gray-400 font-normal">(Optional)</span>
+                    <Label htmlFor="homeworkDescription" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                      Description <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
                     </Label>
                     <textarea
                       id="homeworkDescription"
@@ -2362,53 +2232,60 @@ const MainApp = () => {
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewHomework({ ...newHomework, description: e.target.value })}
                       placeholder="Add any additional details..."
                       rows={3}
-                      className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84] text-sm resize-none"
+                      className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
                     />
                   </div>
 
                   {/* Due Date and Priority */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <Label htmlFor="dueDate" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                         Due Date
                       </Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-[#264f84] rounded-lg"
+                            className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            <CalendarIcon className="mr-2 h-4 w-4 text-sky-500" />
                             {format(newHomework.dueDate, 'PPP')}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                        <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
                           <Calendar
                             mode="single"
                             selected={newHomework.dueDate}
                             onSelect={(date) => date && setNewHomework({ ...newHomework, dueDate: date })}
                             initialFocus
-                            className="text-gray-900 dark:text-white rounded-xl"
+                            className="text-sky-900 dark:text-white rounded-2xl"
+                            classNames={{
+                              today: "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-md data-[selected=true]:rounded-none",
+                              weekday: "text-sky-500 dark:text-sky-400 rounded-md flex-1 font-medium text-[0.8rem] select-none",
+                              caption_label: "text-sky-900 dark:text-white font-semibold text-sm select-none",
+                              button_previous: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
+                              button_next: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
+                            }}
                           />
                         </PopoverContent>
                       </Popover>
                     </div>
 
                     <div>
-                      <Label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <Label htmlFor="priority" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                         Priority
                       </Label>
                       <Select
                         value={newHomework.priority}
                         onValueChange={(value) => setNewHomework({ ...newHomework, priority: value as Priority })}
                       >
-                        <SelectTrigger className="w-full !h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
+                        <SelectTrigger className="w-full !h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                          <SelectItem value="low" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">Low</SelectItem>
-                          <SelectItem value="medium" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">Medium</SelectItem>
-                          <SelectItem value="high" className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg">High</SelectItem>
+                        <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                          <SelectItem value="low" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Low</SelectItem>
+                          <SelectItem value="medium" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Medium</SelectItem>
+                          <SelectItem value="high" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">High</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -2416,22 +2293,22 @@ const MainApp = () => {
 
                   {/* Class Selection */}
                   <div>
-                    <Label htmlFor="class" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <Label htmlFor="class" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                       Class
                     </Label>
                     <Select
                       value={newHomework.classId}
                       onValueChange={(value) => setNewHomework({ ...newHomework, classId: value })}
                     >
-                      <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
+                      <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
                         <SelectValue placeholder="Select a class" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                      <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
                         {classes.map((cls: any) => (
                           <SelectItem
                             key={cls.id}
                             value={cls.id}
-                            className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 text-sm rounded-lg"
+                            className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg"
                           >
                             {cls.name}
                           </SelectItem>
@@ -2442,16 +2319,16 @@ const MainApp = () => {
 
                   {/* Recurring Homework Section */}
                   <div className="pt-2 space-y-4">
-                    <div className="flex items-center space-x-2.5">
+                    <div className="flex items-center gap-3 p-3 bg-sky-50 dark:bg-gray-800 rounded-xl border border-sky-100 dark:border-gray-700">
                       <Checkbox
                         id="recurringHomework"
                         checked={isRecurringEnabled}
                         onCheckedChange={(checked) => setIsRecurringEnabled(checked as boolean)}
-                        className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#264f84] data-[state=checked]:bg-[#264f84] data-[state=checked]:border-[#264f84] hover:border-[#264f84]"
+                        className="size-5 rounded-md bg-sky-200 dark:bg-gray-700 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
                       />
                       <Label
                         htmlFor="recurringHomework"
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+                        className="text-sm font-semibold text-sky-800 dark:text-sky-300 cursor-pointer select-none"
                       >
                         Make this a recurring homework
                       </Label>
@@ -2479,27 +2356,26 @@ const MainApp = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="sticky bottom-0 bg-white dark:bg-gray-800 flex items-center justify-end gap-3 p-6 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-                  <Button
+                <div className="sticky bottom-0 bg-white dark:bg-gray-900 flex items-center justify-end gap-2.5 px-6 py-4 border-t border-sky-100 dark:border-gray-800 rounded-b-[28px]">
+                  <button
                     type="button"
-                    variant="outline"
                     onClick={() => {
                       setShowAddHomework(false);
                       setIsRecurringEnabled(false);
                       setRecurringConfig({ frequency: 'weekly' });
                     }}
-                    className="h-10 px-4 text-sm border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
+                    className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
                   >
                     Cancel
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     type="button"
                     onClick={handleAddHomework}
                     disabled={!newHomework.title.trim() || !newHomework.classId}
-                    className="h-10 px-6 text-sm bg-[#264f84] hover:bg-[#1f3f6b] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     Add Homework
-                  </Button>
+                  </button>
                 </div>
               </motion.div>
             </div>

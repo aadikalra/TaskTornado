@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useMemo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import type { Test, Class } from '@/context/ClassContext';
 import { LinkCard } from './LinkCard';
 
@@ -9,22 +9,21 @@ interface StudyMaterial {
   url: string;
   title?: string;
 }
-import { getClassIcon, iconMap, IconName } from '@/lib/icon-map';
-import { getDueDateLabel, getDueDateIcon } from '@/lib/dateUtils';
+import { getClassIcon, } from '@/lib/icon-map';
 import {
   Calendar,
   Clock,
   Filter,
   Search,
   BookOpen,
-  Calculator,
+  
   GraduationCap,
   FileText,
   Presentation,
-  Circle,
+  
   AlertTriangle,
-  Star,
-  CheckCircle2,
+  
+  
   Target,
   X
 } from 'lucide-react';

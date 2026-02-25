@@ -19,7 +19,6 @@ import {
 import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection';
 import { getFullVersionString } from '@/config/version';
 import { useDarkMode } from '@/context/DarkModeContext';
-import DotGrid from '../DotGrid';
 
 // Cookie utilities
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -58,10 +57,6 @@ export default function SettingsPage() {
   const { isDark } = useDarkMode();
   const { useWideLayout: isWideLayout, toggleWideLayout } = useWideLayout();
 
-
-
-
-
   const [useDyslexicFont, setUseDyslexicFont] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('useDyslexicFont');
@@ -87,8 +82,6 @@ export default function SettingsPage() {
     setReduceMotion(checked);
     setCookie('reduceMotion', checked.toString());
   };
-
-
 
   const [showTestsInClassCards, setShowTestsInClassCards] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -116,8 +109,6 @@ export default function SettingsPage() {
     setAIPersonality(value);
     setCookie('aiPersonality', value);
   };
-
-
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -223,35 +214,20 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black font-sans selection:bg-blue-100 dark:selection:bg-blue-900/40">
-      {/* Background Decor */}
+    <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans selection:bg-sky-100 dark:selection:bg-sky-900/40 relative">
+      {/* Background orbs */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <DotGrid
-          dotSize={2}
-          gap={30}
-          darkMode={isDark}
-          className="opacity-[0.15] dark:opacity-[0.05]"
-        />
+        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 lg:py-12">
-        {/* Header Strip */}
-        <header className="mb-8">
+      <div className="relative z-10 max-w-5xl px-6 sm:px-10 md:px-16 pt-28 pb-16">
+        {/* Header */}
+        <header className="mb-10">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-4"
-          >
-            <div className="px-3 py-1 bg-blue-50 dark:bg-blue-950/30 rounded-full border border-blue-100 dark:border-blue-900/30">
-              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Control Center</span>
-            </div>
-            <span className="text-[10px] font-bold text-gray-300 dark:text-zinc-700 uppercase tracking-widest">{getFullVersionString().split('-')[0]}</span>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center gap-4"
+            className="flex items-center gap-3 mb-5"
           >
             <TooltipProvider delayDuration={200}>
               <Tooltip>
@@ -270,26 +246,28 @@ export default function SettingsPage() {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 shadow-lg"
+                  className="bg-white/90 dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-xl px-3 py-2 shadow-lg"
                 >
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  <p className="text-sm font-medium text-sky-900 dark:text-white">
                     Hey, {userName}! 👋
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <h1
-              className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight"
-            >
-              Settings
-            </h1>
+            <div>
+              <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 tracking-tight leading-[1.08]">
+                Settings
+              </h1>
+              <p className="text-xs font-medium text-sky-600/30 dark:text-sky-400/30 mt-1">
+                {getFullVersionString().split('-')[0]}
+              </p>
+            </div>
           </motion.div>
-
         </header>
 
-        {/* Top Navigation Chips */}
-        <div className="sticky top-0 z-50 py-3 -mx-4 px-4 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-100/80 dark:border-zinc-900/50 mb-10">
-          <div className="max-w-3xl mx-auto overflow-x-auto no-scrollbar">
+        {/* Navigation Chips */}
+        <div className="sticky top-0 z-50 py-3 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-sky-100/60 dark:border-gray-800/50 mb-12 -mx-6 px-6 sm:-mx-10 sm:px-10 md:-mx-16 md:px-16">
+          <div className="overflow-x-auto no-scrollbar">
             <nav className="flex items-center gap-2 min-w-max">
               {navigationItems.map((item) => {
                 const isActive = activeTab === item.id;
@@ -307,10 +285,10 @@ export default function SettingsPage() {
                       setActiveTab(item.id as SettingTab);
                     }}
                     className={`
-                      flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap text-[13px] font-medium
+                      flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap text-[13px] font-semibold
                       ${isActive
-                        ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900/50'}
+                        ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
+                        : 'text-sky-600/40 dark:text-sky-400/40 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-500/[0.04]'}
                     `}
                   >
                     <Icon className="w-4 h-4" />
@@ -322,13 +300,12 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <main className="max-w-3xl mx-auto w-full pb-24">
+        <main className="pb-24">
           {/* Preferences */}
-          <section id="preferences" className="scroll-mt-24 mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <Zap className="h-5 w-5 text-blue-500" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preferences</h2>
-            </div>
+          <section id="preferences" className="scroll-mt-24 mb-20">
+            <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+              Preferences
+            </h2>
             <PreferencesSection
               aiPersonality={aiPersonality}
               onPersonalityChange={handlePersonalityChange}
@@ -337,42 +314,39 @@ export default function SettingsPage() {
               showTestsInClassCards={showTestsInClassCards}
               onToggleTestsInClassCards={handleToggleTestsInClassCards}
             />
-            <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+            <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
           </section>
 
           {/* Google Classroom */}
           {isGoogleUser && (
-            <section id="classroom" className="scroll-mt-24 mb-16">
-              <div className="flex items-center gap-3 mb-6">
-                <Globe className="h-5 w-5 text-green-500" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Google Classroom</h2>
-              </div>
+            <section id="classroom" className="scroll-mt-24 mb-20">
+              <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+                Google Classroom
+              </h2>
               <GoogleClassroomSection />
-              <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+              <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
             </section>
           )}
 
           {/* Accessibility */}
-          <section id="accessibility" className="scroll-mt-24 mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <Accessibility className="h-5 w-5 text-violet-500" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Accessibility</h2>
-            </div>
+          <section id="accessibility" className="scroll-mt-24 mb-20">
+            <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+              Accessibility
+            </h2>
             <AccessibilitySection
               reduceMotion={reduceMotion}
               onToggleReduceMotion={handleToggleReduceMotion}
               useDyslexicFont={useDyslexicFont}
               onToggleDyslexicFont={handleToggleDyslexicFont}
             />
-            <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+            <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
           </section>
 
           {/* Data Management */}
-          <section id="data" className="scroll-mt-24 mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <Database className="h-5 w-5 text-amber-500" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Data Management</h2>
-            </div>
+          <section id="data" className="scroll-mt-24 mb-20">
+            <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+              Data Management
+            </h2>
             <DataManagementSection
               classes={classes}
               homeworks={homeworks}
@@ -381,15 +355,14 @@ export default function SettingsPage() {
               onClearClasses={handleClearClasses}
               onClearHomeworks={handleClearHomeworks}
             />
-            <div className="mt-16 border-b border-gray-100 dark:border-zinc-800/60" />
+            <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
           </section>
 
           {/* Account */}
           <section id="account" className="scroll-mt-24">
-            <div className="flex items-center gap-3 mb-6">
-              <User className="h-5 w-5 text-rose-500" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h2>
-            </div>
+            <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+              Account
+            </h2>
             <AccountSection
               isLoggingOut={isLoggingOut}
               showLogoutConfirm={showLogoutConfirm}
@@ -403,8 +376,9 @@ export default function SettingsPage() {
           </section>
         </main>
 
-        <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-gray-100 dark:border-zinc-900">
-          <p className="text-sm text-gray-400 dark:text-zinc-500">
+        {/* Footer */}
+        <div className="pt-8 border-t border-sky-100 dark:border-gray-800">
+          <p className="text-xs text-sky-600/30 dark:text-sky-400/30">
             Built for students • Public Beta {getFullVersionString()}
           </p>
         </div>

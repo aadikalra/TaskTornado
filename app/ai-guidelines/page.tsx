@@ -15,7 +15,7 @@ import {
   Brain,
   Cloud,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';

@@ -29,25 +29,7 @@ import { useDiscussionBoards } from '@/context/DiscussionBoardsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Button } from '@/components/animate-ui/components/buttons/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -97,6 +79,7 @@ export function ClassDiscussionBoards() {
 
     const [view, setView] = useState<'boards' | 'threads' | 'resources'>('boards');
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchFocused, setSearchFocused] = useState(false);
     const [filterTag, setFilterTag] = useState<string>('all');
 
     // New board modal
@@ -272,17 +255,20 @@ export function ClassDiscussionBoards() {
     // Thread detail view
     if (currentThread) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-950">
-                <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-                    <Button
+            <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                    <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+                    <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+                </div>
+                <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+                    <button
                         onClick={() => setCurrentThread(null)}
-                        variant="ghost"
-                        size="sm"
-                        className="mb-6 text-gray-600 dark:text-gray-400"
+                        className="flex items-center gap-2 mb-6 text-sm font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        <ArrowLeft className="w-4 h-4" />
                         Back to Threads
-                    </Button>
+                    </button>
 
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -290,36 +276,40 @@ export function ClassDiscussionBoards() {
                         className="space-y-8"
                     >
                         {/* Thread Header */}
-                        <div className="pb-6 border-b border-gray-200 dark:border-gray-800">
+                        <div className="pb-6 border-b border-sky-100 dark:border-gray-800">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-3">
+                                    <div className="flex items-center gap-3 mb-3">
                                         {currentThread.is_pinned && (
-                                            <Pin className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                            <span className="p-1.5 bg-sky-100 dark:bg-sky-500/15 rounded-lg">
+                                                <Pin className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                            </span>
                                         )}
                                         {currentThread.is_resolved && (
-                                            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                            <span className="p-1.5 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg">
+                                                <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                                            </span>
                                         )}
-                                        <h1 className="text-2xl sm:text-3xl font-light text-gray-900 dark:text-white">
+                                        <h1 className="text-3xl sm:text-4xl font-bold text-sky-900 dark:text-white tracking-tight">
                                             {currentThread.title}
                                         </h1>
                                     </div>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                        <span>{currentThread.user_name}</span>
-                                        <span>•</span>
-                                        <span>{currentThread.created_at ? new Date(currentThread.created_at).toLocaleDateString() : 'N/A'}</span>
-                                        <span>•</span>
-                                        <span className="flex items-center gap-1">
-                                            <Eye className="w-3 h-3" />
-                                            {currentThread.view_count || 0}
+                                    <div className="flex items-center gap-3 text-sm">
+                                        <span className="font-semibold text-sky-700 dark:text-sky-300">{currentThread.user_name}</span>
+                                        <span className="text-sky-300 dark:text-sky-600">•</span>
+                                        <span className="text-sky-600/60 dark:text-sky-400/60">{currentThread.created_at ? new Date(currentThread.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
+                                        <span className="text-sky-300 dark:text-sky-600">•</span>
+                                        <span className="flex items-center gap-1.5 text-sky-600/60 dark:text-sky-400/60">
+                                            <Eye className="w-3.5 h-3.5" />
+                                            {currentThread.view_count || 0} views
                                         </span>
                                     </div>
                                     {currentThread.tags.length > 0 && (
-                                        <div className="flex gap-2 mt-3">
+                                        <div className="flex gap-2 mt-4">
                                             {currentThread.tags.map(tag => (
                                                 <span
                                                     key={tag}
-                                                    className="px-2 py-1 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 rounded text-xs"
+                                                    className="px-3 py-1 bg-[#ebf6b5]/50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-xs font-semibold"
                                                 >
                                                     {tag}
                                                 </span>
@@ -357,14 +347,14 @@ export function ClassDiscussionBoards() {
                                     </DropdownMenu>
                                 )}
                             </div>
-                            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            <p className="text-[15px] text-sky-800 dark:text-sky-200 whitespace-pre-wrap leading-relaxed mt-5">
                                 {currentThread.content}
                             </p>
                         </div>
 
                         {/* Replies */}
                         <div>
-                            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                            <h2 className="text-lg font-bold text-sky-900 dark:text-white mb-4">
                                 Replies ({posts.length})
                             </h2>
 
@@ -377,61 +367,62 @@ export function ClassDiscussionBoards() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ delay: index * 0.03 }}
-                                            className={`p-4 border rounded-lg ${post.is_answer
-                                                ? 'border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20'
-                                                : 'border-gray-200 dark:border-gray-800'
+                                            className={`p-5 border rounded-2xl transition-all ${post.is_answer
+                                                ? 'border-[#d4e88e] bg-[#ebf6b5]/15 dark:border-emerald-800 dark:bg-emerald-950/20'
+                                                : 'border-sky-100 dark:border-gray-800 bg-white/60 dark:bg-gray-900'
                                                 }`}
                                         >
                                             <div className="flex gap-4">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                {/* Upvote column */}
+                                                <div className="flex flex-col items-center gap-1 pt-0.5">
+                                                    <button
                                                         onClick={() => togglePostUpvote(post.id)}
-                                                        className={post.user_upvoted ? 'text-gray-900 dark:text-white' : 'text-gray-400'}
+                                                        className={`p-2 rounded-xl transition-all ${post.user_upvoted
+                                                            ? 'text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-500/15'
+                                                            : 'text-sky-400/30 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10'
+                                                            }`}
                                                     >
                                                         <ThumbsUp className="w-4 h-4" />
-                                                    </Button>
-                                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{post.upvotes}</span>
+                                                    </button>
+                                                    <span className={`text-sm font-bold ${post.user_upvoted ? 'text-sky-600 dark:text-sky-400' : 'text-sky-600/40 dark:text-sky-400/40'}`}>{post.upvotes}</span>
                                                 </div>
-                                                <div className="flex-1">
+                                                {/* Post content */}
+                                                <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium text-gray-900 dark:text-white">{post.user_name}</span>
+                                                        <div className="flex items-center gap-2.5">
+                                                            <span className="font-semibold text-sky-900 dark:text-white">{post.user_name}</span>
                                                             {post.is_answer && (
-                                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded text-xs">
+                                                                <span className="flex items-center gap-1 px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-bold">
                                                                     <Award className="w-3 h-3" />
                                                                     Accepted
                                                                 </span>
                                                             )}
-                                                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                                {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'N/A'}
+                                                            <span className="text-sky-300 dark:text-sky-600">•</span>
+                                                            <span className="text-sm text-sky-600/50 dark:text-sky-400/50">
+                                                                {post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1.5">
                                                             {currentThread.user_id === user?.id && !post.is_answer && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
+                                                                <button
                                                                     onClick={() => markAsAnswer(post.id)}
-                                                                    className="text-xs"
+                                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-full transition-colors"
                                                                 >
-                                                                    <Award className="w-3 h-3 mr-1" />
+                                                                    <Award className="w-3 h-3" />
                                                                     Mark as Answer
-                                                                </Button>
+                                                                </button>
                                                             )}
                                                             {post.user_id === user?.id && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
+                                                                <button
                                                                     onClick={() => deletePost(post.id)}
+                                                                    className="p-1.5 rounded-full text-sky-400/30 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4 text-red-600" />
-                                                                </Button>
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                                                    <p className="text-[15px] text-sky-800 dark:text-sky-200 whitespace-pre-wrap leading-relaxed">
                                                         {post.content}
                                                     </p>
                                                 </div>
@@ -444,34 +435,39 @@ export function ClassDiscussionBoards() {
 
                         {/* Reply input */}
                         {currentBoard?.is_member ? (
-                            <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
-                                <Label htmlFor="reply" className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            <div className="pt-6 border-t border-sky-100 dark:border-gray-800">
+                                <label htmlFor="reply" className="text-sm font-semibold text-sky-900 dark:text-white mb-2 block">
                                     Your Reply
-                                </Label>
-                                <Textarea
+                                </label>
+                                <textarea
                                     id="reply"
                                     value={replyContent}
                                     onChange={(e) => setReplyContent(e.target.value)}
                                     placeholder="Share your thoughts or answer..."
-                                    className="min-h-[100px] mb-4"
+                                    rows={4}
+                                    className="w-full px-4 py-3 text-[15px] bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30 resize-none mb-4"
                                 />
-                                <Button
+                                <button
                                     onClick={handleSendReply}
                                     disabled={!replyContent.trim()}
+                                    className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors disabled:opacity-50"
                                 >
-                                    <Send className="w-4 h-4 mr-2" />
+                                    <Send className="w-4 h-4" />
                                     Post Reply
-                                </Button>
+                                </button>
                             </div>
                         ) : (
-                            <div className="py-8 text-center border-t border-gray-200 dark:border-gray-800">
-                                <p className="text-gray-500 dark:text-gray-400 mb-4">
+                            <div className="flex flex-col items-center py-10 border-t border-sky-100 dark:border-gray-800">
+                                <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-4">
                                     Join this board to participate in discussions
                                 </p>
-                                <Button onClick={() => currentBoard && handleJoinBoard(currentBoard.id)}>
-                                    <LogIn className="w-4 h-4 mr-2" />
+                                <button
+                                    onClick={() => currentBoard && handleJoinBoard(currentBoard.id)}
+                                    className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
+                                >
+                                    <LogIn className="w-4 h-4" />
                                     Join Board
-                                </Button>
+                                </button>
                             </div>
                         )}
                     </motion.div>
@@ -483,85 +479,62 @@ export function ClassDiscussionBoards() {
     // Board list view
     if (view === 'boards' || !currentBoard) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-950">
-                <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+            <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                    <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+                    <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+                </div>
+                <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
                     {/* Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 sm:mb-12"
+                        className="mb-10"
                     >
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
                             <div>
-                                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">
+                                <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">
                                     Discussion Boards
                                 </h1>
-                                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-                                    Join forums and collaborate with others
+                                <p className="text-sm sm:text-base text-sky-600/50 dark:text-sky-400/50">
+                                    {boards.length} board{boards.length !== 1 ? 's' : ''} · Join forums and collaborate with others
                                 </p>
                             </div>
-                            {user && (
-                                <Dialog open={showNewBoardModal} onOpenChange={setShowNewBoardModal}>
-                                    <DialogTrigger asChild>
-                                        <Button>
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Create Board
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Create New Discussion Board</DialogTitle>
-                                            <DialogDescription>
-                                                Create a public forum for discussions on any topic
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label htmlFor="board-name">Board Name</Label>
-                                                <Input
-                                                    id="board-name"
-                                                    value={newBoardName}
-                                                    onChange={(e) => setNewBoardName(e.target.value)}
-                                                    placeholder="e.g., AP Calculus Study Group"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="board-description">Description (Optional)</Label>
-                                                <Textarea
-                                                    id="board-description"
-                                                    value={newBoardDescription}
-                                                    onChange={(e) => setNewBoardDescription(e.target.value)}
-                                                    placeholder="What is this board about?"
-                                                    className="min-h-[100px]"
-                                                />
-                                            </div>
-                                            <Button
-                                                onClick={handleCreateBoard}
-                                                disabled={!newBoardName.trim()}
-                                                className="w-full"
-                                            >
-                                                Create Board
-                                            </Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                            )}
-                        </div>
 
-                        {/* Search */}
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search boards..."
-                                className="pl-10"
-                            />
+                            <div className="flex items-center gap-3">
+                                {/* Search bar — blog style */}
+                                <div
+                                    className={`relative flex items-center gap-2 px-4 py-2.5 bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full transition-all duration-300 w-full md:w-[280px] ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                                >
+                                    <Search className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search boards..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onFocus={() => setSearchFocused(true)}
+                                        onBlur={() => setSearchFocused(false)}
+                                        className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none"
+                                    />
+                                </div>
+
+                                {/* Create Board CTA */}
+                                {user && (
+                                    <button
+                                        onClick={() => setShowNewBoardModal(true)}
+                                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors whitespace-nowrap"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        New Board
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </motion.div>
 
-                    {/* Boards grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Boards list */}
+                    <div className="space-y-0">
                         <AnimatePresence>
                             {boards
                                 .filter(board =>
@@ -575,73 +548,141 @@ export function ClassDiscussionBoards() {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ delay: index * 0.03 }}
-                                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-300 dark:hover:border-gray-700 transition-colors cursor-pointer"
+                                        className="flex items-center justify-between py-4 border-b border-sky-100 dark:border-gray-800 group hover:bg-sky-500/[0.02] cursor-pointer transition-colors px-1"
                                         onClick={() => handleSelectBoard(board)}
                                     >
-                                        <h3 className="font-medium text-gray-900 dark:text-white mb-2">{board.name}</h3>
-                                        {board.description && (
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                                                {board.description}
-                                            </p>
-                                        )}
-                                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                            <span className="flex items-center gap-1">
-                                                <Users className="w-3 h-3" />
-                                                {board.member_count || 0}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <MessageSquare className="w-3 h-3" />
-                                                {board.thread_count || 0}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                            by {board.creator_name}
-                                        </p>
-                                        {user && (
-                                            <div onClick={(e) => e.stopPropagation()}>
-                                                {board.is_member ? (
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            onClick={() => handleSelectBoard(board)}
-                                                            size="sm"
-                                                            className="flex-1"
-                                                        >
-                                                            View Board
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => handleLeaveBoard(board.id)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                        >
-                                                            <LogOut className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <Button
-                                                        onClick={() => handleJoinBoard(board.id)}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="w-full"
-                                                    >
-                                                        <LogIn className="w-4 h-4 mr-2" />
-                                                        Join
-                                                    </Button>
-                                                )}
+                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                            <div className="w-10 h-10 bg-sky-100 dark:bg-sky-500/10 rounded-xl flex items-center justify-center shrink-0">
+                                                <MessageSquare className="h-4.5 w-4.5 text-sky-500 dark:text-sky-400" />
                                             </div>
-                                        )}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-base font-semibold text-sky-900 dark:text-white truncate mb-1">{board.name}</h3>
+                                                <div className="flex items-center gap-3 text-sm text-sky-600/50 dark:text-sky-400/50">
+                                                    <span className="flex items-center gap-1">
+                                                        <Users className="w-3 h-3" />
+                                                        {board.member_count || 0} member{(board.member_count || 0) !== 1 ? 's' : ''}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <MessageSquare className="w-3 h-3" />
+                                                        {board.thread_count || 0} thread{(board.thread_count || 0) !== 1 ? 's' : ''}
+                                                    </span>
+                                                    <span className="text-sky-600/30 dark:text-sky-400/30">by {board.creator_name}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0 ml-4" onClick={(e) => e.stopPropagation()}>
+                                            {user && (
+                                                <>
+                                                    {board.is_member ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleSelectBoard(board)}
+                                                                className="px-4 py-1.5 text-sm font-medium text-sky-600 bg-sky-50 dark:bg-sky-500/10 dark:text-sky-400 rounded-full hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors"
+                                                            >
+                                                                View
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleLeaveBoard(board.id)}
+                                                                className="p-1.5 rounded-full text-sky-400/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                                                title="Leave Board"
+                                                            >
+                                                                <LogOut className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleJoinBoard(board.id)}
+                                                            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
+                                                        >
+                                                            <LogIn className="w-3.5 h-3.5" />
+                                                            Join
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </motion.div>
                                 ))}
                         </AnimatePresence>
 
                         {boards.length === 0 && (
-                            <div className="col-span-full py-12 text-center border border-gray-200 dark:border-gray-800 rounded-lg">
-                                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    No discussion boards yet. Create the first one!
+                            <div className="flex flex-col items-center justify-center py-24">
+                                <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
+                                    <MessageSquare className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                                </div>
+                                <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Discussion Boards Yet</h3>
+                                <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-8 text-center max-w-sm">
+                                    Create the first board and start collaborating!
                                 </p>
+                                {user && (
+                                    <button
+                                        onClick={() => setShowNewBoardModal(true)}
+                                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Create Board
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
+
+                    {/* Create Board Modal */}
+                    <AnimatePresence>
+                        {showNewBoardModal && (
+                            <>
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                                    onClick={() => setShowNewBoardModal(false)}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-50 bg-white dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-gray-800 shadow-2xl p-6 space-y-4"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-lg font-bold text-sky-900 dark:text-white">Create New Board</h2>
+                                        <button onClick={() => setShowNewBoardModal(false)} className="p-1 rounded-lg text-sky-400/40 hover:text-sky-600 transition-colors">
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-sky-600/50 dark:text-sky-400/50">Create a public forum for discussions on any topic</p>
+                                    <div>
+                                        <Label htmlFor="board-name" className="text-sm font-medium text-sky-900 dark:text-white mb-1 block">Board Name</Label>
+                                        <input
+                                            id="board-name"
+                                            value={newBoardName}
+                                            onChange={(e) => setNewBoardName(e.target.value)}
+                                            placeholder="e.g., AP Calculus Study Group"
+                                            className="w-full px-4 py-2.5 text-sm bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="board-description" className="text-sm font-medium text-sky-900 dark:text-white mb-1 block">Description (Optional)</Label>
+                                        <textarea
+                                            id="board-description"
+                                            value={newBoardDescription}
+                                            onChange={(e) => setNewBoardDescription(e.target.value)}
+                                            placeholder="What is this board about?"
+                                            rows={3}
+                                            className="w-full px-4 py-2.5 text-sm bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30 resize-none"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleCreateBoard}
+                                        disabled={!newBoardName.trim()}
+                                        className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors disabled:opacity-50"
+                                    >
+                                        Create Board
+                                    </button>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
         );
@@ -652,252 +693,139 @@ export function ClassDiscussionBoards() {
     const isWide = containerClass.includes('w-[90%]');
 
     return (
-        <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 w-full ${isWide ? 'px-0' : ''}`}>
-            <div className={`${containerClass} w-full`}>
-                <div className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-                    <Button
+        <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 w-full relative">
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+            </div>
+            <div className="relative z-10 w-full">
+                <div className="px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+                    {/* Back button */}
+                    <button
                         onClick={() => {
                             setCurrentBoard(null);
                             setView('boards');
                         }}
-                        variant="ghost"
-                        size="sm"
-                        className="mb-6 text-gray-600 dark:text-gray-400"
+                        className="flex items-center gap-2 mb-6 text-sm font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        <ArrowLeft className="w-4 h-4" />
                         Back to Boards
-                    </Button>
+                    </button>
 
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-8"
+                        className="space-y-6"
                     >
                         {/* Board header */}
-                        <div className="pb-6 border-b border-gray-200 dark:border-gray-800">
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">
-                                {currentBoard?.name}
-                            </h1>
-                            {currentBoard?.description && (
-                                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-                                    {currentBoard.description}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* View tabs */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex gap-2">
-                                <Button
-                                    variant={view === 'threads' ? 'default' : 'outline'}
-                                    onClick={() => setView('threads')}
-                                    size="sm"
-                                >
-                                    <MessageSquare className="w-4 h-4 mr-2" />
-                                    Threads
-                                </Button>
-                                <Button
-                                    variant={view === 'resources' ? 'default' : 'outline'}
-                                    onClick={() => setView('resources')}
-                                    size="sm"
-                                >
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    Resources
-                                </Button>
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-2">
+                            <div>
+                                <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">
+                                    {currentBoard?.name}
+                                </h1>
+                                {currentBoard?.description && (
+                                    <p className="text-sm sm:text-base text-sky-600/50 dark:text-sky-400/50">
+                                        {currentBoard.description}
+                                    </p>
+                                )}
                             </div>
 
-                            {currentBoard?.is_member && view === 'threads' && (
-                                <Dialog open={showNewThreadModal} onOpenChange={setShowNewThreadModal}>
-                                    <DialogTrigger asChild>
-                                        <Button size="sm">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            New Thread
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-2xl">
-                                        <DialogHeader>
-                                            <DialogTitle>Create New Thread</DialogTitle>
-                                            <DialogDescription>
-                                                Ask a question or start a discussion
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label htmlFor="title">Title</Label>
-                                                <Input
-                                                    id="title"
-                                                    value={newThreadTitle}
-                                                    onChange={(e) => setNewThreadTitle(e.target.value)}
-                                                    placeholder="What's your question?"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="content">Content</Label>
-                                                <Textarea
-                                                    id="content"
-                                                    value={newThreadContent}
-                                                    onChange={(e) => setNewThreadContent(e.target.value)}
-                                                    placeholder="Provide more details..."
-                                                    className="min-h-[150px]"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="tags">Tags</Label>
-                                                <div className="flex gap-2 mb-2">
-                                                    <Input
-                                                        id="tags"
-                                                        value={tagInput}
-                                                        onChange={(e) => setTagInput(e.target.value)}
-                                                        onKeyPress={(e) => {
-                                                            if (e.key === 'Enter') {
-                                                                e.preventDefault();
-                                                                addTag(newThreadTags, setNewThreadTags, tagInput, setTagInput);
-                                                            }
-                                                        }}
-                                                        placeholder="Add tags..."
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        onClick={() => addTag(newThreadTags, setNewThreadTags, tagInput, setTagInput)}
-                                                    >
-                                                        Add
-                                                    </Button>
-                                                </div>
-                                                <div className="flex gap-2 flex-wrap">
-                                                    {newThreadTags.map(tag => (
-                                                        <span
-                                                            key={tag}
-                                                            className="px-2 py-1 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 rounded text-sm flex items-center gap-1"
-                                                        >
-                                                            {tag}
-                                                            <button
-                                                                onClick={() => removeTag(newThreadTags, setNewThreadTags, tag)}
-                                                                className="hover:text-red-600"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <Button
-                                                onClick={handleCreateThread}
-                                                disabled={!newThreadTitle.trim() || !newThreadContent.trim()}
-                                                className="w-full"
+                            {/* Search bar */}
+                            <div
+                                className={`relative flex items-center gap-2 px-4 py-2.5 bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full transition-all duration-300 w-full md:w-[280px] shrink-0 ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                            >
+                                <Search className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => setSearchFocused(true)}
+                                    onBlur={() => setSearchFocused(false)}
+                                    className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Pill tabs + actions */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setView('threads')}
+                                    className={`flex items-center gap-2 px-5 py-2 text-[13px] font-bold rounded-full transition-all duration-200 ${view === 'threads'
+                                        ? 'bg-[#ebf6b5]/80 dark:bg-sky-500/25 text-sky-600 dark:text-sky-400'
+                                        : 'text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
+                                        }`}
+                                >
+                                    <MessageSquare className="h-3.5 w-3.5" />
+                                    Threads
+                                </button>
+                                <button
+                                    onClick={() => setView('resources')}
+                                    className={`flex items-center gap-2 px-5 py-2 text-[13px] font-bold rounded-full transition-all duration-200 ${view === 'resources'
+                                        ? 'bg-[#ebf6b5]/80 dark:bg-sky-500/25 text-sky-600 dark:text-sky-400'
+                                        : 'text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
+                                        }`}
+                                >
+                                    <FileText className="h-3.5 w-3.5" />
+                                    Resources
+                                </button>
+
+                                {/* Tag filter pills */}
+                                {allTags.length > 0 && (
+                                    <>
+                                        <div className="w-[1px] h-5 bg-sky-100 dark:bg-gray-700 mx-1" />
+                                        <button
+                                            onClick={() => setFilterTag('all')}
+                                            className={`px-3 py-1.5 text-[12px] font-medium rounded-full transition-all duration-200 ${filterTag === 'all'
+                                                ? 'bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
+                                                : 'text-sky-600/40 dark:text-sky-400/40 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/5'
+                                                }`}
+                                        >
+                                            All
+                                        </button>
+                                        {allTags.map(tag => (
+                                            <button
+                                                key={tag}
+                                                onClick={() => setFilterTag(tag)}
+                                                className={`px-3 py-1.5 text-[12px] font-medium rounded-full transition-all duration-200 ${filterTag === tag
+                                                    ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400'
+                                                    : 'text-sky-600/40 dark:text-sky-400/40 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/20 dark:hover:bg-sky-500/5'
+                                                    }`}
                                             >
-                                                Create Thread
-                                            </Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Action buttons */}
+                            {currentBoard?.is_member && view === 'threads' && (
+                                <button
+                                    onClick={() => setShowNewThreadModal(true)}
+                                    className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    New Thread
+                                </button>
                             )}
 
                             {currentBoard?.is_member && view === 'resources' && (
-                                <Dialog open={showNewResourceModal} onOpenChange={setShowNewResourceModal}>
-                                    <DialogTrigger asChild>
-                                        <Button size="sm">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Add Resource
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-2xl">
-                                        <DialogHeader>
-                                            <DialogTitle>Share a Resource</DialogTitle>
-                                            <DialogDescription>
-                                                Share helpful materials with the community
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label htmlFor="resource-title">Title</Label>
-                                                <Input
-                                                    id="resource-title"
-                                                    value={newResourceTitle}
-                                                    onChange={(e) => setNewResourceTitle(e.target.value)}
-                                                    placeholder="Resource name..."
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="resource-type">Type</Label>
-                                                <Select
-                                                    value={newResourceType}
-                                                    onValueChange={(value) => setNewResourceType(value as ResourceType)}
-                                                >
-                                                    <SelectTrigger id="resource-type">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="link">Link</SelectItem>
-                                                        <SelectItem value="video">Video</SelectItem>
-                                                        <SelectItem value="document">Document</SelectItem>
-                                                        <SelectItem value="file">File</SelectItem>
-                                                        <SelectItem value="other">Other</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="resource-url">URL</Label>
-                                                <Input
-                                                    id="resource-url"
-                                                    value={newResourceUrl}
-                                                    onChange={(e) => setNewResourceUrl(e.target.value)}
-                                                    placeholder="https://..."
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="resource-description">Description</Label>
-                                                <Textarea
-                                                    id="resource-description"
-                                                    value={newResourceDescription}
-                                                    onChange={(e) => setNewResourceDescription(e.target.value)}
-                                                    placeholder="What is this resource about?"
-                                                    className="min-h-[100px]"
-                                                />
-                                            </div>
-                                            <Button
-                                                onClick={handleCreateResource}
-                                                disabled={!newResourceTitle.trim()}
-                                                className="w-full"
-                                            >
-                                                Share Resource
-                                            </Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                            )}
-                        </div>
-
-                        {/* Search and filter */}
-                        <div className="flex gap-4">
-                            <div className="flex-1 relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <Input
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search..."
-                                    className="pl-10"
-                                />
-                            </div>
-                            {allTags.length > 0 && (
-                                <Select value={filterTag} onValueChange={setFilterTag}>
-                                    <SelectTrigger className="w-48">
-                                        <SelectValue placeholder="Filter by tag" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Tags</SelectItem>
-                                        {allTags.map(tag => (
-                                            <SelectItem key={tag} value={tag}>
-                                                {tag}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <button
+                                    onClick={() => setShowNewResourceModal(true)}
+                                    className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Resource
+                                </button>
                             )}
                         </div>
 
                         {/* Content */}
                         {view === 'threads' ? (
-                            <div className="space-y-4">
+                            <div className="space-y-0">
                                 <AnimatePresence>
                                     {filteredThreads.map((thread, index) => (
                                         <motion.div
@@ -906,63 +834,63 @@ export function ClassDiscussionBoards() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ delay: index * 0.03 }}
-                                            className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-300 dark:hover:border-gray-700 transition-colors cursor-pointer"
+                                            className="flex items-center gap-4 py-4 border-b border-sky-100 dark:border-gray-800 group hover:bg-sky-500/[0.02] cursor-pointer transition-colors px-1"
                                             onClick={() => handleOpenThread(thread.id)}
                                         >
-                                            <div className="flex items-start gap-4">
-                                                <div className="flex flex-col items-center gap-1 min-w-[60px]">
-                                                    <span className="text-2xl font-light text-gray-900 dark:text-white">
-                                                        {thread.post_count || 0}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">replies</span>
+                                            {/* Reply count */}
+                                            <div className="flex flex-col items-center justify-center w-14 shrink-0">
+                                                <span className="text-xl font-bold text-sky-500 dark:text-sky-400 leading-none">{thread.post_count || 0}</span>
+                                                <span className="text-[10px] text-sky-600/30 dark:text-sky-400/30 mt-0.5">replies</span>
+                                            </div>
+
+                                            {/* Thread content */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    {thread.is_pinned && <Pin className="w-3.5 h-3.5 text-sky-500 shrink-0" />}
+                                                    {thread.is_resolved && <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                                                    <h3 className="text-base font-semibold text-sky-900 dark:text-white truncate">{thread.title}</h3>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        {thread.is_pinned && (
-                                                            <Pin className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                                                        )}
-                                                        {thread.is_resolved && (
-                                                            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                                        )}
-                                                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">{thread.title}</h3>
-                                                    </div>
-                                                    <p className="text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-                                                        {thread.content}
-                                                    </p>
-                                                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                                        <span>{thread.user_name}</span>
-                                                        <span>•</span>
-                                                        <span>{thread.created_at ? new Date(thread.created_at).toLocaleDateString() : 'N/A'}</span>
-                                                        <span>•</span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Eye className="w-3 h-3" />
-                                                            {thread.view_count || 0}
-                                                        </span>
-                                                    </div>
-                                                    {thread.tags.length > 0 && (
-                                                        <div className="flex gap-2 mt-2">
-                                                            {thread.tags.map(tag => (
-                                                                <span
-                                                                    key={tag}
-                                                                    className="px-2 py-1 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 rounded text-xs"
-                                                                >
-                                                                    {tag}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                <p className="text-sm text-sky-700/60 dark:text-sky-300/60 line-clamp-1 mb-1.5">
+                                                    {thread.content}
+                                                </p>
+                                                <div className="flex items-center gap-3 text-xs text-sky-600/40 dark:text-sky-400/40">
+                                                    <span className="font-medium text-sky-600/60 dark:text-sky-400/60">{thread.user_name}</span>
+                                                    <span>•</span>
+                                                    <span>{thread.created_at ? new Date(thread.created_at).toLocaleDateString() : 'N/A'}</span>
+                                                    <span>•</span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Eye className="w-3 h-3" />
+                                                        {thread.view_count || 0}
+                                                    </span>
                                                 </div>
                                             </div>
+
+                                            {/* Tags */}
+                                            {thread.tags.length > 0 && (
+                                                <div className="flex gap-1.5 shrink-0">
+                                                    {thread.tags.map(tag => (
+                                                        <span
+                                                            key={tag}
+                                                            className="px-2.5 py-1 bg-[#ebf6b5]/40 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-[11px] font-medium"
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
 
                                 {filteredThreads.length === 0 && (
-                                    <div className="py-12 text-center border border-gray-200 dark:border-gray-800 rounded-lg">
-                                        <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                                        <p className="text-gray-600 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center py-24">
+                                        <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
+                                            <MessageSquare className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Threads Yet</h3>
+                                        <p className="text-sm text-sky-600/50 dark:text-sky-400/50 text-center max-w-sm">
                                             {currentBoard?.is_member
-                                                ? 'No threads yet. Start a discussion!'
+                                                ? 'Start a discussion by creating the first thread!'
                                                 : 'Join this board to see and create threads'}
                                         </p>
                                     </div>
@@ -978,25 +906,24 @@ export function ClassDiscussionBoards() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ delay: index * 0.03 }}
-                                            className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+                                            className="p-4 border border-sky-100 dark:border-gray-800 rounded-2xl bg-[#f5f9fc] dark:bg-gray-900 hover:border-sky-200 dark:hover:border-gray-700 hover:shadow-md transition-all"
                                         >
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center gap-2">
                                                     {getResourceIcon(resource.resource_type)}
-                                                    <h3 className="font-medium text-gray-900 dark:text-white line-clamp-1">{resource.title}</h3>
+                                                    <h3 className="font-semibold text-sky-900 dark:text-white line-clamp-1">{resource.title}</h3>
                                                 </div>
                                                 {resource.user_id === user?.id && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                    <button
                                                         onClick={() => deleteResource(resource.id)}
+                                                        className="p-1.5 rounded-full text-sky-400/30 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                     >
-                                                        <Trash2 className="w-4 h-4 text-red-600" />
-                                                    </Button>
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
                                                 )}
                                             </div>
                                             {resource.description && (
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                                <p className="text-sm text-sky-700 dark:text-sky-300 mb-3 line-clamp-2">
                                                     {resource.description}
                                                 </p>
                                             )}
@@ -1005,7 +932,7 @@ export function ClassDiscussionBoards() {
                                                     href={resource.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-3 block truncate"
+                                                    className="text-sm text-sky-500 dark:text-sky-400 hover:underline mb-3 block truncate"
                                                 >
                                                     {resource.url}
                                                 </a>
@@ -1015,35 +942,36 @@ export function ClassDiscussionBoards() {
                                                     {resource.tags.map(tag => (
                                                         <span
                                                             key={tag}
-                                                            className="px-2 py-0.5 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 rounded text-xs"
+                                                            className="px-2 py-0.5 bg-[#ebf6b5]/40 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full text-xs font-medium"
                                                         >
                                                             {tag}
                                                         </span>
                                                     ))}
                                                 </div>
                                             )}
-                                            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <div className="flex items-center justify-between text-sm text-sky-600/50 dark:text-sky-400/50">
                                                 <span>{resource.user_name}</span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
+                                                <button
                                                     onClick={() => toggleResourceUpvote(resource.id)}
-                                                    className={resource.user_upvoted ? 'text-gray-900 dark:text-white' : ''}
+                                                    className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors ${resource.user_upvoted ? 'text-sky-600 dark:text-sky-400' : 'text-sky-400/40 hover:text-sky-500'}`}
                                                 >
-                                                    <ThumbsUp className="w-4 h-4 mr-1" />
-                                                    {resource.upvotes}
-                                                </Button>
+                                                    <ThumbsUp className="w-3.5 h-3.5" />
+                                                    <span className="text-xs font-medium">{resource.upvotes}</span>
+                                                </button>
                                             </div>
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
 
                                 {filteredResources.length === 0 && (
-                                    <div className="col-span-full py-12 text-center border border-gray-200 dark:border-gray-800 rounded-lg">
-                                        <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                                        <p className="text-gray-600 dark:text-gray-400">
+                                    <div className="col-span-full flex flex-col items-center justify-center py-24">
+                                        <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
+                                            <FileText className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Resources Yet</h3>
+                                        <p className="text-sm text-sky-600/50 dark:text-sky-400/50 text-center max-w-sm">
                                             {currentBoard?.is_member
-                                                ? 'No resources yet. Share something helpful!'
+                                                ? 'Share something helpful with the group!'
                                                 : 'Join this board to see and share resources'}
                                         </p>
                                     </div>

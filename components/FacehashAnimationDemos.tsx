@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Facehash } from 'facehash';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 

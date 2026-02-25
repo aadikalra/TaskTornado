@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Sparkles, Brain, Zap, BookOpen, Heart } from 'lucide-react';
+import {  Brain, Zap, BookOpen, Heart } from 'lucide-react';
 import Image from 'next/image';
 import { AuroraDemo } from '@/components/AuroraDemo';
 

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useClassContext } from '@/context/ClassContext';
-import { AlertCircle } from 'lucide-react';
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
