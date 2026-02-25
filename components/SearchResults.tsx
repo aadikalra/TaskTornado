@@ -7,8 +7,8 @@ import {
   Search, BookOpen, GraduationCap, FileText, Presentation, Target,
   Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield,
   PenTool, Bookmark, HelpCircle, Scroll, User, History,
-  CreditCard, Gamepad2, Trophy, MessageSquare, Video,  CornerDownLeft,
-  Calculator, Languages, Newspaper, Fingerprint,  Star, Repeat, ClipboardList, Sparkles
+  CreditCard, Gamepad2, Trophy, MessageSquare, Video, CornerDownLeft,
+  Calculator, Languages, Newspaper, Fingerprint, Star, Repeat, ClipboardList, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -73,7 +73,6 @@ const routeSearchItems = [
   { title: 'Blog', href: '/blog', icon: Newspaper, keywords: ['blog', 'articles', 'journal', 'news', 'posts'] },
   { title: 'FaceHash', href: '/hash', icon: Fingerprint, keywords: ['facehash', 'hash', 'face', 'identity'] },
   { title: 'AI Guidelines', href: '/ai-guidelines', icon: HelpCircle, keywords: ['ai', 'guidelines', 'rules', 'safety'] },
-  { title: 'About Creator', href: '/about-creator', icon: User, keywords: ['about', 'creator', 'developer'] },
   { title: 'Changelog', href: '/changelog', icon: History, keywords: ['changelog', 'updates', 'version', 'release notes'] },
   { title: 'Guardians', href: '/guardians', icon: Shield, keywords: ['guardians', 'parents', 'family'] },
   { title: 'Teachers', href: '/teachers', icon: GraduationCap, keywords: ['teachers', 'educators', 'instructors'] },

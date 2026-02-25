@@ -6,7 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Lock, Mail, Loader2, ArrowRight, User, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Checkbox } from '@/components/animate-ui/radix/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';
 import { useDarkMode } from '@/context/DarkModeContext';
 import Image from 'next/image';

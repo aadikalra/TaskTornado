@@ -6,7 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Lock, Mail, Loader2, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Checkbox } from '@/components/animate-ui/radix/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { supabase } from '@/lib/supabase/client';
 import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';

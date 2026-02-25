@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Loader2, ShieldCheck, ArrowRight } from 'lucide-react';
-import { Checkbox } from '@/components/animate-ui/radix/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';
 
 type AlphaPasswordModalProps = {

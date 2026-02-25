@@ -13,14 +13,14 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/animate-ui/radix/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function EditHomeworkPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { homeworks, classes, updateHomework } = useClassContext();
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,7 +29,7 @@ export default function EditHomeworkPage() {
     completed: false,
     priority: 'medium' as 'low' | 'medium' | 'high'
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [date, setDate] = useState<Date>();
@@ -55,13 +55,13 @@ export default function EditHomeworkPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
+
     try {
       await updateHomework(id as string, {
         ...formData,
         dueDate: date ? date.toISOString() : formData.dueDate
       });
-      
+
       router.push(`/homework/${id}`);
       router.refresh();
     } catch (error) {

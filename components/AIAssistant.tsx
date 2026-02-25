@@ -19,16 +19,16 @@ import { useDarkMode } from '@/context/DarkModeContext';
 import {
   MessageSquare,
   Sparkles,
-  
-  
+
+
   X as XIcon,
   ArrowUp,
   BookOpen,
-  
+
   PlusCircle,
   Plus,
   Search,
-  
+
   Zap,
   Brain,
   Calculator,
@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Markdown } from './markdown';
-import {  FlashcardDeck } from './Flashcard';
+import { FlashcardDeck } from './Flashcard';
 import { QuizQuestion } from './Quiz';
 import { Class, Homework, Test } from '@/context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
@@ -2602,24 +2602,24 @@ Examples of correct button prompts:
                         )}
                       >
                         {msg.role === 'user' && (
-                          <AnimateIcon>
-                            <motion.div
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              className="h-8 w-8 rounded-full flex items-center justify-center"
-                            >
-                              <UserRound className="h-4 w-4 text-gray-600 dark:text-zinc-400" animateOnHover animation="path-loop" loopDelay={1.5} />
-                            </motion.div>
-                          </AnimateIcon>
+                          // <AnimateIcon>
+                          //   <motion.div
+                          //     initial={{ scale: 0.8, opacity: 0 }}
+                          //     animate={{ scale: 1, opacity: 1 }}
+                          //     className="h-8 w-8 rounded-full flex items-center justify-center"
+                          //   >
+                          <UserRound className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
+                          //   </motion.div>
+                          // </AnimateIcon>
                         )}
                         {msg.role === 'assistant' && (
-                          <AnimateIcon>
-                            <AuraVideoIcon
-                              isLoading={msg.isLoading}
-                              selectedModel={selectedModel}
-                              layoutId={messages.findIndex(m => m.role === 'assistant') === idx ? "aurora-sphere" : undefined}
-                            />
-                          </AnimateIcon>
+                          // <AnimateIcon>
+                          <AuraVideoIcon
+                            isLoading={msg.isLoading}
+                            selectedModel={selectedModel}
+                            layoutId={messages.findIndex(m => m.role === 'assistant') === idx ? "aurora-sphere" : undefined}
+                          />
+                          // </AnimateIcon>
                         )}
                         <div
                           className={cn(
