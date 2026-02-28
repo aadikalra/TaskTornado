@@ -2,10 +2,14 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useClassContext } from '@/context/ClassContext';
+import { useRequireAuth } from '@/hooks/use-require-auth';
+import { ArrowLeft, Play, RotateCcw, Pause, Trophy, Zap, Layers, AlertTriangle, Timer } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
-const CELL_SIZE = 30;
+const CELL_SIZE = 28;
 const INITIAL_SPEED = 800;
 const SPEED_INCREASE_PER_LEVEL = 50;
 
@@ -31,10 +35,17 @@ interface Piece {
     priority: Priority;
 }
 
+// App-consistent priority colors
 const PRIORITY_COLORS = {
-    low: '#3b82f6',    // Blue
-    medium: '#eab308', // Yellow
-    high: '#ef4444'    // Red
+    low: '#38bdf8',    // sky-400
+    medium: '#facc15',  // yellow-400
+    high: '#f87171'     // red-400
+};
+
+const PRIORITY_LABELS = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High'
 };
 
 function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount }: { pendingHomeworkCount: number; highCount: number; mediumCount: number; lowCount: number }) {
@@ -51,24 +62,20 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
     const [gameStarted, setGameStarted] = useState(false);
     const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Calculate speed based on level and pending homework
     const getGameSpeed = useCallback(() => {
         const baseSpeed = INITIAL_SPEED - (level - 1) * SPEED_INCREASE_PER_LEVEL;
-        const homeworkSpeedModifier = Math.min(pendingHomeworkCount * 20, 300); // Max 300ms faster
-        return Math.max(baseSpeed - homeworkSpeedModifier, 100); // Minimum 100ms
+        const homeworkSpeedModifier = Math.min(pendingHomeworkCount * 20, 300);
+        return Math.max(baseSpeed - homeworkSpeedModifier, 100);
     }, [level, pendingHomeworkCount]);
 
-    // Refs to track remaining pieces of each priority
     const highRef = useRef(highCount);
     const mediumRef = useRef(mediumCount);
     const lowRef = useRef(lowCount);
 
-    // Generate piece using remaining priority counts
     const generatePiece = useCallback((): Piece => {
         const shapeName = SHAPE_NAMES[Math.floor(Math.random() * SHAPE_NAMES.length)];
         const shape = SHAPES[shapeName as keyof typeof SHAPES];
 
-        // Determine priority based on remaining counts
         const totalRemaining = highRef.current + mediumRef.current + lowRef.current;
         let priority: Priority;
         if (totalRemaining > 0) {
@@ -84,7 +91,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                 lowRef.current--;
             }
         } else {
-            // Fallback to original random distribution if counts exhausted
             const rand = Math.random();
             if (pendingHomeworkCount > 10) {
                 priority = rand < 0.5 ? 'high' : rand < 0.8 ? 'medium' : 'low';
@@ -103,7 +109,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         };
     }, [pendingHomeworkCount, highCount, mediumCount, lowCount]);
 
-    // Start game
     const startGame = useCallback(() => {
         setBoard(Array(BOARD_HEIGHT).fill(null).map(() => Array(BOARD_WIDTH).fill(null)));
         setCurrentPiece(generatePiece());
@@ -116,14 +121,12 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         setGameStarted(true);
     }, [generatePiece]);
 
-    // Check collision
     const checkCollision = useCallback((piece: Piece, board: (Priority | null)[][], offsetX = 0, offsetY = 0): boolean => {
         for (let y = 0; y < piece.shape.length; y++) {
             for (let x = 0; x < piece.shape[y].length; x++) {
                 if (piece.shape[y][x]) {
                     const newX = piece.x + x + offsetX;
                     const newY = piece.y + y + offsetY;
-
                     if (
                         newX < 0 ||
                         newX >= BOARD_WIDTH ||
@@ -138,7 +141,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         return false;
     }, []);
 
-    // Merge piece into board
     const mergePiece = useCallback((piece: Piece, board: (Priority | null)[][]): (Priority | null)[][] => {
         const newBoard = board.map(row => [...row]);
         for (let y = 0; y < piece.shape.length; y++) {
@@ -151,7 +153,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         return newBoard;
     }, []);
 
-    // Clear completed lines
     const clearLines = useCallback((board: (Priority | null)[][]): { newBoard: (Priority | null)[][], linesCleared: number } => {
         let linesCleared = 0;
         const newBoard = board.filter(row => {
@@ -162,7 +163,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
             return true;
         });
 
-        // Add empty rows at the top
         while (newBoard.length < BOARD_HEIGHT) {
             newBoard.unshift(Array(BOARD_WIDTH).fill(null));
         }
@@ -170,30 +170,25 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         return { newBoard, linesCleared };
     }, []);
 
-    // Move piece down
     const movePieceDown = useCallback(() => {
         if (!currentPiece || gameOver || isPaused) return;
 
         if (!checkCollision(currentPiece, board, 0, 1)) {
             setCurrentPiece({ ...currentPiece, y: currentPiece.y + 1 });
         } else {
-            // Merge piece
             const mergedBoard = mergePiece(currentPiece, board);
             const { newBoard, linesCleared } = clearLines(mergedBoard);
 
             setBoard(newBoard);
             setLines(prev => prev + linesCleared);
 
-            // Calculate score
             const points = [0, 100, 300, 500, 800][linesCleared] * level;
             setScore(prev => prev + points);
 
-            // Level up every 10 lines
             if (lines + linesCleared >= level * 10) {
                 setLevel(prev => prev + 1);
             }
 
-            // Spawn next piece
             if (nextPiece && !checkCollision(nextPiece, newBoard)) {
                 setCurrentPiece(nextPiece);
                 setNextPiece(generatePiece());
@@ -203,7 +198,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         }
     }, [currentPiece, board, gameOver, isPaused, checkCollision, mergePiece, clearLines, lines, level, nextPiece, generatePiece]);
 
-    // Rotate piece
     const rotatePiece = useCallback(() => {
         if (!currentPiece || gameOver || isPaused) return;
 
@@ -218,7 +212,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         }
     }, [currentPiece, board, gameOver, isPaused, checkCollision]);
 
-    // Move piece horizontally
     const movePieceHorizontal = useCallback((direction: number) => {
         if (!currentPiece || gameOver || isPaused) return;
 
@@ -227,7 +220,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         }
     }, [currentPiece, board, gameOver, isPaused, checkCollision]);
 
-    // Hard drop
     const hardDrop = useCallback(() => {
         if (!currentPiece || gameOver || isPaused) return;
 
@@ -258,7 +250,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         }
     }, [currentPiece, board, gameOver, isPaused, checkCollision, mergePiece, clearLines, lines, level, nextPiece, generatePiece]);
 
-    // Keyboard controls
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === ' ') {
@@ -311,7 +302,6 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, [gameStarted, isPaused, gameOver, rotatePiece, movePieceDown, movePieceHorizontal, hardDrop, startGame]);
 
-    // Game loop
     useEffect(() => {
         if (gameStarted && !gameOver && !isPaused) {
             gameLoopRef.current = setInterval(() => {
@@ -324,11 +314,8 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
         };
     }, [gameStarted, gameOver, isPaused, movePieceDown, getGameSpeed]);
 
-    // Render board with current piece
     const renderBoard = () => {
         const displayBoard = board.map(row => [...row]);
-
-        // Add current piece to display
         if (currentPiece) {
             for (let y = 0; y < currentPiece.shape.length; y++) {
                 for (let x = 0; x < currentPiece.shape[y].length; x++) {
@@ -338,142 +325,151 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                 }
             }
         }
-
         return displayBoard;
     };
 
     const displayBoard = renderBoard();
 
     return (
-        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-950 dark:to-pink-950 p-8 rounded-xl border border-border">
-            <div className="mb-6 text-center">
-                <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Task Tower</h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mb-2">
-                    Organize your tasks! Clear lines to score points.
-                </p>
-                <div className="flex gap-6 justify-center items-center text-sm">
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded" style={{ backgroundColor: PRIORITY_COLORS.high }}></div>
-                        <span className="text-gray-700 dark:text-gray-300">High Priority</span>
+        <div className="flex gap-6 items-start justify-center">
+            {/* Main game area */}
+            <div className="flex flex-col items-center">
+                {/* Score bar */}
+                <div className="flex items-center gap-3 mb-5 w-full">
+                    <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <Trophy className="w-4 h-4 text-sky-500" />
+                        <span className="text-sm font-bold text-sky-900 dark:text-white">{score}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded" style={{ backgroundColor: PRIORITY_COLORS.medium }}></div>
-                        <span className="text-gray-700 dark:text-gray-300">Medium Priority</span>
+                    <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <Layers className="w-4 h-4 text-sky-500" />
+                        <span className="text-sm font-bold text-sky-900 dark:text-white">{lines}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded" style={{ backgroundColor: PRIORITY_COLORS.low }}></div>
-                        <span className="text-gray-700 dark:text-gray-300">Low Priority</span>
+                    <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                        <Zap className="w-4 h-4 text-sky-500" />
+                        <span className="text-sm font-bold text-sky-900 dark:text-white">Lv.{level}</span>
                     </div>
+                    {gameStarted && (
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setIsPaused(p => !p)}
+                                className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                                title={isPaused ? 'Resume' : 'Pause'}
+                            >
+                                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                            </button>
+                            <button
+                                onClick={startGame}
+                                className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                                title="Restart"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
+
+                {/* Game board */}
+                <div
+                    className="relative bg-sky-950 dark:bg-gray-900 rounded-2xl border border-sky-200/50 dark:border-gray-700 shadow-lg overflow-hidden"
+                    style={{
+                        width: BOARD_WIDTH * CELL_SIZE,
+                        height: BOARD_HEIGHT * CELL_SIZE
+                    }}
+                >
+                    {/* Grid */}
+                    <div className="absolute inset-0 grid" style={{
+                        gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${CELL_SIZE}px)`,
+                        gridTemplateRows: `repeat(${BOARD_HEIGHT}, ${CELL_SIZE}px)`
+                    }}>
+                        {Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }).map((_, i) => (
+                            <div key={i} className="border border-sky-900/20 dark:border-gray-800/50" />
+                        ))}
+                    </div>
+
+                    {/* Board cells */}
+                    {displayBoard.map((row, y) =>
+                        row.map((cell, x) => (
+                            cell && (
+                                <div
+                                    key={`${y}-${x}`}
+                                    className="absolute rounded-[3px]"
+                                    style={{
+                                        left: x * CELL_SIZE + 2,
+                                        top: y * CELL_SIZE + 2,
+                                        width: CELL_SIZE - 4,
+                                        height: CELL_SIZE - 4,
+                                        backgroundColor: PRIORITY_COLORS[cell],
+                                        boxShadow: 'inset 0 0 8px rgba(255,255,255,0.25)',
+                                        border: '1px solid rgba(255,255,255,0.15)'
+                                    }}
+                                />
+                            )
+                        ))
+                    )}
+
+                    {/* Start overlay */}
+                    {!gameStarted && !gameOver && (
+                        <div className="absolute inset-0 bg-sky-950/80 dark:bg-gray-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+                            <h2 className="text-2xl font-bold text-white">Ready to Play?</h2>
+                            <button
+                                onClick={startGame}
+                                className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
+                            >
+                                <Play className="w-4 h-4" />
+                                Start Game
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Game over overlay */}
+                    {gameOver && (
+                        <div className="absolute inset-0 bg-sky-950/85 dark:bg-gray-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                            <h2 className="text-3xl font-bold text-white">Game Over</h2>
+                            <p className="text-lg text-sky-200 font-medium">Score: {score}</p>
+                            <p className="text-sm text-sky-300/60">Lines: {lines}</p>
+                            <button
+                                onClick={startGame}
+                                className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors mt-2"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                                Play Again
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Paused overlay */}
+                    {isPaused && !gameOver && gameStarted && (
+                        <div className="absolute inset-0 bg-sky-950/70 dark:bg-gray-950/70 backdrop-blur-sm flex items-center justify-center">
+                            <h2 className="text-3xl font-bold text-white">Paused</h2>
+                        </div>
+                    )}
+                </div>
+
+                {/* Controls hint */}
+                {gameStarted && (
+                    <p className="text-[11px] text-sky-500/40 dark:text-sky-400/30 mt-4 text-center max-w-xs">
+                        ← → Move · ↑ Rotate · ↓ Soft drop · Enter Hard drop · Space Pause · R Restart
+                    </p>
+                )}
             </div>
 
-            <div className="flex gap-6 items-start">
-                {/* Main Game Board */}
-                <div className="flex flex-col items-center">
-                    <div className="mb-4 flex gap-4 text-center">
-                        <div className="bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-lg">
-                            <div className="text-xs text-gray-600 dark:text-gray-400">Score</div>
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{score}</div>
-                        </div>
-                        <div className="bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-lg">
-                            <div className="text-xs text-gray-600 dark:text-gray-400">Lines</div>
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{lines}</div>
-                        </div>
-                        <div className="bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-lg">
-                            <div className="text-xs text-gray-600 dark:text-gray-400">Level</div>
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{level}</div>
-                        </div>
-                    </div>
-
-                    {!gameStarted && (
-                        <button
-                            onClick={startGame}
-                            className="mb-4 px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors"
-                        >
-                            Start Game
-                        </button>
-                    )}
-
-                    <div
-                        className="relative bg-gray-900 rounded-lg shadow-2xl border-4 border-gray-700"
-                        style={{
-                            width: BOARD_WIDTH * CELL_SIZE,
-                            height: BOARD_HEIGHT * CELL_SIZE
-                        }}
-                    >
-                        {/* Grid Background */}
-                        <div className="absolute inset-0 grid" style={{
-                            gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${CELL_SIZE}px)`,
-                            gridTemplateRows: `repeat(${BOARD_HEIGHT}, ${CELL_SIZE}px)`
-                        }}>
-                            {Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }).map((_, i) => (
-                                <div key={i} className="border border-gray-800/50" />
-                            ))}
-                        </div>
-
-                        {/* Board Cells */}
-                        {displayBoard.map((row, y) =>
-                            row.map((cell, x) => (
-                                cell && (
-                                    <div
-                                        key={`${y}-${x}`}
-                                        className="absolute rounded-sm border border-gray-900"
-                                        style={{
-                                            left: x * CELL_SIZE + 2,
-                                            top: y * CELL_SIZE + 2,
-                                            width: CELL_SIZE - 4,
-                                            height: CELL_SIZE - 4,
-                                            backgroundColor: PRIORITY_COLORS[cell],
-                                            boxShadow: 'inset 0 0 10px rgba(255,255,255,0.3)'
-                                        }}
-                                    />
-                                )
-                            ))
-                        )}
-
-                        {/* Game Over Overlay */}
-                        {gameOver && (
-                            <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-                                <div className="text-center">
-                                    <h2 className="text-4xl font-bold text-white mb-4">Game Over!</h2>
-                                    <p className="text-2xl text-white mb-2">Final Score: {score}</p>
-                                    <p className="text-xl text-white mb-6">Lines: {lines}</p>
-                                    <button
-                                        onClick={startGame}
-                                        className="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors"
-                                    >
-                                        Play Again
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Paused Overlay */}
-                        {isPaused && !gameOver && gameStarted && (
-                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                <h2 className="text-4xl font-bold text-white">PAUSED</h2>
-                            </div>
-                        )}
-                    </div>
-
-                    {gameStarted && (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-4 text-center max-w-md">
-                            ← → or A/D: Move • ↑ or W: Rotate • ↓ or S: Soft Drop • Enter: Hard Drop<br />
-                            Space: Pause • R: Restart
-                        </p>
-                    )}
-                </div>
-
-                {/* Next Piece Preview */}
-                {nextPiece && gameStarted && (
-                    <div className="flex flex-col gap-4">
-                        <div className="bg-white/50 dark:bg-gray-800/50 p-4 rounded-lg">
-                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">Next Task</div>
+            {/* Sidebar */}
+            {gameStarted && (
+                <motion.div
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex flex-col gap-4 pt-[52px]"
+                >
+                    {/* Next piece */}
+                    {nextPiece && (
+                        <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-4">
+                            <div className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-3">Next</div>
                             <div
-                                className="bg-gray-900 rounded-lg p-4 flex items-center justify-center"
+                                className="bg-sky-950 dark:bg-gray-800 rounded-xl p-3 relative"
                                 style={{
-                                    width: CELL_SIZE * 4,
-                                    height: CELL_SIZE * 4
+                                    width: CELL_SIZE * 4 + 24,
+                                    height: CELL_SIZE * 3 + 24
                                 }}
                             >
                                 {nextPiece.shape.map((row, y) =>
@@ -481,14 +477,15 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                                         cell ? (
                                             <div
                                                 key={`${y}-${x}`}
-                                                className="absolute rounded-sm border border-gray-900"
+                                                className="absolute rounded-[3px]"
                                                 style={{
-                                                    left: x * CELL_SIZE,
-                                                    top: y * CELL_SIZE,
+                                                    left: x * CELL_SIZE + 12,
+                                                    top: y * CELL_SIZE + 12,
                                                     width: CELL_SIZE - 4,
                                                     height: CELL_SIZE - 4,
                                                     backgroundColor: PRIORITY_COLORS[nextPiece.priority],
-                                                    boxShadow: 'inset 0 0 8px rgba(255,255,255,0.3)'
+                                                    boxShadow: 'inset 0 0 6px rgba(255,255,255,0.25)',
+                                                    border: '1px solid rgba(255,255,255,0.15)'
                                                 }}
                                             />
                                         ) : null
@@ -496,24 +493,40 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                                 )}
                             </div>
                         </div>
+                    )}
 
-                        <div className="bg-white/50 dark:bg-gray-800/50 p-4 rounded-lg">
-                            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Difficulty</div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400">
-                                Pending Tasks: <span className="font-bold">{pendingHomeworkCount}</span>
+                    {/* Difficulty info */}
+                    <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-4">
+                        <div className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-3">Difficulty</div>
+                        <div className="space-y-2.5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-sky-600/60 dark:text-sky-400/60">Tasks</span>
+                                <span className="text-xs font-bold text-sky-900 dark:text-white">{pendingHomeworkCount}</span>
                             </div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                Speed: <span className="font-bold">{getGameSpeed()}ms</span>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-sky-600/60 dark:text-sky-400/60">Speed</span>
+                                <span className="text-xs font-bold text-sky-900 dark:text-white">{getGameSpeed()}ms</span>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+
+                    {/* Priority legend */}
+                    <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-4">
+                        <div className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-3">Priority</div>
+                        <div className="space-y-2">
+                            {(['high', 'medium', 'low'] as Priority[]).map(p => (
+                                <div key={p} className="flex items-center gap-2.5">
+                                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: PRIORITY_COLORS[p] }} />
+                                    <span className="text-xs text-sky-700/70 dark:text-sky-300/70">{PRIORITY_LABELS[p]}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 }
-
-import { useRequireAuth } from '@/hooks/use-require-auth';
 
 export default function TaskTowerPage() {
     const { authenticated } = useRequireAuth();
@@ -523,7 +536,6 @@ export default function TaskTowerPage() {
     const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;
     const pendingHomeworkCount = totalHomeworks - completedHomeworks;
 
-    // Count pending homeworks by priority
     const highCount = homeworks ? homeworks.filter(hw => !hw.completed && hw.priority === 'high').length : 0;
     const mediumCount = homeworks ? homeworks.filter(hw => !hw.completed && hw.priority === 'medium').length : 0;
     const lowCount = homeworks ? homeworks.filter(hw => !hw.completed && hw.priority === 'low').length : 0;
@@ -532,55 +544,96 @@ export default function TaskTowerPage() {
     const hasEarnedAccess = completionPercentage >= 80;
 
     return (
-        <div className="min-h-screen bg-background p-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
+            {/* Background orbs */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+            </div>
+
+            <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+                {/* Back button */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Link href="/games" className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold transition-colors mb-6">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Game Center
+                    </Link>
+                </motion.div>
+
                 {hasEarnedAccess ? (
-                    <>
-                        <h1 className="text-4xl font-bold mb-4">Pending Tasks: {pendingHomeworkCount}</h1>
-                        <p className="text-muted-foreground mb-8">
-                            The game speed increases with more pending homework. Stay organized!
-                        </p>
-                        <div className="border border-border rounded-lg overflow-hidden inline-block">
-                            <TaskTowerGame pendingHomeworkCount={pendingHomeworkCount} highCount={highCount} mediumCount={mediumCount} lowCount={lowCount} />
-                        </div>
-                    </>
-                ) : (
-                    <div className="flex flex-col items-center justify-center min-h-[600px] text-center">
-                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-2 border-purple-300 dark:border-purple-700 rounded-2xl p-12 max-w-2xl">
-                            <div className="text-6xl mb-6">🎯</div>
-                            <h1 className="text-4xl font-bold mb-4 text-purple-900 dark:text-purple-100">
-                                Almost There!
+                    <div className="flex flex-col items-center">
+                        {/* Header */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center mb-8"
+                        >
+                            <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">
+                                Task Tower
                             </h1>
-                            <p className="text-xl text-purple-800 dark:text-purple-200 mb-6">
-                                You need to complete at least <span className="font-bold">80%</span> of your assignments to unlock Task Tower.
+                            <p className="text-sky-600/50 dark:text-sky-400/50 text-sm max-w-md">
+                                {pendingHomeworkCount} pending task{pendingHomeworkCount !== 1 ? 's' : ''} affect speed and priority mix. Stay organized!
                             </p>
-                            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 mb-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Your Progress</span>
-                                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                        {completionPercentage.toFixed(1)}%
-                                    </span>
+                        </motion.div>
+
+                        {/* Game */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.05 }}
+                        >
+                            <TaskTowerGame pendingHomeworkCount={pendingHomeworkCount} highCount={highCount} mediumCount={mediumCount} lowCount={lowCount} />
+                        </motion.div>
+                    </div>
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col items-center justify-center py-16"
+                    >
+                        <div className="w-full max-w-md">
+                            <div className="text-center mb-8">
+                                <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">
+                                    Task Tower
+                                </h1>
+                                <p className="text-sky-600/50 dark:text-sky-400/50 text-sm">
+                                    Complete more homework to unlock this game
+                                </p>
+                            </div>
+
+                            <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-6">
+                                <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 rounded-xl mb-5">
+                                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                                            80% homework required
+                                        </p>
+                                        <p className="text-xs text-amber-600/80 dark:text-amber-400/80">
+                                            Complete more assignments to unlock Task Tower.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
-                                    <div
-                                        className="bg-gradient-to-r from-purple-400 to-pink-600 h-4 rounded-full transition-all duration-500"
-                                        style={{ width: `${completionPercentage}%` }}
-                                    />
-                                </div>
-                                <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                                    <p className="font-medium">
-                                        {completedHomeworks} of {totalHomeworks} assignments completed
-                                    </p>
-                                    <p className="mt-1">
-                                        Complete {Math.ceil(totalHomeworks * 0.8) - completedHomeworks} more to unlock the game!
+
+                                <div className="mb-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Progress</span>
+                                        <span className="text-sm font-bold text-sky-900 dark:text-white">
+                                            {completionPercentage.toFixed(0)}%
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-sky-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                                        <div
+                                            className="bg-sky-500 h-2.5 rounded-full transition-all duration-500"
+                                            style={{ width: `${completionPercentage}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-sky-500/40 dark:text-sky-400/30 mt-2">
+                                        {completedHomeworks} of {totalHomeworks} assignments · {Math.max(0, Math.ceil(totalHomeworks * 0.8) - completedHomeworks)} more to unlock
                                     </p>
                                 </div>
                             </div>
-                            <p className="text-lg text-purple-700 dark:text-purple-300 font-medium">
-                                💪 Keep grinding! Task Tower awaits!
-                            </p>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
             </div>
         </div>

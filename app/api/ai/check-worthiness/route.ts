@@ -56,7 +56,7 @@ Deny if they seem to be procrastinating, avoiding work, or being dishonest. Keep
     // Handle streaming response from the main AI endpoint
     const responseText = await response.text();
     let content = '';
-    
+
     // Parse streaming SSE format
     const lines = responseText.split('\n');
     for (const line of lines) {
@@ -74,20 +74,20 @@ Deny if they seem to be procrastinating, avoiding work, or being dishonest. Keep
         }
       }
     }
-    
+
     // Parse the JSON response
     let result: WorthinessResponse;
     try {
       // Clean up the response - remove markdown code blocks if present
       let cleanContent = content.trim();
-      
+
       // Remove ```json and ``` markers
       if (cleanContent.startsWith('```json')) {
         cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (cleanContent.startsWith('```')) {
         cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-      
+
       result = JSON.parse(cleanContent);
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
@@ -104,7 +104,7 @@ Deny if they seem to be procrastinating, avoiding work, or being dishonest. Keep
 
   } catch (error) {
     console.error('Error checking worthiness:', error);
-    
+
     // Fail closed - if AI fails, deny access
     return NextResponse.json(
       { worthy: false, reason: 'AI service unavailable' },

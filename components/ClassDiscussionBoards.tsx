@@ -53,6 +53,7 @@ export function ClassDiscussionBoards() {
         currentThread,
         loading,
         createBoard,
+        deleteBoard,
         joinBoard,
         leaveBoard,
         setCurrentBoard,
@@ -105,6 +106,10 @@ export function ClassDiscussionBoards() {
     // Reply input
     const [replyContent, setReplyContent] = useState('');
 
+    // Delete board confirmation
+    const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     // Load boards on mount
     useEffect(() => {
         fetchAllBoards();
@@ -139,6 +144,19 @@ export function ClassDiscussionBoards() {
             success('Left board', 'You have left this discussion board.');
         } catch (err: any) {
             toastError('Failed to leave board', err.message);
+        }
+    };
+
+    const handleDeleteBoard = async (boardId: string) => {
+        setIsDeleting(true);
+        try {
+            await deleteBoard(boardId);
+            success('Board deleted', 'The discussion board has been removed.');
+            setBoardToDelete(null);
+        } catch (err: any) {
+            toastError('Failed to delete board', err.message);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -588,6 +606,15 @@ export function ClassDiscussionBoards() {
                                                             >
                                                                 <LogOut className="w-4 h-4" />
                                                             </button>
+                                                            {board.created_by === user.id && (
+                                                                <button
+                                                                    onClick={() => setBoardToDelete(board.id)}
+                                                                    className="p-1.5 rounded-full text-sky-400/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                                                    title="Delete Board"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </>
                                                     ) : (
                                                         <button
@@ -684,6 +711,81 @@ export function ClassDiscussionBoards() {
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Route Intro Popup */}
+                <RouteIntroPopup
+                    isOpen={showIntro}
+                    onClose={dismissIntro}
+                    title="Welcome to Discussions!"
+                    description="Collaborate with classmates by sharing questions, answers, and resources."
+                    icon={<MessageSquare className="h-6 w-6" />}
+                    features={[
+                        'Create and join public discussion boards',
+                        'Start threads and share ideas',
+                        'Upvote helpful responses',
+                        'Share resources with your community',
+                    ]}
+                />
+
+                {/* Delete Board Confirmation Modal */}
+                <AnimatePresence>
+                    {boardToDelete && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                                onClick={() => !isDeleting && setBoardToDelete(null)}
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 bg-white dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-gray-800 shadow-2xl p-6 space-y-4"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-bold text-sky-900 dark:text-white">Delete Board?</h2>
+                                    <button onClick={() => !isDeleting && setBoardToDelete(null)} className="p-1 rounded-lg text-sky-400/40 hover:text-sky-600 transition-colors">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <p className="text-sm text-sky-600/60 dark:text-sky-400/60">
+                                    This will permanently delete the board and all its threads, posts, and resources. This cannot be undone.
+                                </p>
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        onClick={() => setBoardToDelete(null)}
+                                        disabled={isDeleting}
+                                        className="flex-1 px-4 py-2.5 text-sm font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/20 rounded-xl transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteBoard(boardToDelete)}
+                                        disabled={isDeleting}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors disabled:opacity-50"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                                </svg>
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Trash2 className="w-4 h-4" />
+                                                Delete
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
             </div>
         );
     }

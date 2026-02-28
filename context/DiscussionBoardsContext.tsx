@@ -77,6 +77,7 @@ interface DiscussionBoardsContextType {
 
     // Board operations
     createBoard: (name: string, description?: string) => Promise<DiscussionBoard>;
+    deleteBoard: (boardId: string) => Promise<void>;
     joinBoard: (boardId: string) => Promise<void>;
     leaveBoard: (boardId: string) => Promise<void>;
     setCurrentBoard: (board: DiscussionBoard | null) => void;
@@ -236,6 +237,89 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
         // If leaving the current board, clear it
         if (currentBoard?.id === boardId) {
             setCurrentBoard(null);
+        }
+
+        await fetchAllBoards();
+    };
+
+    // Delete a board and all associated data
+    const deleteBoard = async (boardId: string) => {
+        if (!user) throw new Error('User not authenticated');
+
+        // 1. Get all threads for this board to delete their posts
+        const { data: boardThreads } = await supabase
+            .from('discussion_threads')
+            .select('id')
+            .eq('board_id', boardId);
+
+        const threadIds = boardThreads?.map(t => t.id) || [];
+
+        // 2. Delete all posts and their upvotes for these threads
+        if (threadIds.length > 0) {
+            // Delete post upvotes
+            const { data: threadPosts } = await supabase
+                .from('discussion_posts')
+                .select('id')
+                .in('thread_id', threadIds);
+
+            const postIds = threadPosts?.map(p => p.id) || [];
+            if (postIds.length > 0) {
+                await supabase
+                    .from('discussion_post_upvotes')
+                    .delete()
+                    .in('post_id', postIds);
+            }
+
+            // Delete posts
+            await supabase
+                .from('discussion_posts')
+                .delete()
+                .in('thread_id', threadIds);
+        }
+
+        // 3. Delete threads
+        await supabase
+            .from('discussion_threads')
+            .delete()
+            .eq('board_id', boardId);
+
+        // 4. Delete resource upvotes and resources
+        const { data: boardResources } = await supabase
+            .from('discussion_resources')
+            .select('id')
+            .eq('board_id', boardId);
+
+        const resourceIds = boardResources?.map(r => r.id) || [];
+        if (resourceIds.length > 0) {
+            await supabase
+                .from('discussion_resource_upvotes')
+                .delete()
+                .in('resource_id', resourceIds);
+        }
+
+        await supabase
+            .from('discussion_resources')
+            .delete()
+            .eq('board_id', boardId);
+
+        // 5. Delete members
+        await supabase
+            .from('discussion_board_members')
+            .delete()
+            .eq('board_id', boardId);
+
+        // 6. Delete the board itself
+        const { error } = await supabase
+            .from('discussion_boards')
+            .delete()
+            .eq('id', boardId);
+
+        if (error) throw error;
+
+        // Clear current board if it was the deleted one
+        if (currentBoard?.id === boardId) {
+            setCurrentBoard(null);
+            setCurrentThread(null);
         }
 
         await fetchAllBoards();
@@ -715,6 +799,7 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
                 loading,
                 error,
                 createBoard,
+                deleteBoard,
                 joinBoard,
                 leaveBoard,
                 setCurrentBoard,

@@ -2206,6 +2206,32 @@ const MainApp = () => {
 
                 {/* Content */}
                 <div className="p-6 space-y-5">
+                  {/* Class Selection */}
+                  <div>
+                    <Label htmlFor="class" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                      Class
+                    </Label>
+                    <Select
+                      value={newHomework.classId}
+                      onValueChange={(value) => setNewHomework({ ...newHomework, classId: value })}
+                    >
+                      <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
+                        <SelectValue placeholder="Select a class" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                        {classes.map((cls: any) => (
+                          <SelectItem
+                            key={cls.id}
+                            value={cls.id}
+                            className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg"
+                          >
+                            {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Title Input */}
                   <div>
                     <Label htmlFor="homeworkTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
@@ -2289,32 +2315,6 @@ const MainApp = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  {/* Class Selection */}
-                  <div>
-                    <Label htmlFor="class" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                      Class
-                    </Label>
-                    <Select
-                      value={newHomework.classId}
-                      onValueChange={(value) => setNewHomework({ ...newHomework, classId: value })}
-                    >
-                      <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
-                        <SelectValue placeholder="Select a class" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                        {classes.map((cls: any) => (
-                          <SelectItem
-                            key={cls.id}
-                            value={cls.id}
-                            className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg"
-                          >
-                            {cls.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
 
                   {/* Recurring Homework Section */}

@@ -1,16 +1,49 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Layers, Waves, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Layers, Waves, Sparkles, PartyPopper, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
-import WorthinessCheckModal from '@/components/WorthinessCheckModal';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { getFullVersionString } from '@/config/version';
+
+// Confetti particle component
+const ConfettiParticle = ({ index }: { index: number }) => {
+    const colors = ['#38bdf8', '#ebf6b5', '#fb923c', '#a78bfa', '#34d399', '#f472b6', '#facc15'];
+    const color = colors[index % colors.length];
+    const left = Math.random() * 100;
+    const delay = Math.random() * 0.5;
+    const duration = 1.5 + Math.random() * 1.5;
+    const size = 6 + Math.random() * 6;
+    const rotation = Math.random() * 360;
+
+    return (
+        <motion.div
+            initial={{ opacity: 1, y: -20, x: 0, rotate: 0, scale: 1 }}
+            animate={{
+                opacity: [1, 1, 0],
+                y: [0, 300 + Math.random() * 200],
+                x: [(Math.random() - 0.5) * 200],
+                rotate: [0, rotation + 360],
+                scale: [1, 0.5],
+            }}
+            transition={{ duration, delay, ease: 'easeOut' }}
+            style={{
+                position: 'absolute',
+                left: `${left}%`,
+                top: 0,
+                width: size,
+                height: size * (Math.random() > 0.5 ? 1 : 0.6),
+                backgroundColor: color,
+                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            }}
+        />
+    );
+};
 
 export default function GamesPage() {
     const { authenticated } = useRequireAuth();
@@ -18,8 +51,8 @@ export default function GamesPage() {
     const router = useRouter();
     const { homeworks } = useClassContext();
     const { getContainerClass } = useWideLayout();
-    const [selectedGame, setSelectedGame] = useState<{ title: string, href: string } | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showUnlockedModal, setShowUnlockedModal] = useState(false);
+    const [selectedGame, setSelectedGame] = useState<{ title: string; href: string } | null>(null);
 
     // Route intro popup
     const { showIntro, dismissIntro } = useRouteIntro('games');
@@ -31,16 +64,20 @@ export default function GamesPage() {
         return Math.round((completedCount / homeworks.length) * 100);
     }, [homeworks]);
 
-    const handleGameClick = (game: { title: string, href: string }) => {
+    const handleGameClick = useCallback((game: { title: string; href: string }) => {
         setSelectedGame(game);
-        setIsModalOpen(true);
-    };
+        setShowUnlockedModal(true);
+    }, []);
 
-    const handleWorthinessApproved = () => {
-        if (selectedGame) {
-            router.push(selectedGame.href);
+    // Auto-navigate after showing unlocked card
+    useEffect(() => {
+        if (showUnlockedModal && selectedGame) {
+            const timer = setTimeout(() => {
+                router.push(selectedGame.href);
+            }, 2200);
+            return () => clearTimeout(timer);
         }
-    };
+    }, [showUnlockedModal, selectedGame, router]);
 
     const games = [
         {
@@ -274,13 +311,98 @@ export default function GamesPage() {
                 </motion.div>
             </div>
 
-            {/* Worthiness Check Modal */}
-            <WorthinessCheckModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onApproved={handleWorthinessApproved}
-                gameTitle={selectedGame?.title || ''}
-            />
+            {/* Game Unlocked Modal with Confetti */}
+            <AnimatePresence>
+                {showUnlockedModal && selectedGame && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm z-50"
+                            onClick={() => setShowUnlockedModal(false)}
+                        />
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+                            {/* Confetti */}
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                {Array.from({ length: 60 }).map((_, i) => (
+                                    <ConfettiParticle key={i} index={i} />
+                                ))}
+                            </div>
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-500/5 w-full max-w-sm relative border border-sky-100 dark:border-gray-800 pointer-events-auto"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="p-8 text-center">
+                                    {/* Close button */}
+                                    <button
+                                        onClick={() => setShowUnlockedModal(false)}
+                                        className="absolute top-4 right-4 p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+
+                                    {/* Trophy icon with glow */}
+                                    <motion.div
+                                        initial={{ scale: 0, rotate: -20 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
+                                        className="w-20 h-20 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 rounded-3xl flex items-center justify-center mx-auto mb-5 border border-[#d4e88e]/40"
+                                    >
+                                        <PartyPopper className="w-9 h-9 text-sky-600 dark:text-sky-400" />
+                                    </motion.div>
+
+                                    <motion.h3
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.15 }}
+                                        className="text-xl font-bold text-sky-900 dark:text-white mb-2"
+                                    >
+                                        Game Unlocked! 🎉
+                                    </motion.h3>
+
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-6"
+                                    >
+                                        You&apos;ve earned access to <span className="font-semibold text-sky-700 dark:text-sky-300">{selectedGame.title}</span>. Have fun!
+                                    </motion.p>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.25 }}
+                                    >
+                                        <button
+                                            onClick={() => router.push(selectedGame.href)}
+                                            className="w-full h-11 flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
+                                        >
+                                            <Gamepad2 className="w-4 h-4" />
+                                            Play {selectedGame.title}
+                                        </button>
+                                    </motion.div>
+
+                                    <motion.p
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.5 }}
+                                        className="text-[11px] text-sky-500/30 dark:text-sky-400/20 mt-4"
+                                    >
+                                        Launching automatically...
+                                    </motion.p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* Route Intro Popup */}
             <RouteIntroPopup

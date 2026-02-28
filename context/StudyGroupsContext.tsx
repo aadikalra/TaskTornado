@@ -35,9 +35,10 @@ interface StudyGroupsContextType {
   error: string | null;
   connectionStatus: 'connected' | 'connecting' | 'disconnected';
   schoolWarning: { showWarning: boolean; message: string } | null;
-  createGroup: (name: string, classId?: string) => Promise<void>;
+  createGroup: (name: string, classId?: string) => Promise<string>;
   joinGroup: (groupId: string) => Promise<void>;
   leaveGroup: (groupId: string) => Promise<void>;
+  deleteGroup: (groupId: string) => Promise<void>;
   sendMessage: (groupId: string, content: string) => Promise<void>;
   addLink: (groupId: string, url: string, title?: string) => Promise<void>;
   setCurrentGroup: (group: StudyGroup | null) => void;
@@ -229,7 +230,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // Create a new group
-  const createGroup = async (name: string, classId?: string) => {
+  const createGroup = async (name: string, classId?: string): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
 
     try {
@@ -254,6 +255,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         }]);
 
       await fetchGroups();
+      return group.id;
     } catch (err) {
       console.error('Error creating group:', err);
       throw new Error('Failed to create group');
@@ -303,6 +305,49 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     } catch (err) {
       console.error('Error leaving group:', err);
       throw new Error('Failed to leave group');
+    }
+  };
+
+  // Delete a group (any member can do this)
+  const deleteGroup = async (groupId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Delete all messages in the group
+      await supabase
+        .from('group_messages')
+        .delete()
+        .eq('group_id', groupId);
+
+      // Delete all links in the group
+      await supabase
+        .from('group_links')
+        .delete()
+        .eq('group_id', groupId);
+
+      // Delete all members
+      await supabase
+        .from('study_group_members')
+        .delete()
+        .eq('group_id', groupId);
+
+      // Delete the group itself
+      const { error } = await supabase
+        .from('study_groups')
+        .delete()
+        .eq('id', groupId);
+
+      if (error) throw error;
+
+      // If current group is the one being deleted, clear it
+      if (currentGroup?.id === groupId) {
+        setCurrentGroup(null);
+      }
+
+      await fetchGroups();
+    } catch (err) {
+      console.error('Error deleting group:', err);
+      throw new Error('Failed to delete group');
     }
   };
 
@@ -484,6 +529,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         createGroup,
         joinGroup,
         leaveGroup,
+        deleteGroup,
         sendMessage,
         addLink,
         setCurrentGroup,

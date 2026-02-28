@@ -1471,8 +1471,16 @@ For example:
         }
       ]);
 
+      // Check if the AI service returned an error instead of quiz data
+      const responseText = response.response?.trim() || '';
+      if (!responseText || responseText.startsWith('Failed to') || responseText.startsWith('I encountered an error')) {
+        // Remove the loading message
+        setMessages(prev => prev.filter(msg => !msg.isLoading));
+        return `❌ The AI service is temporarily unavailable. Please try again in a moment.\n\n*Tip: If this keeps happening, try switching to a different model mode.*`;
+      }
+
       // Parse the response
-      let jsonString = response.response.trim();
+      let jsonString = responseText;
 
       // Remove markdown code block syntax if present
       if (jsonString.startsWith('```json')) {

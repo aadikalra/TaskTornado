@@ -64,7 +64,7 @@ export function RouteIntroPopup({
                                     <h2 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">
                                         {title}
                                     </h2>
-                                    <p className="text-sm text-sky-600/40 dark:text-sky-400/40 leading-relaxed max-w-sm mx-auto">
+                                    <p className="text-sm text-sky-600/90 dark:text-sky-400/90 leading-relaxed max-w-sm mx-auto">
                                         {description}
                                     </p>
                                 </div>

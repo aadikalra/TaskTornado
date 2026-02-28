@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useSearch } from '@/context/SearchContext';
 import { useClassContext } from '@/context/ClassContext';
+import { useAuth } from '@/context/AuthContext';
+import { flashcardService } from '@/lib/supabase/flashcards';
 import {
   Search, BookOpen, GraduationCap, FileText, Presentation, Target,
   Zap, CheckCircle, Home, Calendar, BarChart, Settings, Users, Shield,
   PenTool, Bookmark, HelpCircle, Scroll, User, History,
   CreditCard, Gamepad2, Trophy, MessageSquare, Video, CornerDownLeft,
-  Calculator, Languages, Newspaper, Fingerprint, Star, Repeat, ClipboardList, Sparkles
+  Calculator, Languages, Newspaper, Fingerprint, Star, Repeat, ClipboardList, Sparkles,
+  Layers
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -81,12 +84,28 @@ const routeSearchItems = [
   { title: 'Terms of Service', href: '/legal/terms', icon: Scroll, keywords: ['terms', 'service', 'legal'] },
 ];
 
+interface FlashcardDeckSearchItem {
+  id: string;
+  title: string;
+  description: string | null;
+  created_at: string | null;
+}
+
+interface SavedQuizSearchItem {
+  title: string;
+  questions: { id: string; question: string; topic: string }[];
+  createdAt: string;
+}
+
 export function SearchResults() {
   const { query, setQuery, closeSearch } = useSearch();
   const { classes, homeworks, tests } = useClassContext();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
   const [colorMap, setColorMap] = useState<{ [key: string]: string }>({});
+  const [flashcardDecks, setFlashcardDecks] = useState<FlashcardDeckSearchItem[]>([]);
+  const [savedQuizzes, setSavedQuizzes] = useState<SavedQuizSearchItem[]>([]);
   const isDark = theme === 'dark';
 
   // Load class badge colors
@@ -98,6 +117,30 @@ export function SearchResults() {
       } catch (e) {
         console.error('Error parsing classColors cookie:', e);
       }
+    }
+  }, []);
+
+  // Fetch flashcard decks from Supabase
+  useEffect(() => {
+    const fetchDecks = async () => {
+      if (!user) return;
+      try {
+        const decks = await flashcardService.getDecks(user.id);
+        setFlashcardDecks(decks);
+      } catch (error) {
+        console.error('Error fetching flashcard decks for search:', error);
+      }
+    };
+    fetchDecks();
+  }, [user]);
+
+  // Load saved quizzes from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('savedQuizzes');
+    if (saved) {
+      try {
+        setSavedQuizzes(JSON.parse(saved));
+      } catch { }
     }
   }, []);
 
@@ -141,19 +184,41 @@ export function SearchResults() {
           closeSearch();
           return;
         }
+
+        // Flashcard decks
+        const fd = flashcardDecks.filter(d =>
+          d.title.toLowerCase().includes(term) ||
+          d.description?.toLowerCase().includes(term)
+        );
+        if (fd.length) {
+          router.push('/flashcards');
+          closeSearch();
+          return;
+        }
+
+        // Quizzes
+        const sq = savedQuizzes.filter(q =>
+          q.title.toLowerCase().includes(term) ||
+          q.questions.some(qn => qn.question.toLowerCase().includes(term) || qn.topic.toLowerCase().includes(term))
+        );
+        if (sq.length) {
+          router.push('/quiz');
+          closeSearch();
+          return;
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [query, homeworks, tests, classes, router, closeSearch]);
+  }, [query, homeworks, tests, classes, flashcardDecks, savedQuizzes, router, closeSearch]);
 
   if (!query.trim()) {
     return (
       <div className="flex flex-col items-center text-center py-8">
         <Search className="h-8 w-8 text-gray-300 dark:text-gray-600" />
         <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm">
-          Search assignments, tests, or pages
+          Search assignments, tests, flashcards, quizzes, or pages
         </p>
       </div>
     );
@@ -179,10 +244,22 @@ export function SearchResults() {
     t.testType?.toLowerCase().includes(term)
   );
 
+  const filteredFlashcardDecks = flashcardDecks.filter(d =>
+    d.title.toLowerCase().includes(term) ||
+    d.description?.toLowerCase().includes(term)
+  );
+
+  const filteredQuizzes = savedQuizzes.filter(q =>
+    q.title.toLowerCase().includes(term) ||
+    q.questions.some(qn => qn.question.toLowerCase().includes(term) || qn.topic.toLowerCase().includes(term))
+  );
+
   const hasResults =
     filteredRoutes.length ||
     filteredHomeworks.length ||
-    filteredTests.length;
+    filteredTests.length ||
+    filteredFlashcardDecks.length ||
+    filteredQuizzes.length;
 
   if (!hasResults) {
     return (
@@ -192,7 +269,7 @@ export function SearchResults() {
         </h3>
 
         <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-xs mx-auto text-sm">
-          "{query}" did not match any classes, assignments, or tests.
+          "{query}" did not match any classes, assignments, tests, flashcards, or quizzes.
         </p>
 
         <Button
@@ -373,6 +450,88 @@ export function SearchResults() {
                 </Link>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* FLASHCARD DECKS */}
+      {filteredFlashcardDecks.length > 0 && (
+        <div className="py-2">
+          <div className="px-4 py-2 text-xs font-medium text-gray-500 bg-gray-50/50 dark:bg-neutral-800/30 mb-1">
+            Flashcard Decks
+          </div>
+
+          <div className="flex flex-col">
+            {filteredFlashcardDecks.map((deck) => (
+              <Link
+                key={deck.id}
+                href="/flashcards"
+                onClick={closeSearch}
+                className="group px-4 py-2 flex items-center gap-4 cursor-default transition-colors hover:bg-gray-100/60 dark:hover:bg-neutral-800/60"
+              >
+                {/* Icon Box */}
+                <div className="p-2 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm shrink-0">
+                  <Layers className="w-5 h-5 text-sky-500 dark:text-sky-400" strokeWidth={1.5} />
+                </div>
+
+                {/* Text Content */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                    {deck.title}
+                  </h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                    {deck.description || 'Flashcard deck'} {deck.created_at && `• ${new Date(deck.created_at).toLocaleDateString()}`}
+                  </p>
+                </div>
+
+                {/* "Jump to" Button */}
+                <div className="hidden group-hover:flex items-center gap-2 text-gray-400 dark:text-gray-500 text-[10px] font-semibold bg-white dark:bg-neutral-700 px-2 py-1 rounded shadow-sm border border-gray-100 dark:border-gray-600">
+                  Study deck
+                  <CornerDownLeft className="w-2.5 h-2.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* QUIZZES */}
+      {filteredQuizzes.length > 0 && (
+        <div className="py-2">
+          <div className="px-4 py-2 text-xs font-medium text-gray-500 bg-gray-50/50 dark:bg-neutral-800/30 mb-1">
+            Quizzes
+          </div>
+
+          <div className="flex flex-col">
+            {filteredQuizzes.map((quiz, index) => (
+              <Link
+                key={`quiz-${index}`}
+                href="/quiz"
+                onClick={closeSearch}
+                className="group px-4 py-2 flex items-center gap-4 cursor-default transition-colors hover:bg-gray-100/60 dark:hover:bg-neutral-800/60"
+              >
+                {/* Icon Box */}
+                <div className="p-2 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm shrink-0">
+                  <HelpCircle className="w-5 h-5 text-violet-500 dark:text-violet-400" strokeWidth={1.5} />
+                </div>
+
+                {/* Text Content */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                    {quiz.title}
+                  </h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                    {quiz.questions.length} question{quiz.questions.length !== 1 ? 's' : ''} • {new Date(quiz.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* "Jump to" Button */}
+                <div className="hidden group-hover:flex items-center gap-2 text-gray-400 dark:text-gray-500 text-[10px] font-semibold bg-white dark:bg-neutral-700 px-2 py-1 rounded shadow-sm border border-gray-100 dark:border-gray-600">
+                  Take quiz
+                  <CornerDownLeft className="w-2.5 h-2.5" />
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       )}

@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 
-// Ollama Cloud API configuration
-const OLLAMA_CLOUD_API_URL = 'https://ollama.com/api';
-const OLLAMA_CLOUD_API_KEY = process.env.OLLAMA_API_KEY;
+// Google AI Studio API configuration
+const GOOGLE_AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
+const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
 
 // Rate limiting: 30 requests per minute for translation
 const RATE_LIMIT_PER_MINUTE = 30;
@@ -92,14 +92,10 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Ollama Cloud Configuration
-        const OLLAMA_CLOUD_API_URL = 'https://ollama.com/api';
-        const OLLAMA_CLOUD_API_KEY = process.env.OLLAMA_API_KEY;
-
-        if (!OLLAMA_CLOUD_API_KEY) {
+        if (!GOOGLE_AI_API_KEY) {
             return new NextResponse(JSON.stringify({
                 error: 'Translation service not configured',
-                details: 'Please set OLLAMA_API_KEY environment variable'
+                details: 'Please set GOOGLE_AI_API_KEY environment variable'
             }), {
                 status: 500,
                 headers: {
@@ -126,7 +122,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Build the prompt using the user-provided template with structured markers for parsing
+        // Build the prompt
         const fullPrompt = `You are a professional ${sourceLang.name} (${sourceLanguage}) to ${targetLang.name} (${targetLanguage}) translator. 
 Your goal is to accurately convey the meaning and nuances of the original ${sourceLang.name} text while adhering to ${targetLang.name} grammar, vocabulary, and cultural sensitivities.
 
@@ -142,39 +138,46 @@ Structure your response exactly as follows:
 [EXPLANATION]
 (Short explanation of nuance, grammar, or cultural context here in English)`;
 
-        const model = 'gpt-oss:20b';
+        // Use Gemini deep model
+        const model = 'gemini-2.0-flash';
 
-        console.log('Sending translation request to Ollama Cloud:', {
+        console.log('Sending translation request to Google AI Studio:', {
             model,
             sourceLanguage: sourceLang.name,
             targetLanguage: targetLang.name,
             textLength: text.length,
         });
 
-        // Prepare the request body for Ollama Cloud with streaming
-        const ollamaRequestBody = {
-            model: model,
-            messages: [{ role: 'user', content: fullPrompt }],
-            options: {
+        // Prepare the Gemini request body
+        const geminiRequestBody = {
+            contents: [
+                {
+                    role: 'user',
+                    parts: [{ text: fullPrompt }]
+                }
+            ],
+            generationConfig: {
                 temperature: 0.3,
-                top_p: 0.9,
+                topP: 0.9,
+                maxOutputTokens: 2048,
             },
-            stream: true,
         };
 
-        // Forward the streaming request to Ollama Cloud
+        // Forward the streaming request to Google AI Studio
         let response;
         try {
-            response = await fetch(`${OLLAMA_CLOUD_API_URL}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OLLAMA_CLOUD_API_KEY}`,
-                },
-                body: JSON.stringify(ollamaRequestBody),
-            });
+            response = await fetch(
+                `${GOOGLE_AI_API_URL}/models/${model}:streamGenerateContent?key=${GOOGLE_AI_API_KEY}&alt=sse`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(geminiRequestBody),
+                }
+            );
         } catch (fetchError) {
-            console.error('Failed to connect to Ollama Cloud:', fetchError);
+            console.error('Failed to connect to Google AI Studio:', fetchError);
             return new NextResponse(JSON.stringify({
                 error: 'Failed to connect to translation service',
                 details: fetchError instanceof Error ? fetchError.message : 'Connection error',
@@ -191,7 +194,7 @@ Structure your response exactly as follows:
         // Handle non-OK responses
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Ollama Cloud API error:', {
+            console.error('Google AI Studio API error:', {
                 status: response.status,
                 statusText: response.statusText,
                 error: errorText,
@@ -229,18 +232,16 @@ Structure your response exactly as follows:
 
                             const chunk = decoder.decode(value, { stream: true });
 
-                            // Parse Ollama streaming format
+                            // Parse Google AI Studio SSE format
                             const lines = chunk.split('\n');
                             for (const line of lines) {
-                                if (line.trim()) {
+                                if (line.startsWith('data: ')) {
                                     try {
-                                        const data = JSON.parse(line);
-                                        const content = data.message?.content || data.response;
+                                        const data = JSON.parse(line.slice(6));
+                                        const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (content) {
+                                            // Send in the format the client expects (data.translation)
                                             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ translation: content, done: false })}\n\n`));
-                                        }
-                                        if (data.done) {
-                                            // Handle completion
                                         }
                                     } catch (parseError) {
                                         // Some chunks might be incomplete
