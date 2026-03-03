@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Zap, Accessibility, Database, Globe } from 'lucide-react';
+import { User, Zap, Accessibility, Database, Globe, Users } from 'lucide-react';
 import { Facehash } from 'facehash';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
@@ -17,6 +17,7 @@ import {
   AccountSection
 } from '@/components/settings';
 import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection';
+import GuardianAccessSettings from '@/components/settings/GuardianAccessSettings';
 import { getFullVersionString } from '@/config/version';
 import { useDarkMode } from '@/context/DarkModeContext';
 
@@ -38,14 +39,14 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-type SettingTab = 'preferences' | 'classroom' | 'accessibility' | 'data' | 'account';
+type SettingTab = 'preferences' | 'guardian' | 'classroom' | 'accessibility' | 'data' | 'account';
 
 export default function SettingsPage() {
   const { authenticated } = useRequireAuth();
   if (!authenticated) return null;
   const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
-  const { signOut, full_name, isGoogleUser } = useAuth() || {};
-  const [activeTab, setActiveTab] = useState<SettingTab>('preferences');
+  const { signOut, full_name, isGoogleUser, isGuardian } = useAuth() || {};
+  const [activeTab, setActiveTab] = useState<SettingTab>(isGuardian ? 'accessibility' : 'preferences');
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -140,14 +141,16 @@ export default function SettingsPage() {
     };
 
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
-    const sections = ['preferences', 'classroom', 'accessibility', 'data', 'account'];
+    const sections = isGuardian
+      ? ['accessibility', 'account']
+      : ['preferences', 'guardian', ...(isGoogleUser ? ['classroom'] : []), 'accessibility', 'data', 'account'];
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
 
     return () => observer.disconnect();
-  }, [isGoogleUser]);
+  }, [isGoogleUser, isGuardian]);
 
   const handleClearClasses = () => {
     if (showClassConfirm) {
@@ -205,13 +208,19 @@ export default function SettingsPage() {
 
   const userName = full_name || "User";
 
-  const navigationItems = [
-    { id: 'preferences', label: 'Preferences', icon: Zap },
-    ...(isGoogleUser ? [{ id: 'classroom', label: 'Google Classroom', icon: Globe }] : []),
-    { id: 'accessibility', label: 'Accessibility', icon: Accessibility },
-    { id: 'data', label: 'Data', icon: Database },
-    { id: 'account', label: 'Account', icon: User },
-  ];
+  const navigationItems = isGuardian
+    ? [
+      { id: 'accessibility', label: 'Accessibility', icon: Accessibility },
+      { id: 'account', label: 'Account', icon: User },
+    ]
+    : [
+      { id: 'preferences', label: 'Preferences', icon: Zap },
+      { id: 'guardian', label: 'Guardian Access', icon: Users },
+      ...(isGoogleUser ? [{ id: 'classroom', label: 'Google Classroom', icon: Globe }] : []),
+      { id: 'accessibility', label: 'Accessibility', icon: Accessibility },
+      { id: 'data', label: 'Data', icon: Database },
+      { id: 'account', label: 'Account', icon: User },
+    ];
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans selection:bg-sky-100 dark:selection:bg-sky-900/40 relative">
@@ -266,7 +275,7 @@ export default function SettingsPage() {
         </header>
 
         {/* Navigation Chips */}
-        <div className="sticky top-0 z-50 py-3 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-sky-100/60 dark:border-gray-800/50 mb-12 -mx-6 px-6 sm:-mx-10 sm:px-10 md:-mx-16 md:px-16">
+        <div className="sticky top-0 z-50 py-3 border-b border-sky-100/60 dark:border-gray-800/50 mb-12 -mx-6 px-6 sm:-mx-10 sm:px-10 md:-mx-16 md:px-16">
           <div className="overflow-x-auto no-scrollbar">
             <nav className="flex items-center gap-2 min-w-max">
               {navigationItems.map((item) => {
@@ -301,24 +310,37 @@ export default function SettingsPage() {
         </div>
 
         <main className="pb-24">
-          {/* Preferences */}
-          <section id="preferences" className="scroll-mt-24 mb-20">
-            <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
-              Preferences
-            </h2>
-            <PreferencesSection
-              aiPersonality={aiPersonality}
-              onPersonalityChange={handlePersonalityChange}
-              useWideLayout={isWideLayout}
-              onToggleWideLayout={toggleWideLayout}
-              showTestsInClassCards={showTestsInClassCards}
-              onToggleTestsInClassCards={handleToggleTestsInClassCards}
-            />
-            <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
-          </section>
+          {/* Preferences (students only) */}
+          {!isGuardian && (
+            <section id="preferences" className="scroll-mt-24 mb-20">
+              <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+                Preferences
+              </h2>
+              <PreferencesSection
+                aiPersonality={aiPersonality}
+                onPersonalityChange={handlePersonalityChange}
+                useWideLayout={isWideLayout}
+                onToggleWideLayout={toggleWideLayout}
+                showTestsInClassCards={showTestsInClassCards}
+                onToggleTestsInClassCards={handleToggleTestsInClassCards}
+              />
+              <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
+            </section>
+          )}
 
-          {/* Google Classroom */}
-          {isGoogleUser && (
+          {/* Guardian Access (students only) */}
+          {!isGuardian && (
+            <section id="guardian" className="scroll-mt-24 mb-20">
+              <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+                Guardian Access
+              </h2>
+              <GuardianAccessSettings />
+              <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
+            </section>
+          )}
+
+          {/* Google Classroom (students only) */}
+          {isGoogleUser && !isGuardian && (
             <section id="classroom" className="scroll-mt-24 mb-20">
               <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
                 Google Classroom
@@ -342,21 +364,23 @@ export default function SettingsPage() {
             <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
           </section>
 
-          {/* Data Management */}
-          <section id="data" className="scroll-mt-24 mb-20">
-            <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
-              Data Management
-            </h2>
-            <DataManagementSection
-              classes={classes}
-              homeworks={homeworks}
-              showClassConfirm={showClassConfirm}
-              showHomeworkConfirm={showHomeworkConfirm}
-              onClearClasses={handleClearClasses}
-              onClearHomeworks={handleClearHomeworks}
-            />
-            <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
-          </section>
+          {/* Data Management (students only) */}
+          {!isGuardian && (
+            <section id="data" className="scroll-mt-24 mb-20">
+              <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+                Data Management
+              </h2>
+              <DataManagementSection
+                classes={classes}
+                homeworks={homeworks}
+                showClassConfirm={showClassConfirm}
+                showHomeworkConfirm={showHomeworkConfirm}
+                onClearClasses={handleClearClasses}
+                onClearHomeworks={handleClearHomeworks}
+              />
+              <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
+            </section>
+          )}
 
           {/* Account */}
           <section id="account" className="scroll-mt-24">
@@ -379,7 +403,7 @@ export default function SettingsPage() {
         {/* Footer */}
         <div className="pt-8 border-t border-sky-100 dark:border-gray-800">
           <p className="text-xs text-sky-600/30 dark:text-sky-400/30">
-            Built for students • Public Beta {getFullVersionString()}
+            {isGuardian ? 'Guardian Account' : 'Built for students'} • Public Beta {getFullVersionString()}
           </p>
         </div>
       </div>

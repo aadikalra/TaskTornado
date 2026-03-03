@@ -57,17 +57,22 @@ function transformSupabaseData(
 
 
 async function getSupabaseData(supabase: any, userId: string) {
-    const [classesResult, homeworksResult, testsResult] = await Promise.all([
-        supabase.from('classes').select('*').eq('user_id', userId),
-        supabase.from('homework').select('*, classes(*)').eq('user_id', userId),
-        supabase.from('tests').select('*, classes(*)').eq('user_id', userId)
-    ]);
+    try {
+        const [classesResult, homeworksResult, testsResult] = await Promise.all([
+            supabase.from('classes').select('*').eq('user_id', userId),
+            supabase.from('homework').select('*, classes(*)').eq('user_id', userId),
+            supabase.from('tests').select('*, classes(*)').eq('user_id', userId)
+        ]);
 
-    if (classesResult.error) throw classesResult.error;
-    if (homeworksResult.error) throw homeworksResult.error;
-    if (testsResult.error) throw testsResult.error;
+        if (classesResult.error) throw classesResult.error;
+        if (homeworksResult.error) throw homeworksResult.error;
+        if (testsResult.error) throw testsResult.error;
 
-    return transformSupabaseData(classesResult.data, homeworksResult.data, testsResult.data);
+        return transformSupabaseData(classesResult.data, homeworksResult.data, testsResult.data);
+    } catch (error) {
+        console.error('Failed to fetch Supabase data:', error);
+        return { classes: [], homeworks: [], tests: [] };
+    }
 }
 
 async function getGoogleClassroomData(userId: string) {

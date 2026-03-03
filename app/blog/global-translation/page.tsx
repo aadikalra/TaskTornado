@@ -48,7 +48,7 @@ export default function GlobalTranslationArticle() {
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 p-8 rounded-3xl my-12 border border-blue-100 dark:border-blue-900/30">
-                <h3 className="text-xl font-bold mb-4 text-blue-900 dark:text-blue-100">Translate Your Success</h3>
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4 text-blue-900 dark:text-blue-100">Translate Your Success</h3>
                 <p className="mb-6 text-blue-800 dark:text-blue-200">Break through language barriers and access a world of knowledge today.</p>
                 <Link href="/translate" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white font-bold rounded-2xl transition-transform hover:scale-105">
                     Open Translate

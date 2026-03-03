@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Menu, X, Search, Sparkle, Calendar, Home, LogOut, Bell, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle,  FileText } from 'lucide-react';
+import { ChevronDown, Menu, X, Search, Sparkle, Calendar, Home, LogOut, Bell, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle, FileText, MoreHorizontal, Pencil, Plus, X as XIcon, Check, GripVertical } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
@@ -11,24 +11,39 @@ import { AIAssistant } from '@/components/AIAssistant';
 import { StudyTimer } from '@/components/StudyTimer';
 import { NotificationPanel, useNotifications } from '@/components/NotificationPanel';
 
-const NAV_ITEMS = [
+/* ── Always-pinned core items (cannot be removed) ────────────────────────── */
+const CORE_ITEMS = [
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'Calendar', href: '/calendar', icon: Calendar },
+];
+
+/* ── All customizable items (can be pinned to nav OR live in Tools dropdown) */
+const ALL_EXTRA_ITEMS = [
     { label: 'Flashcards', href: '/flashcards', icon: BookOpen },
     { label: 'Quizzes', href: '/quiz', icon: Grid2x2 },
     { label: 'Writing', href: '/writing-assist', icon: PenTool },
+    { label: 'Translate', href: '/translate', icon: Languages },
+    { label: 'Grades', href: '/grade-calculator', icon: Calculator },
+    { label: 'Web Saves', href: '/web-saves', icon: Pin },
+    { label: 'Groups', href: '/groups', icon: Users },
+    { label: 'Discuss', href: '/discussions', icon: MessageSquare },
+    { label: 'Games', href: '/games', icon: Gamepad2 },
+    { label: 'Tutorials', href: '/tutorials', icon: HelpCircle },
+    { label: 'Changelog', href: '/changelog', icon: FileText },
 ];
 
-const TOOL_ITEMS = [
-    { label: 'Translate', href: '/translate', icon: Languages, requiresAuth: true },
-    { label: 'Grades', href: '/grade-calculator', icon: Calculator, requiresAuth: true },
-    { label: 'Web Saves', href: '/web-saves', icon: Pin, requiresAuth: true },
-    { label: 'Groups', href: '/groups', icon: Users, requiresAuth: true },
-    { label: 'Discuss', href: '/discussions', icon: MessageSquare, requiresAuth: true },
-    { label: 'Games', href: '/games', icon: Gamepad2, requiresAuth: true },
-    { label: 'Tutorials', href: '/tutorials', icon: HelpCircle, requiresAuth: false },
-    { label: 'Changelog', href: '/changelog', icon: FileText, requiresAuth: false },
-];
+const DEFAULT_PINNED = ['Flashcards', 'Quizzes', 'Writing'];
+const MAX_PINNED = 5;
+
+const getCookie = (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+};
+const setCookie = (name: string, value: string, days: number = 365) => {
+    const d = new Date(); d.setTime(d.getTime() + days * 86400000);
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/`;
+};
 
 export default function AppNavbar() {
     const router = useRouter();
@@ -44,9 +59,54 @@ export default function AppNavbar() {
     const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
     const [timerInfo, setTimerInfo] = useState<{ isMinimized: boolean; isRunning: boolean; timeLeft: number; totalTime: number; formattedTime: string; progress: number } | null>(null);
     const [timerRestoreSignal, setTimerRestoreSignal] = useState(0);
+    const [tabletMoreOpen, setTabletMoreOpen] = useState(false);
+    const [editNavOpen, setEditNavOpen] = useState(false);
+    const [pinnedLabels, setPinnedLabels] = useState<string[]>(DEFAULT_PINNED);
 
     const toolsRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
+    const tabletMoreRef = useRef<HTMLDivElement>(null);
+    const editNavRef = useRef<HTMLDivElement>(null);
+
+    // Load pinned labels from cookie on mount
+    useEffect(() => {
+        const saved = getCookie('pinnedNavLabels');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) setPinnedLabels(parsed);
+            } catch { /* use default */ }
+        }
+    }, []);
+
+    const savePinnedLabels = useCallback((labels: string[]) => {
+        setPinnedLabels(labels);
+        setCookie('pinnedNavLabels', JSON.stringify(labels));
+    }, []);
+
+    const togglePinned = useCallback((label: string) => {
+        setPinnedLabels(prev => {
+            const next = prev.includes(label)
+                ? prev.filter(l => l !== label)
+                : prev.length < MAX_PINNED ? [...prev, label] : prev;
+            setCookie('pinnedNavLabels', JSON.stringify(next));
+            return next;
+        });
+    }, []);
+
+    // Derived lists
+    const NAV_ITEMS = useMemo(() => [
+        ...CORE_ITEMS,
+        ...ALL_EXTRA_ITEMS.filter(i => pinnedLabels.includes(i.label)),
+    ], [pinnedLabels]);
+
+    const TOOL_ITEMS = useMemo(() =>
+        ALL_EXTRA_ITEMS.filter(i => !pinnedLabels.includes(i.label)),
+        [pinnedLabels]);
+
+    // Tablet splits from the dynamic NAV_ITEMS
+    const TABLET_NAV_PRIMARY = useMemo(() => NAV_ITEMS.slice(0, 3), [NAV_ITEMS]);
+    const TABLET_NAV_OVERFLOW = useMemo(() => NAV_ITEMS.slice(3), [NAV_ITEMS]);
 
     // Close panels on route change
     useEffect(() => {
@@ -54,6 +114,7 @@ export default function AppNavbar() {
         setToolsOpen(false);
         setProfileOpen(false);
         setNotificationsOpen(false);
+        setTabletMoreOpen(false);
     }, [pathname]);
 
     // Lock body scroll when mobile menu is open
@@ -67,6 +128,8 @@ export default function AppNavbar() {
         const handler = (e: MouseEvent) => {
             if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) setToolsOpen(false);
             if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+            if (tabletMoreRef.current && !tabletMoreRef.current.contains(e.target as Node)) setTabletMoreOpen(false);
+            if (editNavRef.current && !editNavRef.current.contains(e.target as Node)) setEditNavOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
@@ -75,6 +138,7 @@ export default function AppNavbar() {
     const handleNavClick = (href: string) => {
         setMobileOpen(false);
         setToolsOpen(false);
+        setTabletMoreOpen(false);
         router.push(href);
     };
 
@@ -104,13 +168,13 @@ export default function AppNavbar() {
                             <img src="/TaskTornado.svg" alt="TaskTornado Logo" className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden" />
                             <img src="/TaskTornadoDark.svg" alt="TaskTornado Logo" className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block" />
                         </div>
-                        <span className="text-[#275085] dark:text-blue-200 font-bold text-base sm:text-lg tracking-tight">TaskTornado</span>
+                        <span className="text-[#275085] dark:text-blue-200 font-bold text-base sm:text-lg tracking-tight md:hidden lg:inline">TaskTornado</span>
                     </button>
 
                     {/* ════════════════════════════════════════════
-                        DESKTOP — Center pill with nav links
+                        DESKTOP (lg+) — Full center pill
                        ════════════════════════════════════════════ */}
-                    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                    <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
                         {NAV_ITEMS.map((item) => (
                             <button
                                 key={item.label}
@@ -155,9 +219,98 @@ export default function AppNavbar() {
                     </div>
 
                     {/* ════════════════════════════════════════════
-                        DESKTOP — Right side actions
+                        TABLET (md–lg) — Compact center pill
                        ════════════════════════════════════════════ */}
-                    <div className="hidden md:flex items-center gap-2">
+                    <div className="hidden md:flex lg:hidden absolute left-1/2 -translate-x-1/2 items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                        {TABLET_NAV_PRIMARY.map((item) => (
+                            <button
+                                key={item.label}
+                                onClick={() => handleNavClick(item.href)}
+                                className={`relative px-3 py-1.5 text-[12px] font-semibold transition-all duration-300 rounded-full ${isActive(item.href)
+                                    ? 'text-[#275085]'
+                                    : 'text-white hover:text-white/80'
+                                    }`}
+                            >
+                                {isActive(item.href) && (
+                                    <motion.div
+                                        layoutId="app-nav-pill-tablet"
+                                        className="absolute inset-0 bg-white/90 rounded-full border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.3)]"
+                                        style={{ borderRadius: 9999 }}
+                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{item.label}</span>
+                            </button>
+                        ))}
+
+                        {/* More dropdown for overflow nav items */}
+                        <div ref={tabletMoreRef} className="relative">
+                            <button
+                                onClick={() => setTabletMoreOpen(prev => !prev)}
+                                className={`relative px-2.5 py-1.5 rounded-full transition-all duration-300 ${tabletMoreOpen ? 'bg-white/15 text-white' : 'text-white/70 hover:text-white'}`}
+                                aria-label="More pages"
+                            >
+                                <MoreHorizontal className="w-4 h-4" />
+                            </button>
+
+                            <AnimatePresence>
+                                {tabletMoreOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                        className="absolute top-full right-0 mt-2 z-[100]"
+                                    >
+                                        <div className="flex flex-col min-w-[130px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
+                                            {TABLET_NAV_OVERFLOW.map((item) => {
+                                                const Icon = item.icon;
+                                                return (
+                                                    <button
+                                                        key={item.label}
+                                                        onClick={() => handleNavClick(item.href)}
+                                                        className={`w-full flex items-center gap-2 text-left px-3 py-2 text-[12px] font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] ${isActive(item.href)
+                                                            ? 'bg-white/15 text-white'
+                                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                            }`}
+                                                    >
+                                                        <Icon className="w-3.5 h-3.5" />
+                                                        {item.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="w-px h-4 bg-white/20 mx-0.5" />
+
+                        {/* Aurora */}
+                        <button
+                            onClick={() => setAIAssistantOpen(!isAIAssistantOpen)}
+                            className={`relative px-2 py-1.5 rounded-full transition-colors ${isAIAssistantOpen ? 'text-amber-300' : 'text-white/70 hover:text-white'}`}
+                            title="Aurora AI"
+                        >
+                            <Sparkle className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Search */}
+                        <button
+                            onClick={openSearch}
+                            className="relative px-2 py-1.5 text-white/70 hover:text-white transition-colors rounded-full"
+                            title="Search (⌘K)"
+                        >
+                            <Search className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
+                    {/* ════════════════════════════════════════════
+                        DESKTOP (lg+) — Right side actions
+                       ════════════════════════════════════════════ */}
+                    <div className="hidden lg:flex items-center gap-2">
                         {/* All Tools dropdown */}
                         <div ref={toolsRef} className="relative">
                             <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
@@ -181,7 +334,7 @@ export default function AppNavbar() {
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 4, scale: 0.95 }}
                                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                        className="absolute top-full right-0 mt-2 z-[100] w-[280px]"
+                                        className="absolute top-full right-0 mt-1 z-[100] w-[280px]"
                                     >
                                         <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
                                             <div className="grid grid-cols-4 gap-1">
@@ -268,7 +421,7 @@ export default function AppNavbar() {
                             {/* Profile */}
                             <div ref={profileRef} className="relative">
                                 <button
-                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setNotificationsOpen(false); }}
+                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setNotificationsOpen(false); setEditNavOpen(false); }}
                                     className="relative px-3 py-1.5 text-[13px] font-bold text-[#275085] rounded-full bg-white/90 border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-white transition-all active:scale-95"
                                 >
                                     {initials}
@@ -281,13 +434,258 @@ export default function AppNavbar() {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                            className="absolute top-full right-0 mt-2 z-[100] w-[200px]"
+                                            className="absolute top-full right-0 mt-3 z-[100] w-[200px]"
                                         >
                                             <div className="bg-[#275085]/95 backdrop-blur-xl rounded-[16px] border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-1.5">
                                                 <div className="px-3 py-2 border-b border-white/10 mb-1">
                                                     <p className="text-[13px] font-bold text-white truncate">{full_name?.split(' ')[0] || 'Student'}</p>
                                                     <p className="text-[10px] font-medium text-white/50 truncate">{user?.email}</p>
                                                 </div>
+                                                <button
+                                                    onClick={() => { setProfileOpen(false); setEditNavOpen(true); }}
+                                                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                    <span className="text-[12px] font-semibold">Edit Nav</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleNavClick('/settings')}
+                                                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
+                                                >
+                                                    <Settings className="w-4 h-4" />
+                                                    <span className="text-[12px] font-semibold">Settings</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { signOut?.(); router.push('/'); }}
+                                                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-colors text-left"
+                                                >
+                                                    <LogOut className="w-4 h-4" />
+                                                    <span className="text-[12px] font-semibold">Log out</span>
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Edit Nav panel (anchored to profile) */}
+                                <AnimatePresence>
+                                    {editNavOpen && (
+                                        <motion.div
+                                            ref={editNavRef}
+                                            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                            className="absolute top-full right-0 mt-3 z-[100] w-[280px]"
+                                        >
+                                            <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-3">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Customize Tabs</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-medium text-white/30">{pinnedLabels.length}/{MAX_PINNED}</span>
+                                                        <button onClick={() => setEditNavOpen(false)} className="text-white/30 hover:text-white/70 transition-colors">
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Currently pinned */}
+                                                {pinnedLabels.length > 0 && (
+                                                    <div className="mb-2">
+                                                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1.5 px-1">Pinned</p>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {pinnedLabels.map(label => {
+                                                                const item = ALL_EXTRA_ITEMS.find(i => i.label === label);
+                                                                if (!item) return null;
+                                                                const Icon = item.icon;
+                                                                return (
+                                                                    <button
+                                                                        key={label}
+                                                                        onClick={() => togglePinned(label)}
+                                                                        className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-white/90 hover:bg-white/10 transition-all group text-left"
+                                                                    >
+                                                                        <Icon className="w-3.5 h-3.5 text-white/60" />
+                                                                        <span className="text-[12px] font-semibold flex-1">{label}</span>
+                                                                        <X className="w-3 h-3 text-white/30 group-hover:text-red-300 transition-colors" />
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Available to add */}
+                                                {ALL_EXTRA_ITEMS.filter(i => !pinnedLabels.includes(i.label)).length > 0 && (
+                                                    <div>
+                                                        <div className="h-px bg-white/10 my-2" />
+                                                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1.5 px-1">Available</p>
+                                                        <div className="flex flex-col gap-0.5 max-h-[160px] overflow-y-auto">
+                                                            {ALL_EXTRA_ITEMS.filter(i => !pinnedLabels.includes(i.label)).map(item => {
+                                                                const Icon = item.icon;
+                                                                const atMax = pinnedLabels.length >= MAX_PINNED;
+                                                                return (
+                                                                    <button
+                                                                        key={item.label}
+                                                                        onClick={() => !atMax && togglePinned(item.label)}
+                                                                        className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl transition-all group text-left ${atMax ? 'text-white/20 cursor-not-allowed' : 'text-white/50 hover:bg-white/10 hover:text-white/80'}`}
+                                                                    >
+                                                                        <Icon className="w-3.5 h-3.5" />
+                                                                        <span className="text-[12px] font-semibold flex-1">{item.label}</span>
+                                                                        {!atMax && <Plus className="w-3 h-3 text-white/20 group-hover:text-emerald-300 transition-colors" />}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Reset to defaults */}
+                                                <div className="h-px bg-white/10 mt-2 mb-1.5" />
+                                                <button
+                                                    onClick={() => savePinnedLabels(DEFAULT_PINNED)}
+                                                    className="w-full text-center text-[10px] font-semibold text-white/30 hover:text-white/60 transition-colors py-1.5 rounded-lg hover:bg-white/5"
+                                                >
+                                                    Reset to defaults
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ════════════════════════════════════════════
+                        TABLET (md–lg) — Compact right side actions
+                       ════════════════════════════════════════════ */}
+                    <div className="hidden md:flex lg:hidden items-center gap-1.5">
+                        {/* Tools (icon-only) */}
+                        <div ref={toolsRef} className="relative">
+                            <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                                <button
+                                    onClick={() => { setToolsOpen(!toolsOpen); setProfileOpen(false); setNotificationsOpen(false); }}
+                                    className={`flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold rounded-full transition-all active:scale-95 ${toolsOpen
+                                        ? 'bg-white/15 text-white'
+                                        : 'text-white hover:text-white/80'
+                                        }`}
+                                >
+                                    <Grid2x2 className="w-3.5 h-3.5" />
+                                    <ChevronDown className={`w-3 h-3 opacity-50 transition-transform duration-300 ${toolsOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                            </div>
+
+                            <AnimatePresence>
+                                {toolsOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                        className="absolute top-full right-0 mt-1 z-[100] w-[260px]"
+                                    >
+                                        <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
+                                            <div className="grid grid-cols-4 gap-1">
+                                                {TOOL_ITEMS.map((tool, idx) => {
+                                                    const Icon = tool.icon;
+                                                    const active = isActive(tool.href);
+                                                    return (
+                                                        <motion.button
+                                                            key={tool.label}
+                                                            initial={{ opacity: 0, y: 4 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: idx * 0.02 }}
+                                                            onClick={() => handleNavClick(tool.href)}
+                                                            className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl transition-all active:scale-95 ${active
+                                                                ? 'bg-white/15 text-white'
+                                                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                                }`}
+                                                        >
+                                                            <Icon className="w-4 h-4" />
+                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
+                                                        </motion.button>
+                                                    );
+                                                })}
+                                                <motion.button
+                                                    initial={{ opacity: 0, y: 4 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: TOOL_ITEMS.length * 0.02 }}
+                                                    onClick={() => { setIsStudyTimerOpen(true); setToolsOpen(false); }}
+                                                    className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl transition-all active:scale-95 ${isStudyTimerOpen
+                                                        ? 'bg-white/15 text-white'
+                                                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                        }`}
+                                                >
+                                                    <Timer className="w-4 h-4" />
+                                                    <span className="text-[9px] font-semibold leading-tight">Timer</span>
+                                                </motion.button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Mini Timer Pill (tablet) */}
+                        <AnimatePresence>
+                            {timerInfo?.isMinimized && timerInfo?.isRunning && (
+                                <motion.div
+                                    key="mini-timer-pill-tablet"
+                                    initial={{ opacity: 0, scale: 0.9, x: -8 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, x: -8 }}
+                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                >
+                                    <button
+                                        onClick={() => { setIsStudyTimerOpen(true); setTimerRestoreSignal(s => s + 1); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#275085]/90 backdrop-blur-md rounded-full border border-[#275085]/30 shadow-[0_4px_24px_rgba(39,80,133,0.3)] hover:bg-[#275085] transition-all active:scale-95"
+                                    >
+                                        <Timer className="w-3 h-3 text-white/70" />
+                                        <span className="text-[12px] font-bold text-white tabular-nums">
+                                            {timerInfo.formattedTime}
+                                        </span>
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Notifications + Profile pill (compact) */}
+                        <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                            <button
+                                onClick={() => { setNotificationsOpen(!notificationsOpen); setProfileOpen(false); setToolsOpen(false); }}
+                                className={`relative px-2.5 py-1.5 rounded-full transition-colors ${notificationsOpen ? 'text-white' : 'text-white/70 hover:text-white'}`}
+                            >
+                                <NotificationBellIcon />
+                            </button>
+
+                            <div ref={profileRef} className="relative">
+                                <button
+                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setNotificationsOpen(false); setEditNavOpen(false); }}
+                                    className="relative px-2.5 py-1 text-[12px] font-bold text-[#275085] rounded-full bg-white/90 border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-white transition-all active:scale-95"
+                                >
+                                    {initials}
+                                </button>
+
+                                <AnimatePresence>
+                                    {profileOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                            className="absolute top-full right-0 mt-3 z-[100] w-[200px]"
+                                        >
+                                            <div className="bg-[#275085]/95 backdrop-blur-xl rounded-[16px] border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-1.5">
+                                                <div className="px-3 py-2 border-b border-white/10 mb-1">
+                                                    <p className="text-[13px] font-bold text-white truncate">{full_name?.split(' ')[0] || 'Student'}</p>
+                                                    <p className="text-[10px] font-medium text-white/50 truncate">{user?.email}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setProfileOpen(false); setEditNavOpen(true); }}
+                                                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                    <span className="text-[12px] font-semibold">Edit Nav</span>
+                                                </button>
                                                 <button
                                                     onClick={() => handleNavClick('/settings')}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"

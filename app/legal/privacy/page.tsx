@@ -2,38 +2,113 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Shield, Eye, Lock, Database, UserCheck, ExternalLink, AlertCircle } from 'lucide-react';
-import { useWideLayout } from '@/hooks/use-wide-layout';
+import { ArrowLeft, Shield, Eye, Lock, Database, UserCheck, AlertCircle, ExternalLink } from 'lucide-react';
+
+const sections = [
+  {
+    icon: Database,
+    title: '1. Information We Collect',
+    items: [
+      { label: 'Account Information', desc: 'Name, email address, and password for your TaskTornado account login and profile' },
+      { label: 'Academic Information', desc: 'Classes, assignments, test dates, and grades you enter for scheduling and AI-powered homework recommendations' },
+      { label: 'Usage Data', desc: 'How you interact with TaskTornado features like homework tracking, test scheduling, and AI assistant usage' },
+      { label: 'Device Information', desc: 'IP address, browser type, and operating system' },
+    ],
+  },
+  {
+    icon: Eye,
+    title: '2. How We Use Your Information',
+    list: [
+      'Provide and maintain our Service',
+      'Improve and personalize your experience',
+      'Communicate with you about your account and our services',
+      'Analyze usage patterns and trends',
+      'Ensure the security of our Service',
+      'Comply with legal obligations',
+    ],
+  },
+  {
+    icon: Lock,
+    title: '3. Data Security',
+    description: 'We implement comprehensive security measures to protect your academic data and personal information. Your school-related information is never shared with third parties, parents, or educational institutions.',
+    subsections: [
+      {
+        label: 'Technical Security',
+        items: [
+          'End-to-end encryption of data in transit using SSL/TLS',
+          'Secure password storage with industry-standard bcrypt hashing',
+          'Regular security audits and vulnerability assessments',
+          'Strict access controls and multi-factor authentication for admin access',
+        ],
+      },
+      {
+        label: 'Protection Measures',
+        items: [
+          'Rate limiting to prevent unauthorized access attempts',
+          '24/7 security monitoring and threat detection',
+          'AI assistant queries processed temporarily and deleted immediately',
+          'No sharing of academic data with schools, parents, or third parties',
+        ],
+      },
+    ],
+  },
+];
+
+const retentionItems = [
+  'Assignment data: Remains until you delete your account or remove individual assignments',
+  'Account information: Deleted within 30 days of account deletion',
+  'AI assistant queries: Processed temporarily and deleted immediately after response',
+  'Usage analytics: Aggregated and anonymized after 90 days',
+];
+
+const rights = [
+  'Access the personal information we hold about you',
+  'Request correction of inaccurate personal information',
+  'Request deletion of your personal information',
+  'Object to or restrict processing of your personal information',
+  'Request transfer of your personal information',
+  'Withdraw consent where we rely on consent to process your information',
+];
+
+const cookieItems = [
+  'Authentication: Keeps you logged in to your TaskTornado account',
+  'Preferences: Remembers your settings like AI personality and layout preferences',
+  'Security: Helps protect your account from unauthorized access',
+];
+
+const analyticsItems = [
+  'Feature usage (which tools you use most)',
+  'Performance metrics (loading times, errors)',
+  'No advertising tracking or data selling',
+];
 
 export default function PrivacyPolicy() {
-  const { getContainerClass } = useWideLayout();
-  
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
-      <div className={getContainerClass() + ' py-16'}>
-        
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-16"
-        >
-          <Link 
-            href="/signup" 
-            className="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6 group"
+    <div className="relative min-h-screen bg-[#f8fbfd] dark:bg-[#0a0a0a] overflow-hidden">
+      {/* Background orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16 max-w-4xl mx-auto">
+        {/* Back button */}
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-sky-600/50 dark:text-sky-400/50 hover:text-sky-600 dark:hover:text-sky-400 transition-colors mb-8"
           >
-            <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-            Back to Sign Up
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </Link>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
-              <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h1 className="text-4xl font-light text-gray-900 dark:text-white tracking-tight">
-              Privacy Policy
-            </h1>
-          </div>
-          <p className="text-gray-500 dark:text-gray-400">
+        </motion.div>
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
+          <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-3">
+            Privacy Policy
+          </h1>
+          <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
             Last updated: August 19, 2025
           </p>
         </motion.div>
@@ -42,419 +117,234 @@ export default function PrivacyPolicy() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.05 }}
           className="mb-12"
         >
-          <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-900/50">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">At a Glance</h2>
-            <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-              <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                <span><strong>Your data stays yours:</strong> Assignment data remains until you delete your account or remove individual assignments</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                <span><strong>School-focused privacy:</strong> We never share your academic data with schools, parents, or third parties</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                <span><strong>Minimal tracking:</strong> Only basic analytics to improve TaskTornado, no advertising or data selling</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                <span><strong>AI-powered features:</strong> Your homework questions are processed temporarily for AI assistance, then deleted</span>
-              </li>
-            </ul>
+          <div className="bg-[#ebf6b5]/30 dark:bg-sky-500/5 border border-[#d4e88e]/40 dark:border-sky-500/10 rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-[#ebf6b5]/60 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              </div>
+              <h2 className="text-base font-bold text-sky-900 dark:text-white">At a Glance</h2>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                { bold: 'Your data stays yours:', rest: 'Assignment data remains until you delete your account or remove individual assignments' },
+                { bold: 'School-focused privacy:', rest: 'We never share your academic data with schools, parents, or third parties' },
+                { bold: 'Minimal tracking:', rest: 'Only basic analytics to improve TaskTornado, no advertising or data selling' },
+                { bold: 'AI-powered features:', rest: 'Your homework questions are processed temporarily for AI assistance, then deleted' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-2 shrink-0" />
+                  <p className="text-sm text-sky-800 dark:text-sky-200 leading-relaxed">
+                    <strong className="text-sky-900 dark:text-white">{item.bold}</strong> {item.rest}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
 
-        {/* Introduction */}
+        {/* Intro */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.08 }}
           className="mb-12"
         >
-          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              At TaskTornado, we take your privacy seriously. This Privacy Policy explains how we collect, use, 
+          <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+            <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
+              At TaskTornado, we take your privacy seriously. This Privacy Policy explains how we collect, use,
               and protect your personal information when you use our student productivity platform.
             </p>
           </div>
         </motion.div>
 
-        {/* Sections */}
-        <div className="space-y-16">
-          {/* Information We Collect */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-50 dark:bg-purple-950/50 rounded-lg">
-                <Database className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h2 className="text-2xl font-medium text-gray-900 dark:text-white">
-                1. Information We Collect
-              </h2>
-            </div>
-            
-            <p className="text-gray-600 dark:text-gray-400 mb-6">We collect the following types of information:</p>
-            
-            <div className="grid gap-4">
-              <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
-                  <UserCheck className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Account Information</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Name, email address, and password for your TaskTornado account login and profile</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
-                  <Database className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Academic Information</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Classes, assignments, test dates, and grades you enter for scheduling and AI-powered homework recommendations</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
-                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Usage Data</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">How you interact with TaskTornado features like homework tracking, test scheduling, and AI assistant usage</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-lg mt-0.5">
-                  <AlertCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">Device Information</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">IP address, browser type, and operating system</p>
-                </div>
-              </div>
-            </div>
-          </motion.section>
-
-          {/* How We Use Your Information */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-green-50 dark:bg-green-950/50 rounded-lg">
-                <Eye className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-              <h2 className="text-2xl font-medium text-gray-900 dark:text-white">
-                2. How We Use Your Information
-              </h2>
-            </div>
-            
-            <p className="text-gray-600 dark:text-gray-400 mb-6">We use your information to:</p>
-            
-            <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                'Provide and maintain our Service',
-                'Improve and personalize your experience',
-                'Communicate with you about your account and our services',
-                'Analyze usage patterns and trends',
-                'Ensure the security of our Service',
-                'Comply with legal obligations'
-              ].map((item, index) => (
-                <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 shrink-0" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-
-          {/* Data Security */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg">
-                <Lock className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <h2 className="text-2xl font-medium text-gray-900 dark:text-white">
-                3. Data Security
-              </h2>
-            </div>
-            
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              We implement comprehensive security measures to protect your academic data and personal information. 
-              Your school-related information is never shared with third parties, parents, or educational institutions.
-            </p>
-            
-            <div className="space-y-4">
-              <div className="bg-linear-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-xl p-6 border border-emerald-100 dark:border-emerald-900/50">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-4">Technical Security</h3>
-                <ul className="space-y-3">
-                  {[
-                    'End-to-end encryption of data in transit using SSL/TLS',
-                    'Secure password storage with industry-standard bcrypt hashing',
-                    'Regular security audits and vulnerability assessments',
-                    'Strict access controls and multi-factor authentication for admin access'
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-6 border border-amber-100 dark:border-amber-900/50">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-4">Protection Measures</h3>
-                <ul className="space-y-3">
-                  {[
-                    'Rate limiting to prevent unauthorized access attempts',
-                    '24/7 security monitoring and threat detection',
-                    'AI assistant queries processed temporarily and deleted immediately',
-                    'No sharing of academic data with schools, parents, or third parties'
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </motion.section>
-
-          {/* Data Retention */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              4. Data Retention
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">Specific Retention Periods</h3>
-                <ul className="space-y-3">
-                  {[
-                    'Assignment data: Remains until you delete your account or remove individual assignments',
-                    'Account information: Deleted within 30 days of account deletion',
-                    'AI assistant queries: Processed temporarily and deleted immediately after response',
-                    'Usage analytics: Aggregated and anonymized after 90 days'
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6 border border-blue-100 dark:border-blue-900/50">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">Your Control</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  You can delete individual assignments, export your data at any time, or delete your entire account 
-                  to remove all personal information permanently.
-                </p>
-              </div>
-            </div>
-          </motion.section>
-
-          {/* Your Rights */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              5. Your Rights
-            </h2>
-            
-            <p className="text-gray-600 dark:text-gray-400 mb-6">You have the right to:</p>
-            
-            <div className="grid gap-3">
-              {[
-                'Access the personal information we hold about you',
-                'Request correction of inaccurate personal information',
-                'Request deletion of your personal information',
-                'Object to or restrict processing of your personal information',
-                'Request transfer of your personal information',
-                'Withdraw consent where we rely on consent to process your information'
-              ].map((item, index) => (
-                <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/50">
-                  <div className="p-1 bg-blue-100 dark:bg-blue-900 rounded-full mt-0.5">
-                    <UserCheck className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+        {/* Main Sections */}
+        <div className="space-y-10">
+          {/* Section 1 — Information We Collect */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">1. Information We Collect</h2>
+            <p className="text-sm text-sky-600/40 dark:text-sky-400/40 mb-5">We collect the following types of information</p>
+            <div className="space-y-3">
+              {sections[0].items!.map((item, i) => (
+                <div key={i} className="flex items-start gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                  <div className="w-9 h-9 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                    {i === 0 && <UserCheck className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+                    {i === 1 && <Database className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+                    {i === 2 && <Eye className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+                    {i === 3 && <AlertCircle className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
                   </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-0.5">{item.label}</h3>
+                    <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </motion.section>
+          </motion.div>
 
-          {/* Cookies and Tracking */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              6. Cookies and Tracking
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">Essential Cookies</h3>
-                <ul className="space-y-3">
-                  {[
-                    'Authentication: Keeps you logged in to your TaskTornado account',
-                    'Preferences: Remembers your settings like AI personality and layout preferences',
-                    'Security: Helps protect your account from unauthorized access'
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                    </li>
+          {/* Section 2 — How We Use Your Information */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">2. How We Use Your Information</h2>
+            <p className="text-sm text-sky-600/40 dark:text-sky-400/40 mb-5">We use your information to</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {sections[1].list!.map((item, i) => (
+                <div key={i} className="flex items-start gap-3 py-3 px-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                  <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-1.5 shrink-0" />
+                  <span className="text-sm text-sky-800 dark:text-sky-200">{item}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Section 3 — Data Security */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">3. Data Security</h2>
+            <p className="text-sm text-sky-600/50 dark:text-sky-400/40 mb-5 leading-relaxed">
+              We implement comprehensive security measures to protect your academic data. Your school-related information is never shared with third parties.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {sections[2].subsections!.map((sub, si) => (
+                <div key={si} className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+                  <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-3">{sub.label}</h3>
+                  <div className="space-y-2">
+                    {sub.items.map((item, i) => (
+                      <div key={i} className="flex items-start gap-2.5">
+                        <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-1.5 shrink-0" />
+                        <span className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Section 4 — Data Retention */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">4. Data Retention</h2>
+            <div className="space-y-0">
+              {retentionItems.map((item, i) => (
+                <div key={i} className="flex items-start gap-4 py-3.5 border-b border-sky-100 dark:border-gray-800 px-1">
+                  <div className="w-6 h-6 bg-[#ebf6b5]/60 dark:bg-sky-500/15 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full" />
+                  </div>
+                  <span className="text-sm text-sky-800 dark:text-sky-200 leading-relaxed">{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 bg-[#ebf6b5]/30 dark:bg-sky-500/5 border border-[#d4e88e]/40 dark:border-sky-500/10 rounded-2xl px-5 py-4">
+              <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-1">Your Control</h3>
+              <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
+                You can delete individual assignments, export your data at any time, or delete your entire account to remove all personal information permanently.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Section 5 — Your Rights */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">5. Your Rights</h2>
+            <p className="text-sm text-sky-600/40 dark:text-sky-400/40 mb-5">You have the right to</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {rights.map((item, i) => (
+                <div key={i} className="flex items-start gap-3 py-3 px-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                  <div className="w-5 h-5 bg-sky-100 dark:bg-sky-500/15 rounded-md flex items-center justify-center shrink-0 mt-0.5">
+                    <UserCheck className="w-3 h-3 text-sky-500 dark:text-sky-400" />
+                  </div>
+                  <span className="text-xs text-sky-800 dark:text-sky-200 leading-relaxed">{item}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Section 6 — Cookies */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">6. Cookies and Tracking</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+                <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-3">Essential Cookies</h3>
+                <div className="space-y-2">
+                  {cookieItems.map((item, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-1.5 shrink-0" />
+                      <span className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">{item}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
-              
-              <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl p-6 border border-purple-100 dark:border-purple-900/50">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">Analytics</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                  We use minimal analytics to improve TaskTornado:
-                </p>
-                <ul className="space-y-2">
-                  {[
-                    'Feature usage (which tools you use most)',
-                    'Performance metrics (loading times, errors)',
-                    'No advertising tracking or data selling'
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                    </li>
+              <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+                <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-3">Analytics</h3>
+                <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed mb-2">We use minimal analytics to improve TaskTornado:</p>
+                <div className="space-y-2">
+                  {analyticsItems.map((item, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-1.5 shrink-0" />
+                      <span className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">{item}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             </div>
-          </motion.section>
+          </motion.div>
 
-          {/* Third-Party Services */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              7. Third-Party Services
-            </h2>
-            
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                We may use third-party services to help us operate our business and the Service, such as hosting 
-                providers, analytics providers, and customer support services. These third parties have access to 
-                your personal information only to perform these tasks on our behalf and are obligated not to 
+          {/* Section 7 — Third-Party Services */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">7. Third-Party Services</h2>
+            <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+              <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
+                We may use third-party services to help us operate our business and the Service, such as hosting
+                providers, analytics providers, and customer support services. These third parties have access to
+                your personal information only to perform these tasks on our behalf and are obligated not to
                 disclose or use it for any other purpose.
               </p>
             </div>
-          </motion.section>
+          </motion.div>
 
-          {/* Children's Privacy */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              8. Children's Privacy
-            </h2>
-            
-            <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-6 border border-amber-100 dark:border-amber-900/50">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Our Service is not intended for children under the age of 13. We do not knowingly collect personal 
-                information from children under 13. If we learn that we have collected personal information from a 
+          {/* Section 8 — Children's Privacy */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">8. Children&apos;s Privacy</h2>
+            <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+              <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
+                Our Service is not intended for children under the age of 13. We do not knowingly collect personal
+                information from children under 13. If we learn that we have collected personal information from a
                 child under 13, we will take steps to delete that information as soon as possible.
               </p>
             </div>
-          </motion.section>
+          </motion.div>
 
-          {/* Changes to This Policy */}
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              9. Changes to This Policy
-            </h2>
-            
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                We may update our Privacy Policy from time to time. We will notify you of any changes by posting 
-                the new Privacy Policy on this page and updating the "Last updated" date at the top of this policy.
+          {/* Section 9 — Changes */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">9. Changes to This Policy</h2>
+            <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
+              <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
+                We may update our Privacy Policy from time to time. We will notify you of any changes by posting
+                the new Privacy Policy on this page and updating the &quot;Last updated&quot; date at the top of this policy.
               </p>
             </div>
-          </motion.section>
+          </motion.div>
 
-          {/* Contact */}
-          <motion.section
+          {/* Section 10 — Contact */}
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
-            className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-800"
+            transition={{ delay: 0.55 }}
+            className="pt-8 border-t border-sky-100 dark:border-gray-800"
           >
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              10. Contact Us
-            </h2>
-            
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
-              For privacy-related inquiries, please use our support channels:
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">10. Contact Us</h2>
+            <p className="text-sm text-sky-600/40 dark:text-sky-400/40 mb-6">
+              For privacy-related inquiries, please use our support channels
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="https://forms.gle/wjR1nJdg8vFYeNcd6"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors group"
-              >
-                Send Privacy Inquiry
-                <ExternalLink className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-              </a>
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLScaYx0Gg30L_g3HiEE3um0MAE8OKlCN7naJrRTiVjSyBUt0og/viewform?usp=header"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-              >
-                Report Privacy Issue
-                <ExternalLink className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-              </a>
-            </div>
-          </motion.section>
+            <a
+              href="https://forms.gle/wjR1nJdg8vFYeNcd6"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-[#275085] dark:bg-sky-500 text-white px-6 py-3 rounded-2xl text-sm font-bold transition-all hover:opacity-90 active:scale-95"
+            >
+              Send Privacy Inquiry
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </motion.div>
         </div>
       </div>
     </div>

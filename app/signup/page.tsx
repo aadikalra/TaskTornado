@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Lock, Mail, Loader2, ArrowRight, User, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, Loader2, ArrowRight, User, ShieldCheck, GraduationCap, Users, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';
 import { useDarkMode } from '@/context/DarkModeContext';
 import Image from 'next/image';
+import { getBlockedError } from '@/lib/blockedNames';
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -19,6 +20,8 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [accountType, setAccountType] = useState<'student' | 'guardian'>('student');
+  const [guardianHover, setGuardianHover] = useState(false);
   const { signUp } = useAuth();
   const { isDark } = useDarkMode();
   const router = useRouter();
@@ -26,6 +29,13 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Block restricted names and emails
+    const blockedError = getBlockedError(name, email);
+    if (blockedError) {
+      setError(blockedError);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -40,8 +50,10 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
-      router.push('/dashboard');
+      await signUp(email, password, name, accountType);
+      // After signup, Supabase requires email confirmation.
+      // Redirect to login — the login page will route guardians correctly after they log in.
+      router.push('/login');
     } catch (err: any) {
       console.error('Signup error:', err);
       if (err.message?.includes('already exists')) {
@@ -113,10 +125,94 @@ export default function SignUpPage() {
           >
 
             {/* Header */}
-            <div className="mb-8">
+            <div className="mb-6">
               <h1 className="text-2xl md:text-3xl font-bold text-[#275085] dark:text-[#4a9cdb] tracking-tight">
                 Signup
               </h1>
+            </div>
+
+            {/* Account Type Selector */}
+            <div className="relative mb-6">
+              <div className="flex items-center gap-1.5 ml-1 mb-2">
+                <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em]">
+                  I am a
+                </label>
+                <div
+                  className="relative"
+                  onMouseEnter={() => setGuardianHover(true)}
+                  onMouseLeave={() => setGuardianHover(false)}
+                >
+                  <HelpCircle size={13} className="text-[#275085]/30 dark:text-[#4a9cdb]/30 hover:text-[#275085]/60 dark:hover:text-[#4a9cdb]/60 transition-colors cursor-help" />
+
+                  {/* Floating info card */}
+                  <AnimatePresence>
+                    {guardianHover && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 4, scale: 0.96 }}
+                        transition={{ duration: 0.18 }}
+                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[260px] z-50 p-3 rounded-xl bg-white dark:bg-zinc-900 border border-[#275085]/10 dark:border-[#4a9cdb]/10 shadow-xl shadow-[#275085]/8 dark:shadow-black/30"
+                      >
+                        {/* Arrow */}
+                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-white dark:bg-zinc-900 border-l border-t border-[#275085]/10 dark:border-[#4a9cdb]/10" />
+
+                        <p className="text-[11px] font-bold text-[#275085] dark:text-[#4a9cdb] mb-2 leading-snug">
+                          What&apos;s the difference?
+                        </p>
+                        <div className="flex flex-col gap-1.5">
+                          <p className="text-[10.5px] text-[#275085]/60 dark:text-[#4a9cdb]/60 leading-relaxed">
+                            <span className="font-bold text-[#275085]/80 dark:text-[#4a9cdb]/80">Student</span> — Full access: add homework, use tools, track your own progress.
+                          </p>
+                          <p className="text-[10.5px] text-[#275085]/60 dark:text-[#4a9cdb]/60 leading-relaxed">
+                            <span className="font-bold text-[#275085]/80 dark:text-[#4a9cdb]/80">Guardian</span> — Monitor only: view grades, progress, and activity of a linked student.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+              <div className="relative flex p-1 bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.04] border border-[#275085]/8 dark:border-[#4a9cdb]/8 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setAccountType('student')}
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold transition-colors duration-300 ${accountType === 'student'
+                    ? 'text-[#275085] dark:text-[#4a9cdb]'
+                    : 'text-[#275085]/40 dark:text-[#4a9cdb]/40 hover:text-[#275085]/60 dark:hover:text-[#4a9cdb]/60'
+                    }`}
+                >
+                  <GraduationCap size={16} />
+                  Student
+                  {accountType === 'student' && (
+                    <motion.div
+                      layoutId="account-type-pill"
+                      className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-[#275085]/8 dark:border-[#4a9cdb]/10"
+                      style={{ zIndex: -1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountType('guardian')}
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold transition-colors duration-300 ${accountType === 'guardian'
+                    ? 'text-[#275085] dark:text-[#4a9cdb]'
+                    : 'text-[#275085]/40 dark:text-[#4a9cdb]/40 hover:text-[#275085]/60 dark:hover:text-[#4a9cdb]/60'
+                    }`}
+                >
+                  <Users size={16} />
+                  Guardian
+                  {accountType === 'guardian' && (
+                    <motion.div
+                      layoutId="account-type-pill"
+                      className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-[#275085]/8 dark:border-[#4a9cdb]/10"
+                      style={{ zIndex: -1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

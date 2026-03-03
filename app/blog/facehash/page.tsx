@@ -60,12 +60,12 @@ export default function FacehashArticle() {
                 <li><strong>Half-Moon Eyes</strong> — Dreamy semicircles looking upward.</li>
             </ul>
 
-            <div className="bg-neutral-50 dark:bg-zinc-900 p-8 rounded-3xl my-12 border border-neutral-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold mb-3">See All 10 Eye Styles</h3>
-                <p className="mb-6 italic text-gray-600 dark:text-gray-400">
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 p-8 rounded-[24px] my-12 border border-sky-200/40 dark:border-sky-800/30">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-3">See All 10 Eye Styles</h3>
+                <p className="mb-6 italic text-sky-700/60 dark:text-sky-300/60">
                     Explore every eye type with live, blinking Facehash examples and detailed descriptions.
                 </p>
-                <Link href="/hash/eyes" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-2xl transition-transform hover:scale-105">
+                <Link href="/hash/eyes" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full transition-all hover:scale-105 shadow-lg shadow-sky-500/20">
                     View Eye Styles →
                 </Link>
             </div>
@@ -78,12 +78,12 @@ export default function FacehashArticle() {
                 Each color was hand-picked to work beautifully in both light and dark mode, and to provide enough contrast for the white eyes and initial letter to remain legible.
             </p>
 
-            <div className="bg-neutral-50 dark:bg-zinc-900 p-8 rounded-3xl my-12 border border-neutral-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold mb-3">See All 12 Colors</h3>
-                <p className="mb-6 italic text-gray-600 dark:text-gray-400">
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 p-8 rounded-[24px] my-12 border border-sky-200/40 dark:border-sky-800/30">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-3">See All 12 Colors</h3>
+                <p className="mb-6 italic text-sky-700/60 dark:text-sky-300/60">
                     Browse the full palette with live Facehash examples for every color.
                 </p>
-                <Link href="/hash" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-2xl transition-transform hover:scale-105">
+                <Link href="/hash" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full transition-all hover:scale-105 shadow-lg shadow-sky-500/20">
                     View Color Palette →
                 </Link>
             </div>
@@ -140,10 +140,10 @@ export default function FacehashArticle() {
                 <li><strong>Color Adaptation</strong> — Mouth expressions use <code>currentColor</code>, which automatically adapts based on the background luminance, ensuring visibility on every color.</li>
             </ul>
 
-            <div className="bg-neutral-50 dark:bg-zinc-900 p-8 rounded-3xl my-12 border border-neutral-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold mb-4">Meet Yours</h3>
-                <p className="mb-6 italic text-gray-600 dark:text-gray-400">Your Facehash is waiting on your dashboard. Same name, same face — always.</p>
-                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-2xl transition-transform hover:scale-105">
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 p-8 rounded-[24px] my-12 border border-sky-200/40 dark:border-sky-800/30">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4">Meet Yours</h3>
+                <p className="mb-6 italic text-sky-700/60 dark:text-sky-300/60">Your Facehash is waiting on your dashboard. Same name, same face — always.</p>
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full transition-all hover:scale-105 shadow-lg shadow-sky-500/20">
                     Go to Dashboard
                 </Link>
             </div>

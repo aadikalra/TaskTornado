@@ -48,7 +48,7 @@ export default function EducationalGamesArticle() {
             </p>
 
             <div className="bg-purple-50 dark:bg-purple-950/20 p-8 rounded-3xl my-12 border border-purple-100 dark:border-purple-900/30">
-                <h3 className="text-xl font-bold mb-4 text-purple-900 dark:text-purple-100">Level Up Your Studies</h3>
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4 text-purple-900 dark:text-purple-100">Level Up Your Studies</h3>
                 <p className="mb-6 text-purple-800 dark:text-purple-200">Ready to break the monotony? Challenge yourself with an academic game today.</p>
                 <Link href="/games" className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 dark:bg-purple-500 text-white font-bold rounded-2xl transition-transform hover:scale-105">
                     Start Playing

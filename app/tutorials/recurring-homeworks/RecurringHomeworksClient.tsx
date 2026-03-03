@@ -33,49 +33,49 @@ export default function RecurringHomeworkTutorialPage() {
                 viewport={{ once: true }}
                 className="mb-12"
             >
-                <p className="text-xl leading-[1.6] text-gray-800 dark:text-gray-200 mb-8 font-serif italic text-center px-8 border-l-4 border-emerald-600">
-                    "Don't waste time logging the same tasks every day. Set it once, and let TaskTornado handle the rest."
+                <p className="text-xl leading-[1.6] text-sky-700/80 dark:text-sky-300/80 mb-8 font-serif italic text-center px-8 border-l-4 border-sky-500">
+                    &quot;Don&apos;t waste time logging the same tasks every day. Set it once, and let TaskTornado handle the rest.&quot;
                 </p>
 
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
                     In school, many tasks are repetitive—reading logs, weekly vocab, or daily practice. Instead of manually adding these every single time, you can use <b>Recurring Homework</b> to automate your schedule.
                 </p>
 
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">How to Identify Recurring Tasks</h2>
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
-                    When you look at your homework list, recurring items are marked with a special <b>circular arrow icon</b> <RefreshCcw className="inline-block w-4 h-4 text-emerald-500" /> next to their due date. This tells you that this task is part of a larger series.
+                <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mt-12 mb-4">How to Identify Recurring Tasks</h2>
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
+                    When you look at your homework list, recurring items are marked with a special <b>circular arrow icon</b> <RefreshCcw className="inline-block w-4 h-4 text-sky-500" /> next to their due date. This tells you that this task is part of a larger series.
                 </p>
 
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">Setting Up Automation</h2>
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
-                    When adding a new homework item, you'll see a "Make Recurring" toggle. You can choose from:
+                <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mt-12 mb-4">Setting Up Automation</h2>
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
+                    When adding a new homework item, you&apos;ll see a &quot;Make Recurring&quot; toggle. You can choose from:
                 </p>
                 <div className="mb-12">
                     <PracticeAddButton />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-                        <h4 className="font-bold text-emerald-900 dark:text-emerald-100 mb-2">Daily</h4>
-                        <p className="text-sm text-emerald-800 dark:text-emerald-200">The task repeats every single day. Perfect for reading logs or quick review.</p>
+                    <div className="p-6 rounded-[20px] bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30">
+                        <h4 className="font-bold text-sky-800 dark:text-sky-200 mb-2">Daily</h4>
+                        <p className="text-sm text-sky-700/70 dark:text-sky-300/70">The task repeats every single day. Perfect for reading logs or quick review.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-                        <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-2">Weekly</h4>
-                        <p className="text-sm text-blue-800 dark:text-blue-200">The task repeats on the same day every week. Ideal for weekly quizzes or problem sets.</p>
+                    <div className="p-6 rounded-[20px] bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30">
+                        <h4 className="font-bold text-sky-800 dark:text-sky-200 mb-2">Weekly</h4>
+                        <p className="text-sm text-sky-700/70 dark:text-sky-300/70">The task repeats on the same day every week. Ideal for weekly quizzes or problem sets.</p>
                     </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">The Multi-Choice Delete</h2>
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
-                    Deleting recurring homework is different because TaskTornado gives you more control. When you click delete on a recurring item, you'll be asked:
+                <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mt-12 mb-4">The Multi-Choice Delete</h2>
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
+                    Deleting recurring homework is different because TaskTornado gives you more control. When you click delete on a recurring item, you&apos;ll be asked:
                 </p>
                 <ul className="space-y-6 mb-12">
                     <li className="flex gap-4">
-                        <div className="mt-1 bg-red-100 p-2 rounded-lg text-red-600 dark:bg-red-900/40 dark:text-red-400 h-fit">
+                        <div className="mt-1 bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-red-600 dark:text-red-400 h-fit">
                             <Trash2 className="w-5 h-5" />
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-900 dark:text-white">Delete this instance</h4>
-                            <p className="text-gray-600 dark:text-gray-400">Only removes the specific homework item for today. Future tasks in the series will remain untouched.</p>
+                            <h4 className="font-bold text-sky-800 dark:text-sky-200">Delete this instance</h4>
+                            <p className="text-sky-800/60 dark:text-sky-300/60">Only removes the specific homework item for today. Future tasks in the series will remain untouched.</p>
                         </div>
                     </li>
                     <li className="flex gap-4">
@@ -83,18 +83,18 @@ export default function RecurringHomeworkTutorialPage() {
                             <Trash2 className="w-5 h-5" />
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-900 dark:text-white">Delete whole series</h4>
-                            <p className="text-gray-600 dark:text-gray-400">Removes this task and <b>all future instances</b>. Use this when the recurring assignment is permanently finished or cancelled.</p>
+                            <h4 className="font-bold text-sky-800 dark:text-sky-200">Delete whole series</h4>
+                            <p className="text-sky-800/60 dark:text-sky-300/60">Removes this task and <b>all future instances</b>. Use this when the recurring assignment is permanently finished or cancelled.</p>
                         </div>
                     </li>
                 </ul>
 
                 <div className="mt-20">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Interactive Practice Zone</h2>
-                    <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 font-medium">
+                    <h2 className="text-3xl font-bold text-sky-800 dark:text-sky-200 mb-6">Interactive Practice Zone</h2>
+                    <p className="text-lg text-sky-800/70 dark:text-sky-300/70 mb-8 font-medium">
                         Try managing these recurring items. Notice the icons and try deleting them to see the choice menu.
                     </p>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-inner">
+                    <div className="bg-[#f5f9fc] dark:bg-zinc-800/50 p-8 rounded-[24px] border border-sky-200/40 dark:border-sky-800/30">
                         <RecurringPracticeList />
                     </div>
                 </div>
@@ -176,7 +176,7 @@ function PracticeAddButton() {
         <>
             <Button
                 onClick={() => setIsOpen(true)}
-                className="w-full h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20 group"
+                className="w-full h-16 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-lg shadow-lg shadow-sky-500/20 group"
             >
                 <Plus className="mr-2 h-6 w-6 group-hover:rotate-90 transition-transform" />
                 Open Practice Modal
@@ -280,8 +280,8 @@ function PracticeAddButton() {
                                 </div>
 
                                 {/* Highlighted Recurring Section */}
-                                <div className="pt-2 space-y-4 p-4 -mx-4 rounded-xl relative transition-all duration-500 bg-emerald-50/30 dark:bg-emerald-900/10 border-2 border-emerald-500/20 shadow-sm animate-pulse-subtle">
-                                    <div className="absolute -top-3 left-4 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm z-20">
+                                <div className="pt-2 space-y-4 p-4 -mx-4 rounded-xl relative transition-all duration-500 bg-sky-50/50 dark:bg-sky-900/10 border-2 border-sky-500/20 shadow-sm animate-pulse-subtle">
+                                    <div className="absolute -top-3 left-4 bg-sky-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm z-20">
                                         Recurring Settings
                                     </div>
 
@@ -327,7 +327,7 @@ function PracticeAddButton() {
                                 </Button>
                                 <Button
                                     onClick={() => setIsOpen(false)}
-                                    className="px-4 py-2 bg-[#264f84] hover:bg-[#1a3a63] text-white rounded-lg"
+                                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg"
                                 >
                                     Create Assignment
                                 </Button>
@@ -339,9 +339,9 @@ function PracticeAddButton() {
 
             <style jsx global>{`
                 @keyframes pulse-subtle {
-                    0% { border-color: rgba(16, 185, 129, 0.2); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.1); }
-                    50% { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 15px 0 rgba(16, 185, 129, 0.2); }
-                    100% { border-color: rgba(16, 185, 129, 0.2); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.1); }
+                    0% { border-color: rgba(14, 165, 233, 0.2); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.1); }
+                    50% { border-color: rgba(14, 165, 233, 0.5); box-shadow: 0 0 15px 0 rgba(14, 165, 233, 0.2); }
+                    100% { border-color: rgba(14, 165, 233, 0.2); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.1); }
                 }
                 .animate-pulse-subtle {
                     animation: pulse-subtle 3s infinite ease-in-out;
@@ -350,4 +350,3 @@ function PracticeAddButton() {
         </>
     );
 }
-

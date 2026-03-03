@@ -42,10 +42,10 @@ export default function LearningCenterArticle() {
                 Speed matters. We&apos;ve documented the keyboard shortcuts and platform tricks that help you move through your academic tasks like a pro. From fast-switching between views to advanced search operators, these &quot;pro tips&quot; will shave minutes off your daily routine.
             </p>
 
-            <div className="bg-neutral-50 dark:bg-zinc-900 border border-neutral-100 dark:border-zinc-800 p-8 rounded-3xl my-12">
-                <h3 className="text-xl font-bold mb-4">Start Your Training</h3>
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30 p-8 rounded-3xl my-12">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4">Start Your Training</h3>
                 <p className="mb-6 opacity-70">Ready to take your TaskTornado skills to the next level? Explore our library of tutorials today.</p>
-                <Link href="/tutorials" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-2xl transition-transform hover:scale-105">
+                <Link href="/tutorials" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full shadow-lg shadow-sky-500/20 transition-transform hover:scale-105">
                     Visit the Tutorials
                 </Link>
             </div>

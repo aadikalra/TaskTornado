@@ -5,12 +5,12 @@ import { Twitter, Github, Linkedin, Instagram, ArrowUpRight } from 'lucide-react
 
 const footerLinks = [
     {
-        title: 'Product',
+        title: 'Solutions',
         links: [
-            { name: 'Features', href: '#features' },
-            { name: 'Aurora AI', href: '#ai' },
-            { name: 'Calendar', href: '#features' },
-            { name: 'Pricing', href: '#pricing' },
+            { name: 'For Students', href: '/' },
+            { name: 'For Teachers', href: '/teachers' },
+            { name: 'For Guardians', href: '/guardians' },
+            { name: 'All Features', href: '/features' },
         ],
     },
     {
@@ -18,12 +18,15 @@ const footerLinks = [
         links: [
             { name: 'AI Guidelines', href: '/ai-guidelines' },
             { name: 'Changelog', href: '/changelog' },
-            { name: 'Documentation', href: '/tutorials' },
+            { name: 'Tutorials', href: '/tutorials' },
+            { name: 'Blog', href: '/blog' },
         ],
     },
     {
-        title: 'Company',
+        title: 'Get Started',
         links: [
+            { name: 'Sign Up', href: '/signup' },
+            { name: 'Log In', href: '/login' },
             { name: 'Privacy Policy', href: '/legal/privacy' },
             { name: 'Terms of Service', href: '/legal/terms' },
         ],

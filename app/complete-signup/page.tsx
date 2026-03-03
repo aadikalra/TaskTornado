@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { isNameBlocked, isEmailBlocked, BLOCKED_ERROR_MESSAGE } from '@/lib/blockedNames';
 
 export default function CompleteSignupPage() {
   const [password, setPassword] = useState('');
@@ -21,6 +22,14 @@ export default function CompleteSignupPage() {
     if (storedData) {
       try {
         const decodedData = JSON.parse(atob(storedData));
+
+        // Block restricted names/emails from Google accounts
+        if (isNameBlocked(decodedData.name || '') || isEmailBlocked(decodedData.email || '')) {
+          setError(BLOCKED_ERROR_MESSAGE);
+          sessionStorage.removeItem('googleUserData');
+          return;
+        }
+
         setGoogleUserData(decodedData);
       } catch (error) {
         console.error('Error parsing Google user data:', error);
@@ -47,6 +56,12 @@ export default function CompleteSignupPage() {
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    // Double-check blocked names/emails
+    if (isNameBlocked(googleUserData.name || '') || isEmailBlocked(googleUserData.email || '')) {
+      setError(BLOCKED_ERROR_MESSAGE);
       return;
     }
 

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Lock, Mail, Loader2, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Loader2, ArrowRight, User, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { supabase } from '@/lib/supabase/client';
@@ -12,6 +12,7 @@ import { BetaPasswordModal } from '@/components/BetaPasswordModal';
 import { Button } from '@/components/animate-ui/primitives/buttons/button';
 import { useDarkMode } from '@/context/DarkModeContext';
 import Image from 'next/image';
+import { isEmailBlocked, isNameBlocked, BLOCKED_ERROR_MESSAGE } from '@/lib/blockedNames';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,13 +23,18 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showBetaModal, setShowBetaModal] = useState(false);
   const [betaAccessGranted, setBetaAccessGranted] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [verifyName, setVerifyName] = useState('');
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyError, setVerifyError] = useState('');
   const { signIn: login } = useAuth();
   const { isDark } = useDarkMode();
   const router = useRouter();
 
   const handleGoogleSignIn = async () => {
+    // Step 1: Verify identity first
     if (!betaAccessGranted) {
-      setShowBetaModal(true);
+      setShowVerifyModal(true);
       return;
     }
 
@@ -48,6 +54,24 @@ export default function LoginPage() {
     }
   };
 
+  const handleVerifySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifyError('');
+
+    if (isNameBlocked(verifyName)) {
+      setVerifyError(BLOCKED_ERROR_MESSAGE);
+      return;
+    }
+    if (isEmailBlocked(verifyEmail)) {
+      setVerifyError(BLOCKED_ERROR_MESSAGE);
+      return;
+    }
+
+    // Passed verification — close modal and proceed to beta modal
+    setShowVerifyModal(false);
+    setShowBetaModal(true);
+  };
+
   const handleBetaSuccess = () => {
     setBetaAccessGranted(true);
     handleGoogleSignIn();
@@ -56,10 +80,41 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Block restricted emails on regular login too
+    if (isEmailBlocked(email)) {
+      setError(BLOCKED_ERROR_MESSAGE);
+      return;
+    }
+
     setLoading(true);
 
     try {
       await login(email, password, rememberMe);
+
+      // Check account type to determine redirect
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('account_type')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.account_type === 'guardian') {
+          // Check if guardian has linked children
+          const { data: links } = await supabase
+            .from('parent_links')
+            .select('id')
+            .eq('parent_id', user.id)
+            .eq('status', 'active')
+            .limit(1);
+
+          router.push(links?.length ? '/guardian/dashboard' : '/guardian/link');
+          return;
+        }
+      }
+
       router.push('/dashboard');
     } catch (err) {
       setError('Invalid email or password.');
@@ -92,7 +147,7 @@ export default function LoginPage() {
               transition={{ delay: 0.1, duration: 0.5 }}
             >
               <h2 className="text-4xl lg:text-[52px] font-bold text-[#275085] dark:text-[#4a9cdb] leading-[1.08] tracking-tight">
-                Welcome <span className="text-emerald-500">back.</span>
+                Welcome <span className="text-[#fabc32]">back.</span>
               </h2>
             </motion.div>
 
@@ -254,6 +309,110 @@ export default function LoginPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Identity Verification Modal (before Google sign-in) */}
+      <AnimatePresence>
+        {showVerifyModal && (
+          <div className="fixed inset-0 bg-gray-900/40 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+              className="bg-white dark:bg-zinc-900 w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-2xl shadow-blue-900/10 border border-gray-100 dark:border-zinc-800"
+            >
+              {/* Header */}
+              <div className="bg-[#275085]/5 dark:bg-[#4a9cdb]/5 px-8 py-6 flex items-center justify-between border-b border-[#275085]/10 dark:border-[#4a9cdb]/10">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 bg-[#275085] dark:bg-[#4a9cdb] rounded-2xl shadow-lg shadow-[#275085]/20">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+                      Verify Identity
+                    </h2>
+                    <p className="text-[11px] font-bold text-[#275085] dark:text-[#4a9cdb] uppercase tracking-widest">
+                      Before Google Sign-In
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowVerifyModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleVerifySubmit} className="p-8 space-y-5">
+                <p className="text-[14px] text-gray-600 dark:text-gray-400 leading-relaxed">
+                  Please confirm your identity before proceeding with Google sign-in.
+                </p>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
+                    Full Name
+                  </label>
+                  <div className="group relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
+                      <User size={16} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Your full name"
+                      value={verifyName}
+                      onChange={(e) => setVerifyName(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
+                    Email Address
+                  </label>
+                  <div className="group relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
+                      <Mail size={16} />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      placeholder="your.email@example.com"
+                      value={verifyEmail}
+                      onChange={(e) => setVerifyEmail(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
+                    />
+                  </div>
+                </div>
+
+                {/* Error */}
+                <AnimatePresence>
+                  {verifyError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200/50 dark:border-red-900/20 text-xs text-red-600 dark:text-red-400 text-center font-medium"
+                    >
+                      {verifyError}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <Button
+                  type="submit"
+                  className="w-full py-4 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#4a9cdb] dark:hover:bg-[#3d8bc4] text-white rounded-2xl text-sm font-bold shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  Continue <ArrowRight size={16} />
+                </Button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Beta Password Modal */}
       <BetaPasswordModal

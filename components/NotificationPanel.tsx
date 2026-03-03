@@ -307,7 +307,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 4, scale: 0.95 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    className="fixed top-[72px] right-4 sm:right-6 z-[60] w-[340px] max-w-[calc(100vw-32px)]"
+                    className="fixed top-[62px] right-4 sm:right-6 z-[60] w-[340px] max-w-[calc(100vw-32px)]"
                 >
                     <div className="bg-[#275085]/95 backdrop-blur-xl rounded-[16px] border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-1.5">
                         {/* Header */}

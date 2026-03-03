@@ -48,7 +48,7 @@ export default function AdaptiveQuizzesArticle() {
             </p>
 
             <div className="bg-indigo-50 dark:bg-indigo-950/20 p-8 rounded-3xl my-12 border border-indigo-100 dark:border-indigo-900/30">
-                <h3 className="text-xl font-bold mb-4 text-indigo-900 dark:text-indigo-100">Test Your Mastery</h3>
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4 text-indigo-900 dark:text-indigo-100">Test Your Mastery</h3>
                 <p className="mb-6 text-indigo-800 dark:text-indigo-200">Ready to see what you really know? Generate a practice quiz in seconds.</p>
                 <Link href="/quiz" className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-2xl transition-transform hover:scale-105">
                     Start a Quiz

@@ -139,7 +139,7 @@ Structure your response exactly as follows:
 (Short explanation of nuance, grammar, or cultural context here in English)`;
 
         // Use Gemini deep model
-        const model = 'gemini-2.0-flash';
+        const model = 'gemma-3-27b-it';
 
         console.log('Sending translation request to Google AI Studio:', {
             model,

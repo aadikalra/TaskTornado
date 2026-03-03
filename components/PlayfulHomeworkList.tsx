@@ -2,7 +2,7 @@ import * as React from 'react';
 import { memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import {  Trash2, Edit,  School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
+import { Trash2, Edit, School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { cn } from '@/lib/utils';
 import {
@@ -54,21 +54,21 @@ const getPriorityIndicator = (priority: 'high' | 'medium' | 'low') => {
   switch (priority) {
     case 'high':
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-500/15">
-          <Flame className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 dark:bg-red-500/15">
+          <Flame className="w-3 h-3 text-red-500 dark:text-red-400" />
         </span>
       );
     case 'medium':
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-100/60 dark:bg-sky-500/10">
-          <AlertTriangle className="w-3 h-3 text-sky-500/70 dark:text-sky-400/70" />
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-500/12">
+          <AlertTriangle className="w-3 h-3 text-orange-500 dark:text-orange-400" />
         </span>
       );
     case 'low':
     default:
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#ebf6b5]/40 dark:bg-[#ebf6b5]/10">
-          <Minus className="w-3 h-3 text-sky-500/50 dark:text-sky-400/50" />
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-500/10">
+          <Minus className="w-3 h-3 text-green-500/60 dark:text-green-400/50" />
         </span>
       );
   }
@@ -186,7 +186,7 @@ const PlayfulHomeworkListComponent = ({
             }}
             className={cn(
               "space-y-2 transition-all duration-200",
-              item.pinned && "p-3 -mx-3 rounded-xl bg-gradient-to-r from-[#ebf6b5]/30 to-transparent dark:from-[#ebf6b5]/5 shadow-[0_2px_8px_-2px_rgba(14,165,233,0.06)]"
+              item.pinned && "p-3 -mx-3 rounded-xl bg-[#fef9c3] dark:bg-amber-500/10 shadow-[0_2px_12px_-2px_rgba(245,158,11,0.12)]"
             )}
           >
             <div className="flex items-center space-x-2">
@@ -228,7 +228,7 @@ const PlayfulHomeworkListComponent = ({
                             className="cursor-pointer hover:scale-110 transition-transform"
                             title="Click to unpin this homework"
                           >
-                            <Star className="w-4 h-4 text-sky-500 fill-sky-500" />
+                            <Star className="w-4 h-4 text-amber-500 fill-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.4)]" />
                           </button>
                         ) : (
                           <button
@@ -262,9 +262,9 @@ const PlayfulHomeworkListComponent = ({
                         {!item.completed && (
                           <>
                             {item.dueDateIcon}
-                            <p>
+                            <span className="text-xs">
                               {item.subtext instanceof Date ? item.subtext.toLocaleDateString() : item.subtext}
-                            </p>
+                            </span>
                           </>
                         )}
                       </div>

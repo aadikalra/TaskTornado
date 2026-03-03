@@ -50,10 +50,10 @@ export default function MeetAuroraArticle() {
                 Aurora isn&apos;t just a tab you visit; it&apos;s an assistant that lives across the platform. Whether you&apos;re in the middle of a quiz or reviewing your grade breakdown, Aurora is just a click away, ready to explain a complex topic or help you brainstorm your next essay.
             </p>
 
-            <div className="bg-neutral-50 dark:bg-zinc-900 p-8 rounded-3xl my-12 border border-neutral-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold mb-4">Master Your Studies</h3>
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 p-8 rounded-3xl my-12 border border-sky-200/40 dark:border-sky-800/30">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4">Master Your Studies</h3>
                 <p className="mb-6 italic">Ready to experience a more intelligent way to study? Start a conversation with Aurora today.</p>
-                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-2xl transition-transform hover:scale-105">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full shadow-lg shadow-sky-500/20 transition-transform hover:scale-105">
                     Open Aurora
                 </Link>
             </div>

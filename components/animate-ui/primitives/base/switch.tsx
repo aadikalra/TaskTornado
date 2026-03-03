@@ -58,7 +58,7 @@ function Switch({
         defaultChecked={defaultChecked}
         checked={checked}
         onCheckedChange={setIsChecked}
-        nativeButton={nativeButton}
+        nativeButton={nativeButton ?? true}
         disabled={disabled}
         readOnly={readOnly}
         required={required}
@@ -86,10 +86,10 @@ type SwitchThumbProps = Omit<
 > &
   HTMLMotionProps<'div'> & {
     pressedAnimation?:
-      | TargetAndTransition
-      | VariantLabels
-      | boolean
-      | LegacyAnimationControls;
+    | TargetAndTransition
+    | VariantLabels
+    | boolean
+    | LegacyAnimationControls;
   };
 
 function SwitchThumb({

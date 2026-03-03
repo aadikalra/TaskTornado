@@ -48,7 +48,7 @@ export default function FlashcardsArticle() {
             </p>
 
             <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-3xl my-12 border border-orange-100 dark:border-orange-900/30">
-                <h3 className="text-xl font-bold mb-4 text-orange-900 dark:text-orange-100">Start Building Your Knowledge</h3>
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4 text-orange-900 dark:text-orange-100">Start Building Your Knowledge</h3>
                 <p className="mb-6 text-orange-800 dark:text-orange-200 italic">Create your first deck today and start learning in a way that truly sticks.</p>
                 <Link href="/flashcards" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 dark:bg-orange-500 text-white font-bold rounded-2xl transition-transform hover:scale-105">
                     Go to Flashcards

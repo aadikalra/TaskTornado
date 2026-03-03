@@ -50,7 +50,7 @@ export default function AccountabilitySection() {
                         Homework gets <span className="text-[#873fc6] dark:text-[#8a42cf]/50">done.</span>
                     </h2>
                     <p className="text-base md:text-lg text-[#6b29a5]/70 dark:text-[#8a42cf]/70 max-w-xl mx-auto leading-relaxed font-medium">
-                        Streaks, smart reminders, and a dashboard so satisfying — your students will actually <em>want</em> to stay ahead.
+                        Streaks, smart reminders, and a dashboard so satisfying — your students will actually want to stay ahead.
                     </p>
                 </motion.div>
 

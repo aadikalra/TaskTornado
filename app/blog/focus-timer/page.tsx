@@ -42,11 +42,11 @@ export default function FocusTimerArticle() {
                 When it&apos;s time to focus, the timer takes center stage. We&apos;ve designed the interface to be calm and unobtrusive, with subtle animations that provide a sense of progress without being a distraction itself.
             </p>
 
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-3xl my-12 text-center">
-                <h3 className="text-xl font-bold mb-4">Protect Your Focus</h3>
-                <p className="mb-6 opacity-70 italic">Ready to enter the flow state? Start your next study session with the focus timer.</p>
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30 p-8 rounded-[24px] my-12 text-center">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4">Protect Your Focus</h3>
+                <p className="mb-6 text-sky-700/60 dark:text-sky-300/60 italic">Ready to enter the flow state? Start your next study session with the focus timer.</p>
                 <div className="flex justify-center">
-                    <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold rounded-2xl transition-transform hover:scale-105">
+                    <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-4 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full shadow-lg shadow-sky-500/20 transition-all hover:scale-105">
                         Start Your Timer
                     </Link>
                 </div>

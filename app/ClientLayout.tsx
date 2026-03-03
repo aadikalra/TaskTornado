@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Analytics } from '@vercel/analytics/next';
 import { SearchBar } from '@/components/SearchBar';
 import { useAI } from '@/context/AIContext';
@@ -23,14 +23,36 @@ const AppNavbar = dynamic(() => import('@/components/AppNavbar'), {
   ssr: false,
 });
 
+const GuardianNavbar = dynamic(() => import('@/components/GuardianNavbar'), {
+  ssr: false,
+});
+
 interface ClientLayoutProps {
   children: React.ReactNode;
 }
 
+// Student-only routes that guardians should NOT access
+const STUDENT_ONLY_ROUTES = [
+  '/dashboard',
+  '/calendar',
+  '/homework',
+  '/flashcards',
+  '/web-saves',
+  '/discussions',
+  '/groups',
+  '/quiz',
+  '/writing-assist',
+  '/translate',
+  '/grade-calculator',
+  '/games',
+  '/complete-signup',
+];
+
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isAIAssistantOpen, isAISidebarMode } = useAI();
-  const { user } = useAuth() || {};
+  const { user, isGuardian } = useAuth() || {};
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
 
@@ -44,6 +66,13 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   }, []);
 
   const showSidebarMargin = isDesktop && isAIAssistantOpen && isAISidebarMode;
+
+  // Redirect guardians away from student-only routes
+  React.useEffect(() => {
+    if (user && isGuardian && STUDENT_ONLY_ROUTES.some(r => pathname === r || pathname?.startsWith(r + '/'))) {
+      router.replace('/guardian/dashboard');
+    }
+  }, [user, isGuardian, pathname, router]);
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -83,7 +112,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     '/discussions',
     '/settings',
     '/groups',
-    '/complete-signup'
+    '/complete-signup',
+    '/guardian/dashboard',
+    '/guardian/link',
   ];
 
   // Keep the navbar logic but don't use it for showing Navbar component
@@ -111,8 +142,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         >
           {children}
         </main>
-        {/* Nav: AppNavbar for logged-in, ReboundNavbar for logged-out */}
-        {user ? <AppNavbar /> : <ReboundNavbar />}
+        {/* Nav: GuardianNavbar for guardians, AppNavbar for students, ReboundNavbar for logged-out */}
+        {user ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />) : <ReboundNavbar />}
         <OnboardingTour />
         {contextMenu && (
           <CustomContextMenu

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { onViewChange, emitViewChange, setGlobalActiveView } from '@/components/RoleSwitcher';
+import { usePathname } from 'next/navigation';
+import { onViewChange, emitViewChange, setGlobalActiveView, getGlobalActiveView } from '@/components/RoleSwitcher';
 import StudentLandingContent from '@/components/StudentLandingContent';
 import GuardiansContent from '@/components/GuardiansContent';
 import TeachersContent from '@/components/TeachersContent';
@@ -9,10 +10,33 @@ import TeachersContent from '@/components/TeachersContent';
 const VIEW_ORDER = ['students', 'guardians', 'teachers'] as const;
 type ViewType = typeof VIEW_ORDER[number];
 
+function viewFromPath(path: string): ViewType {
+    if (path === '/guardians') return 'guardians';
+    if (path === '/teachers') return 'teachers';
+    return 'students';
+}
+
 export function LandingSlider({ initialView = 'students' }: { initialView?: string }) {
-    const [activeView, setActiveView] = useState<ViewType>(
-        (VIEW_ORDER.includes(initialView as ViewType) ? initialView : 'students') as ViewType
-    );
+    const pathname = usePathname();
+
+    // Determine view from URL first, then prop fallback
+    const [activeView, setActiveView] = useState<ViewType>(() => {
+        // On first render, prefer URL-based detection
+        if (typeof window !== 'undefined') {
+            return viewFromPath(window.location.pathname);
+        }
+        return (VIEW_ORDER.includes(initialView as ViewType) ? initialView : 'students') as ViewType;
+    });
+
+    // Sync with pathname when Next.js navigates to a landing route
+    useEffect(() => {
+        const newView = viewFromPath(pathname);
+        if (['/', '/guardians', '/teachers'].includes(pathname)) {
+            setActiveView(newView);
+            setGlobalActiveView(newView);
+            emitViewChange(newView);
+        }
+    }, [pathname]);
 
     // Sync global state on mount
     useEffect(() => {
@@ -40,10 +64,7 @@ export function LandingSlider({ initialView = 'students' }: { initialView?: stri
     // Listen for browser back/forward
     useEffect(() => {
         const handlePopState = () => {
-            const path = window.location.pathname;
-            let newView: ViewType = 'students';
-            if (path === '/guardians') newView = 'guardians';
-            else if (path === '/teachers') newView = 'teachers';
+            const newView = viewFromPath(window.location.pathname);
             setActiveView(newView);
             setGlobalActiveView(newView);
             emitViewChange(newView);

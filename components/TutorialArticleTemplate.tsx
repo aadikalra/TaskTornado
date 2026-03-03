@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft,  Calendar, User, List } from 'lucide-react';
+import { ArrowLeft, Calendar, User, List, ArrowRight } from 'lucide-react';
 import { TutorialShareMenu } from '@/components/TutorialShareMenu';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -37,12 +37,17 @@ export function TutorialArticleTemplate({
 }: TutorialArticleTemplateProps) {
     const [headings, setHeadings] = useState<TOCItem[]>([]);
     const [activeId, setActiveId] = useState<string>('');
+    const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        // Small delay to ensure children are rendered
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 60);
+        };
+        window.addEventListener('scroll', handleScroll);
+
         const timer = setTimeout(() => {
             const articleHeadings = Array.from(document.querySelectorAll('article h2'));
-            const headingData = articleHeadings.map((h, index) => {
+            const headingData = articleHeadings.map((h) => {
                 const text = h.textContent || '';
                 const id = h.id || text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
                 h.id = id;
@@ -62,7 +67,10 @@ export function TutorialArticleTemplate({
             );
 
             articleHeadings.forEach((h) => observer.observe(h));
-            return () => observer.disconnect();
+            return () => {
+                observer.disconnect();
+                window.removeEventListener('scroll', handleScroll);
+            };
         }, 100);
 
         return () => clearTimeout(timer);
@@ -83,35 +91,46 @@ export function TutorialArticleTemplate({
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 font-sans selection:bg-blue-100 dark:selection:bg-blue-900/30">
-            {/* Top Navigation Bar */}
-            <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-900">
-                <div className="max-w-screen-xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link href="/tutorials" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+        <div className="min-h-screen pt-20 bg-[#fffaf4] dark:bg-gray-950 font-sans selection:bg-sky-100 dark:selection:bg-sky-900/30 relative">
+            {/* Ambient glows */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-sky-200/20 dark:bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-1/3 left-1/4 w-[350px] h-[350px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-1/2 right-0 w-[250px] h-[250px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+            </div>
+
+            {/* Sticky Nav Bar */}
+            <nav className={cn(
+                "sticky top-0 z-50 transition-all duration-500 px-4 sm:px-6",
+                scrolled
+                    ? "bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-sky-100/60 dark:border-sky-900/20 h-14"
+                    : "bg-transparent h-16"
+            )}>
+                <div className="max-w-[1200px] mx-auto flex items-center justify-between h-full">
+                    <Link href="/tutorials" className="flex items-center gap-2 text-sky-600/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors">
                         <ArrowLeft className="w-4 h-4" />
-                        <span className="text-sm font-medium">Back to Tutorials</span>
+                        <span className="text-sm font-bold uppercase tracking-widest hidden sm:inline">Tutorials</span>
                     </Link>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         <TutorialShareMenu
                             title={title}
-                            className="text-gray-500 hover:text-gray-900 dark:hover:text-white"
                         />
                     </div>
                 </div>
             </nav>
 
-            <div className="max-w-[1100px] mx-auto flex justify-center gap-16 px-6">
+            <div className="relative z-10 max-w-[1100px] mx-auto flex justify-center gap-16 px-6">
                 {/* Main Article column */}
-                <article className="max-w-[720px] w-full py-20">
+                <article className="max-w-[720px] w-full py-16 sm:py-20">
                     {/* Article Header */}
-                    <header className="mb-12">
+                    <header className="mb-14">
                         {category && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="mb-4"
+                                className="mb-5"
                             >
-                                <span className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400">
+                                <span className="inline-flex items-center px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-600 dark:text-sky-400 bg-[#ebf6b5]/60 dark:bg-sky-500/20 rounded-full">
                                     {category}
                                 </span>
                             </motion.div>
@@ -119,7 +138,7 @@ export function TutorialArticleTemplate({
                         <motion.h1
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-[1.15] tracking-tight"
+                            className="text-4xl md:text-5xl font-bold text-sky-500 dark:text-sky-400 mb-6 leading-[1.12] tracking-tight"
                         >
                             {title}
                         </motion.h1>
@@ -128,7 +147,7 @@ export function TutorialArticleTemplate({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-xl text-gray-500 dark:text-gray-400 mb-8 font-light leading-relaxed"
+                            className="text-xl text-sky-700/70 dark:text-sky-300/70 mb-10 font-light leading-relaxed"
                         >
                             {description}
                         </motion.p>
@@ -137,55 +156,72 @@ export function TutorialArticleTemplate({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="flex items-center gap-4 py-6 border-y border-gray-100 dark:border-gray-900"
+                            className="flex items-center gap-4 py-6 border-y border-sky-100/60 dark:border-sky-900/20"
                         >
-                            <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                                <User className="w-6 h-6 text-gray-400" />
+                            <div className="w-11 h-11 bg-[#ebf6b5]/60 dark:bg-sky-500/15 rounded-full flex items-center justify-center">
+                                <User className="w-5 h-5 text-sky-600/60 dark:text-sky-400/60" />
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium text-gray-900 dark:text-white">{author}</span>
+                                    <span className="text-sm font-bold text-sky-800 dark:text-sky-200">{author}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <div className="flex items-center gap-2 text-xs text-sky-600/60 dark:text-sky-400/60 font-medium">
                                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {date}</span>
                                 </div>
                             </div>
                         </motion.div>
                     </header>
 
-                    {/* Article Content */}
-                    <div className="prose prose-lg dark:prose-invert max-w-none">
+                    {/* Article Content — styled to match app palette */}
+                    <div className={cn(
+                        "max-w-none space-y-6",
+                        // Heading styles
+                        "[&>section_h2]:text-2xl [&>section_h2]:md:text-3xl [&>section_h2]:font-bold [&>section_h2]:text-sky-500 [&>section_h2]:dark:text-sky-400 [&>section_h2]:mt-14 [&>section_h2]:mb-5 [&>section_h2]:tracking-tight",
+                        // Paragraph styles
+                        "[&>section_p]:text-lg [&>section_p]:leading-[1.8] [&>section_p]:text-sky-800/70 [&>section_p]:dark:text-sky-300/70",
+                        // List styles
+                        "[&>section_ul]:text-sky-800/70 [&>section_ul]:dark:text-sky-300/70",
+                        "[&>section_ol]:text-sky-800/70 [&>section_ol]:dark:text-sky-300/70",
+                    )}>
                         {children}
                     </div>
 
                     {/* Footer Navigation */}
-                    <footer className="mt-20 pt-12 border-t border-gray-100 dark:border-gray-900">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Continue Reading</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <footer className="mt-20 pt-12 border-t border-sky-100/60 dark:border-sky-900/20">
+                        <h3 className="text-xl font-bold text-sky-500 dark:text-sky-400 mb-6">Continue Reading</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             {nextTutorial && (
                                 <Link href={nextTutorial.href} className="group block">
-                                    <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl group-hover:bg-gray-100 dark:group-hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
-                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 block">{nextTutorial.label || 'Next Tutorial'}</span>
-                                        <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{nextTutorial.title}</h4>
+                                    <div className="p-6 bg-[#f5f9fc] dark:bg-zinc-800 rounded-[20px] group-hover:shadow-xl group-hover:shadow-sky-500/[0.06] transition-all duration-500 group-hover:-translate-y-1">
+                                        <span className="text-[9px] font-bold text-sky-600/60 dark:text-sky-400/60 uppercase tracking-widest mb-2 block">
+                                            {nextTutorial.label || 'Next Tutorial'}
+                                        </span>
+                                        <h4 className="text-lg font-bold text-sky-800 dark:text-sky-200 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors flex items-center gap-2">
+                                            {nextTutorial.title}
+                                            <ArrowRight className="w-4 h-4 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300" />
+                                        </h4>
                                     </div>
                                 </Link>
                             )}
                             <Link href="/tutorials" className="group block">
-                                <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl group-hover:bg-gray-100 dark:group-hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
-                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 block">Directory</span>
-                                    <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">Browse All Tutorials</h4>
+                                <div className="p-6 bg-[#f5f9fc] dark:bg-zinc-800 rounded-[20px] group-hover:shadow-xl group-hover:shadow-sky-500/[0.06] transition-all duration-500 group-hover:-translate-y-1">
+                                    <span className="text-[9px] font-bold text-sky-600/60 dark:text-sky-400/60 uppercase tracking-widest mb-2 block">Directory</span>
+                                    <h4 className="text-lg font-bold text-sky-800 dark:text-sky-200 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors flex items-center gap-2">
+                                        Browse All Tutorials
+                                        <ArrowRight className="w-4 h-4 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300" />
+                                    </h4>
                                 </div>
                             </Link>
                         </div>
                     </footer>
                 </article>
 
-                {/* Right Sidebar TOC - Hidden on mobile/small tablets */}
+                {/* Right Sidebar TOC */}
                 <aside className="hidden xl:block w-64 pt-20">
-                    <div className="sticky top-32">
-                        <div className="flex items-center gap-2 text-gray-900 dark:text-white font-bold uppercase tracking-widest text-[10px] mb-6">
+                    <div className="sticky top-28">
+                        <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold uppercase tracking-[0.2em] text-[10px] mb-8">
                             <List className="w-3 h-3" />
-                            <span>Table of Contents</span>
+                            <span>In this guide</span>
                         </div>
                         <nav className="space-y-4">
                             {headings.map((heading) => (
@@ -195,8 +231,8 @@ export function TutorialArticleTemplate({
                                     className={cn(
                                         "block text-left text-sm transition-all duration-300 hover:pl-1",
                                         activeId === heading.id
-                                            ? "text-blue-600 dark:text-blue-400 font-medium pl-2 border-l-2 border-blue-600 dark:border-blue-400"
-                                            : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 pl-2 border-l-2 border-transparent"
+                                            ? "text-sky-600 dark:text-sky-400 font-bold pl-3 border-l-2 border-sky-500 dark:border-sky-400"
+                                            : "text-sky-600/40 dark:text-sky-400/40 hover:text-sky-600 dark:hover:text-sky-400 pl-3 border-l-2 border-transparent"
                                     )}
                                 >
                                     {heading.text}
@@ -204,8 +240,8 @@ export function TutorialArticleTemplate({
                             ))}
                         </nav>
 
-                        <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-900">
-                            <p className="text-[11px] text-gray-400 dark:text-gray-600 leading-relaxed font-medium">
+                        <div className="mt-12 pt-8 border-t border-sky-100/60 dark:border-sky-900/20">
+                            <p className="text-[11px] text-sky-600/40 dark:text-sky-400/40 leading-relaxed font-medium">
                                 Helping you master TaskTornado, one step at a time.
                             </p>
                         </div>

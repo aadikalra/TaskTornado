@@ -47,10 +47,10 @@ export default function WritingCompanionArticle() {
                 <li><strong>Structural Flow:</strong> Ensure your arguments transition smoothly from one paragraph to the next.</li>
             </ul>
 
-            <div className="bg-neutral-50 dark:bg-zinc-900 border border-neutral-100 dark:border-zinc-800 p-8 rounded-3xl my-12">
-                <h3 className="text-xl font-bold mb-4 font-serif italic">Elevate Your Prose</h3>
+            <div className="bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30 p-8 rounded-3xl my-12">
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4 font-serif italic">Elevate Your Prose</h3>
                 <p className="mb-6">Don&apos;t let a blank page slow you down. Start your next writing project with the support you deserve.</p>
-                <Link href="/writing-assist" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-2xl transition-transform hover:scale-105">
+                <Link href="/writing-assist" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full shadow-lg shadow-sky-500/20 transition-transform hover:scale-105">
                     Open Writing Assist
                 </Link>
             </div>

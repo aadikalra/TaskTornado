@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import Image from 'next/image';
+import { Flame, AlertTriangle, Minus } from 'lucide-react';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
 
 export default function StarringHomeworkTutorialPage() {
@@ -23,7 +24,7 @@ export default function StarringHomeworkTutorialPage() {
                 viewport={{ once: true }}
                 className="mb-12"
             >
-                <div className="relative w-full mb-12 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="relative w-full mb-12 rounded-2xl overflow-hidden shadow-2xl shadow-sky-500/[0.08]">
                     <Image
                         src="/StarringTutorial.png"
                         alt="Starring Homeworks Tutorial"
@@ -34,48 +35,63 @@ export default function StarringHomeworkTutorialPage() {
                     />
                 </div>
 
-                <p className="text-xl leading-[1.6] text-gray-800 dark:text-gray-200 mb-8 font-serif italic text-center px-8 border-l-4 border-blue-600">
-                    "Setting priorities is the key to managing your workload. In TaskTornado, we've made it as simple as a single click to highlight what matters most."
+                <p className="text-xl leading-[1.6] text-sky-700/80 dark:text-sky-300/80 mb-8 font-serif italic text-center px-8 border-l-4 border-sky-500">
+                    &quot;Setting priorities is the key to managing your workload. In TaskTornado, we&apos;ve made it as simple as a single click to highlight what matters most.&quot;
                 </p>
 
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
-                    Managing a heavy course load means constantly deciding what needs your attention first. While priority tags (High, Medium, Low) are great for organization, sometimes you need a specific task to stand out visually across your dashboard. That's where <b>Starring</b> comes in.
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
+                    Managing a heavy course load means constantly deciding what needs your attention first. While priority tags (High, Medium, Low) are great for organization, sometimes you need a specific task to stand out visually across your dashboard. That&apos;s where <b>Starring</b> comes in.
                 </p>
 
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">Why Star a Homework?</h2>
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
-                    A star is more than just a priority level; it's a visual bookmark. When you star a homework assignment, it replaces the standard priority tag with a bright, eye-catching star. This makes it instantly recognizable in your list, helping you focus on your "must-do" items for the day.
+                <h2 className="text-2xl font-bold text-sky-500 dark:text-sky-400 mt-12 mb-4">Why Star a Homework?</h2>
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
+                    A star is more than just a priority level; it&apos;s a visual bookmark. When you star a homework assignment, it replaces the standard priority tag with a bright, eye-catching star. This makes it instantly recognizable in your list, helping you focus on your &quot;must-do&quot; items for the day.
                 </p>
 
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">How to Star an Assignment</h2>
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
+                <h2 className="text-2xl font-bold text-sky-500 dark:text-sky-400 mt-12 mb-4">How to Star an Assignment</h2>
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
                     The process is designed to be fast and intuitive:
                 </p>
-                <ol className="list-decimal list-inside space-y-4 text-lg text-gray-600 dark:text-gray-400 mb-8">
+                <ol className="list-decimal list-inside space-y-4 text-lg text-sky-800/70 dark:text-sky-300/70 mb-8">
                     <li>Locate the homework item on your <b>Dashboard</b> or in the <b>Homework</b> tab.</li>
-                    <li>Look for the priority tag (e.g., <span className="text-red-500 font-semibold">High</span>, <span className="text-yellow-500 font-semibold">Medium</span>, or <span className="text-green-500 font-semibold">Low</span>) on the card.</li>
+                    <li>Look for the priority tag (e.g., <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15"><Flame className="w-3 h-3 text-red-500 dark:text-red-400" /></span><span className="text-red-500 font-semibold">High</span></span>, <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/12"><AlertTriangle className="w-3 h-3 text-orange-500 dark:text-orange-400" /></span><span className="text-orange-500 font-semibold">Medium</span></span>, or <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10"><Minus className="w-3 h-3 text-green-500/60 dark:text-green-400/50" /></span><span className="text-green-500 font-semibold">Low</span></span>) on the card.</li>
                     <li><b>Simply click directly on the priority tag.</b></li>
                     <li>The tag will instantly transform into a golden star ⭐.</li>
                 </ol>
 
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">Unstarring and Re-prioritizing</h2>
-                <p className="text-lg leading-[1.8] text-gray-600 dark:text-gray-400 mb-6">
+                <h2 className="text-2xl font-bold text-sky-500 dark:text-sky-400 mt-12 mb-4">Unstarring and Re-prioritizing</h2>
+                <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
                     Changed your mind? No problem. Clicking the star again will bring back the original priority selection menu, allowing you to reset the priority or simply unstar the item. This flexibility ensures your dashboard always reflects your current academic focus.
                 </p>
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-8 rounded-2xl border border-blue-100 dark:border-blue-800 mt-12">
-                    <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-3">Pro Tip</h3>
-                    <p className="text-blue-800 dark:text-blue-200">
-                        Use Stars for assignments due within the next 24 hours. This creates a clear "Hot List" that you can tackle first thing when you sit down to study.
+                <div className="bg-[#f5f9fc] dark:bg-zinc-800 p-8 rounded-[20px] border border-sky-200/40 dark:border-sky-800/30 mt-12">
+                    <h3 className="text-xl font-bold text-sky-500 dark:text-sky-400 mb-3">Pro Tip</h3>
+                    <p className="text-sky-700/80 dark:text-sky-300/80">
+                        Use Stars for assignments due within the next 24 hours. This creates a clear &quot;Hot List&quot; that you can tackle first thing when you sit down to study.
                     </p>
                 </div>
 
                 <div className="mt-20">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Interactive Practice Zone</h2>
-                    <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                        Try it out yourself! below are some "playful" homework tasks. Click on their priority icons to star them.
+                    <h2 className="text-3xl font-bold text-sky-500 dark:text-sky-400 mb-6">Interactive Practice Zone</h2>
+                    <p className="text-lg text-sky-800/70 dark:text-sky-300/70 mb-6">
+                        Try it out yourself! Below are some &quot;playful&quot; homework tasks. Click on their priority icons to star them.
                     </p>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-inner">
+                    <div className="flex items-center gap-6 mb-8 px-4 py-3 rounded-xl bg-sky-50/60 dark:bg-zinc-800/40 border border-sky-100/50 dark:border-sky-800/20">
+                        <span className="text-sm font-medium text-sky-600/50 dark:text-sky-400/40 uppercase tracking-wider">Key</span>
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15"><Flame className="w-3 h-3 text-red-500 dark:text-red-400" /></span>
+                            <span className="text-sm text-sky-800/70 dark:text-sky-300/70">High</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/12"><AlertTriangle className="w-3 h-3 text-orange-500 dark:text-orange-400" /></span>
+                            <span className="text-sm text-sky-800/70 dark:text-sky-300/70">Medium</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10"><Minus className="w-3 h-3 text-green-500/60 dark:text-green-400/50" /></span>
+                            <span className="text-sm text-sky-800/70 dark:text-sky-300/70">Low</span>
+                        </div>
+                    </div>
+                    <div className="bg-[#f5f9fc] dark:bg-zinc-800/50 p-8 rounded-[24px] border border-sky-200/40 dark:border-sky-800/30">
                         <PracticeHomeworkList />
                     </div>
                 </div>
@@ -140,7 +156,6 @@ function PracticeHomeworkList() {
     };
 
     const handleDeleteSeries = (id: string) => {
-        // In this practice list, we'll just remove the item to simulate deleting the series
         setItems(prev => prev.filter(item => item.id !== id));
         alert('Whole series deleted (simulated)');
     };

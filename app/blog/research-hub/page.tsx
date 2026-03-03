@@ -43,7 +43,7 @@ export default function ResearchHubArticle() {
             </p>
 
             <div className="bg-emerald-50 dark:bg-emerald-950/20 p-8 rounded-3xl my-12 border border-emerald-100 dark:border-emerald-900/30">
-                <h3 className="text-xl font-bold mb-4 text-emerald-900 dark:text-emerald-100">Organize Your Research</h3>
+                <h3 className="text-xl font-bold text-sky-800 dark:text-sky-200 mb-4 text-emerald-900 dark:text-emerald-100">Organize Your Research</h3>
                 <p className="mb-6 text-emerald-800 dark:text-emerald-200">Stop losing your best sources. Start building your personal research hub today.</p>
                 <Link href="/web-saves" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 dark:bg-emerald-500 text-white font-bold rounded-2xl transition-transform hover:scale-105">
                     Go to Web Saves

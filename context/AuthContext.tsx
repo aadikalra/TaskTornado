@@ -4,16 +4,27 @@ import { useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { isNameBlocked, isEmailBlocked } from '@/lib/blockedNames';
+
+type LinkedStudent = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  linkedAt: string;
+};
 
 type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, accountType?: 'student' | 'guardian') => Promise<void>;
   signOut: () => Promise<void>;
   full_name: string | null;
   isGoogleUser: boolean;
+  accountType: 'student' | 'guardian';
+  isGuardian: boolean;
+  linkedStudents: LinkedStudent[];
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -175,17 +186,119 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [full_name, setFullName] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accountType, setAccountType] = useState<'student' | 'guardian'>('student');
+  const [linkedStudents, setLinkedStudents] = useState<LinkedStudent[]>([]);
   const router = useRouter();
 
+  // Fetch account type from profiles table, syncing from user_metadata if needed
+  const fetchAccountType = async (userId: string, userMetadata?: Record<string, any>) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('account_type')
+        .eq('id', userId)
+        .single();
+
+      const profileType = data?.account_type as 'student' | 'guardian' | undefined;
+      const metadataType = userMetadata?.account_type as 'student' | 'guardian' | undefined;
+
+      // If profile exists and has the right type, use it
+      if (!error && profileType && profileType !== 'student') {
+        setAccountType(profileType);
+        return;
+      }
+
+      // If user_metadata says 'guardian' but profile says 'student' (default),
+      // the profile was created by a trigger before our update ran — fix it now
+      if (metadataType === 'guardian' && profileType === 'student') {
+        await supabase
+          .from('profiles')
+          .update({ account_type: 'guardian' })
+          .eq('id', userId);
+        setAccountType('guardian');
+        return;
+      }
+
+      // Use whatever the profile says (or default to student)
+      setAccountType(profileType || 'student');
+    } catch (err) {
+      console.warn('Could not fetch account type:', err);
+    }
+  };
+
+  // Fetch linked students for guardian accounts
+  const fetchLinkedStudents = async (userId: string) => {
+    try {
+      const { data: links, error } = await supabase
+        .from('parent_links')
+        .select('student_id, created_at')
+        .eq('parent_id', userId)
+        .eq('status', 'active');
+
+      if (error || !links?.length) {
+        setLinkedStudents([]);
+        return;
+      }
+
+      // Get student profiles
+      const studentIds = links.map(l => l.student_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', studentIds);
+
+      const students: LinkedStudent[] = links.map(link => {
+        const profile = profiles?.find(p => p.id === link.student_id);
+        return {
+          id: link.student_id,
+          name: profile?.full_name ?? null,
+          email: profile?.email ?? null,
+          linkedAt: link.created_at ?? new Date().toISOString(),
+        };
+      });
+
+      setLinkedStudents(students);
+    } catch (err) {
+      console.warn('Could not fetch linked students:', err);
+      setLinkedStudents([]);
+    }
+  };
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setFullName(session?.user?.user_metadata?.full_name ?? null);
-      setLoading(false);
 
       if (session?.user) {
+        // Block restricted users — even if they got past the login/signup page
+        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
+        const userEmail = session.user.email || '';
+        if (isNameBlocked(userName) || isEmailBlocked(userEmail)) {
+          await supabase.auth.signOut();
+          setUser(null);
+          setSession(null);
+          setFullName(null);
+          setLoading(false);
+          return;
+        }
+
+        // Set account type synchronously from JWT metadata (instant, no DB call)
+        const metaAccountType = session.user.user_metadata?.account_type as 'student' | 'guardian' | undefined;
+        if (metaAccountType === 'guardian') {
+          setAccountType('guardian');
+        }
+
         checkGoogleUserAndLogClassroom(session.user);
+        setLoading(false);
+
+        // Then verify/sync with DB in background (fixes mismatches without blocking)
+        fetchAccountType(session.user.id, session.user.user_metadata);
+        fetchLinkedStudents(session.user.id);
+      } else {
+        setAccountType('student');
+        setLinkedStudents([]);
+        setLoading(false);
       }
     });
 
@@ -206,20 +319,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, name: string): Promise<void> => {
+  const signUp = async (email: string, password: string, name: string, acctType: 'student' | 'guardian' = 'student'): Promise<void> => {
     try {
       // Use Supabase Auth signup - it will handle duplicate emails automatically
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: name,
+            account_type: acctType,
           },
         },
       });
 
       if (error) throw error;
+
+      // Update the profiles table with the account type
+      if (data.user) {
+        await supabase
+          .from('profiles')
+          .update({ account_type: acctType })
+          .eq('id', data.user.id);
+        setAccountType(acctType);
+      }
     } catch (error: any) {
       // Re-throw any errors for the UI to handle
       throw error;
@@ -301,6 +424,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFullName(null);
   };
 
+  const isGuardian = accountType === 'guardian';
+
   const value = {
     user,
     session,
@@ -313,6 +438,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user?.user_metadata?.provider === 'google' ||
       user?.email?.endsWith('@gmail.com') ||
       user?.user_metadata?.email_verified || false,
+    accountType,
+    isGuardian,
+    linkedStudents,
   };
 
   return (

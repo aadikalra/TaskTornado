@@ -484,18 +484,12 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
             <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-400/60 font-medium">
               Built for students • Public Beta {getFullVersionString()}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex gap-3 sm:gap-4">
               <a
                 href="https://forms.gle/wjR1nJdg8vFYeNcd6"
                 className="text-xs sm:text-sm font-bold text-sky-600/50 dark:text-sky-400/50 hover:text-sky-600 dark:hover:text-sky-400 transition-colors py-1 px-3 rounded-full hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 active:scale-95"
               >
                 Send Feedback
-              </a>
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLScaYx0Gg30L_g3HiEE3um0MAE8OKlCN7naJrRTiVjSyBUt0og/viewform?usp=header"
-                className="text-xs sm:text-sm font-bold text-sky-600/50 dark:text-sky-400/50 hover:text-sky-600 dark:hover:text-sky-400 transition-colors py-1 px-3 rounded-full hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 active:scale-95"
-              >
-                Report Issue
               </a>
             </div>
           </div>
