@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Test, Class } from '@/context/ClassContext';
 import { LinkCard } from './LinkCard';
 
@@ -9,28 +9,25 @@ interface StudyMaterial {
   url: string;
   title?: string;
 }
-import { getClassIcon, } from '@/lib/icon-map';
+import { getClassIcon } from '@/lib/icon-map';
 import {
   Calendar,
   Clock,
   Filter,
   Search,
   BookOpen,
-  
   GraduationCap,
   FileText,
   Presentation,
-  
   AlertTriangle,
-  
-  
   Target,
-  X
+  X,
+  ChevronRight,
+  ChevronDown,
+  Zap,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import EnhancedTestCard from './EnhancedTestCard';
 import { TestDetailModal } from './TestDetailModal';
 
 type StatusGroupedTestListProps = {
@@ -41,6 +38,18 @@ type StatusGroupedTestListProps = {
 
 type FilterOption = 'all' | 'upcoming' | 'taken' | 'alpha' | 'beta' | 'exam' | 'quiz';
 
+// Class color palette (same order as MainApp)
+const CLASS_COLORS = [
+  { bg: '#F9A8A8', header: '#DC2626' },
+  { bg: '#93C5FD', header: '#2563EB' },
+  { bg: '#FCD39D', header: '#D97706' },
+  { bg: '#86EFAC', header: '#16A34A' },
+  { bg: '#C4B5FD', header: '#7C3AED' },
+  { bg: '#F9A8D4', header: '#DB2777' },
+  { bg: '#99F6E4', header: '#0D9488' },
+  { bg: '#CBD5E1', header: '#475569' },
+];
+
 const StatusGroupedTestList = ({
   tests,
   classes,
@@ -50,6 +59,7 @@ const StatusGroupedTestList = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showTaken, setShowTaken] = useState(false);
 
   const handleTestClick = (test: Test) => {
     setSelectedTest(test);
@@ -62,9 +72,19 @@ const StatusGroupedTestList = ({
     return map;
   }, [classes]);
 
+  const classIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    classes.forEach((c, i) => map.set(c.id, i));
+    return map;
+  }, [classes]);
+
+  const getColorForClass = useCallback((classId: string) => {
+    const idx = classIndexMap.get(classId) ?? 0;
+    return CLASS_COLORS[idx % CLASS_COLORS.length];
+  }, [classIndexMap]);
+
   const filteredAndSortedTests = useMemo(() => {
     let filtered = tests.filter(test => {
-      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -72,11 +92,9 @@ const StatusGroupedTestList = ({
           test.testType?.toLowerCase().includes(query) ||
           test.description?.toLowerCase().includes(query) ||
           classesById.get(test.classId)?.name.toLowerCase().includes(query);
-
         if (!matchesSearch) return false;
       }
 
-      // Status filter
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
@@ -100,14 +118,10 @@ const StatusGroupedTestList = ({
           if (test.testType?.toLowerCase() !== 'quiz') return false;
           break;
       }
-
       return true;
     });
 
-    filtered.sort((a, b) => {
-      return new Date(a.testDate).getTime() - new Date(b.testDate).getTime();
-    });
-
+    filtered.sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
     return filtered;
   }, [tests, classesById, filter, searchQuery]);
 
@@ -117,9 +131,6 @@ const StatusGroupedTestList = ({
     now.setHours(0, 0, 0, 0);
 
     filteredAndSortedTests.forEach(test => {
-      // A test is completed if:
-      // 1. The test date has already occurred (is in the past), OR
-      // 2. The test has a status of 'completed' (case-insensitive)
       if (new Date(test.testDate) < now || test.status?.toLowerCase() === 'completed') {
         groups.taken.push(test);
       } else {
@@ -132,32 +143,26 @@ const StatusGroupedTestList = ({
   const getTestTypeIcon = useCallback((testType?: string) => {
     if (!testType) return BookOpen;
     switch (testType.toLowerCase()) {
-      case 'exam':
-      case 'final':
-      case 'midterm':
-        return GraduationCap;
-      case 'quiz':
-        return FileText;
-      case 'project':
-        return Presentation;
-      case 'alpha':
-        return Target;
-      case 'beta':
-        return AlertTriangle;
-      default:
-        return BookOpen;
+      case 'exam': case 'final': case 'midterm': return GraduationCap;
+      case 'quiz': return FileText;
+      case 'project': return Presentation;
+      case 'alpha': return Target;
+      case 'beta': return Zap;
+      default: return BookOpen;
     }
   }, []);
 
-  const stats = useMemo(() => {
-    const total = filteredAndSortedTests.length;
-    const upcoming = groupedTests.upcoming.length;
-    const taken = groupedTests.taken.length;
-    const alpha = filteredAndSortedTests.filter(t => t.testType?.toLowerCase() === 'alpha').length;
-    const beta = filteredAndSortedTests.filter(t => t.testType?.toLowerCase() === 'beta').length;
-
-    return { total, upcoming, taken, alpha, beta };
-  }, [filteredAndSortedTests, groupedTests]);
+  const getTestTypeBadgeClasses = useCallback((testType?: string) => {
+    const type = testType?.toLowerCase() || '';
+    switch (type) {
+      case 'alpha': return 'bg-sky-100/70 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300';
+      case 'beta': return 'bg-[#ebf6b5]/70 text-sky-800 dark:bg-[#ebf6b5]/15 dark:text-sky-200';
+      case 'exam': case 'final': case 'midterm': return 'bg-sky-200/60 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200';
+      case 'quiz': return 'bg-sky-100/50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300';
+      case 'project': return 'bg-[#ebf6b5]/50 text-sky-700 dark:bg-[#ebf6b5]/10 dark:text-sky-200';
+      default: return 'bg-sky-50 text-sky-500 dark:bg-sky-500/5 dark:text-sky-400';
+    }
+  }, []);
 
   const formatTime = (timeString?: string | null) => {
     if (!timeString) return '';
@@ -166,307 +171,215 @@ const StatusGroupedTestList = ({
       const date = new Date();
       date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
+    } catch {
       return timeString;
     }
   };
 
-  const Section = ({
-    title,
-    items,
-    icon: SectionIcon,
-    color,
-  }: {
-    title: string;
-    items: Test[];
-    icon: any;
-    color: string;
-  }) => (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
-      <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-sm ${color}`}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/80 dark:bg-gray-800/80 shadow-sm">
-          <SectionIcon className="h-5 w-5" />
+  const getDueDateLabel = useCallback((testDate: Date) => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const test = new Date(testDate);
+    test.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((test.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return `${Math.abs(diffDays)}d ago`;
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays <= 7) return `${diffDays}d`;
+    return test.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }, []);
+
+  // Render a single test as a compact horizontal row
+  const renderTestRow = useCallback((test: Test, index: number) => {
+    const classInfo = classesById.get(test.classId);
+    const color = getColorForClass(test.classId);
+    const TypeIcon = getTestTypeIcon(test.testType);
+    const dueDate = new Date(test.testDate);
+    const dueDateLabel = getDueDateLabel(dueDate);
+    const badgeClasses = getTestTypeBadgeClasses(test.testType);
+
+    const isToday = dueDateLabel === 'Today';
+    const isTomorrow = dueDateLabel === 'Tomorrow';
+
+    return (
+      <motion.div
+        key={test.id}
+        initial={{ opacity: 0, x: -8 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.25, delay: index * 0.03 }}
+        onClick={() => handleTestClick(test)}
+        className="group flex items-center gap-3 py-3 px-3 rounded-xl cursor-pointer hover:bg-sky-500/[0.04] dark:hover:bg-sky-500/[0.06] transition-colors duration-200"
+      >
+        {/* Left accent dot */}
+        <div
+          className="shrink-0 w-2 h-2 rounded-full transition-transform group-hover:scale-125 duration-300"
+          style={{ backgroundColor: color.header }}
+        />
+
+        {/* Type icon */}
+        <div
+          className="shrink-0 flex items-center justify-center w-7 h-7 rounded-lg transition-transform group-hover:scale-110 duration-300"
+          style={{ backgroundColor: `${color.bg}35` }}
+        >
+          <TypeIcon className="w-3.5 h-3.5" style={{ color: color.header }} />
         </div>
-        <div>
-          <h3 className="text-base font-bold">
-            {title}
-          </h3>
-          <p className="text-xs opacity-80">
-            {items.length} test{items.length !== 1 ? 's' : ''}
-          </p>
+
+        {/* Title + class name */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-sky-900 dark:text-sky-100 truncate group-hover:text-sky-700 dark:group-hover:text-white transition-colors">
+              {test.title}
+            </span>
+          </div>
+          {classInfo && (
+            <span className="text-[11px] text-sky-600/40 dark:text-sky-400/35 font-medium">
+              {classInfo.name}
+            </span>
+          )}
         </div>
-      </div>
 
+        {/* Right side: badges + date */}
+        <div className="shrink-0 flex items-center gap-2">
+          {/* Score for taken tests */}
+          {(test.grade || (test.score !== null && test.score !== undefined)) && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 text-sky-800 dark:text-sky-200 border border-[#d4e88e]/30 dark:border-[#d4e88e]/10 font-mono">
+              {test.grade || `${test.score}/${test.maxScore}`}
+            </span>
+          )}
 
+          {/* Type badge */}
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${badgeClasses}`}>
+            {test.testType || 'Test'}
+          </span>
 
-      <div className="space-y-3">
-        {items.map((test, index) => {
-          const classInfo = classesById.get(test.classId);
-          const IconComponent = getClassIcon(classInfo?.icon) || BookOpen;
-          const TestTypeIcon = getTestTypeIcon(test.testType);
-          const dueDate = new Date(test.testDate);
-          const formattedDate = dueDate.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-          });
+          {/* Date */}
+          <span className={`text-[11px] tabular-nums whitespace-nowrap ${isToday
+            ? 'text-sky-600 dark:text-sky-400 font-semibold'
+            : isTomorrow
+              ? 'text-sky-500 dark:text-sky-400 font-medium'
+              : 'text-sky-600/35 dark:text-sky-400/30'
+            }`}>
+            {dueDateLabel}
+          </span>
 
-          return (
-            <motion.div
-              key={test.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.02 }}
-              className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-all duration-200"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`p-1.5 rounded-lg ${test.testType?.toLowerCase() === 'alpha'
-                      ? 'bg-purple-100 dark:bg-purple-900/30'
-                      : test.testType?.toLowerCase() === 'beta'
-                        ? 'bg-orange-100 dark:bg-orange-900/30'
-                        : 'bg-blue-100 dark:bg-blue-900/30'
-                      }`}>
-                      <TestTypeIcon className={`h-4 w-4 ${test.testType?.toLowerCase() === 'alpha'
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : test.testType?.toLowerCase() === 'beta'
-                          ? 'text-orange-600 dark:text-orange-400'
-                          : 'text-blue-600 dark:text-blue-400'
-                        }`} />
-                    </div>
-                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 truncate">
-                      {test.title}
-                    </h3>
-                  </div>
-
-                  {test.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-                      {test.description}
-                    </p>
-                  )}
-
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 font-medium text-gray-700 dark:text-gray-300">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {formattedDate}
-                    </span>
-                    {test.testTime && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 font-medium text-gray-700 dark:text-gray-300">
-                        <Clock className="h-3.5 w-3.5" />
-                        {formatTime(test.testTime)}
-                      </span>
-                    )}
-                    {classInfo && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 font-medium text-gray-700 dark:text-gray-300">
-                        <IconComponent className="h-3.5 w-3.5" />
-                        {classInfo.name}
-                      </span>
-                    )}
-                    <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${test.testType?.toLowerCase() === 'alpha'
-                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
-                      : test.testType?.toLowerCase() === 'beta'
-                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                      }`}>
-                      {test.testType}
-                    </span>
-                    {test.grade && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 text-xs font-semibold text-green-700 dark:text-green-300">
-                        <Target className="h-3.5 w-3.5" />
-                        {test.grade}
-                        {test.score && ` (${test.score}${test.maxScore ? `/${test.maxScore}` : ''})`}
-                      </span>
-                    )}
-                  </div>
-
-                  {test.studyMaterials && test.studyMaterials.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Study Materials</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {(test.studyMaterials as (string | StudyMaterial)[]).map((material, idx) => {
-                          const url = typeof material === 'string' ? material : material.url;
-                          const title = typeof material === 'string' ? `Link ${idx + 1}` : (material.title || `Link ${idx + 1}`);
-                          return (
-                            <LinkCard
-                              key={idx}
-                              url={url}
-                              title={title}
-                              className="text-xs"
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-    </motion.section>
-  );
+          {/* Chevron */}
+          <ChevronRight className="w-3.5 h-3.5 text-sky-300 dark:text-sky-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      </motion.div>
+    );
+  }, [classesById, getColorForClass, getTestTypeIcon, getTestTypeBadgeClasses, getDueDateLabel]);
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Controls */}
-      <div className="bg-white/95 dark:bg-zinc-900/80 backdrop-blur-md rounded-[24px] border border-gray-200/80 dark:border-white/5 p-5 shadow-sm">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search tests by name, type, or class..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-[#264f84] dark:focus:ring-blue-400"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="flex gap-2">
-            {/* Filter */}
-            <Select value={filter} onValueChange={(value: FilterOption) => setFilter(value)}>
-              <SelectTrigger className="w-[145px] h-11 min-h-[2.75rem] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl font-medium">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tests</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="taken">Taken</SelectItem>
-                <SelectItem value="alpha">ALPHA Tests</SelectItem>
-                <SelectItem value="beta">BETA Tests</SelectItem>
-                <SelectItem value="exam">Exams</SelectItem>
-                <SelectItem value="quiz">Quizzes</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="space-y-3">
+      {/* Search & Filter — compact inline bar */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-sky-400 dark:text-sky-500" />
+          <Input
+            type="text"
+            placeholder="Search tests..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-8 h-9 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400/60 dark:placeholder-sky-500/50 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-sky-400 hover:text-sky-600 dark:hover:text-sky-300"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
-
+        <Select value={filter} onValueChange={(value: FilterOption) => setFilter(value)}>
+          <SelectTrigger className="w-full sm:w-[140px] h-9 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl">
+            <Filter className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+            <SelectItem value="all" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">All Tests</SelectItem>
+            <SelectItem value="upcoming" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Upcoming</SelectItem>
+            <SelectItem value="taken" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Taken</SelectItem>
+            <SelectItem value="alpha" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">ALPHA</SelectItem>
+            <SelectItem value="beta" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">BETA</SelectItem>
+            <SelectItem value="exam" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Exams</SelectItem>
+            <SelectItem value="quiz" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Quizzes</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Content */}
-      <div className="space-y-8">
-        {groupedTests.upcoming.length > 0 && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {groupedTests.upcoming.map((test, index) => {
-                const classInfo = classesById.get(test.classId);
-                const IconComponent = getClassIcon(classInfo?.icon) || BookOpen;
+      {/* Upcoming Tests — compact row list */}
+      {groupedTests.upcoming.length > 0 && (
+        <div className="bg-[#f5f9fc] dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-white/5 divide-y divide-sky-50 dark:divide-gray-800/50 overflow-hidden">
+          {groupedTests.upcoming.map((test, index) => renderTestRow(test, index))}
+        </div>
+      )}
 
-                return (
-                  <motion.div
-                    key={test.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, delay: index * 0.03 }}
-                  >
-                    <EnhancedTestCard
-                      test={test}
-                      classInfo={classInfo}
-                      classIcon={IconComponent}
-                      variant="compact"
-                      layoutId={`test-card-${test.id}`}
-                      onClick={() => handleTestClick(test)}
-                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
-                    />
-                  </motion.div>
-                );
-              })}
-            </div>
+      {/* Past Tests — collapsible */}
+      {groupedTests.taken.length > 0 && (
+        <>
+          <div className="flex items-center gap-3 pt-1">
+            <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1" />
+            <button
+              onClick={() => setShowTaken(!showTaken)}
+              className="flex items-center gap-1.5 text-[11px] uppercase font-semibold text-sky-600/30 dark:text-sky-400/30 tracking-wider hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
+            >
+              Past Tests ({groupedTests.taken.length})
+              <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${showTaken ? 'rotate-180' : ''}`} />
+            </button>
+            <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1" />
           </div>
-        )}
 
-        {groupedTests.taken.length > 0 && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {groupedTests.taken.map((test, index) => {
-                const classInfo = classesById.get(test.classId);
-                const IconComponent = getClassIcon(classInfo?.icon) || BookOpen;
-
-                return (
-                  <motion.div
-                    key={test.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, delay: index * 0.03 }}
-                  >
-                    <EnhancedTestCard
-                      test={test}
-                      classInfo={classInfo}
-                      classIcon={IconComponent}
-                      variant="compact"
-                      layoutId={`test-card-${test.id}`}
-                      onClick={() => handleTestClick(test)}
-                      className={(selectedTest?.id === test.id && isModalOpen) ? 'opacity-0' : ''}
-                    />
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+          <AnimatePresence>
+            {showTaken && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="bg-[#f5f9fc] dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-white/5 divide-y divide-sky-50 dark:divide-gray-800/50 overflow-hidden opacity-50">
+                  {groupedTests.taken.map((test, index) => renderTestRow(test, index))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
 
       {/* Empty State */}
       {filteredAndSortedTests.length === 0 && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.25 }}
-          className="relative text-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-850 p-12 shadow-sm overflow-hidden"
+          className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-sky-100 dark:border-gray-800"
         >
-          {/* Decorative background */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 dark:bg-blue-900/10 rounded-full blur-3xl opacity-60"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-100 dark:bg-purple-900/10 rounded-full blur-3xl opacity-60"></div>
-
-          <div className="relative z-10">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border border-blue-200 dark:border-blue-800 shadow-inner">
-              <Calendar className="h-10 w-10 text-[#264f84] dark:text-blue-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              {searchQuery || filter !== 'all' ? 'No tests match your filters' : 'No tests yet'}
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
-              {searchQuery || filter !== 'all'
-                ? 'Try adjusting your search or filters to find what you\'re looking for.'
-                : 'Add your first test to keep track of your schedule and grades.'
-              }
-            </p>
-            {(searchQuery || filter !== 'all') && (
-              <Button
-                variant="outline"
-                className="border-2 border-[#264f84] text-[#264f84] hover:bg-[#264f84] hover:text-white hover:scale-105 rounded-xl h-11 px-6 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-white"
-                onClick={() => {
-                  setSearchQuery('');
-                  setFilter('all');
-                }}
-              >
-                <X className="mr-2 h-4 w-4" /> Clear All Filters
-              </Button>
-            )}
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-sky-50 dark:bg-gray-900 rounded-xl mb-4 border border-sky-100 dark:border-gray-800">
+            <Calendar className="h-6 w-6 text-sky-400 dark:text-sky-500" />
           </div>
+          <h3 className="text-xl font-light text-sky-900 dark:text-white mb-2 tracking-tight">
+            {searchQuery || filter !== 'all' ? 'No tests match your filters' : 'No tests yet'}
+          </h3>
+          <p className="text-sky-600/60 dark:text-gray-400 max-w-xs mx-auto text-sm">
+            {searchQuery || filter !== 'all'
+              ? 'Try adjusting your search or filters.'
+              : 'Add your first test to keep track of your schedule and grades.'
+            }
+          </p>
+          {(searchQuery || filter !== 'all') && (
+            <button
+              onClick={() => { setSearchQuery(''); setFilter('all'); }}
+              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear Filters
+            </button>
+          )}
         </motion.div>
       )}
+
       <TestDetailModal
         test={selectedTest}
         isOpen={isModalOpen}

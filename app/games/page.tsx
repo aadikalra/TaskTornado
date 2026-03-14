@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Layers, Waves, Sparkles, PartyPopper, X } from 'lucide-react';
+import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Layers, Waves, Sparkles, PartyPopper, X, Brain, Type, Target, Calculator, Keyboard, Palette } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
@@ -81,6 +81,58 @@ export default function GamesPage() {
 
     const games = [
         {
+            id: 'color-match',
+            title: 'Color Match',
+            description: 'The Stroop effect! The word says one color but appears in another — pick the right color!',
+            icon: Palette,
+            href: '/color-match',
+            accent: 'pink',
+            unlockThreshold: 55,
+            stats: {
+                label: 'Unlocked',
+                value: 'Complete 55% homework',
+            }
+        },
+        {
+            id: 'math-sprint',
+            title: 'Math Sprint',
+            description: 'Solve rapid-fire math problems in 60 seconds — addition, subtraction, multiplication & more!',
+            icon: Calculator,
+            href: '/math-sprint',
+            accent: 'sky',
+            unlockThreshold: 60,
+            stats: {
+                label: 'Unlocked',
+                value: 'Complete 60% homework',
+            }
+        },
+        {
+            id: 'typing-speed',
+            title: 'Typing Speed',
+            description: 'Type academic sentences as fast as you can — complete homework for bonus time!',
+            icon: Keyboard,
+            href: '/typing-speed',
+            accent: 'sky',
+            unlockThreshold: 65,
+            stats: {
+                label: 'Unlocked',
+                value: 'Complete 65% homework',
+            }
+        },
+        {
+            id: 'memory-match',
+            title: 'Memory Match',
+            description: 'Flip cards to find matching pairs — more homework remaining means more cards to match!',
+            icon: Brain,
+            href: '/memory-match',
+            accent: 'violet',
+            unlockThreshold: 70,
+            stats: {
+                label: 'Unlocked',
+                value: 'Complete 70% homework',
+            }
+        },
+        {
             id: 'snake',
             title: 'Snake',
             description: 'Classic snake game with a twist — difficulty scales with your remaining homework!',
@@ -104,6 +156,32 @@ export default function GamesPage() {
             stats: {
                 label: 'Unlocked',
                 value: 'Complete 80% homework',
+            }
+        },
+        {
+            id: 'word-scramble',
+            title: 'Word Scramble',
+            description: 'Unscramble academic vocabulary against the clock — less time per word with more homework left!',
+            icon: Type,
+            href: '/word-scramble',
+            accent: 'amber',
+            unlockThreshold: 85,
+            stats: {
+                label: 'Unlocked',
+                value: 'Complete 85% homework',
+            }
+        },
+        {
+            id: 'reaction-time',
+            title: 'Reaction Time',
+            description: 'Test your reflexes! Click colorful targets before they vanish — speed matters!',
+            icon: Target,
+            href: '/reaction-time',
+            accent: 'emerald',
+            unlockThreshold: 90,
+            stats: {
+                label: 'Unlocked',
+                value: 'Complete 90% homework',
             }
         },
     ];
@@ -258,26 +336,6 @@ export default function GamesPage() {
                                 </motion.div>
                             );
                         })}
-
-                        {/* Coming Soon */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.25 }}
-                            className="flex items-center gap-4 py-5 px-1"
-                        >
-                            <div className="w-12 h-12 bg-sky-50 dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl flex items-center justify-center shrink-0">
-                                <Zap className="w-6 h-6 text-sky-400/30 dark:text-sky-400/20" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-semibold text-sky-700/40 dark:text-sky-300/40 mb-0.5">
-                                    More Games Coming Soon
-                                </h3>
-                                <p className="text-sm text-sky-600/30 dark:text-sky-400/30">
-                                    Keep completing your homework to unlock new games!
-                                </p>
-                            </div>
-                        </motion.div>
                     </div>
                 </motion.div>
 

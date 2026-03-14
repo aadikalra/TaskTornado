@@ -3,18 +3,17 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useClassContext } from '@/context/ClassContext';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { iconMap } from '@/lib/icon-map';
+import { motion } from 'framer-motion';
 
 export default function EditHomeworkPage() {
   const { id } = useParams() as { id: string };
@@ -78,90 +77,135 @@ export default function EditHomeworkPage() {
     }));
   };
 
+  // Get the class info and its color
+  const selectedClass = classes.find(c => c.id === formData.classId);
+  const classColors = ['#DC2626', '#2563EB', '#D97706', '#16A34A', '#7C3AED', '#DB2777', '#0D9488', '#475569'];
+  const classIndex = classes.findIndex(c => c.id === formData.classId);
+  const accentColor = classIndex >= 0 ? classColors[classIndex % classColors.length] : '#0ea5e9';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-gray-900 dark:text-gray-100">Loading...</div>
+      <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
       </div>
     );
   }
 
   if (!formData.title) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-8">
-        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Homework not found</h1>
-        <Link href="/">
-          <Button>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
+      <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex flex-col items-center justify-center p-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-sky-50 dark:bg-gray-900 rounded-2xl mb-5 border border-sky-100 dark:border-gray-800">
+          <BookOpen className="h-7 w-7 text-sky-400 dark:text-sky-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">Homework not found</h1>
+        <p className="text-sky-600/60 dark:text-gray-400 text-sm mb-6">This assignment may have been deleted or doesn't exist.</p>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to Home
         </Link>
       </div>
     );
   }
 
+  const ClassIcon = selectedClass ? (iconMap[selectedClass.icon as keyof typeof iconMap] ?? BookOpen) : BookOpen;
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-6">
-          <Link href={`/homework/${id}`} className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Homework
-          </Link>
+    <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans text-[#111827] dark:text-gray-100">
+      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-12">
+        {/* Back link */}
+        <Link
+          href={`/homework/${id}`}
+          className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Homework
+        </Link>
 
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Edit Homework</h1>
-        </div>
+        {/* Page header */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3 mb-1">
+            <div
+              className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: `${accentColor}20` }}
+            >
+              <ClassIcon className="w-5 h-5" style={{ color: accentColor }} />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
+                Edit Homework
+              </h1>
+              {selectedClass && (
+                <p className="text-sm text-sky-600/40 dark:text-sky-400/35 font-medium">{selectedClass.name}</p>
+              )}
+            </div>
+          </div>
+        </motion.div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="space-y-4">
+        {/* Form card */}
+        <motion.form
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-500/5 border border-sky-100 dark:border-gray-800 overflow-hidden">
+            {/* Form content */}
+            <div className="p-6 sm:p-8 space-y-5">
+              {/* Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Title <span className="text-red-500">*</span>
-                </label>
+                <Label htmlFor="title" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                  Title <span className="text-red-400 normal-case">*</span>
+                </Label>
                 <Input
                   id="title"
-                  name="title"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   placeholder="Enter homework title"
                   required
+                  className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 />
               </div>
 
+              {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Description
-                </label>
-                <Textarea
+                <Label htmlFor="description" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                  Description <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
+                </Label>
+                <textarea
                   id="description"
-                  name="description"
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  placeholder="Add details about the homework"
+                  placeholder="Add details about the homework..."
                   rows={4}
+                  className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
                 />
               </div>
 
-              <div className="flex justify-between">
-                <div className="w-1/3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Due Date <span className="text-red-500">*</span>
-                  </label>
+              {/* Due Date, Class, Priority — responsive grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Due Date */}
+                <div>
+                  <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                    Due Date <span className="text-red-400 normal-case">*</span>
+                  </Label>
                   <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
+                      <button
+                        type="button"
+                        className="w-full h-11 flex items-center gap-2 px-3 text-sm font-normal bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl transition-colors text-left"
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
+                        <CalendarIcon className="h-4 w-4 text-sky-500 shrink-0" />
+                        {date ? format(date, 'PPP') : <span className="text-sky-400">Pick a date</span>}
+                      </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5" align="start">
                       <Calendar
                         mode="single"
                         selected={date}
@@ -170,95 +214,115 @@ export default function EditHomeworkPage() {
                           setOpenCalendar(false);
                         }}
                         initialFocus
+                        className="text-sky-900 dark:text-white rounded-2xl"
+                        classNames={{
+                          today: "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-md data-[selected=true]:rounded-none",
+                          weekday: "text-sky-500 dark:text-sky-400 rounded-md flex-1 font-medium text-[0.8rem] select-none",
+                          caption_label: "text-sky-900 dark:text-white font-semibold text-sm select-none",
+                          button_previous: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
+                          button_next: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
 
-                <div className="w-1/3 mx-3">
-                  <label htmlFor="classId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Class <span className="text-red-500">*</span>
-                  </label>
+                {/* Class */}
+                <div>
+                  <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                    Class <span className="text-red-400 normal-case">*</span>
+                  </Label>
                   <Select
                     value={formData.classId}
                     onValueChange={(value) => handleChange('classId', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
                       <SelectValue placeholder="Select a class" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
                       {classes.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>
+                        <SelectItem
+                          key={cls.id}
+                          value={cls.id}
+                          className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg"
+                        >
                           {cls.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-1/3">
-                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+
+                {/* Priority */}
+                <div>
+                  <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
                     Priority
-                  </label>
+                  </Label>
                   <Select
                     value={formData.priority}
                     onValueChange={(value) => handleChange('priority', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
+                    <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                      <SelectItem value="low" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Low</SelectItem>
+                      <SelectItem value="medium" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Medium</SelectItem>
+                      <SelectItem value="high" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">High</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 pt-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="completed"
-                    checked={formData.completed}
-                    onCheckedChange={(checked) => handleChange('completed', checked as boolean)}
-                  />
-                  <label
-                    htmlFor="completed"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-700 dark:text-gray-300"
-                  >
-                    Mark as completed
-                  </label>
-                </div>
+              {/* Completed checkbox */}
+              <div className="flex items-center gap-3 p-3 bg-sky-50 dark:bg-gray-800 rounded-xl border border-sky-100 dark:border-gray-700">
+                <Checkbox
+                  id="completed"
+                  checked={formData.completed}
+                  onCheckedChange={(checked) => handleChange('completed', checked as boolean)}
+                  className="size-5 rounded-md bg-sky-200 dark:bg-gray-700 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
+                />
+                <Label
+                  htmlFor="completed"
+                  className="text-sm font-semibold text-sky-800 dark:text-sky-300 cursor-pointer select-none"
+                >
+                  Mark as completed
+                </Label>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end space-x-3">
-            <Link href={`/homework/${id}`}>
-              <Button type="button" variant="outline" disabled={saving}>
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-            </Link>
-            <Button type="submit" disabled={saving}>
-              {saving ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
+              <Link href={`/homework/${id}`}>
+                <button
+                  type="button"
+                  disabled={saving}
+                  className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+              </Link>
+              <button
+                type="submit"
+                disabled={saving || !formData.title.trim()}
+                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3.5 w-3.5" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </form>
-      </div>
+        </motion.form>
+      </main>
     </div>
   );
 }

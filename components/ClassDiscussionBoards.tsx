@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
@@ -28,6 +28,7 @@ import {
 import { useDiscussionBoards } from '@/context/DiscussionBoardsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { useUpgrade } from '@/context/UpgradeContext';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -43,6 +44,7 @@ import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 export function ClassDiscussionBoards() {
     const { user } = useAuth();
     const { success, error: toastError } = useToast();
+    const { handlePlanLimitError } = useUpgrade();
     const { getContainerClass } = useWideLayout();
     const {
         boards,
@@ -81,6 +83,8 @@ export function ClassDiscussionBoards() {
     const [view, setView] = useState<'boards' | 'threads' | 'resources'>('boards');
     const [searchQuery, setSearchQuery] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
+    const [searchExpanded, setSearchExpanded] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const [filterTag, setFilterTag] = useState<string>('all');
 
     // New board modal
@@ -125,7 +129,9 @@ export function ClassDiscussionBoards() {
             setNewBoardName('');
             setNewBoardDescription('');
         } catch (err: any) {
-            toastError('Failed to create board', err.message);
+            if (!handlePlanLimitError(err)) {
+                toastError('Failed to create board', err.message);
+            }
         }
     };
 
@@ -134,7 +140,9 @@ export function ClassDiscussionBoards() {
             await joinBoard(boardId);
             success('Joined board!', 'You can now participate in discussions.');
         } catch (err: any) {
-            toastError('Failed to join board', err.message);
+            if (!handlePlanLimitError(err)) {
+                toastError('Failed to join board', err.message);
+            }
         }
     };
 
@@ -178,7 +186,9 @@ export function ClassDiscussionBoards() {
             setNewThreadContent('');
             setNewThreadTags([]);
         } catch (err: any) {
-            toastError('Failed to create thread', err.message);
+            if (!handlePlanLimitError(err)) {
+                toastError('Failed to create thread', err.message);
+            }
         }
     };
 
@@ -201,7 +211,9 @@ export function ClassDiscussionBoards() {
             setNewResourceUrl('');
             setNewResourceTags([]);
         } catch (err: any) {
-            toastError('Failed to add resource', err.message);
+            if (!handlePlanLimitError(err)) {
+                toastError('Failed to add resource', err.message);
+            }
         }
     };
 
@@ -222,7 +234,9 @@ export function ClassDiscussionBoards() {
             setReplyContent('');
             success('Reply posted!', 'Your response has been added.');
         } catch (err: any) {
-            toastError('Failed to post reply', err.message);
+            if (!handlePlanLimitError(err)) {
+                toastError('Failed to post reply', err.message);
+            }
         }
     };
 
@@ -521,21 +535,49 @@ export function ClassDiscussionBoards() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {/* Search bar — blog style */}
-                                <div
-                                    className={`relative flex items-center gap-2 px-4 py-2.5 bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full transition-all duration-300 w-full md:w-[280px] ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                                {/* Expanding Search */}
+                                <motion.div
+                                    initial={false}
+                                    animate={{ width: searchExpanded ? 280 : 40 }}
+                                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                                    className={`relative h-10 flex items-center rounded-full overflow-hidden bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200/60 dark:border-sky-800/30 ${!searchExpanded ? 'cursor-pointer hover:bg-sky-100 dark:hover:bg-zinc-700 hover:border-sky-300 dark:hover:border-sky-700' : ''
+                                        } ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                                    style={{ originX: 1 }}
+                                    onClick={() => {
+                                        if (!searchExpanded) {
+                                            setSearchExpanded(true);
+                                            setTimeout(() => searchInputRef.current?.focus(), 80);
+                                        }
+                                    }}
                                 >
-                                    <Search className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search boards..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onFocus={() => setSearchFocused(true)}
-                                        onBlur={() => setSearchFocused(false)}
-                                        className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none"
-                                    />
-                                </div>
+                                    <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                                        <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                    </div>
+                                    <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
+                                        <input
+                                            ref={searchInputRef}
+                                            type="text"
+                                            placeholder="Search boards..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onFocus={() => setSearchFocused(true)}
+                                            onBlur={() => {
+                                                setSearchFocused(false);
+                                                if (!searchQuery) setSearchExpanded(false);
+                                            }}
+                                            className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none w-full min-w-0"
+                                        />
+                                        {searchQuery && (
+                                            <button
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
+                                                className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </motion.div>
 
                                 {/* Create Board CTA */}
                                 {user && (
@@ -833,21 +875,48 @@ export function ClassDiscussionBoards() {
                                 )}
                             </div>
 
-                            {/* Search bar */}
-                            <div
-                                className={`relative flex items-center gap-2 px-4 py-2.5 bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full transition-all duration-300 w-full md:w-[280px] shrink-0 ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                            {/* Expanding Search */}
+                            <motion.div
+                                initial={false}
+                                animate={{ width: searchExpanded ? 280 : 40 }}
+                                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                                className={`relative h-10 flex items-center rounded-full overflow-hidden bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200/60 dark:border-sky-800/30 shrink-0 ${!searchExpanded ? 'cursor-pointer hover:bg-sky-100 dark:hover:bg-zinc-700 hover:border-sky-300 dark:hover:border-sky-700' : ''
+                                    } ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                                style={{ originX: 1 }}
+                                onClick={() => {
+                                    if (!searchExpanded) {
+                                        setSearchExpanded(true);
+                                        setTimeout(() => searchInputRef.current?.focus(), 80);
+                                    }
+                                }}
                             >
-                                <Search className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onFocus={() => setSearchFocused(true)}
-                                    onBlur={() => setSearchFocused(false)}
-                                    className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none"
-                                />
-                            </div>
+                                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                                    <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                </div>
+                                <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onFocus={() => setSearchFocused(true)}
+                                        onBlur={() => {
+                                            setSearchFocused(false);
+                                            if (!searchQuery) setSearchExpanded(false);
+                                        }}
+                                        className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none w-full min-w-0"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
+                                            className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </motion.div>
                         </div>
 
                         {/* Pill tabs + actions */}

@@ -2,52 +2,52 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Shield, Eye, Lock, Database, UserCheck, AlertCircle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Shield, Eye, Lock, Database, UserCheck, AlertCircle, ExternalLink, Server, Cpu, Globe, Cookie } from 'lucide-react';
 
 const sections = [
   {
     icon: Database,
     title: '1. Information We Collect',
     items: [
-      { label: 'Account Information', desc: 'Name, email address, and password for your TaskTornado account login and profile' },
-      { label: 'Academic Information', desc: 'Classes, assignments, test dates, and grades you enter for scheduling and AI-powered homework recommendations' },
-      { label: 'Usage Data', desc: 'How you interact with TaskTornado features like homework tracking, test scheduling, and AI assistant usage' },
-      { label: 'Device Information', desc: 'IP address, browser type, and operating system' },
+      { label: 'Account Information', desc: 'Name, email address, and account type (student or guardian) for login and profile. Passwords (if applicable) are managed securely by our authentication provider — we never store raw passwords.' },
+      { label: 'Academic Information', desc: 'Classes, assignments, test dates, grades, flashcard decks, quiz data, and web saves you create or import from Google Classroom.' },
+      { label: 'AI Interaction Data', desc: 'Prompts you send to Aurora (our AI assistant), including any homework context or selected text. These are sent to Google Gemini for processing and are not stored by TaskTornado.' },
+      { label: 'Social and Collaborative Data', desc: 'Discussion board posts, group chat messages, and study group membership you choose to participate in.' },
+      { label: 'Guardian-Linked Data', desc: 'If you link a guardian account, your guardian can view your homework, tests, grades, and class information through a read-only dashboard.' },
     ],
   },
   {
     icon: Eye,
     title: '2. How We Use Your Information',
     list: [
-      'Provide and maintain our Service',
-      'Improve and personalize your experience',
-      'Communicate with you about your account and our services',
-      'Analyze usage patterns and trends',
-      'Ensure the security of our Service',
+      'Provide and maintain the TaskTornado platform',
+      'Power AI-assisted features like Aurora, flashcard generation, and quiz creation',
+      'Import assignments from Google Classroom when you connect your account',
+      'Enable guardian accounts to view linked student academic progress',
+      'Enforce rate limits and protect against abuse',
       'Comply with legal obligations',
     ],
   },
   {
     icon: Lock,
     title: '3. Data Security',
-    description: 'We implement comprehensive security measures to protect your academic data and personal information. Your school-related information is never shared with third parties, parents, or educational institutions.',
+    description: 'We implement industry-appropriate security measures to protect your data. Your information is protected by the security infrastructure of our hosting and database providers.',
     subsections: [
       {
-        label: 'Technical Security',
+        label: 'Transport Security',
         items: [
-          'End-to-end encryption of data in transit using SSL/TLS',
-          'Secure password storage with industry-standard bcrypt hashing',
-          'Regular security audits and vulnerability assessments',
-          'Strict access controls and multi-factor authentication for admin access',
+          'All data transmitted between your browser and our servers is encrypted via HTTPS (TLS)',
+          'Authentication tokens are securely managed via cookies with appropriate expiration policies',
+          'Security headers (X-Frame-Options, X-Content-Type-Options) are enforced on all responses',
         ],
       },
       {
-        label: 'Protection Measures',
+        label: 'Application Security',
         items: [
-          'Rate limiting to prevent unauthorized access attempts',
-          '24/7 security monitoring and threat detection',
-          'AI assistant queries processed temporarily and deleted immediately',
-          'No sharing of academic data with schools, parents, or third parties',
+          'Rate limiting on AI requests to prevent abuse and unauthorized access',
+          'Row-Level Security (RLS) policies on all database tables via Supabase',
+          'AI prompts are processed in real-time and not stored by TaskTornado after the response is generated',
+          'Restricted access controls for beta access management',
         ],
       },
     ],
@@ -55,10 +55,10 @@ const sections = [
 ];
 
 const retentionItems = [
-  'Assignment data: Remains until you delete your account or remove individual assignments',
-  'Account information: Deleted within 30 days of account deletion',
-  'AI assistant queries: Processed temporarily and deleted immediately after response',
-  'Usage analytics: Aggregated and anonymized after 90 days',
+  'Academic data (homework, tests, grades): Persists until you manually delete items or delete your account',
+  'Account information: Deleted when you use the Delete Account feature in Settings',
+  'AI assistant conversations: Not stored by TaskTornado — subject to Google Gemini\'s data retention policies',
+  'Analytics data: Handled by Vercel Analytics according to their retention schedule',
 ];
 
 const rights = [
@@ -71,15 +71,48 @@ const rights = [
 ];
 
 const cookieItems = [
-  'Authentication: Keeps you logged in to your TaskTornado account',
-  'Preferences: Remembers your settings like AI personality and layout preferences',
-  'Security: Helps protect your account from unauthorized access',
+  'Authentication: Supabase session cookies to keep you logged in',
+  'Preferences: Settings such as theme (dark/light mode), dyslexic font, and layout preferences stored in cookies and localStorage',
+  'Rate Limiting: Cookies that track AI usage counts to enforce daily limits',
 ];
 
-const analyticsItems = [
-  'Feature usage (which tools you use most)',
-  'Performance metrics (loading times, errors)',
-  'No advertising tracking or data selling',
+const thirdPartyServices = [
+  {
+    name: 'Supabase',
+    role: 'Database, authentication, and file storage',
+    data: 'All account data, academic records, social features, and guardian links',
+    link: 'https://supabase.com/privacy',
+  },
+  {
+    name: 'Google Gemini (AI Studio)',
+    role: 'AI-powered features (Aurora assistant, flashcard generation, quiz creation, writing assist)',
+    data: 'Prompts containing homework questions, class context, or selected text sent for AI processing',
+    link: 'https://ai.google.dev/terms',
+  },
+  {
+    name: 'Google OAuth',
+    role: 'Optional "Continue with Google" sign-in',
+    data: 'Email, name, and profile information during the authentication flow',
+    link: 'https://policies.google.com/privacy',
+  },
+  {
+    name: 'Google Classroom API',
+    role: 'Optional import of courses and assignments',
+    data: 'Course names, assignment titles, due dates, and grades — only when you explicitly connect your Classroom account',
+    link: 'https://edu.google.com/intl/ALL_us/workspace-for-education/privacy/',
+  },
+  {
+    name: 'Vercel',
+    role: 'Hosting and web analytics',
+    data: 'Page views, performance metrics (Core Web Vitals), and IP addresses at the infrastructure level',
+    link: 'https://vercel.com/legal/privacy-policy',
+  },
+  {
+    name: 'Google Fonts',
+    role: 'Typography (Geist, Inter, Nunito Sans)',
+    data: 'IP address is visible to Google when fonts are loaded by your browser',
+    link: 'https://policies.google.com/privacy',
+  },
 ];
 
 export default function PrivacyPolicy() {
@@ -109,7 +142,7 @@ export default function PrivacyPolicy() {
             Privacy Policy
           </h1>
           <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
-            Last updated: August 19, 2025
+            Last updated: March 7, 2026
           </p>
         </motion.div>
 
@@ -129,10 +162,10 @@ export default function PrivacyPolicy() {
             </div>
             <div className="space-y-2.5">
               {[
-                { bold: 'Your data stays yours:', rest: 'Assignment data remains until you delete your account or remove individual assignments' },
-                { bold: 'School-focused privacy:', rest: 'We never share your academic data with schools, parents, or third parties' },
-                { bold: 'Minimal tracking:', rest: 'Only basic analytics to improve TaskTornado, no advertising or data selling' },
-                { bold: 'AI-powered features:', rest: 'Your homework questions are processed temporarily for AI assistance, then deleted' },
+                { bold: 'Your data stays yours:', rest: 'Your academic data persists until you manually delete it or delete your account' },
+                { bold: 'AI queries are ephemeral:', rest: 'TaskTornado does not store AI conversations — prompts are processed by Google Gemini and not retained by us' },
+                { bold: 'Guardian visibility:', rest: 'If you link a guardian, they can view your homework, tests, and grades through a read-only dashboard' },
+                { bold: 'No ads, no data selling:', rest: 'We use Vercel Analytics for basic page-view metrics — no advertising trackers or data brokers' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-2 shrink-0" />
@@ -155,7 +188,8 @@ export default function PrivacyPolicy() {
           <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
             <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
               At TaskTornado, we take your privacy seriously. This Privacy Policy explains how we collect, use,
-              and protect your personal information when you use our student productivity platform.
+              and protect your personal information when you use our student productivity platform. We believe in
+              transparency — every third-party service that handles your data is explicitly named below.
             </p>
           </div>
         </motion.div>
@@ -172,8 +206,9 @@ export default function PrivacyPolicy() {
                   <div className="w-9 h-9 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
                     {i === 0 && <UserCheck className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
                     {i === 1 && <Database className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
-                    {i === 2 && <Eye className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
-                    {i === 3 && <AlertCircle className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+                    {i === 2 && <Cpu className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+                    {i === 3 && <Globe className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
+                    {i === 4 && <Eye className="w-4 h-4 text-sky-500 dark:text-sky-400" />}
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-0.5">{item.label}</h3>
@@ -202,7 +237,7 @@ export default function PrivacyPolicy() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">3. Data Security</h2>
             <p className="text-sm text-sky-600/50 dark:text-sky-400/40 mb-5 leading-relaxed">
-              We implement comprehensive security measures to protect your academic data. Your school-related information is never shared with third parties.
+              We implement industry-appropriate security measures to protect your data. Your information is secured by the combined infrastructure of our hosting and database providers.
             </p>
             <div className="grid sm:grid-cols-2 gap-4">
               {sections[2].subsections!.map((sub, si) => (
@@ -237,7 +272,7 @@ export default function PrivacyPolicy() {
             <div className="mt-4 bg-[#ebf6b5]/30 dark:bg-sky-500/5 border border-[#d4e88e]/40 dark:border-sky-500/10 rounded-2xl px-5 py-4">
               <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-1">Your Control</h3>
               <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
-                You can delete individual assignments, export your data at any time, or delete your entire account to remove all personal information permanently.
+                You can delete individual assignments, flashcard decks, web saves, and other content at any time. You can also permanently delete your entire account through Settings, which removes all associated data.
               </p>
             </div>
           </motion.div>
@@ -260,10 +295,10 @@ export default function PrivacyPolicy() {
 
           {/* Section 6 — Cookies */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">6. Cookies and Tracking</h2>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">6. Cookies and Local Storage</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
-                <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-3">Essential Cookies</h3>
+                <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-3">Cookies We Use</h3>
                 <div className="space-y-2">
                   {cookieItems.map((item, i) => (
                     <div key={i} className="flex items-start gap-2.5">
@@ -275,9 +310,13 @@ export default function PrivacyPolicy() {
               </div>
               <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
                 <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-3">Analytics</h3>
-                <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed mb-2">We use minimal analytics to improve TaskTornado:</p>
+                <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed mb-2">We use Vercel Analytics for basic, privacy-friendly metrics:</p>
                 <div className="space-y-2">
-                  {analyticsItems.map((item, i) => (
+                  {[
+                    'Page views and navigation patterns',
+                    'Core Web Vitals (loading speed, interactivity)',
+                    'No advertising tracking, fingerprinting, or data selling',
+                  ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2.5">
                       <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-1.5 shrink-0" />
                       <span className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">{item}</span>
@@ -290,14 +329,33 @@ export default function PrivacyPolicy() {
 
           {/* Section 7 — Third-Party Services */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">7. Third-Party Services</h2>
-            <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
-              <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
-                We may use third-party services to help us operate our business and the Service, such as hosting
-                providers, analytics providers, and customer support services. These third parties have access to
-                your personal information only to perform these tasks on our behalf and are obligated not to
-                disclose or use it for any other purpose.
-              </p>
+            <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1">7. Third-Party Services</h2>
+            <p className="text-sm text-sky-600/40 dark:text-sky-400/40 mb-5">
+              The following services process your data on our behalf. Each has its own privacy policy governing data handling.
+            </p>
+            <div className="space-y-3">
+              {thirdPartyServices.map((service, i) => (
+                <div key={i} className="px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
+                  <div className="flex items-start justify-between gap-3 mb-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 bg-sky-100 dark:bg-sky-500/15 rounded-lg flex items-center justify-center shrink-0">
+                        <Server className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+                      </div>
+                      <h3 className="text-sm font-bold text-sky-900 dark:text-white">{service.name}</h3>
+                    </div>
+                    <a
+                      href={service.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors shrink-0"
+                    >
+                      Privacy Policy ↗
+                    </a>
+                  </div>
+                  <p className="text-[11px] text-sky-600/60 dark:text-sky-400/50 mb-0.5 font-medium">{service.role}</p>
+                  <p className="text-xs text-sky-600/40 dark:text-sky-400/30 leading-relaxed">{service.data}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
 

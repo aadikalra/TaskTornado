@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Facehash } from 'facehash';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
+import WelcomeLetter from './WelcomeLetter';
 import { AddTestModal } from './AddTestModal';
 import { TestDetailModal } from './TestDetailModal';
 import { Button } from '@/components/animate-ui/components/buttons/button';
@@ -15,6 +16,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
 // Cookie utilities for persisting UI state
@@ -117,7 +119,9 @@ import {
   Gamepad,
   Music4,
   Coffee,
-  Star
+  Star,
+  Sparkle,
+  ArrowUp
 } from "lucide-react";
 
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
@@ -143,12 +147,14 @@ import { RecurringOptions } from './RecurringOptions';
 import { iconMap, IconName } from '@/lib/icon-map';
 import { RecurringHomework, Class, Homework, Test } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
+import { useUpgrade } from '@/context/UpgradeContext';
 import { useGamification } from '@/context/GamificationContext';
 import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { MarkTestAsTakenModal } from '@/components/MarkTestAsTakenModal';
 import EnhancedTestCard from '@/components/EnhancedTestCard';
+import { TaskBracket } from '@/components/TaskBracket';
 
 type LucideIconName = IconName;
 type Priority = 'low' | 'medium' | 'high';
@@ -156,6 +162,7 @@ type Priority = 'low' | 'medium' | 'high';
 const MainApp = () => {
   const { user, full_name } = useAuth();
   const { success, error: toastError, warning, info } = useToast();
+  const { handlePlanLimitError } = useUpgrade();
   const { data: gamificationData, addXP } = useGamification();
   const { getContainerClass } = useWideLayout();
   const {
@@ -183,6 +190,7 @@ const MainApp = () => {
   const [showAddHomework, setShowAddHomework] = useState(false);
   const [showPinHomeworkModal, setShowPinHomeworkModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWelcomeLetter, setShowWelcomeLetter] = useState(false);
   const [newClassName, setNewClassName] = useState('');
   const [newClassIcon, setNewClassIcon] = useState<LucideIconName>('BookOpen');
   const [searchQuery, setSearchQuery] = useState('');
@@ -193,6 +201,7 @@ const MainApp = () => {
   const [isTestDetailModalOpen, setIsTestDetailModalOpen] = useState(false);
   const [classIdForAddTest, setClassIdForAddTest] = useState<string | undefined>(undefined);
   const [classToDelete, setClassToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [showBracket, setShowBracket] = useState(false);
 
   // Initialize section visibility states from cookies with defaults
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
@@ -412,6 +421,109 @@ const MainApp = () => {
     frequency: 'weekly'
   });
 
+  // AI Autofill state
+  const [autoFillText, setAutoFillText] = useState('');
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  const handleAutoFill = useCallback(async () => {
+    if (!autoFillText.trim() || isAutoFilling) return;
+    setIsAutoFilling(true);
+    try {
+      const classNames = classes.map((c: any) => c.name).join(', ');
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const dayOfWeek = format(new Date(), 'EEEE');
+      // Build compact 14-day reference so the AI doesn't do calendar math
+      const dateRef = (() => {
+        const now = new Date();
+        const lines: string[] = [];
+        for (let i = 0; i <= 13; i++) {
+          const d = addDays(now, i);
+          const label = i === 0 ? 'TODAY' : i === 1 ? 'TOMORROW' : '';
+          lines.push(`${format(d, 'EEE MMM d')} = ${format(d, 'yyyy-MM-dd')}${label ? ` (${label})` : ''}`);
+        }
+        return lines.join(', ');
+      })();
+
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `You are helping a student fill out a homework form. Today is ${dayOfWeek}, ${today}.
+
+Date reference (use these exact dates): ${dateRef}
+
+Available classes: ${classNames}
+Priority options: low, medium, high
+
+The student typed: "${autoFillText}"
+
+Return ONLY a JSON object with whichever fields you can determine:
+- "title": string (the homework title/name)
+- "description": string (any extra details)
+- "dueDate": string (use the date reference above to pick the correct yyyy-MM-dd date)
+- "priority": "low" | "medium" | "high"
+- "className": string (must exactly match one of the available classes)
+
+Only include fields you are confident about. Omit unknown fields.
+Return ONLY valid JSON, no explanation, no markdown.`,
+          action: 'generate',
+          model: 'gemini-2.5-flash-lite'
+        })
+      });
+
+      const reader = response.body?.getReader();
+      let text = '';
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.response) text += data.response;
+              } catch (e) { }
+            }
+          }
+        }
+      }
+
+      // Extract JSON from response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const updates: any = {};
+
+        if (parsed.title) updates.title = parsed.title;
+        if (parsed.description) updates.description = parsed.description;
+        if (parsed.priority && ['low', 'medium', 'high'].includes(parsed.priority)) {
+          updates.priority = parsed.priority;
+        }
+        if (parsed.dueDate) {
+          const d = new Date(parsed.dueDate + 'T12:00:00');
+          if (!isNaN(d.getTime())) updates.dueDate = d;
+        }
+        if (parsed.className) {
+          const matchedClass = classes.find((c: any) =>
+            c.name.toLowerCase() === parsed.className.toLowerCase()
+          );
+          if (matchedClass) updates.classId = matchedClass.id;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          setNewHomework(prev => ({ ...prev, ...updates }));
+          setAutoFillText('');
+        }
+      }
+    } catch (error) {
+      console.error('Autofill error:', error);
+    } finally {
+      setIsAutoFilling(false);
+    }
+  }, [autoFillText, isAutoFilling, classes]);
+
   const [isSuggestingIcons, setIsSuggestingIcons] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
 
@@ -483,6 +595,12 @@ const MainApp = () => {
       setShowOnboarding(true);
     }
   }, [user, classes.length, loading]);
+
+  // Show welcome letter after onboarding completion
+  const handleShowWelcomeLetter = () => {
+    setShowOnboarding(false);
+    setShowWelcomeLetter(true);
+  };
 
   // Show toast notifications for overdue assignments - ONLY ON FIRST LOAD
   React.useEffect(() => {
@@ -956,10 +1074,13 @@ const MainApp = () => {
       setRecurringConfig({
         frequency: 'weekly'
       });
+      setAutoFillText('');
 
       setShowAddHomework(false);
-    } catch (error) {
-      toastError('Failed to add homework', 'Please try again');
+    } catch (error: any) {
+      if (!handlePlanLimitError(error)) {
+        toastError('Failed to add homework', 'Please try again');
+      }
       console.error('Error adding homework:', error);
     }
   };
@@ -1047,25 +1168,21 @@ const MainApp = () => {
                     </div>
                     {!showTestsInClassCards && (
                       <div
-                        className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showClasses
-                          ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                          : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                          }`}
+                        className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 md:hidden transition-all duration-300"
                       >
-                        <ChevronRight className={`h-5 w-5 transition-colors ${showClasses ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                          }`} />
+                        <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
                     {/* Nav-pill style action buttons */}
-                    <div className="flex items-center gap-1.5 p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                    <div className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowAddClass(true);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-white hover:text-white/80 rounded-full bg-white/10 hover:bg-white/15 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Class
@@ -1075,7 +1192,7 @@ const MainApp = () => {
                           e.stopPropagation();
                           setShowAddHomework(true);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-white hover:text-white/80 rounded-full bg-white/10 hover:bg-white/15 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Homework
@@ -1086,7 +1203,7 @@ const MainApp = () => {
                             e.stopPropagation();
                             setShowAddTest(true);
                           }}
-                          className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-white hover:text-white/80 rounded-full bg-white/10 hover:bg-white/15 transition-all active:scale-95"
+                          className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                         >
                           <Plus className="h-3.5 w-3.5" />
                           Test
@@ -1094,19 +1211,15 @@ const MainApp = () => {
                       )}
                     </div>
                     {!showTestsInClassCards && (
-                      <Button
-                        variant="default"
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowClasses(!showClasses);
                         }}
-                        className={`p-2 rounded-lg duration-500 hidden md:block ${showClasses
-                          ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700'
-                          : 'bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-400'
-                          }`}
+                        className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/20 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hidden md:flex items-center justify-center transition-all duration-300"
                       >
-                        <ChevronRight className={`h-5 w-5 transition-transform ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
-                      </Button>
+                        <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
+                      </button>
                     )}
                   </div>
                 </div>
@@ -1349,18 +1462,36 @@ const MainApp = () => {
                                     Hide archived
                                   </button>
                                   <span className="text-sky-200 dark:text-gray-700">·</span>
-                                  <button
-                                    onClick={async () => {
-                                      if (!window.confirm(`Delete all ${classArchivedHomeworks.length} archived assignment${classArchivedHomeworks.length > 1 ? 's' : ''}?`)) return;
-                                      for (const hw of classArchivedHomeworks) {
-                                        await deleteHomework(hw.id);
-                                      }
-                                      setShowArchivedForClass(prev => ({ ...prev, [cls.id]: false }));
-                                    }}
-                                    className="text-xs text-red-400/60 hover:text-red-500 transition-colors"
-                                  >
-                                    Delete all archived
-                                  </button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <button
+                                        className="text-xs text-red-400/60 hover:text-red-500 transition-colors"
+                                      >
+                                        Delete all archived
+                                      </button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete all archived?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This will permanently delete {classArchivedHomeworks.length} archived assignment{classArchivedHomeworks.length > 1 ? 's' : ''} from this class. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={async () => {
+                                            for (const hw of classArchivedHomeworks) {
+                                              await deleteHomework(hw.id);
+                                            }
+                                            setShowArchivedForClass(prev => ({ ...prev, [cls.id]: false }));
+                                          }}
+                                        >
+                                          Delete All
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 </div>
                               </motion.div>
                             )}
@@ -1378,54 +1509,48 @@ const MainApp = () => {
       case 'tests':
         if (showTestsInClassCards) return null;
         return (
-          <div key="tests" className="mb-12">
-            <div className="mb-6">
+          <div key="tests" className="mt-8 mb-10" data-tour="tests">
+            <div>
               <div
-                className="mb-4 cursor-pointer group"
+                className={`mb-3 group cursor-pointer`}
                 onClick={() => handleToggleTests(!showTests)}
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-lg sm:text-xl font-medium text-[#111827] dark:text-white mb-1 group-hover:text-[#264f84] dark:group-hover:text-blue-400 transition-colors">
+                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
                         Tests & Exams
                       </h2>
-                      <p className="text-[#6B7280] dark:text-gray-400 text-xs sm:text-sm">Manage your test schedule and study materials</p>
                     </div>
                     <div
-                      className={`p-2 rounded-lg transition-all duration-500 md:hidden ${showTests
-                        ? 'rotate-90 bg-[#264f84] dark:bg-blue-500'
-                        : 'rotate-0 bg-gray-100 dark:bg-gray-900'
-                        }`}
+                      className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 md:hidden transition-all duration-300"
                     >
-                      <ChevronRight className={`h-5 w-5 transition-colors ${showTests ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                        }`} />
+                      <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="default"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowAddTest(true);
-                      }}
-                      className="rounded-lg bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-medium uppercase tracking-tight px-4"
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> Add Test
-                    </Button>
-                    <Button
-                      variant="default"
+                  <div className="flex items-center gap-1.5">
+                    {/* Nav-pill style action buttons — matching My Classes */}
+                    <div className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAddTest(true);
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Test
+                      </button>
+                    </div>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowTests(!showTests);
                       }}
-                      className={`p-2 rounded-lg duration-500 hidden md:block ${showTests
-                        ? 'bg-[#264f84] hover:bg-[#1f3f6b] text-white dark:bg-blue-600 dark:hover:bg-blue-700'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-gray-400'
-                        }`}
+                      className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/20 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hidden md:flex items-center justify-center transition-all duration-300"
                     >
-                      <ChevronRight className={`h-5 w-5 transition-transform ${showTests ? 'rotate-90' : 'rotate-0'}`} />
-                    </Button>
+                      <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1441,13 +1566,13 @@ const MainApp = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-gray-100 dark:border-gray-800"
+                    className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-sky-100 dark:border-gray-800"
                   >
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
-                      <CalendarIcon className="h-6 w-6 text-[#6B7280] dark:text-gray-500" />
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-sky-50 dark:bg-gray-900 rounded-xl mb-4 border border-sky-100 dark:border-gray-800">
+                      <CalendarIcon className="h-6 w-6 text-sky-400 dark:text-sky-500" />
                     </div>
-                    <h3 className="text-xl font-light text-[#111827] dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
-                    <p className="text-[#6B7280] dark:text-gray-400 max-w-xs mx-auto text-sm">
+                    <h3 className="text-xl font-light text-sky-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
+                    <p className="text-sky-600/60 dark:text-gray-400 max-w-xs mx-auto text-sm">
                       Start by adding your first test to keep track of your exam schedule
                     </p>
                   </motion.div>
@@ -1951,10 +2076,18 @@ const MainApp = () => {
               </AnimatePresence>
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex items-center gap-2 sm:gap-3">
               <h1 className="text-3xl sm:text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight">
                 {timeGreeting.text}, {full_name?.split(' ')[0] || 'Student'}!
               </h1>
+              <button
+                onClick={() => setShowBracket(true)}
+                className="shrink-0 group relative p-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-200 dark:hover:border-sky-500/30 transition-all duration-300 active:scale-90 self-center"
+                title="Task Bracket"
+              >
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 dark:text-sky-400 group-hover:text-sky-500 transition-colors" />
+                <span className="absolute inset-0 rounded-xl animate-ping bg-sky-400/10 pointer-events-none" style={{ animationDuration: '3s' }} />
+              </button>
             </div>
           </div>
         </motion.div>
@@ -1967,6 +2100,13 @@ const MainApp = () => {
 
         {/* Render sections in user-defined order */}
         {sectionOrder.map(sectionId => renderSection(sectionId))}
+
+        {/* Task Bracket Modal */}
+        <TaskBracket
+          open={showBracket}
+          onClose={() => setShowBracket(false)}
+          tasks={homeworks.filter((hw: any) => !hw.completed).map((hw: any) => ({ id: hw.id, title: hw.title }))}
+        />
 
         <AnimatePresence>
           {showAddClass && (
@@ -2206,6 +2346,42 @@ const MainApp = () => {
 
                 {/* Content */}
                 <div className="p-6 space-y-5">
+                  {/* AI Autofill */}
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkle className="h-3.5 w-3.5 text-sky-500" />
+                      <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Quick Fill</span>
+                    </div>
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={autoFillText}
+                        onChange={(e) => setAutoFillText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && autoFillText.trim()) {
+                            e.preventDefault();
+                            handleAutoFill();
+                          }
+                        }}
+                        placeholder='e.g., "Math ch5 exercises due friday high priority"'
+                        className="w-full h-11 pl-3 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+                      />
+                      <button
+                        onClick={handleAutoFill}
+                        disabled={!autoFillText.trim() || isAutoFilling}
+                        className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        title="Fill fields with AI"
+                      >
+                        {isAutoFilling ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-sky-100/60 dark:border-gray-800" />
                   {/* Class Selection */}
                   <div>
                     <Label htmlFor="class" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
@@ -2427,37 +2603,49 @@ const MainApp = () => {
           <OnboardingModal
             isOpen={showOnboarding}
             onClose={() => setShowOnboarding(false)}
+            onShowLetter={handleShowWelcomeLetter}
           />
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Welcome Letter */}
+      <AnimatePresence>
+        {showWelcomeLetter && (
+          <WelcomeLetter
+            isOpen={showWelcomeLetter}
+            onClose={() => setShowWelcomeLetter(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Delete Recurring Homework Confirmation */}
       <AnimatePresence>
         {deleteConfirm && (
-          <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-800"
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-[28px] p-7 max-w-md w-full border border-sky-100 dark:border-gray-800 shadow-2xl shadow-sky-500/5"
             >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-2">
                 Delete Recurring Homework
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Are you sure you want to delete &quot;<span className="font-medium">{deleteConfirm.title}</span>&quot;?
+              <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-6">
+                How would you like to delete &quot;<span className="font-semibold text-sky-800 dark:text-sky-200">{deleteConfirm.title}</span>&quot;?
               </p>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2.5 mb-6">
                 <button
                   onClick={() => handleDeleteConfirm(false)}
-                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                  className="w-full h-11 flex items-center justify-center text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/15 border border-sky-200 dark:border-sky-500/20 rounded-full transition-colors"
                 >
                   Delete only this instance
                 </button>
                 <button
                   onClick={() => handleDeleteConfirm(true)}
-                  className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                  className="w-full h-11 flex items-center justify-center text-[13px] font-semibold text-white bg-red-500 hover:bg-red-600 border border-red-500 hover:border-red-600 rounded-full transition-colors"
                 >
                   Delete entire recurring series
                 </button>
@@ -2466,7 +2654,7 @@ const MainApp = () => {
               <div className="flex justify-end">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                  className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
                 >
                   Cancel
                 </button>
@@ -2478,7 +2666,7 @@ const MainApp = () => {
 
       {/* Delete Class Confirmation Dialog */}
       <AlertDialog open={!!classToDelete} onOpenChange={(open) => { if (!open) setClassToDelete(null); }}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete &quot;{classToDelete?.name}&quot;?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -2488,7 +2676,6 @@ const MainApp = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white border-none"
               onClick={() => {
                 if (classToDelete) {
                   deleteClass(classToDelete.id);
@@ -2496,7 +2683,7 @@ const MainApp = () => {
                 }
               }}
             >
-              Delete
+              Delete Class
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

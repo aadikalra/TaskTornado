@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowUp, Loader2, Sparkles } from 'lucide-react';
 import { Markdown } from './markdown';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 
 type Message = {
     role: 'user' | 'assistant';
@@ -17,6 +18,18 @@ interface GuardianAIChatProps {
     studentName: string;
 }
 
+// ── Cookie helpers ──────────────────────────────────────────────────
+function getCookieValue(name: string): string | null {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+    return match ? match.split('=')[1] : null;
+}
+function setCookieValue(name: string, value: string, days: number) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+}
+
 export default function GuardianAIChat({ isOpen, onClose, studentId, studentName }: GuardianAIChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -24,6 +37,22 @@ export default function GuardianAIChat({ isOpen, onClose, studentId, studentName
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const firstName = studentName.split(' ')[0];
+
+    // ─── Plan-tier rate limit ─────────────────────────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    const maxPerDay = limits.guardianAIChatPerDay;
+    const today = new Date().toISOString().slice(0, 10);
+    const cookieKey = `guardian_ai_chat_${today}`;
+
+    const [dailyCount, setDailyCount] = useState(0);
+
+    useEffect(() => {
+        const saved = parseInt(getCookieValue(cookieKey) || '0', 10);
+        setDailyCount(saved);
+    }, [cookieKey]);
+
+    const isLimitReached = maxPerDay !== Infinity && dailyCount >= maxPerDay;
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,6 +71,21 @@ export default function GuardianAIChat({ isOpen, onClose, studentId, studentName
     const sendMessage = useCallback(async () => {
         const text = input.trim();
         if (!text || isStreaming) return;
+
+        // ─── Rate limit check ─────────────────────────────────────────
+        if (maxPerDay === 0) {
+            // Locked — shouldn't reach here normally (dashboard is gated) but just in case
+            return;
+        }
+        if (isLimitReached) {
+            const userMessage: Message = { role: 'user', content: text };
+            setMessages(prev => [...prev, userMessage, {
+                role: 'assistant',
+                content: `You've reached your daily limit of ${maxPerDay} Guardian AI messages. Upgrade your plan for more.`,
+            }]);
+            setInput('');
+            return;
+        }
 
         const userMessage: Message = { role: 'user', content: text };
         const newMessages = [...messages, userMessage];
@@ -99,6 +143,11 @@ export default function GuardianAIChat({ isOpen, onClose, studentId, studentName
                     }
                 }
             }
+
+            // ─── Increment daily counter on success ────────────────────
+            const newCount = dailyCount + 1;
+            setDailyCount(newCount);
+            setCookieValue(cookieKey, newCount.toString(), 1);
         } catch {
             setMessages(prev => {
                 const updated = [...prev];
@@ -108,7 +157,7 @@ export default function GuardianAIChat({ isOpen, onClose, studentId, studentName
         } finally {
             setIsStreaming(false);
         }
-    }, [input, isStreaming, messages, studentId]);
+    }, [input, isStreaming, messages, studentId, maxPerDay, isLimitReached, dailyCount, cookieKey]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -220,20 +269,26 @@ export default function GuardianAIChat({ isOpen, onClose, studentId, studentName
 
                         {/* Input */}
                         <div className="px-4 pb-4 pt-2">
-                            <div className="flex items-end gap-2 bg-white dark:bg-zinc-900 border border-sky-100/70 dark:border-gray-800 rounded-2xl pl-4 pr-2 py-2 focus-within:border-sky-300/60 dark:focus-within:border-sky-500/25 transition-colors shadow-sm">
+                            {isLimitReached && (
+                                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium text-center mb-2">
+                                    Daily limit reached ({maxPerDay} messages)
+                                </p>
+                            )}
+                            <div className={`flex items-end gap-2 bg-white dark:bg-zinc-900 border border-sky-100/70 dark:border-gray-800 rounded-2xl pl-4 pr-2 py-2 focus-within:border-sky-300/60 dark:focus-within:border-sky-500/25 transition-colors shadow-sm ${isLimitReached ? 'opacity-50' : ''}`}>
                                 <textarea
                                     ref={inputRef}
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    placeholder="Ask a question..."
+                                    placeholder={isLimitReached ? 'Daily limit reached' : 'Ask a question...'}
                                     rows={1}
-                                    className="flex-1 bg-transparent text-[13.5px] text-sky-900 dark:text-sky-100 placeholder:text-sky-300/30 dark:placeholder:text-sky-500/25 resize-none outline-none max-h-[100px] py-0.5 leading-[1.5]"
+                                    disabled={isLimitReached}
+                                    className="flex-1 bg-transparent text-[13.5px] text-sky-900 dark:text-sky-100 placeholder:text-sky-300/30 dark:placeholder:text-sky-500/25 resize-none outline-none max-h-[100px] py-0.5 leading-[1.5] disabled:cursor-not-allowed"
                                 />
                                 <button
                                     onClick={sendMessage}
-                                    disabled={!input.trim() || isStreaming}
-                                    className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${input.trim() && !isStreaming
+                                    disabled={!input.trim() || isStreaming || isLimitReached}
+                                    className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${input.trim() && !isStreaming && !isLimitReached
                                         ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/20'
                                         : 'bg-sky-500/[0.06] text-sky-300/30 dark:text-sky-500/20'
                                         }`}
@@ -245,6 +300,11 @@ export default function GuardianAIChat({ isOpen, onClose, studentId, studentName
                                     )}
                                 </button>
                             </div>
+                            {maxPerDay !== Infinity && maxPerDay > 0 && !isLimitReached && (
+                                <p className="text-[10px] text-sky-600/25 dark:text-sky-400/20 font-medium text-center mt-1.5">
+                                    {dailyCount}/{maxPerDay} messages today
+                                </p>
+                            )}
                         </div>
                     </motion.div>
                 </>

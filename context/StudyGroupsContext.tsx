@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database.types';
 import { checkSchoolTimeWarning } from '@/lib/school-schedule';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 
 type StudyGroup = Database['public']['Tables']['study_groups']['Row'] & {
   member_count?: number;
@@ -233,6 +234,13 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   const createGroup = async (name: string, classId?: string): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
 
+    // ─── Plan tier: only Pro+ can create groups ─────────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (!limits.canCreateStudyGroups) {
+      throw new Error('PLAN_LIMIT:Creating study groups is a Pro feature — upgrade to start your own group.');
+    }
+
     try {
       const { data: group, error } = await supabase
         .from('study_groups')
@@ -256,7 +264,8 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
 
       await fetchGroups();
       return group.id;
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.message?.startsWith('PLAN_LIMIT:')) throw err;
       console.error('Error creating group:', err);
       throw new Error('Failed to create group');
     }
@@ -265,6 +274,26 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   // Join a group
   const joinGroup = async (groupId: string) => {
     if (!user) throw new Error('User not authenticated');
+
+    // ─── Plan tier: limit how many groups free users can join ──────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (limits.studyGroupsJoin !== Infinity) {
+      if (groups.length >= limits.studyGroupsJoin) {
+        throw new Error(`PLAN_LIMIT:The free plan lets you join ${limits.studyGroupsJoin} study group — upgrade to Pro for unlimited.`);
+      }
+    }
+
+    // ─── Member cap check ─────────────────────────────────────────────
+    if (limits.studyGroupMemberCap !== Infinity) {
+      const { count } = await supabase
+        .from('study_group_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('group_id', groupId);
+      if ((count ?? 0) >= limits.studyGroupMemberCap) {
+        throw new Error(`PLAN_LIMIT:This group has reached its ${limits.studyGroupMemberCap}-member cap. The group creator needs to upgrade for more seats.`);
+      }
+    }
 
     try {
       const { error } = await supabase
@@ -277,7 +306,8 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       if (error) throw error;
 
       await fetchGroups();
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.message?.startsWith('PLAN_LIMIT:')) throw err;
       console.error('Error joining group:', err);
       throw new Error('Failed to join group');
     }
@@ -355,6 +385,21 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   const sendMessage = async (groupId: string, content: string) => {
     if (!user) throw new Error('User not authenticated');
 
+    // ─── Plan tier: limit messages per day ──────────────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (limits.studyGroupMessagesPerDay !== Infinity) {
+      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from('group_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', todayStart.toISOString());
+      if ((count ?? 0) >= limits.studyGroupMessagesPerDay) {
+        throw new Error(`PLAN_LIMIT:The free plan includes ${limits.studyGroupMessagesPerDay} messages per day — upgrade to Pro for unlimited.`);
+      }
+    }
+
     try {
       const { error } = await supabase
         .from('group_messages')
@@ -362,16 +407,15 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
           group_id: groupId,
           user_id: user.id,
           content,
-          full_name: full_name || 'User' // Use full_name from AuthContext
+          full_name: full_name || 'User'
         }]);
 
       if (error) {
         console.error('Error inserting message:', error);
         throw new Error('Failed to send message');
       }
-
-      // Real-time subscription handles updates
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.message?.startsWith('PLAN_LIMIT:')) throw err;
       console.error('Error sending message:', err);
       throw new Error('Failed to send message');
     }
@@ -381,8 +425,14 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
   const addLink = async (groupId: string, url: string, title?: string) => {
     if (!user) throw new Error('User not authenticated');
 
+    // ─── Plan tier: file/link sharing is Pro+ only ─────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (!limits.studyGroupFileSharing) {
+      throw new Error('PLAN_LIMIT:Sharing files and links in study groups is a Pro feature — upgrade to unlock.');
+    }
+
     try {
-      // If no title provided, try to fetch it
       let linkTitle = title;
       if (!linkTitle) {
         try {
@@ -401,13 +451,12 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
           url,
           title: linkTitle,
           user_id: user.id,
-          full_name: full_name || 'User' // Use full_name from AuthContext
+          full_name: full_name || 'User'
         }]);
 
       if (error) throw error;
-
-      // Real-time subscription handles updates
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.message?.startsWith('PLAN_LIMIT:')) throw err;
       console.error('Error adding link:', err);
       throw new Error('Failed to add link');
     }

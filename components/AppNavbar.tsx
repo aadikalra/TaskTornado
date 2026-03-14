@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Menu, X, Search, Sparkle, Calendar, Home, LogOut, Bell, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle, FileText, MoreHorizontal, Pencil, Plus, X as XIcon, Check, GripVertical } from 'lucide-react';
+import { ChevronDown, Menu, X, Search, Sparkle, Calendar, Home, LogOut, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle, FileText, MoreHorizontal, Pencil, Plus, X as XIcon, Check, GripVertical } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
 import { useAI } from '@/context/AIContext';
 import { AIAssistant } from '@/components/AIAssistant';
 import { StudyTimer } from '@/components/StudyTimer';
-import { NotificationPanel, useNotifications } from '@/components/NotificationPanel';
+
 
 /* ── Always-pinned core items (cannot be removed) ────────────────────────── */
 const CORE_ITEMS = [
@@ -55,7 +55,7 @@ export default function AppNavbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [toolsOpen, setToolsOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
-    const [notificationsOpen, setNotificationsOpen] = useState(false);
+
     const [isStudyTimerOpen, setIsStudyTimerOpen] = useState(false);
     const [timerInfo, setTimerInfo] = useState<{ isMinimized: boolean; isRunning: boolean; timeLeft: number; totalTime: number; formattedTime: string; progress: number } | null>(null);
     const [timerRestoreSignal, setTimerRestoreSignal] = useState(0);
@@ -113,7 +113,7 @@ export default function AppNavbar() {
         setMobileOpen(false);
         setToolsOpen(false);
         setProfileOpen(false);
-        setNotificationsOpen(false);
+
         setTabletMoreOpen(false);
     }, [pathname]);
 
@@ -315,7 +315,7 @@ export default function AppNavbar() {
                         <div ref={toolsRef} className="relative">
                             <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
                                 <button
-                                    onClick={() => { setToolsOpen(!toolsOpen); setProfileOpen(false); setNotificationsOpen(false); }}
+                                    onClick={() => { setToolsOpen(!toolsOpen); setProfileOpen(false); }}
                                     className={`flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold rounded-full transition-all active:scale-95 ${toolsOpen
                                         ? 'bg-white/15 text-white'
                                         : 'text-white hover:text-white/80'
@@ -408,20 +408,13 @@ export default function AppNavbar() {
                             )}
                         </AnimatePresence>
 
-                        {/* Notifications + Profile pill */}
+                        {/* Profile pill */}
                         <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
-                            {/* Notifications */}
-                            <button
-                                onClick={() => { setNotificationsOpen(!notificationsOpen); setProfileOpen(false); setToolsOpen(false); }}
-                                className={`relative px-3 py-2 rounded-full transition-colors ${notificationsOpen ? 'text-white' : 'text-white/70 hover:text-white'}`}
-                            >
-                                <NotificationBellIcon />
-                            </button>
 
                             {/* Profile */}
                             <div ref={profileRef} className="relative">
                                 <button
-                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setNotificationsOpen(false); setEditNavOpen(false); }}
+                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setEditNavOpen(false); }}
                                     className="relative px-3 py-1.5 text-[13px] font-bold text-[#275085] rounded-full bg-white/90 border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-white transition-all active:scale-95"
                                 >
                                     {initials}
@@ -563,7 +556,7 @@ export default function AppNavbar() {
                         <div ref={toolsRef} className="relative">
                             <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
                                 <button
-                                    onClick={() => { setToolsOpen(!toolsOpen); setProfileOpen(false); setNotificationsOpen(false); }}
+                                    onClick={() => { setToolsOpen(!toolsOpen); setProfileOpen(false); }}
                                     className={`flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold rounded-full transition-all active:scale-95 ${toolsOpen
                                         ? 'bg-white/15 text-white'
                                         : 'text-white hover:text-white/80'
@@ -648,18 +641,12 @@ export default function AppNavbar() {
                             )}
                         </AnimatePresence>
 
-                        {/* Notifications + Profile pill (compact) */}
+                        {/* Profile pill (compact) */}
                         <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
-                            <button
-                                onClick={() => { setNotificationsOpen(!notificationsOpen); setProfileOpen(false); setToolsOpen(false); }}
-                                className={`relative px-2.5 py-1.5 rounded-full transition-colors ${notificationsOpen ? 'text-white' : 'text-white/70 hover:text-white'}`}
-                            >
-                                <NotificationBellIcon />
-                            </button>
 
                             <div ref={profileRef} className="relative">
                                 <button
-                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setNotificationsOpen(false); setEditNavOpen(false); }}
+                                    onClick={() => { setProfileOpen(!profileOpen); setToolsOpen(false); setEditNavOpen(false); }}
                                     className="relative px-2.5 py-1 text-[12px] font-bold text-[#275085] rounded-full bg-white/90 border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-white transition-all active:scale-95"
                                 >
                                     {initials}
@@ -719,6 +706,20 @@ export default function AppNavbar() {
                     </button>
                 </div>
             </nav>
+
+            {/* ── "Get Plus" pill — centered below desktop nav ── */}
+            <motion.button
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                onClick={() => handleNavClick('/pricing')}
+                className="hidden lg:flex fixed top-[68px] left-1/2 -translate-x-1/2 z-50 items-center gap-1.5 px-3 py-1 bg-white/60 hover:bg-white/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-full shadow-[0_2px_12px_rgba(39,80,133,0.08),inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer"
+            >
+                <Sparkle className="w-3 h-3 text-[#275085]/70 dark:text-blue-300/70 group-hover:text-[#275085] dark:group-hover:text-blue-300 transition-colors" />
+                <span className="text-[11px] font-semibold text-[#275085]/70 dark:text-blue-200/70 group-hover:text-[#275085] dark:group-hover:text-blue-200 tracking-tight transition-colors">
+                    Get Plus
+                </span>
+            </motion.button>
 
             {/* ════════════════════════════════════════════════════════
                 MOBILE MENU — full-screen overlay
@@ -859,23 +860,8 @@ export default function AppNavbar() {
             {/* Floating components */}
             <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setAIAssistantOpen(false)} />
             <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} onMinimizedInfo={setTimerInfo} restoreSignal={timerRestoreSignal} />
-            <NotificationPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+
         </>
     );
 }
 
-// ─── Notification Bell with Badge ──────────────────────────────────────────────
-function NotificationBellIcon() {
-    const { notifications } = useNotifications();
-    const count = notifications.length;
-    return (
-        <div className="relative">
-            <Bell className="w-4 h-4" />
-            {count > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[14px] h-[14px] px-[3px] text-[8px] font-bold text-white bg-red-500 rounded-full leading-none shadow-sm">
-                    {count > 9 ? '9+' : count}
-                </span>
-            )}
-        </div>
-    );
-}

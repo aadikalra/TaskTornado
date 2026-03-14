@@ -10,6 +10,7 @@ import { WebSavesProvider } from '@/context/WebSavesContext';
 import { StudyGroupsProvider } from '@/context/StudyGroupsContext';
 import { DarkModeProvider } from '@/context/DarkModeContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { UpgradeProvider } from '@/context/UpgradeContext';
 import AuthWrapper from '@/components/AuthWrapper';
 import { ClientLayout } from './ClientLayout';
 import React from 'react';
@@ -82,9 +83,11 @@ export default function RootLayout({
                     <WebSavesProvider>
                       <StudyGroupsProvider>
                         <ToastProvider>
-                          <AuthWrapper>
-                            <ClientLayout>{children}</ClientLayout>
-                          </AuthWrapper>
+                          <UpgradeProvider>
+                            <AuthWrapper>
+                              <ClientLayout>{children}</ClientLayout>
+                            </AuthWrapper>
+                          </UpgradeProvider>
                         </ToastProvider>
                       </StudyGroupsProvider>
                     </WebSavesProvider>

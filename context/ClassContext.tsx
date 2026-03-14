@@ -7,6 +7,7 @@ import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
 import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
+import { getPlanTier, TIER_LIMITS, getTierLabel } from '@/lib/planTier';
 
 import Cookies from 'js-cookie';
 
@@ -773,6 +774,18 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
   const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = [], description: string = '', completed: boolean = false) => {
     if (!user) throw new Error('User not authenticated');
 
+    // ─── Plan tier limit check ───────────────────────────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (limits.homeworkEntries !== Infinity) {
+      const activeCount = homeworks.filter(hw => !hw.completed).length;
+      if (activeCount >= limits.homeworkEntries) {
+        throw new Error(
+          `PLAN_LIMIT:The free plan includes up to ${limits.homeworkEntries} active assignments — upgrade to Pro for unlimited.`
+        );
+      }
+    }
+
     // Generate a temporary ID for the optimistic update
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -1113,6 +1126,18 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     notes?: string;
   } = {}) => {
     if (!user) throw new Error('User not authenticated');
+
+    // ─── Plan tier limit check ───────────────────────────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (limits.activeTests !== Infinity) {
+      const activeTestCount = tests.filter(t => t.status === 'upcoming' || t.status === 'preparing' || t.status === 'not_started' || t.status === 'in_progress').length;
+      if (activeTestCount >= limits.activeTests) {
+        throw new Error(
+          `PLAN_LIMIT:The free plan includes up to ${limits.activeTests} active tests — upgrade to Pro for unlimited.`
+        );
+      }
+    }
 
     // Generate a temporary ID for the optimistic update
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

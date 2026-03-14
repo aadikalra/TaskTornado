@@ -289,12 +289,12 @@ const PlayfulHomeworkListComponent = ({
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-sky-100 dark:border-gray-800 shadow-2xl shadow-sky-500/5">
+                        <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-sky-900 dark:text-white font-bold">
+                            <AlertDialogTitle>
                               {item.isRecurringInstance || item.parentRecurringId || item.recurring ? 'Delete recurring homework?' : 'Delete this homework?'}
                             </AlertDialogTitle>
-                            <AlertDialogDescription className="text-sky-600/50 dark:text-sky-400/50">
+                            <AlertDialogDescription>
                               {item.isRecurringInstance || item.parentRecurringId || item.recurring
                                 ? `Choose how you'd like to delete "${item.text}".`
                                 : `This will permanently delete the homework "${item.text}". This action cannot be undone.`
@@ -306,7 +306,7 @@ const PlayfulHomeworkListComponent = ({
                               "flex flex-col-reverse sm:flex-row gap-2 w-full",
                               (item.isRecurringInstance || item.parentRecurringId || item.recurring) ? "sm:justify-between" : "sm:justify-end"
                             )}>
-                              <AlertDialogCancel className="text-sky-600/50 dark:text-sky-400/50 border-sky-100 dark:border-gray-700 hover:bg-sky-500/[0.04] rounded-xl">Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
 
                               {item.isRecurringInstance || item.parentRecurringId || item.recurring ? (
                                 <div className="flex flex-col sm:flex-row gap-2">
@@ -315,7 +315,6 @@ const PlayfulHomeworkListComponent = ({
                                       e.stopPropagation();
                                       item.onDelete?.();
                                     }}
-                                    className="bg-red-500 hover:bg-red-600 text-white rounded-xl"
                                   >
                                     Delete This One
                                   </AlertDialogAction>
@@ -324,7 +323,7 @@ const PlayfulHomeworkListComponent = ({
                                       e.stopPropagation();
                                       item.onDeleteSeries?.();
                                     }}
-                                    className="bg-red-700 hover:bg-red-800 text-white rounded-xl"
+                                    className="bg-red-700 hover:bg-red-800 border-red-700 hover:border-red-800"
                                   >
                                     Delete Whole Series
                                   </AlertDialogAction>
@@ -335,7 +334,6 @@ const PlayfulHomeworkListComponent = ({
                                     e.stopPropagation();
                                     item.onDelete?.();
                                   }}
-                                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl"
                                 >
                                   Delete Homework
                                 </AlertDialogAction>

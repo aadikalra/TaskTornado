@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
@@ -171,6 +172,170 @@ function RecurringPracticeList() {
 function PracticeAddButton() {
     const [isOpen, setIsOpen] = React.useState(false);
     const [isRecurring, setIsRecurring] = React.useState(true);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const modal = mounted && isOpen ? (
+        <AnimatePresence>
+            <div
+                className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100] text-base"
+                onClick={() => setIsOpen(false)}
+            >
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 20 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-500/5 w-full max-w-md relative border border-sky-100 dark:border-gray-800 max-h-[90vh] overflow-y-auto"
+                >
+                    {/* Header */}
+                    <div className="sticky top-0 bg-white dark:bg-gray-900 flex items-center justify-between px-6 py-4 border-b border-sky-100 dark:border-gray-800 rounded-t-[28px] z-10">
+                        <h2 className="text-lg font-bold text-sky-900 dark:text-white">
+                            Add New Homework
+                        </h2>
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-5">
+                        {/* Class Selection */}
+                        <div>
+                            <Label htmlFor="class" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                                Class
+                            </Label>
+                            <Select>
+                                <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
+                                    <SelectValue placeholder="Select a class" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                                    <SelectItem value="class1" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Physics 101</SelectItem>
+                                    <SelectItem value="class2" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">English Literature</SelectItem>
+                                    <SelectItem value="class3" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Math 10</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Title Input */}
+                        <div>
+                            <Label htmlFor="homeworkTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                                Title
+                            </Label>
+                            <Input
+                                id="homeworkTitle"
+                                type="text"
+                                placeholder="e.g., Chapter 5 Exercises"
+                                className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                            />
+                        </div>
+
+                        {/* Description Input */}
+                        <div>
+                            <Label htmlFor="homeworkDescription" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                                Description <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
+                            </Label>
+                            <textarea
+                                id="homeworkDescription"
+                                placeholder="Add any additional details..."
+                                rows={3}
+                                className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
+                            />
+                        </div>
+
+                        {/* Due Date and Priority */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                                    Due Date
+                                </Label>
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
+                                >
+                                    <Calendar className="mr-2 h-4 w-4 text-sky-500" />
+                                    {format(new Date(), 'PPP')}
+                                </Button>
+                            </div>
+
+                            <div>
+                                <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                                    Priority
+                                </Label>
+                                <Select defaultValue="medium">
+                                    <SelectTrigger className="w-full !h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
+                                        <SelectValue placeholder="Select priority" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                                        <SelectItem value="low" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Low</SelectItem>
+                                        <SelectItem value="medium" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Medium</SelectItem>
+                                        <SelectItem value="high" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">High</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        {/* Recurring Homework Section */}
+                        <div className="pt-2 space-y-4">
+                            <div className="flex items-center gap-3 p-3 bg-sky-50 dark:bg-gray-800 rounded-xl border border-sky-100 dark:border-gray-700">
+                                <Checkbox
+                                    id="practice-recurring"
+                                    checked={isRecurring}
+                                    onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
+                                    className="size-5 rounded-md bg-sky-200 dark:bg-gray-700 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
+                                />
+                                <Label
+                                    htmlFor="practice-recurring"
+                                    className="text-sm font-semibold text-sky-800 dark:text-sky-300 cursor-pointer select-none"
+                                >
+                                    Make this a recurring homework
+                                </Label>
+                            </div>
+
+                            {isRecurring && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <RecurringOptions
+                                        recurring={{ frequency: 'weekly' }}
+                                        onChange={() => { }}
+                                    />
+                                </motion.div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="sticky bottom-0 bg-white dark:bg-gray-900 flex items-center justify-end gap-2.5 px-6 py-4 border-t border-sky-100 dark:border-gray-800 rounded-b-[28px]">
+                        <button
+                            type="button"
+                            onClick={() => setIsOpen(false)}
+                            className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsOpen(false)}
+                            className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
+                        >
+                            Add Homework
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
+    ) : null;
 
     return (
         <>
@@ -182,171 +347,8 @@ function PracticeAddButton() {
                 Open Practice Modal
             </Button>
 
-            <AnimatePresence>
-                {isOpen && (
-                    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust" onClick={() => setIsOpen(false)}>
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.96, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.96, y: 20 }}
-                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md relative border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
-                        >
-                            {/* Header */}
-                            <div className="sticky top-0 bg-white dark:bg-gray-800 flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 rounded-t-2xl z-10">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                    Add New Homework
-                                </h2>
-                                <button
-                                    onClick={() => setIsOpen(false)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-6 space-y-5">
-                                {/* Title Input */}
-                                <div>
-                                    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Title
-                                    </Label>
-                                    <Input
-                                        placeholder="e.g., Chapter 5 Exercises"
-                                        className="w-full h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84]"
-                                    />
-                                </div>
-
-                                {/* Description Input */}
-                                <div>
-                                    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Description <span className="text-gray-400 font-normal">(Optional)</span>
-                                    </Label>
-                                    <textarea
-                                        placeholder="Add any additional details..."
-                                        rows={3}
-                                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#264f84] focus:border-[#264f84] text-sm resize-none"
-                                    />
-                                </div>
-
-                                {/* Due Date and Priority */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Due Date
-                                        </Label>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-[#264f84] rounded-lg"
-                                        >
-                                            <Calendar className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                                            {format(new Date(), 'PPP')}
-                                        </Button>
-                                    </div>
-
-                                    <div>
-                                        <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Priority
-                                        </Label>
-                                        <Select defaultValue="medium">
-                                            <SelectTrigger className="w-full !h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
-                                                <SelectValue placeholder="Select priority" />
-                                            </SelectTrigger>
-                                            <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl">
-                                                <SelectItem value="low">Low</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="high">High</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                {/* Class Selection */}
-                                <div>
-                                    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Class
-                                    </Label>
-                                    <Select>
-                                        <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm hover:border-[#264f84] rounded-lg">
-                                            <SelectValue placeholder="Select a class" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl">
-                                            <SelectItem value="class1">Physics 101</SelectItem>
-                                            <SelectItem value="class2">English History</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* Highlighted Recurring Section */}
-                                <div className="pt-2 space-y-4 p-4 -mx-4 rounded-xl relative transition-all duration-500 bg-sky-50/50 dark:bg-sky-900/10 border-2 border-sky-500/20 shadow-sm animate-pulse-subtle">
-                                    <div className="absolute -top-3 left-4 bg-sky-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm z-20">
-                                        Recurring Settings
-                                    </div>
-
-                                    <div className="flex items-center space-x-2.5 pt-2">
-                                        <Checkbox
-                                            id="practice-recurring"
-                                            checked={isRecurring}
-                                            onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
-                                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-[#264f84] data-[state=checked]:bg-[#264f84] data-[state=checked]:border-[#264f84] hover:border-[#264f84]"
-                                        />
-                                        <Label
-                                            htmlFor="practice-recurring"
-                                            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none"
-                                        >
-                                            Make this a recurring homework
-                                        </Label>
-                                    </div>
-
-                                    {isRecurring && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            className="pl-7 overflow-hidden"
-                                        >
-                                            <RecurringOptions
-                                                recurring={{ frequency: 'weekly' }}
-                                                onChange={() => { }}
-                                            />
-                                        </motion.div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="sticky bottom-0 bg-white dark:bg-gray-800 flex items-center justify-end gap-3 p-6 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsOpen(false)}
-                                    className="px-4 py-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={() => setIsOpen(false)}
-                                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg"
-                                >
-                                    Create Assignment
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            <style jsx global>{`
-                @keyframes pulse-subtle {
-                    0% { border-color: rgba(14, 165, 233, 0.2); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.1); }
-                    50% { border-color: rgba(14, 165, 233, 0.5); box-shadow: 0 0 15px 0 rgba(14, 165, 233, 0.2); }
-                    100% { border-color: rgba(14, 165, 233, 0.2); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.1); }
-                }
-                .animate-pulse-subtle {
-                    animation: pulse-subtle 3s infinite ease-in-out;
-                }
-            `}</style>
+            {mounted && modal && ReactDOM.createPortal(modal, document.body)}
         </>
     );
 }
+

@@ -32,15 +32,7 @@ export default function CommandCenterArticle() {
                 The Command Center is designed to give you instant clarity. The moment you log in, your eyes are drawn to what matters most. We use intelligent layout and visual hierarchy to ensure that your most urgent assignments, upcoming tests, and current class standings are always front-and-center.
             </p>
 
-            <h2>Intelligent Prioritization</h2>
-            <p>
-                A long list of tasks can be paralyzing. That&apos;s why our dashboard doesn&apos;t just show you <em>everything</em> — it shows you what to do <em>now</em>.
-            </p>
-            <ul>
-                <li><strong>Dynamic Sorting:</strong> Your assignments are automatically prioritized based on their due date and weight.</li>
-                <li><strong>Class Cards:</strong> Each class has a dedicated space where you can see your current grade, recent progress, and upcoming workload at a glance.</li>
-                <li><strong>Real-time Stats:</strong> See your overall GPA and study streaks to keep your momentum high.</li>
-            </ul>
+
 
             <h2>Customized for You</h2>
             <p>

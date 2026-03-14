@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,8 +18,21 @@ import {
 } from '@/components/ui/popover';
 import { useClassContext } from '../context/ClassContext';
 import { useToast } from '@/context/ToastContext';
-import { X, Calendar as CalendarIcon, ChevronDown, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { useUpgrade } from '@/context/UpgradeContext';
+import { X, Calendar as CalendarIcon, ChevronDown, Clock, Sparkle, ArrowUp, Loader2 } from 'lucide-react';
+import { format, addDays } from 'date-fns';
+
+// Build a compact date reference so the AI doesn't have to do calendar math
+function getDateReference(): string {
+  const now = new Date();
+  const lines: string[] = [];
+  for (let i = 0; i <= 13; i++) {
+    const d = addDays(now, i);
+    const label = i === 0 ? 'TODAY' : i === 1 ? 'TOMORROW' : '';
+    lines.push(`${format(d, 'EEE MMM d')} = ${format(d, 'yyyy-MM-dd')}${label ? ` (${label})` : ''}`);
+  }
+  return lines.join(', ');
+}
 
 type AddTestModalProps = {
   isOpen: boolean;
@@ -30,6 +43,7 @@ type AddTestModalProps = {
 export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalProps) => {
   const { classes, addTest } = useClassContext();
   const { success, error: toastError } = useToast();
+  const { handlePlanLimitError } = useUpgrade();
 
   const [title, setTitle] = useState('');
   const [classId, setClassId] = useState('');
@@ -39,6 +53,102 @@ export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalPr
   const [description, setDescription] = useState('');
   const [studyMaterials, setStudyMaterials] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // AI Autofill state
+  const [autoFillText, setAutoFillText] = useState('');
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  const handleAutoFill = useCallback(async () => {
+    if (!autoFillText.trim() || isAutoFilling) return;
+    setIsAutoFilling(true);
+    try {
+      const classNames = classes.map((c: any) => c.name).join(', ');
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const dayOfWeek = format(new Date(), 'EEEE');
+      const dateRef = getDateReference();
+
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `You are helping a student fill out a test/exam form. Today is ${dayOfWeek}, ${today}.
+
+Date reference (use these exact dates): ${dateRef}
+
+Available classes: ${classNames}
+Test type options: ALPHA, BETA, Quiz, Midterm, Final, Other
+
+The student typed: "${autoFillText}"
+
+Return ONLY a JSON object with whichever fields you can determine:
+- "title": string (the test title/name)
+- "className": string (must exactly match one of the available classes)
+- "testDate": string (use the date reference above to pick the correct yyyy-MM-dd date)
+- "testType": "ALPHA" | "BETA" | "Quiz" | "Midterm" | "Final" | "Other"
+- "testTime": string (24h format like "10:30")
+- "description": string (any extra details)
+
+Only include fields you are confident about. Omit unknown fields.
+Return ONLY valid JSON, no explanation, no markdown.`,
+          action: 'generate',
+          model: 'gemini-2.5-flash-lite'
+        })
+      });
+
+      const reader = response.body?.getReader();
+      let text = '';
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.response) text += data.response;
+              } catch (e) { }
+            }
+          }
+        }
+      }
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        if (parsed.title) setTitle(parsed.title);
+        if (parsed.description) {
+          setDescription(parsed.description);
+          setShowAdvanced(true);
+        }
+        if (parsed.testTime) {
+          setTestTime(parsed.testTime);
+          setShowAdvanced(true);
+        }
+        if (parsed.testType && ['ALPHA', 'BETA', 'Quiz', 'Midterm', 'Final', 'Other'].includes(parsed.testType)) {
+          setTestType(parsed.testType);
+        }
+        if (parsed.testDate) {
+          const d = new Date(parsed.testDate + 'T12:00:00');
+          if (!isNaN(d.getTime())) setTestDate(d);
+        }
+        if (parsed.className) {
+          const matchedClass = classes.find((c: any) =>
+            c.name.toLowerCase() === parsed.className.toLowerCase()
+          );
+          if (matchedClass) setClassId(matchedClass.id);
+        }
+
+        setAutoFillText('');
+      }
+    } catch (error) {
+      console.error('Autofill error:', error);
+    } finally {
+      setIsAutoFilling(false);
+    }
+  }, [autoFillText, isAutoFilling, classes]);
 
   useEffect(() => {
     if (isOpen) {
@@ -59,6 +169,7 @@ export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalPr
     setTestDate(new Date());
     setClassId(classes[0]?.id || '');
     setShowAdvanced(false);
+    setAutoFillText('');
   };
 
   const handleClose = () => {
@@ -116,9 +227,11 @@ export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalPr
 
       success('✅ Test Added!', `Good luck studying for your ${title}.`);
       handleClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding test:', err);
-      toastError('Failed to add test', 'Please try again later.');
+      if (!handlePlanLimitError(err)) {
+        toastError('Failed to add test', 'Please try again later.');
+      }
     }
   };
 
@@ -148,21 +261,42 @@ export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalPr
 
             {/* Content */}
             <div className="p-6 space-y-5">
-              {/* Title Input */}
-              <div>
-                <Label htmlFor="testTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                  Test Title
-                </Label>
-                <Input
-                  id="testTitle"
-                  type="text"
-                  value={title}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-                  placeholder="e.g., Biology Midterm"
-                  className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                />
+              {/* AI Autofill */}
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkle className="h-3.5 w-3.5 text-sky-500" />
+                  <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Quick Fill</span>
+                </div>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={autoFillText}
+                    onChange={(e) => setAutoFillText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && autoFillText.trim()) {
+                        e.preventDefault();
+                        handleAutoFill();
+                      }
+                    }}
+                    placeholder='e.g., "Biology midterm next friday at 10am"'
+                    className="w-full h-11 pl-3 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+                  />
+                  <button
+                    onClick={handleAutoFill}
+                    disabled={!autoFillText.trim() || isAutoFilling}
+                    className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Fill fields with AI"
+                  >
+                    {isAutoFilling ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
+              <div className="border-t border-sky-100/60 dark:border-gray-800" />
               {/* Class Selection */}
               <div>
                 <Label htmlFor="testClass" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
@@ -184,6 +318,21 @@ export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalPr
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Title Input */}
+              <div>
+                <Label htmlFor="testTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                  Test Title
+                </Label>
+                <Input
+                  id="testTitle"
+                  type="text"
+                  value={title}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+                  placeholder="e.g., Biology Midterm"
+                  className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                />
               </div>
 
               {/* Date and Type */}

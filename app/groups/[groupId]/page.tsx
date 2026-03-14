@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessagesSquare, Link as LinkIcon, ArrowLeft,  Plus, WifiOff, Loader2, LogOut, ArrowRight, AlertTriangle, X } from 'lucide-react';
+import { MessagesSquare, Link as LinkIcon, ArrowLeft, Plus, WifiOff, Loader2, LogOut, ArrowRight, AlertTriangle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { RealtimeChat } from '@/components/realtime-chat';
 import { useAuth } from '@/context/AuthContext';
@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { GroupShareMenu } from '@/components/GroupShareMenu';
+import { useUpgrade } from '@/context/UpgradeContext';
 
 const BackgroundOrbs = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -58,6 +59,7 @@ export default function GroupPage() {
     groups: contextGroups,
     dismissSchoolWarning
   } = useStudyGroups();
+  const { handlePlanLimitError } = useUpgrade();
 
   const [newMessage, setNewMessage] = useState('');
   const [newLink, setNewLink] = useState('');
@@ -129,9 +131,11 @@ export default function GroupPage() {
     try {
       await sendMessage(groupId as string, newMessage);
       setNewMessage('');
-    } catch (err) {
-      console.error('Error sending message:', err);
-      setErrorMessage('Failed to send message');
+    } catch (err: any) {
+      if (!handlePlanLimitError(err)) {
+        console.error('Error sending message:', err);
+        setErrorMessage('Failed to send message');
+      }
     } finally {
       setIsSending(false);
     }
@@ -144,9 +148,11 @@ export default function GroupPage() {
       await addLink(groupId as string, newLink);
       setNewLink('');
       setActiveTab('links');
-    } catch (err) {
-      console.error('Error adding link:', err);
-      setErrorMessage('Failed to add link');
+    } catch (err: any) {
+      if (!handlePlanLimitError(err)) {
+        console.error('Error adding link:', err);
+        setErrorMessage('Failed to add link');
+      }
     }
   };
 

@@ -18,7 +18,7 @@ export default function ResearchHubArticle() {
             authorRole="Founder"
             date="Feb 7, 2026"
             readTime="4 min read"
-            coverImage="https://images.unsplash.com/photo-1454165833772-d99626a44bf7?auto=format&fit=crop&q=80&w=2000"
+            coverImage="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=2000"
         >
             <p>
                 The internet is the greatest library ever built, but it&apos;s also the nosiest. When you&apos;re deep in a research project, it&apos;s all too easy to end up with fifty open tabs, a dozen half-copied URLs, and no clear way to find that one perfect quote you saw twenty minutes ago.

@@ -1,8 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight, Loader2, AlertCircle, RefreshCcw } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { Calendar, ChevronDown, ChevronUp, Search, Hash, ArrowRight, Loader2, AlertCircle, RefreshCcw, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { getFullVersionString, BUILD_VERSION } from '@/config/version';
 
@@ -30,6 +30,9 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
   const { getContainerClass } = useWideLayout();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const fetchVersions = async (showRefresher = false) => {
     try {
@@ -173,15 +176,48 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
               <RefreshCcw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Checking...' : 'Refresh'}
             </button>
-            <div className="relative flex-1 md:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-500 dark:text-sky-400" />
-              <input
-                placeholder="Search updates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-9 pr-4 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none focus:ring-2 focus:ring-sky-400/30 transition-all"
-              />
-            </div>
+            <motion.div
+              initial={false}
+              animate={{ width: searchExpanded ? 280 : 40 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+              className={`relative h-10 flex items-center rounded-full overflow-hidden bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 ${!searchExpanded ? 'cursor-pointer hover:bg-sky-100 dark:hover:bg-zinc-700 hover:border-sky-300 dark:hover:border-sky-700' : ''
+                } ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+              style={{ originX: 1 }}
+              onClick={() => {
+                if (!searchExpanded) {
+                  setSearchExpanded(true);
+                  setTimeout(() => searchInputRef.current?.focus(), 80);
+                }
+              }}
+            >
+              <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+              </div>
+              <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search updates..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => {
+                    setSearchFocused(false);
+                    if (!searchQuery) setSearchExpanded(false);
+                  }}
+                  className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none w-full min-w-0"
+                />
+                {searchQuery && (
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
+                    className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
         </div>
 

@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence, type Transition } from 'framer-motion';
-import { Check, X, Plus,  Trash2 } from 'lucide-react';
+import { Check, X, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useClassContext } from '@/context/ClassContext';
+import { useUpgrade } from '@/context/UpgradeContext';
 import confetti from 'canvas-confetti';
 
 interface ChecklistItem {
@@ -23,6 +24,7 @@ interface AIChecklistProps {
 
 export function AIChecklist({ initialTitle, initialItems, onComplete }: AIChecklistProps) {
     const { addClass, addHomework } = useClassContext();
+    const { handlePlanLimitError } = useUpgrade();
     const [title, setTitle] = useState(initialTitle);
     const [items, setItems] = useState<ChecklistItem[]>(
         initialItems.map((text, i) => ({ id: `item-${Date.now()}-${i}`, text, checked: false }))
@@ -301,7 +303,11 @@ export function AIChecklist({ initialTitle, initialItems, onComplete }: AICheckl
                                 }
                             }
 
-                        } catch (e) { console.error(e); }
+                        } catch (e: any) {
+                            if (!handlePlanLimitError(e)) {
+                                console.error(e);
+                            }
+                        }
                     }}
                     className="bg-[#165df9] hover:bg-[#165df9]/90 text-white shadow-md shadow-[#165df9]/20 rounded-lg"
                 >

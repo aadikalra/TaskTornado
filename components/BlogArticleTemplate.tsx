@@ -37,15 +37,9 @@ export function BlogArticleTemplate({
 }: BlogArticleTemplateProps) {
     const [headings, setHeadings] = useState<TOCItem[]>([]);
     const [activeId, setActiveId] = useState<string>('');
-    const [scrolled, setScrolled] = useState(false);
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 60);
-        };
-        window.addEventListener('scroll', handleScroll);
-
         const timer = setTimeout(() => {
             const articleHeadings = Array.from(document.querySelectorAll('article h2'));
             const headingData = articleHeadings.map((h) => {
@@ -70,7 +64,6 @@ export function BlogArticleTemplate({
             articleHeadings.forEach((h) => observer.observe(h));
             return () => {
                 observer.disconnect();
-                window.removeEventListener('scroll', handleScroll);
             };
         }, 100);
 
@@ -100,13 +93,7 @@ export function BlogArticleTemplate({
                 <div className="absolute top-1/2 right-0 w-[250px] h-[250px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
             </div>
 
-            {/* Nav Bar */}
-            <nav className={cn(
-                "fixed top-0 inset-x-0 z-50 transition-all duration-500 px-4 sm:px-6",
-                scrolled
-                    ? "bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-sky-100/60 dark:border-sky-900/20 h-14"
-                    : "bg-transparent h-20"
-            )}>
+            <nav className="absolute top-16 sm:top-[72px] lg:top-20 inset-x-0 z-40 px-4 sm:px-6 h-20 bg-transparent">
                 <div className="max-w-[1200px] mx-auto flex items-center justify-between h-full">
                     <Link href="/blog" className="flex items-center gap-2 text-sky-600/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors">
                         <ArrowLeft className="w-4 h-4" />
@@ -128,7 +115,7 @@ export function BlogArticleTemplate({
             </nav>
 
             {/* Header */}
-            <header className="relative z-10 pt-32 pb-16 px-6">
+            <header className="relative z-10 pt-40 md:pt-48 pb-16 px-6">
                 <div className="max-w-[800px] mx-auto">
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}

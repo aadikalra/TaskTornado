@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Zap, Accessibility, Database, Globe, Users } from 'lucide-react';
+import { User, Zap, Accessibility, Database, Globe, Users, Lock, Shield, ArrowUp } from 'lucide-react';
 import { Facehash } from 'facehash';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
@@ -20,6 +20,7 @@ import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection
 import GuardianAccessSettings from '@/components/settings/GuardianAccessSettings';
 import { getFullVersionString } from '@/config/version';
 import { useDarkMode } from '@/context/DarkModeContext';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 
 // Cookie utilities
 const setCookie = (name: string, value: string, days: number = 365) => {
@@ -328,16 +329,60 @@ export default function SettingsPage() {
             </section>
           )}
 
-          {/* Guardian Access (students only) */}
-          {!isGuardian && (
-            <section id="guardian" className="scroll-mt-24 mb-20">
-              <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
-                Guardian Access
-              </h2>
-              <GuardianAccessSettings />
-              <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
-            </section>
-          )}
+          {/* Guardian Access (students only, Family tier) */}
+          {!isGuardian && (() => {
+            const tier = getPlanTier();
+            const limits = TIER_LIMITS[tier];
+            const hasGuardianAccess = limits.guardianDashboard;
+
+            return (
+              <section id="guardian" className="scroll-mt-24 mb-20">
+                <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
+                  Guardian Access
+                </h2>
+                {hasGuardianAccess ? (
+                  <GuardianAccessSettings />
+                ) : (
+                  <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-8 text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-sky-100 to-emerald-100 dark:from-sky-500/15 dark:to-emerald-500/15 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <Lock className="w-7 h-7 text-sky-500 dark:text-sky-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-2">
+                      Guardian Access is a Family feature
+                    </h3>
+                    <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-6 max-w-md mx-auto">
+                      Let a parent or guardian monitor your progress with a secure invite code. They can view your classes, homework, and test data — nothing else.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 max-w-lg mx-auto">
+                      <div className="flex items-center gap-2.5 p-3 bg-sky-50/60 dark:bg-sky-500/[0.06] rounded-xl">
+                        <Shield className="w-4 h-4 text-sky-500 shrink-0" />
+                        <span className="text-xs font-medium text-sky-700 dark:text-sky-300">Secure invite codes</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 p-3 bg-sky-50/60 dark:bg-sky-500/[0.06] rounded-xl">
+                        <Users className="w-4 h-4 text-sky-500 shrink-0" />
+                        <span className="text-xs font-medium text-sky-700 dark:text-sky-300">Up to 4 children</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 p-3 bg-sky-50/60 dark:bg-sky-500/[0.06] rounded-xl">
+                        <Lock className="w-4 h-4 text-sky-500 shrink-0" />
+                        <span className="text-xs font-medium text-sky-700 dark:text-sky-300">Read-only access</span>
+                      </div>
+                    </div>
+                    <a
+                      href="/pricing"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 rounded-full transition-colors"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                      Upgrade to Family
+                    </a>
+                    <p className="text-[11px] text-sky-500/30 dark:text-sky-400/20 mt-3">
+                      Guardian Access requires the Family plan.
+                    </p>
+                  </div>
+                )}
+                <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
+              </section>
+            );
+          })()}
 
           {/* Google Classroom (students only) */}
           {isGoogleUser && !isGuardian && (

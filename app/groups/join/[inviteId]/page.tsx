@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Loader2, ArrowLeft, CheckCircle, XCircle, Users, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useUpgrade } from '@/context/UpgradeContext';
 
 const BackgroundOrbs = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -20,6 +21,7 @@ export default function JoinGroupPage() {
   const { inviteId } = useParams() as { inviteId: string };
   const router = useRouter();
   const { joinGroup, groups } = useStudyGroups();
+  const { handlePlanLimitError } = useUpgrade();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'already_member'>('loading');
   const [error, setError] = useState<string | null>(null);
@@ -89,10 +91,12 @@ export default function JoinGroupPage() {
       setTimeout(() => {
         router.push(`/groups/${inviteId}`);
       }, 1500);
-    } catch (err) {
-      console.error('Error joining group:', err);
-      setStatus('error');
-      setError('Failed to join group. The invite link may be invalid or expired.');
+    } catch (err: any) {
+      if (!handlePlanLimitError(err)) {
+        console.error('Error joining group:', err);
+        setStatus('error');
+        setError('Failed to join group. The invite link may be invalid or expired.');
+      }
     } finally {
       setIsJoining(false);
     }

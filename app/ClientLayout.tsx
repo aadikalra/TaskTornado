@@ -9,7 +9,6 @@ import { CustomContextMenu } from '@/components/CustomContextMenu';
 import { DictionaryPopup } from '@/components/DictionaryPopup';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
-import { OnboardingTour } from '@/components/OnboardingTour';
 import ReboundNavbar from '@/components/ReboundNavbar';
 import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
 
@@ -144,8 +143,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </main>
         {/* Nav: GuardianNavbar for guardians, AppNavbar for students, ReboundNavbar for logged-out */}
         {user ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />) : <ReboundNavbar />}
-        <OnboardingTour />
-        {contextMenu && (
+                {contextMenu && (
           <CustomContextMenu
             x={contextMenu.x}
             y={contextMenu.y}

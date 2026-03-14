@@ -37,6 +37,7 @@ const useDarkMode = () => {
 interface OnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onShowLetter?: () => void;
 }
 
 type OnboardingStep = 'welcome' | 'grade' | 'math-acceleration' | 'language' | 'electives' | 'summary';
@@ -131,7 +132,7 @@ const languageLevelLabels = ['1', '2', '3', 'AP'];
 
 const classColors = ['#E53E3E', '#3182CE', '#D69E2E', '#38A169', '#805AD5', '#D53F8C', '#2E7774', '#4A5568'];
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose, onShowLetter }) => {
   const { classes, addClass } = useClassContext();
   const { user, full_name } = useAuth();
   const isDarkMode = useDarkMode();
@@ -361,7 +362,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         await addClass(fullLanguageName, 'MessageCircle' as any);
       }
 
-      onClose();
+      // Show welcome letter after successful class creation
+      if (onShowLetter) {
+        onShowLetter();
+      } else {
+        onClose();
+      }
     } catch (error) {
       console.error('Failed to create classes:', error);
     } finally {

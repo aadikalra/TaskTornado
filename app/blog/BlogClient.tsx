@@ -114,7 +114,7 @@ const blogPosts: BlogPost[] = [
         authorRole: 'Founder',
         readTime: '4 min read',
         category: 'Product',
-        coverImage: 'https://images.unsplash.com/photo-1454165833772-d99626a44bf7?auto=format&fit=crop&q=80&w=2000',
+        coverImage: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=2000',
         href: '/blog/research-hub'
     },
     {
@@ -245,7 +245,7 @@ export default function BlogClient() {
                 <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
             </div>
 
-            <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+            <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-36 sm:pt-40 pb-16">
 
                 {/* ═══════════════════════════════════════════════════════════
                     HEADER — title left, search right, pills below

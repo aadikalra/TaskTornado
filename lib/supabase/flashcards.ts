@@ -14,6 +14,17 @@ type CreateDeckData = {
 };
 
 export const flashcardService = {
+  // Get total flashcard count for a user (for plan tier limit checks)
+  getTotalCardCount: async (userId: string): Promise<number> => {
+    const { count, error } = await supabase
+      .from('flashcards')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return count ?? 0;
+  },
+
   // Deck operations
   getDecks: async (userId: string) => {
     const { data, error } = await supabase
@@ -21,7 +32,7 @@ export const flashcardService = {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data || [];
   },

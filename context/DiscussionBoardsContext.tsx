@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase/client';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 
 export type ResourceType = 'link' | 'file' | 'video' | 'document' | 'other';
 
@@ -184,6 +185,13 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
     const createBoard = async (name: string, description?: string): Promise<DiscussionBoard> => {
         if (!user) throw new Error('User not authenticated');
 
+        // ─── Plan tier: only Pro+ can create boards ──────────────────────
+        const tier = getPlanTier();
+        const limits = TIER_LIMITS[tier];
+        if (!limits.canCreateBoards) {
+            throw new Error('PLAN_LIMIT:Creating discussion boards is a Pro feature — upgrade to start your own board.');
+        }
+
         const { data, error } = await supabase
             .from('discussion_boards')
             .insert([{
@@ -210,6 +218,16 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
     // Join a board
     const joinBoard = async (boardId: string) => {
         if (!user) throw new Error('User not authenticated');
+
+        // ─── Plan tier: limit how many boards free users can join ─────────
+        const tier = getPlanTier();
+        const limits = TIER_LIMITS[tier];
+        if (limits.discussionBoardsJoin !== Infinity) {
+            const joinedCount = boards.filter(b => b.is_member).length;
+            if (joinedCount >= limits.discussionBoardsJoin) {
+                throw new Error(`PLAN_LIMIT:The free plan lets you join up to ${limits.discussionBoardsJoin} boards — upgrade to Pro for unlimited.`);
+            }
+        }
 
         const { error } = await supabase
             .from('discussion_board_members')
@@ -482,6 +500,21 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
     const createThread = async (boardId: string, title: string, content: string, tags: string[] = []) => {
         if (!user) throw new Error('User not authenticated');
 
+        // ─── Plan tier: limit threads (posts) per day ────────────────────
+        const tier = getPlanTier();
+        const limits = TIER_LIMITS[tier];
+        if (limits.discussionPostsPerDay !== Infinity) {
+            const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+            const { count } = await supabase
+                .from('discussion_threads')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .gte('created_at', todayStart.toISOString());
+            if ((count ?? 0) >= limits.discussionPostsPerDay) {
+                throw new Error(`PLAN_LIMIT:The free plan includes ${limits.discussionPostsPerDay} threads per day — upgrade to Pro for unlimited.`);
+            }
+        }
+
         const { error } = await supabase
             .from('discussion_threads')
             .insert([{
@@ -545,9 +578,24 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
             .eq('id', threadId);
     };
 
-    // Create a new post
+    // Create a new post (reply)
     const createPost = async (threadId: string, content: string, isAnswer: boolean = false) => {
         if (!user) throw new Error('User not authenticated');
+
+        // ─── Plan tier: limit replies per day ────────────────────────────
+        const tier = getPlanTier();
+        const limits = TIER_LIMITS[tier];
+        if (limits.discussionRepliesPerDay !== Infinity) {
+            const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+            const { count } = await supabase
+                .from('discussion_posts')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .gte('created_at', todayStart.toISOString());
+            if ((count ?? 0) >= limits.discussionRepliesPerDay) {
+                throw new Error(`PLAN_LIMIT:The free plan includes ${limits.discussionRepliesPerDay} replies per day — upgrade to Pro for unlimited.`);
+            }
+        }
 
         const { error } = await supabase
             .from('discussion_posts')
@@ -647,6 +695,14 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
         tags: string[] = []
     ) => {
         if (!user) throw new Error('User not authenticated');
+
+        // ─── Plan tier: sharing resources is Pro+ only ───────────────────
+        const tier = getPlanTier();
+        const limits = TIER_LIMITS[tier];
+        if (!limits.canCreateBoards) {
+            // canCreateBoards doubles as the "share resources" gate
+            throw new Error('PLAN_LIMIT:Sharing resources in discussion boards is a Pro feature — upgrade to unlock.');
+        }
 
         const { error } = await supabase
             .from('discussion_resources')

@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStudyGroups } from '@/context/StudyGroupsContext';
 import { Input } from '@/components/ui/input';
-import { Plus, MessagesSquare, Users, ArrowRight, AlertTriangle, X, Loader2, Link as LinkIcon, Check, Copy, Trash2 } from 'lucide-react';
+import { Plus, MessagesSquare, Users, ArrowRight, AlertTriangle, X, Loader2, Link as LinkIcon, Check, Copy, Trash2, Search } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { useRequireAuth } from '@/hooks/use-require-auth';
+import { useUpgrade } from '@/context/UpgradeContext';
 
 const BackgroundOrbs = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -28,7 +29,20 @@ export default function GroupsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const { showIntro, dismissIntro } = useRouteIntro('groups');
+  const { handlePlanLimitError } = useUpgrade();
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery) return groups;
+    const q = searchQuery.toLowerCase();
+    return groups.filter(g => g.name.toLowerCase().includes(q));
+  }, [groups, searchQuery]);
 
   // Delete confirmation state
   const [groupToDelete, setGroupToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -88,9 +102,11 @@ export default function GroupsPage() {
       // Show the share modal immediately after creation
       setShowShareModal(true);
       setLinkCopied(false);
-    } catch (err) {
-      console.error('Error creating group:', err);
-      setCreateError('Failed to create group. Please try again.');
+    } catch (err: any) {
+      if (!handlePlanLimitError(err)) {
+        console.error('Error creating group:', err);
+        setCreateError('Failed to create group. Please try again.');
+      }
     } finally {
       setIsCreating(false);
     }
@@ -133,7 +149,7 @@ export default function GroupsPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <h1 className="text-4xl sm:text-5xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-2">
                 Group Chats
@@ -142,13 +158,60 @@ export default function GroupsPage() {
                 {groups.length} group{groups.length !== 1 ? 's' : ''} · Collaborate with classmates in real-time
               </p>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              New Group
-            </button>
+
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Expanding Search */}
+              <motion.div
+                initial={false}
+                animate={{ width: searchExpanded ? 280 : 40 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                className={`relative h-10 flex items-center rounded-full overflow-hidden bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 ${!searchExpanded ? 'cursor-pointer hover:bg-sky-100 dark:hover:bg-zinc-700 hover:border-sky-300 dark:hover:border-sky-700' : ''
+                  } ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
+                style={{ originX: 1 }}
+                onClick={() => {
+                  if (!searchExpanded) {
+                    setSearchExpanded(true);
+                    setTimeout(() => searchInputRef.current?.focus(), 80);
+                  }
+                }}
+              >
+                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                </div>
+                <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search groups..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => {
+                      setSearchFocused(false);
+                      if (!searchQuery) setSearchExpanded(false);
+                    }}
+                    className="flex-1 bg-transparent text-[14px] text-sky-900 dark:text-sky-100 placeholder:text-sky-600/40 dark:placeholder:text-sky-400/40 outline-none w-full min-w-0"
+                  />
+                  {searchQuery && (
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
+                      className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                New Group
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -211,7 +274,7 @@ export default function GroupsPage() {
             </div>
           ) : (
             <div className="space-y-0">
-              {groups.map((group, index) => (
+              {filteredGroups.map((group, index) => (
                 <motion.div
                   key={group.id}
                   initial={{ opacity: 0, y: 10 }}

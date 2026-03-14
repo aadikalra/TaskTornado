@@ -11,7 +11,7 @@ import {
   Presentation,
   Target,
   Zap,
-  
+
   CheckCircle2
 } from 'lucide-react';
 

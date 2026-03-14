@@ -1,9 +1,11 @@
 'use client';
 
-import {    Brain, Check, Maximize2,  BookOpen, RotateCcw } from 'lucide-react';
+import { Brain, Check, Maximize2, BookOpen, Crown, FlaskConical } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { useState } from 'react';
-import { useOnboardingTour } from '@/components/OnboardingTour';
+import { motion } from 'framer-motion';
+import { usePlanTier } from '@/hooks/use-plan-tier';
+import type { PlanTier } from '@/lib/planTier';
 
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
@@ -24,10 +26,60 @@ export default function PreferencesSection({
   showTestsInClassCards,
   onToggleTestsInClassCards
 }: PreferencesSectionProps) {
-  const { resetTour } = useOnboardingTour();
+  const { tier, setTier } = usePlanTier();
+
+  const TIERS: { value: PlanTier; label: string; color: string }[] = [
+    { value: 'free', label: 'Free', color: 'text-sky-600 dark:text-sky-300' },
+    { value: 'pro', label: 'Pro', color: 'text-sky-600 dark:text-sky-300' },
+    { value: 'family', label: 'Family', color: 'text-sky-600 dark:text-sky-300' },
+  ];
 
   return (
     <div className="space-y-1">
+      {/* Plan Tier Switcher — dev testing only */}
+      <div className="px-1 py-3.5 rounded-xl">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <FlaskConical className="h-[18px] w-[18px] text-amber-500/70" />
+            <div>
+              <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
+                Plan Tier
+              </span>
+              <span className="ml-2 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                Dev
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 p-1 bg-sky-50/60 dark:bg-zinc-800/60 rounded-full border border-sky-100/60 dark:border-sky-800/30 w-fit">
+          {TIERS.map(t => (
+            <button
+              key={t.value}
+              onClick={() => setTier(t.value)}
+              className={`relative px-4 py-1.5 text-[13px] font-semibold rounded-full transition-colors duration-200 z-10 ${tier === t.value
+                  ? t.color
+                  : 'text-sky-600/40 dark:text-sky-400/40 hover:text-sky-600 dark:hover:text-sky-400'
+                }`}
+            >
+              {tier === t.value && (
+                <motion.div
+                  layoutId="plan-tier-pill"
+                  className="absolute inset-0 bg-white dark:bg-zinc-700 rounded-full shadow-sm"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {t.value === 'family' && <Crown className="w-3 h-3" />}
+                {t.label}
+              </span>
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-sky-600/30 dark:text-sky-400/25 mt-2 ml-0.5">
+          Simulates plan restrictions for testing. Will be replaced by Stripe.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3">
           <Maximize2 className="h-[18px] w-[18px] text-sky-500/50" />
@@ -67,23 +119,10 @@ export default function PreferencesSection({
         />
       </div>
 
-      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
-        <div className="flex items-center gap-3">
-          <RotateCcw className="h-[18px] w-[18px] text-sky-500/50" />
-          <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
-            Replay Onboarding Tour
-          </span>
-        </div>
-        <button
-          onClick={resetTour}
-          className="px-3.5 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
-        >
-          Restart
-        </button>
-      </div>
     </div>
   );
 }
+
 
 // Custom Personality Select Component
 interface CustomPersonalitySelectProps {

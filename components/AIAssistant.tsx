@@ -25,7 +25,7 @@ import {
   ArrowUp,
   BookOpen,
 
-  PlusCircle,
+
   Plus,
   Search,
 
@@ -62,6 +62,8 @@ import { useAuth } from '@/context/AuthContext';
 import { rateLimitService } from '@/lib/services/rateLimitService';
 import { Toast, ToastContainer } from './Toast';
 import { AIChecklist } from '@/components/ai-checklist';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
+import { useUpgrade } from '@/context/UpgradeContext';
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -364,9 +366,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     homeworks = [],
     tests = [],
     classes = [],
-    addHomework = () => Promise.resolve(),
-    toggleHomework = () => Promise.resolve(),
-    deleteHomework = () => Promise.resolve()
   } = classContext || {};
 
   // State to trigger chip rotation
@@ -411,7 +410,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       { label: 'Study Resources', prompt: '@resources Help me find study materials and helpful links for my classes.' },
       { label: 'Generate Flashcards', prompt: '@flashcards Help me create a set of flashcards for my upcoming topics.' },
       { label: 'Grade my draft', prompt: '@grade Can you evaluate my current assignment draft and give me feedback?' },
-      { label: 'Manage Homework', prompt: '@control I need to add or update my homework list.' },
+
       { label: 'Mental Support', prompt: '@therapist I am feeling a bit stressed with school lately. Can we talk?' },
       { label: 'Study Tip', prompt: 'Tell me a scientifically proven study technique to improve memory.' },
       { label: 'Focus Boost', prompt: 'I am struggling to focus. What are some quick tips to get back into deep work?' },
@@ -436,7 +435,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
   // Track active @-command
   const [activeCommand, setActiveCommand] = useState<
-    'data' | 'control' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | null
+    'data' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | null
   >(null);
 
   // Toast state
@@ -445,6 +444,14 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
   // Dark mode
   const { isDark } = useDarkMode();
+  const { handlePlanLimitError } = useUpgrade();
+
+  // ─── Plan-tier AI limits ────────────────────────────────────────────
+  const tier = getPlanTier();
+  const limits = TIER_LIMITS[tier];
+  const quickLimit = limits.aiQuickPerDay;
+  const deepLimit = limits.aiDeepPerDay;
+  const cloudLimit = limits.aiCloudPerDay;
 
   // AI Personality setting
   type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
@@ -495,7 +502,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   /* ---------------------------------------------------------------------- */
   const commands = [
     { id: 'data', label: 'Data', icon: BookOpen, color: 'yellow', description: 'View all your school data' },
-    { id: 'control', label: 'Control', icon: PlusCircle, color: 'blue', description: 'Create or manage homework' },
     { id: 'resources', label: 'Resources', icon: Search, color: 'purple', description: 'Find study resources' },
     { id: 'flashcards', label: 'Flashcards', icon: Bookmark, color: 'pink', description: 'Generate flashcards' },
     { id: 'quiz', label: 'Quiz', icon: HelpCircle, color: 'orange', description: 'Generate interactive quizzes' },
@@ -579,15 +585,11 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
         addToast({
           type: 'info',
           title: 'Smart Model Recommended',
-          message: 'For the best response with @data, consider switching to Deep or Cloud model.',
+          message: 'For the best response with @data, consider switching to Deep or Max model.',
           duration: 6000
         });
         dataToastShownRef.current = true;
       }
-    } else if (inputLower.includes('@control')) {
-      setActiveCommand('control');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
     } else if (inputLower.includes('@resources')) {
       setActiveCommand('resources');
       setShowHomeworkEffect(false);
@@ -773,176 +775,11 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     return classes.find((c) => c.id === classId);
   };
 
-  // Toggle homework status
-  const toggleHomeworkStatus = async (homeworkId: string, completed: boolean) => {
-    try {
-      // Find the homework first to check its current state
-      const homework = homeworks.find(hw => hw.id === homeworkId);
-      if (homework && homework.completed !== completed) {
-        // Only toggle if the state is different
-        const result = await toggleHomework(homeworkId);
-        return result;
-      }
-      return true; // No change needed
-    } catch (error) {
-      console.error('Error toggling homework status:', error);
-      return false;
-    }
-  };
 
-  /** --------------------------------------------------------------
-   * Parse a natural-language command using the AI.
-   * --------------------------------------------------------------- */
-  const parseNaturalLanguageCommand = async (
-    command: string,
-    classes: Class[],
-    homeworks: Homework[]
-  ): Promise<{
-    isValid: boolean;
-    error?: string;
-    action?: 'mark' | 'unmark' | 'create' | 'delete';
-    target?: 'specific' | 'first' | 'last' | 'all';
-    title?: string;
-    className?: string;
-    classId?: string;
-    date?: string;
-    priority?: 'low' | 'medium' | 'high';
-  }> => {
-    // Format class information for the AI
-    const classInfo = classes.map(c => `- ${c.name} (ID: ${c.id})`).join('\n');
-    const classList = classes.map((c) => c.name).join(', ');
 
-    // Get current date for context
-    const now = new Date();
-    const currentDate = now.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    const currentYear = now.getFullYear();
 
-    const prompt = `You are a helpful assistant that parses natural language homework commands into structured JSON.
 
-Current date: ${currentDate} (Year: ${currentYear})
 
-Available classes (with common aliases in parentheses):
-${classInfo}
-
-Example class references:
-- "my math class" -> "Math 10"
-- "science" -> "Science 8"
-- "history" -> "Social Studies 9"
-
-User's command: "${command}"
-
-For homework creation commands:
-- Look for patterns like "create homework [title] for [class] due [date]"
-- Extract the title, class name, due date, and optional priority
-- For class names, understand natural references like "my math class" or just "math"
-- Match partial class names (e.g., "math" matches "Math 10")
-- For dates, understand natural language like "tomorrow", "next Monday", "in 3 days", etc.
-- IMPORTANT: Always use the current year (${currentYear}) for dates unless explicitly specified otherwise
-- Do NOT create homework for future years unless the year is explicitly mentioned
-- Default priority is 'medium' if not specified
-- Handle variations like "high priority" or "priority: high"
-
-For marking homework as done/undone:
-- Look for patterns like "mark [homework] as done/undone"
-- Or "mark all homework for [class] as done"
-
-For deleting homework:
-- Look for patterns like "delete [homework]", "remove [homework]", "delete the [title] assignment"
-- Or "delete all homework for [class]"
-- Extract the title and class name to identify which homework to delete
-- Examples:
-  * "delete the assignment test in my math class" -> title: "test", className: "math"
-  * "delete homework called Chapter 5" -> title: "Chapter 5"
-  * "remove the quiz from science" -> title: "quiz", className: "science"
-  * "delete test" -> title: "test"
-- The word "assignment" or "homework" before the title is just descriptive, extract the actual title
-- Be flexible with phrasing - "the assignment X" means the homework is titled "X"
-
-Parse the command into a JSON object with the following fields:
-- "action": "create" | "mark" | "unmark" | "delete"
-- "target": "specific" | "first" | "last" | "all" (for mark/unmark/delete actions)
-- "title": string (homework title for create, specific mark/unmark, or delete)
-- "className": string (class name, should match one of the available classes)
-- "date": string in YYYY-MM-DD format (for create action)
-- "priority": "low" | "medium" | "high" (for create action, default: "medium")
-- "isValid": boolean (false if the command is unclear)
-
-If unclear, set "isValid" to false.
-Respond ONLY with the JSON object.`;
-
-    try {
-      const response = await chat([{ role: 'user', content: prompt }]);
-      let jsonString = response.response.trim();
-
-      // Strip optional markdown fences
-      if (jsonString.startsWith('```json')) {
-        jsonString = jsonString.replace(/^```json\n?|\n?```$/g, '').trim();
-      } else if (jsonString.startsWith('```')) {
-        jsonString = jsonString.replace(/^```\n?|\n?```$/g, '').trim();
-      }
-
-      const result = JSON.parse(jsonString);
-
-      if (!result.isValid) {
-        return { isValid: false, error: 'Command is not clear.' };
-      }
-
-      // Find matching class (case-insensitive and flexible matching)
-      const classObj = classes.find(
-        (c) => {
-          const className = c.name.toLowerCase();
-          const searchName = result.className?.toLowerCase() || '';
-
-          // Exact match
-          if (className === searchName) return true;
-
-          // Class name contains search term (e.g., "Math 10" contains "math")
-          if (className.includes(searchName)) return true;
-
-          // Search term contains class name
-          if (searchName.includes(className)) return true;
-
-          // Extract base subject name (e.g., "Math" from "Math 10")
-          const baseClassName = className.split(/\s+/)[0];
-          const baseSearchName = searchName.split(/\s+/)[0];
-
-          // Match base subject names
-          if (baseClassName === baseSearchName) return true;
-
-          return false;
-        }
-      );
-
-      if (!classObj) {
-        return {
-          isValid: false,
-          error: `Could not find class "${result.className}". Available: ${classList}`,
-        };
-      }
-
-      return {
-        isValid: true,
-        action: result.action,
-        target: result.target,
-        title: result.title,
-        className: classObj.name,
-        classId: classObj.id,
-        date: result.date,
-      };
-    } catch (error) {
-      console.error('Error parsing command with AI:', error);
-      return {
-        isValid: false,
-        error:
-          'Sorry, I had trouble understanding that command. Please try again.',
-      };
-    }
-  };
 
   /* ---------------------------------------------------------------------- */
   /* @resources command handling                   */
@@ -1018,285 +855,6 @@ Please try your request again in a few minutes, or be more specific about what y
     }
   };
 
-  /* ---------------------------------------------------------------------- */
-  /* @control command handling                    */
-  /* ---------------------------------------------------------------------- */
-  const handleControlCommand = async (
-    userInput: string,
-    images: string[] = []
-  ) => {
-    // Increment quick message counter for control commands
-    setQuickMessageCounter(prev => prev + 1);
-
-    const command = userInput.split('@control')[1]?.trim() ?? '';
-
-    // First try to parse the command with the AI
-    let parsed;
-    try {
-      parsed = await parseNaturalLanguageCommand(command, classes, homeworks);
-      if (!parsed.isValid) {
-        return parsed.error ?? '❌ Invalid command. Please try again.';
-      }
-    } catch (error) {
-      console.error('Error parsing command:', error);
-      return '❌ Error processing your command. Please try again with a different format.';
-    }
-
-    const { action, target, title, className, classId, date, priority } = parsed;
-    const markAsDone = action === 'mark';
-
-    console.log('Parsed command:', { action, target, title, className, date, priority });
-
-    // -------------------- HOMEWORK CREATION --------------------
-    if (action === 'create' || command.toLowerCase().startsWith('create')) {
-      if (images && images.length > 0) {
-        try {
-          const now = new Date();
-          const currentDate = now.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          });
-          const currentYear = now.getFullYear();
-
-          const imagePrompt = `You are an expert extracting homework details from images.
-Current date: ${currentDate} (Year: ${currentYear})
-Return ONLY a JSON object with fields: title, className, dueDate, priority.
-If the image contains relative dates like "tomorrow" or "Friday", calculate the actual date based on the current date.`;
-
-          const message = {
-            role: 'user' as const,
-            content: imagePrompt,
-            images: images.map((img) =>
-              img.includes(',') ? img.split(',')[1] : img
-            ),
-          };
-
-          const response = await chat([message], 'llama3.2-vision:11b');
-          let jsonString = response.response.trim();
-
-          if (jsonString.startsWith('```json')) {
-            jsonString = jsonString.replace(/^```json\n?|\n?```$/g, '').trim();
-          } else if (jsonString.startsWith('```')) {
-            jsonString = jsonString.replace(/^```\n?|\n?```$/g, '').trim();
-          }
-
-          const parsedResponse = JSON.parse(jsonString);
-          const { title, className, dueDate, priority = 'medium' } =
-            parsedResponse;
-
-          // Find class (fallback to first if not found)
-          const cls =
-            classes.find(
-              (c) => c.name.toLowerCase() === (className ?? '').toLowerCase()
-            ) ?? classes[0];
-
-          if (!cls) {
-            return `Error: Could not find a matching class for "${className}".`;
-          }
-
-          const due = new Date(dueDate);
-          if (isNaN(due.getTime())) {
-            return `Error: Invalid due date "${dueDate}".`;
-          }
-
-          await addHomework(
-            cls.id,
-            title,
-            due,
-            (priority as 'low' | 'medium' | 'high') ?? 'medium'
-          );
-
-          return `✅ Created homework "${title}" for ${cls.name} due ${due.toLocaleDateString()}.`;
-        } catch (e) {
-          console.error(e);
-          return '❌ Failed to create homework from image.';
-        }
-      }
-
-      // -------------------- TEXT-BASED HOMEWORK CREATION --------------------
-      if (action === 'create' || command.toLowerCase().includes('homework')) {
-        if (!title || !className) {
-          return 'Please provide both a title and class name for the homework.';
-        }
-
-        // Find the class (case-insensitive and partial match)
-        const cls = classes.find(
-          (c) => c.name.toLowerCase().includes(className.toLowerCase()) ||
-            className.toLowerCase().includes(c.name.toLowerCase())
-        );
-
-        if (!cls) {
-          return `❌ Could not find class "${className}". Available classes: ${classes.map(c => c.name).join(', ')}`;
-        }
-
-        // Parse the date (handled by the AI in the prompt)
-        let due: Date;
-        try {
-          due = date ? new Date(date) : new Date();
-          if (isNaN(due.getTime())) {
-            throw new Error('Invalid date');
-          }
-
-          // We trust the AI to provide the correct year based on the context provided.
-          // Previous logic here added a year if the date was in the past (due < now),
-          // which caused issues with timezones (e.g. "tomorrow" being < "now" in UTC vs Local)
-          // and resulted in dates being set to the next year (e.g. 2026).
-        } catch (error) {
-          console.error('Date parsing error:', error);
-          return `❌ Could not parse the due date "${date}". Please use a valid date format like "Friday, November 21, 2025".`;
-        }
-
-        // Use the priority from the AI or default to 'medium'
-        const priority = (parsed.priority?.toLowerCase() as 'low' | 'medium' | 'high') || 'medium';
-
-        try {
-          await addHomework(
-            cls.id,
-            title,
-            due,
-            priority
-          );
-          return `✅ Created homework "${title}" for ${cls.name} due ${due.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })} with ${priority} priority.`;
-        } catch (error) {
-          console.error('Error creating homework:', error);
-          return '❌ Failed to create homework. Please try again.';
-        }
-      }
-    }
-
-    // -------------------- DELETE HOMEWORK --------------------
-    if (action === 'delete') {
-      let candidates: Homework[] = [];
-
-      if (target === 'all') {
-        candidates = homeworks.filter((hw) => (!classId || hw.classId === classId));
-
-        if (date) {
-          const targetDate = new Date(date);
-          if (!isNaN(targetDate.getTime())) {
-            candidates = candidates.filter(
-              (hw) => new Date(hw.dueDate).toDateString() === targetDate.toDateString()
-            );
-          }
-        }
-      } else if (target === 'specific' && title) {
-        candidates = homeworks.filter(
-          (hw) =>
-            hw.title.toLowerCase().includes(title.toLowerCase()) &&
-            (!classId || hw.classId === classId)
-        );
-      } else if (target === 'first' || target === 'last') {
-        const classHomeworks = homeworks.filter(
-          (hw) => (!classId || hw.classId === classId)
-        );
-
-        classHomeworks.sort(
-          (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-        );
-
-        if (classHomeworks.length > 0) {
-          candidates = [
-            target === 'first' ? classHomeworks[0] : classHomeworks[classHomeworks.length - 1]
-          ];
-        }
-      }
-
-      console.log('Delete search params:', { title, className, classId, target });
-      console.log('Available homeworks:', homeworks.map(hw => ({ id: hw.id, title: hw.title, classId: hw.classId })));
-      console.log('Candidates found:', candidates.map(hw => ({ id: hw.id, title: hw.title })));
-
-      if (candidates.length === 0) {
-        const searchInfo = title
-          ? `with title containing "${title}"${className ? ` in class "${className}"` : ''}`
-          : className
-            ? `in class "${className}"`
-            : 'matching your criteria';
-        return `❌ No matching homeworks found to delete ${searchInfo}.`;
-      }
-
-      const results = await Promise.all(
-        candidates.map((hw) => deleteHomework(hw.id).then(() => true).catch(() => false))
-      );
-
-      const successCount = results.filter(Boolean).length;
-
-      if (successCount === 0) {
-        return `❌ Failed to delete any homeworks.`;
-      }
-
-      return `✅ Deleted ${successCount} homework(s).`;
-    }
-
-    // -------------------- MARK / UNMARK HOMEWORK --------------------
-    // Build candidate list based on parsed command.
-    let candidates: Homework[] = [];
-
-    // Target status we want to find (false = incomplete, true = completed)
-    const targetStatus = markAsDone ? false : true;
-
-    if (target === 'all') {
-      candidates = homeworks.filter((hw) => hw.completed === targetStatus);
-
-      if (date) {
-        const targetDate = new Date(date);
-        if (!isNaN(targetDate.getTime())) {
-          candidates = candidates.filter(
-            (hw) => new Date(hw.dueDate).toDateString() === targetDate.toDateString()
-          );
-        }
-      }
-
-      if (classId) {
-        candidates = candidates.filter((hw) => hw.classId === classId);
-      }
-    } else if (target === 'specific' && title) {
-      candidates = homeworks.filter(
-        (hw) =>
-          hw.completed === targetStatus &&
-          hw.title.toLowerCase().includes(title.toLowerCase()) &&
-          (!classId || hw.classId === classId)
-      );
-    } else if (target === 'first' || target === 'last') {
-      const classHomeworks = homeworks.filter(
-        (hw) => hw.completed === targetStatus && (!classId || hw.classId === classId)
-      );
-
-      classHomeworks.sort(
-        (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-      );
-
-      if (classHomeworks.length > 0) {
-        candidates = [
-          target === 'first' ? classHomeworks[0] : classHomeworks[classHomeworks.length - 1]
-        ];
-      }
-    }
-
-    if (candidates.length === 0) {
-      return `✅ No matching homeworks found.`;
-    }
-
-    const results = await Promise.all(
-      candidates.map((hw) => toggleHomeworkStatus(hw.id, markAsDone))
-    );
-
-    const successCount = results.filter(Boolean).length;
-
-    if (successCount === 0) {
-      const act = markAsDone ? 'mark' : 'unmark';
-      return `❌ Failed to ${act} any homeworks.`;
-    }
-
-    const actVerb = markAsDone ? 'Marked' : 'Unmarked';
-    return `✅ ${actVerb} ${successCount} homework(s).`;
-  };
 
   /* ---------------------------------------------------------------------- */
   /* @flashcards command handling                  */
@@ -1315,6 +873,18 @@ For example:
 - @flashcard French vocabulary for food
 - @flashcards World War 2 key events
 - @flashcard Photosynthesis process`;
+    }
+
+    // ─── Plan tier: flashcard generation rate limit ─────────────────
+    if (limits.aiFlashcardGenPerDay !== Infinity) {
+      const today = new Date().toISOString().slice(0, 10);
+      const cookieKey = limits.aiFlashcardGenPerDay > 0 ? `ai_flashcard_gen_${today}` : `ai_flashcard_gen_week`;
+      const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
+      const max = limits.aiFlashcardGenPerDay > 0 ? limits.aiFlashcardGenPerDay : limits.aiFlashcardGenPerWeek;
+      if (max !== Infinity && currentCount >= max) {
+        const period = limits.aiFlashcardGenPerDay > 0 ? 'today' : 'this week';
+        throw new Error(`PLAN_LIMIT:You've used all ${max} flashcard generation${max === 1 ? '' : 's'} for ${period} — upgrade for more.`);
+      }
     }
 
     // First, let the user know we're working on it
@@ -1391,6 +961,14 @@ For example:
       // Remove the loading message
       setMessages(prev => prev.filter(msg => !msg.isLoading));
 
+      // ─── Increment flashcard generation counter ────────────────────
+      if (limits.aiFlashcardGenPerDay !== Infinity) {
+        const today = new Date().toISOString().slice(0, 10);
+        const cookieKey = limits.aiFlashcardGenPerDay > 0 ? `ai_flashcard_gen_${today}` : `ai_flashcard_gen_week`;
+        const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
+        setCookie(cookieKey, (currentCount + 1).toString(), limits.aiFlashcardGenPerDay > 0 ? 1 : 7);
+      }
+
       // Return a success message with a link to the flashcards page
       return `# 🗂️ Flashcard Set: ${topic}
 
@@ -1425,6 +1003,18 @@ For example:
 - @quiz French Revolution
 - @quiz Algebra equations
 - @quiz Cell biology`;
+    }
+
+    // ─── Plan tier: quiz generation rate limit ─────────────────────
+    if (limits.aiQuizGenPerDay !== Infinity) {
+      const today = new Date().toISOString().slice(0, 10);
+      const cookieKey = limits.aiQuizGenPerDay > 0 ? `ai_quiz_gen_${today}` : `ai_quiz_gen_week`;
+      const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
+      const max = limits.aiQuizGenPerDay > 0 ? limits.aiQuizGenPerDay : limits.aiQuizGenPerWeek;
+      if (max !== Infinity && currentCount >= max) {
+        const period = limits.aiQuizGenPerDay > 0 ? 'today' : 'this week';
+        throw new Error(`PLAN_LIMIT:You've used all ${max} quiz generation${max === 1 ? '' : 's'} for ${period} — upgrade for more.`);
+      }
     }
 
     // First, let the user know we're working on it
@@ -1520,6 +1110,14 @@ For example:
 
       // Remove the loading message
       setMessages(prev => prev.filter(msg => !msg.isLoading));
+
+      // ─── Increment quiz generation counter ───────────────────────
+      if (limits.aiQuizGenPerDay !== Infinity) {
+        const today = new Date().toISOString().slice(0, 10);
+        const cookieKey = limits.aiQuizGenPerDay > 0 ? `ai_quiz_gen_${today}` : `ai_quiz_gen_week`;
+        const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
+        setCookie(cookieKey, (currentCount + 1).toString(), limits.aiQuizGenPerDay > 0 ? 1 : 7);
+      }
 
       // Return a success message with a link to the quiz page  
       return `# Quiz: ${topic}
@@ -1742,7 +1340,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
   const triggerAIResponse = async (userInput: string, images?: string[]) => {
     // Check if it's a special command
     const isRequestingData = userInput.toLowerCase().includes('@data');
-    const isControlCommand = userInput.toLowerCase().startsWith('@control');
+
     const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards') || userInput.toLowerCase().includes('@flashcard');
     const isQuizCommand = userInput.toLowerCase().includes('@quiz');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
@@ -1752,12 +1350,21 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
     const currentCounter = selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
-    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? 100 :
-      selectedModel === 'gemini-2.5-flash-lite' ? 30 :
-        20;
+    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? quickLimit :
+      selectedModel === 'gemini-2.5-flash-lite' ? deepLimit :
+        cloudLimit;
 
-    if (currentCounter >= maxLimit) {
-      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode). Please try again tomorrow.`);
+    if (maxLimit === 0) {
+      try {
+        throw new Error(`PLAN_LIMIT:The ${selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} model is locked on your plan — upgrade to unlock.`);
+      } catch (err: any) { handlePlanLimitError(err); }
+      return;
+    }
+
+    if (maxLimit !== Infinity && currentCounter >= maxLimit) {
+      try {
+        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} messages for today — upgrade for more.`);
+      } catch (err: any) { handlePlanLimitError(err); }
       return;
     }
 
@@ -2046,7 +1653,7 @@ Examples of correct button prompts:
 
     const userInput = input.trim();
     const isRequestingData = userInput.toLowerCase().includes('@data');
-    const isControlCommand = userInput.toLowerCase().startsWith('@control');
+
     const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards') || userInput.toLowerCase().includes('@flashcard');
     const isQuizCommand = userInput.toLowerCase().includes('@quiz');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
@@ -2058,12 +1665,21 @@ Examples of correct button prompts:
     const currentCounter = selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
-    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? 100 :
-      selectedModel === 'gemini-2.5-flash-lite' ? 30 :
-        20;
+    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? quickLimit :
+      selectedModel === 'gemini-2.5-flash-lite' ? deepLimit :
+        cloudLimit;
 
-    if (currentCounter >= maxLimit) {
-      setError(`Daily message limit reached (${maxLimit} messages for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode). Please try again tomorrow.`);
+    if (maxLimit === 0) {
+      try {
+        throw new Error(`PLAN_LIMIT:The ${selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} model is locked on your plan — upgrade to unlock.`);
+      } catch (err: any) { handlePlanLimitError(err); }
+      return;
+    }
+
+    if (maxLimit !== Infinity && currentCounter >= maxLimit) {
+      try {
+        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} messages for today — upgrade for more.`);
+      } catch (err: any) { handlePlanLimitError(err); }
       return;
     }
 
@@ -2143,7 +1759,8 @@ Examples of correct button prompts:
           ]);
         }
         return;
-      } catch (error) {
+      } catch (error: any) {
+        if (handlePlanLimitError(error)) return;
         setError(error instanceof Error ? error.message : 'Failed to generate flashcards');
         return;
       }
@@ -2170,45 +1787,14 @@ Examples of correct button prompts:
           ]);
         }
         return;
-      } catch (error) {
+      } catch (error: any) {
+        if (handlePlanLimitError(error)) return;
         setError(error instanceof Error ? error.message : 'Failed to generate quiz');
         return;
       }
     }
 
-    // --------------------------------------------------------------
-    // @control commands
-    // --------------------------------------------------------------
-    if (isControlCommand) {
-      const loadingMsg: Message = {
-        id: messages.length + 1,
-        role: 'assistant',
-        content: 'Processing your command...',
-        timestamp: new Date(),
-        isLoading: true,
-      };
-      setMessages((prev) => [...prev, userMessage, loadingMsg]);
 
-      try {
-        const response = await handleControlCommand(userInput, selectedImages);
-        setMessages((prev) => {
-          const copy = [...prev];
-          const idx = copy.findIndex((m) => m.isLoading);
-          if (idx !== -1) {
-            copy[idx] = {
-              ...copy[idx],
-              content: response,
-              isLoading: false,
-            };
-          }
-          return copy;
-        });
-      } catch (err) {
-        console.error(err);
-        setError('Failed to process command. Please try again.');
-      }
-      return;
-    }
 
     // --------------------------------------------------------------
     // @therapist command
@@ -2375,16 +1961,19 @@ Examples of correct button prompts:
               clipPath: isAISidebarMode
                 ? 'inset(0% 0% 0% 100% round 0px)'
                 : 'inset(100% 0% 0% 100% round 24px)',
+              filter: 'blur(12px)',
             }}
             animate={{
               clipPath: isAISidebarMode
                 ? 'inset(0% 0% 0% 0% round 0px)'
                 : 'inset(0% 0% 0% 0% round 24px)',
+              filter: 'blur(0px)',
             }}
             exit={{
               clipPath: isAISidebarMode
                 ? 'inset(0% 0% 0% 100% round 0px)'
                 : 'inset(100% 0% 0% 100% round 24px)',
+              filter: 'blur(12px)',
             }}
             transition={{
               duration: 0.5,
@@ -2399,7 +1988,7 @@ Examples of correct button prompts:
                 : isAISidebarMode ? '100vh' : `${panelSize.height}px`,
             }}
             className={cn(
-              'fixed z-50 flex flex-col overflow-hidden bg-white dark:bg-black border border-gray-200 dark:border-zinc-900 shadow-xl',
+              'fixed z-50 flex flex-col overflow-hidden bg-[#f8fbfd] dark:bg-[#0a0a0a] border border-sky-100 dark:border-white/5 shadow-xl',
               // Mobile (full-screen)
               'inset-0 rounded-none',
               // Desktop
@@ -2465,59 +2054,59 @@ Examples of correct button prompts:
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center h-9 p-0.5 rounded-full bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-gray-200 dark:border-zinc-800 shadow-lg"
+                  className="flex items-center h-9 p-0.5 rounded-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border border-sky-100 dark:border-white/5 shadow-lg"
                 >
-                  <div className="flex items-center gap-1.5 h-full px-3 rounded-full hover:bg-gray-100/50 dark:hover:bg-zinc-800/50 transition-colors">
+                  <div className="flex items-center gap-1.5 h-full px-3 rounded-full hover:bg-sky-50/50 dark:hover:bg-gray-800/50 transition-colors">
                     <div className={cn(
                       "w-2 h-2 rounded-full animate-pulse",
                       selectedModel === 'gemma-3n-e4b-it' ? "bg-teal-500" :
                         selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" : "bg-blue-500"
                     )} />
-                    <span className="text-xs font-medium tabular-nums text-gray-700 dark:text-zinc-200">
+                    <span className="text-xs font-medium tabular-nums text-sky-700 dark:text-sky-200">
                       {selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
                         selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
                           cloudMessageCounter}
                       <span className="opacity-40 mx-0.5">/</span>
-                      {selectedModel === 'gemma-3n-e4b-it' ? 100 :
-                        selectedModel === 'gemini-2.5-flash-lite' ? 30 :
-                          20}
+                      {selectedModel === 'gemma-3n-e4b-it' ? (quickLimit === Infinity ? '∞' : quickLimit) :
+                        selectedModel === 'gemini-2.5-flash-lite' ? (deepLimit === Infinity ? '∞' : deepLimit) :
+                          (cloudLimit === Infinity ? '∞' : cloudLimit)}
                     </span>
                   </div>
                 </motion.div>
               </div>
 
               {/* Floating Action Capsule */}
-              <div className="pointer-events-auto flex items-center h-9 p-0.5 rounded-full bg-white/50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800 shadow-lg backdrop-blur-md">
+              <div className="pointer-events-auto flex items-center h-9 p-0.5 rounded-full bg-white/50 dark:bg-gray-900/50 border border-sky-100 dark:border-white/5 shadow-lg backdrop-blur-md">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={clearConversation}
-                  className="h-8 w-8 flex items-center justify-center rounded-full text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                  className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all"
                   title="New Chat"
                 >
                   <Plus size={18} />
                 </motion.button>
 
-                <div className="w-[1px] h-4 bg-gray-200 dark:bg-zinc-800 mx-0.5" />
+                <div className="w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
 
                 {/* Sidebar toggle — desktop only */}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setAISidebarMode(!isAISidebarMode)}
-                  className="hidden md:flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+                  className="hidden md:flex h-8 w-8 items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all"
                   title={isAISidebarMode ? 'Floating panel' : 'Sidebar mode'}
                 >
                   {isAISidebarMode ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
                 </motion.button>
 
-                <div className="hidden md:block w-[1px] h-4 bg-gray-200 dark:bg-zinc-800 mx-0.5" />
+                <div className="hidden md:block w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onClose || (() => setInternalIsOpen(false))}
-                  className="h-8 w-8 flex items-center justify-center rounded-full text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all font-medium"
+                  className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all font-medium"
                 >
                   <XIcon size={18} />
                 </motion.button>
@@ -2527,7 +2116,7 @@ Examples of correct button prompts:
             {/* Messages */}
             <div
               onScroll={handleScroll}
-              className="flex-1 min-h-0 overflow-y-auto p-4 pt-20 pb-24 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scroll-smooth relative"
+              className="flex-1 min-h-0 overflow-y-auto p-4 pt-20 pb-24 space-y-4 scrollbar-thin scrollbar-thumb-sky-200 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scroll-smooth relative"
             >
               <AnimatePresence>
                 {/* Flashcard Deck - Only show when there are flashcards */}
@@ -2589,8 +2178,8 @@ Examples of correct button prompts:
                       transition={{ delay: 0.2 }}
                       className="relative -top-10 max-w-[450px]"
                     >
-                      <h2 className="block text-xl font-semibold text-center text-neutral-800 dark:text-neutral-200">
-                        Hey {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}! What are we studying today?
+                      <h2 className="block text-xl font-semibold text-center text-sky-900 dark:text-sky-200">
+                        Hey {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}!
                       </h2>
                     </motion.div>
                   </motion.div>
@@ -2616,7 +2205,7 @@ Examples of correct button prompts:
                           //     animate={{ scale: 1, opacity: 1 }}
                           //     className="h-8 w-8 rounded-full flex items-center justify-center"
                           //   >
-                          <UserRound className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
+                          <UserRound className="h-4 w-4 text-sky-600 dark:text-sky-400" />
                           //   </motion.div>
                           // </AnimateIcon>
                         )}
@@ -2633,8 +2222,8 @@ Examples of correct button prompts:
                           className={cn(
                             'transition-all duration-300',
                             msg.role === 'user'
-                              ? 'max-w-[85%] rounded-[24px] px-4 py-2.5 text-sm bg-[#165df9] text-white shadow-md shadow-[#165df9]/10 font-medium leading-relaxed'
-                              : 'max-w-[90%] bg-transparent text-zinc-900 dark:text-zinc-100 text-[14.5px] leading-[1.6] px-1',
+                              ? 'max-w-[85%] rounded-[24px] px-4 py-2.5 text-sm bg-[#264f84] dark:bg-blue-600 text-white shadow-md shadow-[#264f84]/10 font-medium leading-relaxed'
+                              : 'max-w-[90%] bg-transparent text-sky-900 dark:text-sky-100 text-[14.5px] leading-[1.6] px-1',
                             msg.isError &&
                             'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-[24px] px-4 py-2.5'
                           )}
@@ -2714,7 +2303,7 @@ Examples of correct button prompts:
             </div>
 
             {/* Input */}
-            <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-linear-to-t from-white via-white/40 to-transparent dark:from-black dark:via-black/40 dark:to-transparent pt-12">
+            <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-linear-to-t from-[#f8fbfd] via-[#f8fbfd]/40 to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a]/40 dark:to-transparent pt-12">
               {/* Context Chips */}
               <AnimatePresence>
                 {isInputFocused && !input.trim() && !showCommandMenu && (
@@ -2736,7 +2325,7 @@ Examples of correct button prompts:
                           setInput(chip.prompt);
                           inputRef.current?.focus();
                         }}
-                        className="flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-full bg-zinc-100/90 dark:bg-zinc-800/90 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-700/50 text-[10px] font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all shadow-sm"
+                        className="flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-full bg-sky-50/90 dark:bg-gray-800/90 backdrop-blur-md border border-sky-200/50 dark:border-gray-700/50 text-[10px] font-medium text-sky-500 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-gray-700 hover:text-sky-900 dark:hover:text-sky-100 transition-all shadow-sm"
                       >
                         {chip.label}
                       </motion.button>
@@ -2748,17 +2337,16 @@ Examples of correct button prompts:
               <form
                 onSubmit={handleSubmit}
                 className={cn(
-                  "pointer-events-auto bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md shadow-xl rounded-[28px] relative z-20 transition-all duration-500",
+                  "pointer-events-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-md shadow-xl rounded-[28px] relative z-20 transition-all duration-500",
                   activeCommand
                     ? "border-2"
-                    : "border border-gray-200 dark:border-zinc-800",
+                    : "border border-sky-100 dark:border-white/5",
                   activeCommand === 'data' ? 'border-yellow-400 ring-2 ring-yellow-400/30' :
-                    activeCommand === 'control' ? 'border-blue-400 ring-2 ring-blue-400/30' :
-                      activeCommand === 'resources' ? 'border-purple-400 ring-2 ring-purple-400/30' :
-                        activeCommand === 'flashcards' ? 'border-pink-400 ring-2 ring-pink-400/30' :
-                          activeCommand === 'quiz' ? 'border-orange-400 ring-2 ring-orange-400/30' :
-                            activeCommand === 'therapist' ? 'border-cyan-400 ring-2 ring-cyan-400/30' :
-                              activeCommand === 'grade' ? 'border-green-400 ring-2 ring-green-400/30' : ''
+                    activeCommand === 'resources' ? 'border-purple-400 ring-2 ring-purple-400/30' :
+                      activeCommand === 'flashcards' ? 'border-pink-400 ring-2 ring-pink-400/30' :
+                        activeCommand === 'quiz' ? 'border-orange-400 ring-2 ring-orange-400/30' :
+                          activeCommand === 'therapist' ? 'border-cyan-400 ring-2 ring-cyan-400/30' :
+                            activeCommand === 'grade' ? 'border-green-400 ring-2 ring-green-400/30' : ''
                 )}
               >
 
@@ -2833,12 +2421,7 @@ Examples of correct button prompts:
                           <span>All school data will be included</span>
                         </div>
                       )}
-                      {activeCommand === 'control' && (
-                        <div className="absolute -top-8 left-0 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>Control command detected</span>
-                        </div>
-                      )}
+
                       {activeCommand === 'resources' && (
                         <div className="absolute -top-8 left-0 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-md flex items-center">
                           <Sparkles className="h-3 w-3 mr-1" />
@@ -2916,38 +2499,37 @@ Examples of correct button prompts:
                             }
                           }}
                           placeholder={
-                            (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
-                              (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                              (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)
-                              ? `Daily limit reached for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Cloud'} mode - try again tomorrow`
+                            (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                              (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
+                              (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
+                              ? `Daily limit reached for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} mode - try again tomorrow`
                               : "Ask away..."
                           }
                           disabled={
-                            (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
-                            (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                            (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)
+                            (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
+                            (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                           }
                           className={cn(
                             `min-h-[44px] w-full resize-none border-0 bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0`,
-                            ((selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
-                              (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                              (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)) &&
+                            ((selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                              (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
+                              (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
                             'opacity-50 cursor-not-allowed',
                             activeCommand === 'data'
                               ? 'text-yellow-700 dark:text-yellow-200'
-                              : activeCommand === 'control'
-                                ? 'text-blue-700 dark:text-blue-200'
-                                : activeCommand === 'resources'
-                                  ? 'text-purple-700 dark:text-purple-200'
-                                  : activeCommand === 'flashcards'
-                                    ? 'text-pink-700 dark:text-pink-200'
-                                    : activeCommand === 'quiz'
-                                      ? 'text-orange-700 dark:text-orange-200'
-                                      : activeCommand === 'therapist'
-                                        ? 'text-cyan-700 dark:text-cyan-200'
-                                        : activeCommand === 'grade'
-                                          ? 'text-green-700 dark:text-green-200'
-                                          : 'text-foreground'
+
+                              : activeCommand === 'resources'
+                                ? 'text-purple-700 dark:text-purple-200'
+                                : activeCommand === 'flashcards'
+                                  ? 'text-pink-700 dark:text-pink-200'
+                                  : activeCommand === 'quiz'
+                                    ? 'text-orange-700 dark:text-orange-200'
+                                    : activeCommand === 'therapist'
+                                      ? 'text-cyan-700 dark:text-cyan-200'
+                                      : activeCommand === 'grade'
+                                        ? 'text-green-700 dark:text-green-200'
+                                        : 'text-foreground'
                           )}
                           rows={1}
                           onKeyDown={handleKeyDown}
@@ -3036,7 +2618,7 @@ Examples of correct button prompts:
                               })}
                           </div>
                           {commands.filter(cmd => commandFilter === '' || cmd.id.toLowerCase().includes(commandFilter.toLowerCase())).length === 0 && (
-                            <div className="text-center text-gray-400 dark:text-zinc-600 py-4 text-xs italic">
+                            <div className="text-center text-sky-400 dark:text-sky-600 py-4 text-xs italic">
                               No commands match your search...
                             </div>
                           )}
@@ -3063,14 +2645,14 @@ Examples of correct button prompts:
                           >
                             <SelectTrigger
                               size="sm"
-                              className="h-8 w-8 !bg-transparent dark:!bg-transparent flex-shrink-0 aspect-square border border-transparent hover:border-gray-200 dark:hover:border-gray-700 p-0 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-3xl transition-colors focus:ring-0 shadow-none [&_svg:last-child]:hidden group/model relative"
+                              className="h-8 w-8 !bg-transparent dark:!bg-transparent flex-shrink-0 aspect-square border border-transparent hover:border-sky-200 dark:hover:border-gray-700 p-0 flex items-center justify-center hover:bg-sky-50 dark:hover:bg-gray-800 rounded-3xl transition-colors focus:ring-0 shadow-none [&_svg:last-child]:hidden group/model relative"
                             >
                               {selectedModel === 'gemma-3n-e4b-it' ? (
-                                <Zap className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover/model:text-gray-900 dark:group-hover/model:text-gray-100 transition-colors" />
+                                <Zap className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" />
                               ) : selectedModel === 'gemini-2.5-flash-lite' ? (
-                                <Brain className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover/model:text-gray-900 dark:group-hover/model:text-gray-100 transition-colors" />
+                                <Brain className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" />
                               ) : (
-                                <Cloud className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover/model:text-gray-900 dark:group-hover/model:text-gray-100 transition-colors" />
+                                <Cloud className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" />
                               )}
                               <div className="sr-only">
                                 <SelectValue />
@@ -3079,18 +2661,23 @@ Examples of correct button prompts:
                           </motion.div>
                           <SelectContent>
                             <SelectItem value="gemma-3n-e4b-it">
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
+                                <Zap className="h-3.5 w-3.5" />
                                 <span>Quick</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="gemini-2.5-flash-lite">
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
+                                <Brain className="h-3.5 w-3.5" />
                                 <span>Deep</span>
+                                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border border-emerald-300/40 dark:border-emerald-500/20"><span className="bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">PRO</span></span>
                               </div>
                             </SelectItem>
                             <SelectItem value="deepseek-v3.1:671b">
-                              <div className="flex items-center gap-1">
-                                <span>Cloud</span>
+                              <div className="flex items-center gap-2">
+                                <Cloud className="h-3.5 w-3.5" />
+                                <span>Max</span>
+                                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-300/40 dark:border-amber-500/20"><span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">Family</span></span>
                               </div>
                             </SelectItem>
                           </SelectContent>
@@ -3149,33 +2736,32 @@ Examples of correct button prompts:
                           }
                           disabled={
                             (!isAILoading && (!input.trim() && selectedImages.length === 0)) ||
-                            (selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
-                            (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                            (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)
+                            (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
+                            (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                           }
                           className={cn(
                             `p-2 rounded-3xl transition-all duration-300 shadow-sm relative`,
                             !activeCommand && !hasWiped && 'text-white shadow-blue-500/20',
                             activeCommand === 'data'
                               ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-500/20'
-                              : activeCommand === 'control'
-                                ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/20'
-                                : activeCommand === 'resources'
-                                  ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-purple-500/20'
-                                  : activeCommand === 'flashcards'
-                                    ? 'bg-pink-500 hover:bg-pink-600 text-white shadow-pink-500/20'
-                                    : activeCommand === 'quiz'
-                                      ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
-                                      : activeCommand === 'therapist'
-                                        ? 'bg-cyan-500 hover:bg-cyan-600 text-white shadow-cyan-500/20'
-                                        : activeCommand === 'grade'
-                                          ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-500/20'
-                                          : (!input.trim() && selectedImages.length === 0)
-                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none'
-                                            : 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 hover:opacity-90 shadow-gray-500/10',
-                            ((selectedModel === 'gemma-3n-e4b-it' && quickMessageCounter >= 100) ||
-                              (selectedModel === 'gemini-2.5-flash-lite' && deeperMessageCounter >= 10) ||
-                              (selectedModel === 'deepseek-v3.1:671b' && cloudMessageCounter >= 20)) &&
+
+                              : activeCommand === 'resources'
+                                ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-purple-500/20'
+                                : activeCommand === 'flashcards'
+                                  ? 'bg-pink-500 hover:bg-pink-600 text-white shadow-pink-500/20'
+                                  : activeCommand === 'quiz'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
+                                    : activeCommand === 'therapist'
+                                      ? 'bg-cyan-500 hover:bg-cyan-600 text-white shadow-cyan-500/20'
+                                      : activeCommand === 'grade'
+                                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-500/20'
+                                        : (!input.trim() && selectedImages.length === 0)
+                                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none'
+                                          : 'bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-700 shadow-sm shadow-[#ebf6b5]/20',
+                            ((selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                              (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
+                              (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
                             'opacity-30 grayscale pointer-events-none'
                           )}
                         >

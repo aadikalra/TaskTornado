@@ -12,6 +12,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Languages, Lock } from 'lucide-react';
 import Cookies from 'js-cookie';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
+import { useUpgrade } from '@/context/UpgradeContext';
 
 // Supported languages for the translation
 const LANGUAGES = [
@@ -164,6 +166,12 @@ export default function TranslatePage() {
     const { user } = useAuth();
     const { getContainerClass } = useWideLayout();
     const { showIntro, dismissIntro } = useRouteIntro('translate');
+    const { handlePlanLimitError } = useUpgrade();
+
+    // ─── Plan tier limits ───────────────────────────────────────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    const MAX_CHARS = limits.translationMaxChars;
 
     const [sourceLanguage, setSourceLanguage] = useState('en');
     const [targetLanguage, setTargetLanguage] = useState('es');
@@ -178,7 +186,11 @@ export default function TranslatePage() {
 
     // Load initial count
     useEffect(() => {
-        if (!user) {
+        if (user) {
+            const today = new Date().toISOString().slice(0, 10);
+            const count = parseInt(Cookies.get(`translate_usage_${today}`) || '0', 10);
+            setTranslationsCount(count);
+        } else {
             const count = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
             setTranslationsCount(count);
         }
@@ -186,8 +198,6 @@ export default function TranslatePage() {
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-    const MAX_CHARS = 5000;
 
     const abortedRef = useRef(false);
 
@@ -272,6 +282,31 @@ export default function TranslatePage() {
             return;
         }
 
+        // ─── Plan tier: daily translation limit for signed-in users ─────
+        if (user) {
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const cookieKey = `translate_usage_${today}`;
+            const currentCount = parseInt(Cookies.get(cookieKey) || '0', 10);
+            if (limits.translationsPerDay !== Infinity && currentCount >= limits.translationsPerDay) {
+                try {
+                    throw new Error(`PLAN_LIMIT:You've used all ${limits.translationsPerDay} translations for today — upgrade for more.`);
+                } catch (err: any) {
+                    handlePlanLimitError(err);
+                    return;
+                }
+            }
+        }
+
+        // ─── Plan tier: max text length ──────────────────────────────────
+        if (sourceText.length > limits.translationMaxChars) {
+            try {
+                throw new Error(`PLAN_LIMIT:Your plan supports up to ${limits.translationMaxChars.toLocaleString()} characters — upgrade for longer translations.`);
+            } catch (err: any) {
+                handlePlanLimitError(err);
+                return;
+            }
+        }
+
         // Limit check for guest users
         if (!user) {
             const currentCount = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
@@ -322,11 +357,19 @@ export default function TranslatePage() {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) {
+                    // Increment daily count for signed-in users
+                    if (user) {
+                        const today = new Date().toISOString().slice(0, 10);
+                        const cookieKey = `translate_usage_${today}`;
+                        const currentCount = parseInt(Cookies.get(cookieKey) || '0', 10);
+                        Cookies.set(cookieKey, (currentCount + 1).toString(), { expires: 1 });
+                        setTranslationsCount(currentCount + 1);
+                    }
                     // Increment count for guest users on success
                     if (!user) {
                         const currentCount = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
                         const newCount = currentCount + 1;
-                        Cookies.set('translate_usage_guest', newCount.toString(), { expires: 7 }); // 1 week
+                        Cookies.set('translate_usage_guest', newCount.toString(), { expires: 7 });
                         setTranslationsCount(newCount);
                     }
                     break;
@@ -623,7 +666,7 @@ export default function TranslatePage() {
 
                 {/* Explanation / Context */}
                 <AnimatePresence>
-                    {explanation && (
+                    {explanation && limits.translationContextExplanation && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
@@ -638,6 +681,32 @@ export default function TranslatePage() {
                                     {explanation}
                                 </div>
                             </div>
+                        </motion.div>
+                    )}
+                    {explanation && !limits.translationContextExplanation && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden mb-4"
+                        >
+                            <button
+                                onClick={() => {
+                                    try {
+                                        throw new Error('PLAN_LIMIT:Context explanations are a Pro feature — upgrade to see grammar, nuance, and cultural notes with every translation.');
+                                    } catch (err: any) {
+                                        handlePlanLimitError(err);
+                                    }
+                                }}
+                                className="w-full bg-[#eff6fe]/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-dashed border-[#275085]/15 dark:border-[#4a9cdb]/15 rounded-3xl p-5 text-left hover:bg-[#eff6fe]/80 dark:hover:bg-zinc-900/80 transition-colors group"
+                            >
+                                <div className="text-[13px] font-black uppercase tracking-[0.1em] text-sky-500/40 dark:text-sky-400/30 mb-1.5">
+                                    Translation Context
+                                </div>
+                                <div className="text-sm text-sky-600/50 dark:text-sky-400/40 group-hover:text-sky-600/70 transition-colors">
+                                    Upgrade to Pro to see grammar, nuance, and cultural context →
+                                </div>
+                            </button>
                         </motion.div>
                     )}
                 </AnimatePresence>

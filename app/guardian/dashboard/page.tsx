@@ -6,11 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronDown, Loader2, BookOpen, ClipboardCheck, FlaskConical,
     CheckCircle2, Clock, AlertTriangle, TrendingUp, Users, Link2,
-    Settings, ChevronRight
+    Settings, ChevronRight, Lock, Shield, BarChart3, Mail
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import GuardianAIChatWidget from '@/components/GuardianAIChatWidget';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 
 type ChildData = {
     student: { id: string; name: string; email: string | null };
@@ -33,6 +34,9 @@ export default function GuardianDashboardPage() {
     const { isGuardian, full_name } = useAuth();
     const router = useRouter();
 
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+
     const [children, setChildren] = useState<{ id: string; name: string | null; email: string | null; linkedAt: string }[]>([]);
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
     const [childData, setChildData] = useState<ChildData | null>(null);
@@ -42,6 +46,7 @@ export default function GuardianDashboardPage() {
 
     // Fetch linked children directly from the API (not from context, which may be stale)
     useEffect(() => {
+        if (!limits.guardianDashboard) return; // Don't fetch if locked
         const fetchChildren = async () => {
             try {
                 const res = await fetch('/api/guardian/children');
@@ -92,6 +97,68 @@ export default function GuardianDashboardPage() {
     }, [selectedStudentId, fetchChildData]);
 
     if (!authenticated) return null;
+
+    // ─── Family-only gate ──────────────────────────────────────────────
+    if (!limits.guardianDashboard) {
+        return (
+            <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex items-center justify-center px-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="max-w-md w-full text-center space-y-8"
+                >
+                    <div className="mx-auto w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-500/10 to-emerald-500/10 dark:from-sky-500/20 dark:to-emerald-500/20 border border-sky-200/30 dark:border-sky-500/20 flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-sky-400 dark:text-sky-300" />
+                    </div>
+
+                    <div className="space-y-3">
+                        <h1 className="text-2xl font-bold text-sky-900 dark:text-white">
+                            Guardian Dashboard is a Family feature
+                        </h1>
+                        <p className="text-sm text-sky-600/60 dark:text-sky-400/50 leading-relaxed max-w-sm mx-auto">
+                            Monitor your child&apos;s academic progress, get AI-powered insights,
+                            and receive weekly email reports.
+                        </p>
+                    </div>
+
+                    <div className="space-y-3 text-left max-w-xs mx-auto">
+                        {[
+                            { icon: BarChart3, label: 'Full analytics on your child\'s progress' },
+                            { icon: Users, label: 'Support for up to 4 children' },
+                            { icon: Mail, label: 'Automatic weekly email reports' },
+                            { icon: Shield, label: 'AI-powered insights (30 msgs/day)' },
+                        ].map(({ icon: Icon, label }, i) => (
+                            <motion.div
+                                key={label}
+                                initial={{ opacity: 0, x: -12 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 + i * 0.1 }}
+                                className="flex items-center gap-3 py-2"
+                            >
+                                <div className="w-8 h-8 rounded-xl bg-sky-500/8 dark:bg-sky-500/15 flex items-center justify-center shrink-0">
+                                    <Icon className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                </div>
+                                <span className="text-sm text-sky-800 dark:text-sky-200">{label}</span>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={() => router.push('/pricing')}
+                        style={{ background: '#0ea5e9' }}
+                        className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                        Upgrade to Family
+                    </button>
+
+                    <p className="text-xs text-sky-600/30 dark:text-sky-400/20">
+                        The Guardian Dashboard requires the Family plan.
+                    </p>
+                </motion.div>
+            </div>
+        );
+    }
 
     // No linked children — redirect to link page
     if (!isLoading && children.length === 0) {

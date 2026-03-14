@@ -139,6 +139,7 @@ function PracticeTestCard() {
                 onClose={() => setIsModalOpen(false)}
                 onDelete={handleDelete}
                 classInfo={sampleClass as any}
+                readOnly
             />
         </>
     );

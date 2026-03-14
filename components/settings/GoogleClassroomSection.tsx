@@ -11,6 +11,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { BetaPasswordModal } from '@/components/BetaPasswordModal';
+import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
+import { useUpgrade } from '@/context/UpgradeContext';
 
 // Simple Google icon component
 const GoogleIcon = ({ className }: { className?: string }) => (
@@ -32,6 +34,7 @@ interface ClassroomAuthStatus {
 export default function GoogleClassroomSection() {
   const { user, isGoogleUser } = useAuth();
   const searchParams = useSearchParams();
+  const { handlePlanLimitError } = useUpgrade();
   const [authStatus, setAuthStatus] = useState<ClassroomAuthStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -106,6 +109,18 @@ export default function GoogleClassroomSection() {
   };
 
   const handleAuthorize = async () => {
+    // ─── Plan tier: Google Classroom sync is Pro+ only ─────────────
+    const tier = getPlanTier();
+    const limits = TIER_LIMITS[tier];
+    if (!limits.googleClassroomSync) {
+      try {
+        throw new Error('PLAN_LIMIT:Google Classroom sync is a Pro feature — upgrade to connect your classes.');
+      } catch (err: any) {
+        handlePlanLimitError(err);
+        return;
+      }
+    }
+
     if (!betaAccessGranted) {
       setShowBetaModal(true);
       return;
@@ -116,8 +131,10 @@ export default function GoogleClassroomSection() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to get auth URL');
       window.location.href = data.authUrl;
-    } catch (error) {
-      console.error('Error initiating Classroom auth:', error);
+    } catch (error: any) {
+      if (!handlePlanLimitError(error)) {
+        console.error('Error initiating Classroom auth:', error);
+      }
       setIsAuthorizing(false);
     }
   };

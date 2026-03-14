@@ -78,7 +78,7 @@ const aiModels = [
     limit: '10 messages / day',
   },
   {
-    name: 'Cloud Mode',
+    name: 'Max Mode',
     model: 'Kimi-k2:1t-cloud',
     icon: Cloud,
     description: 'Most advanced AI model for comprehensive assistance',
@@ -299,7 +299,7 @@ export default function AIGuidelinesPage() {
               Pro Tip: Maximize Your Learning
             </p>
             <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
-              For best results, start with Quick mode for simple questions, then switch to Deep mode when you need detailed explanations. Use Cloud mode for comprehensive research and complex problem-solving.
+              For best results, start with Quick mode for simple questions, then switch to Deep mode when you need detailed explanations. Use Max mode for comprehensive research and complex problem-solving.
             </p>
           </div>
         </motion.div>

@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, BookOpen, Target, Zap, GraduationCap, FileText, Presentation, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
 import { Test, Class } from '@/context/ClassContext';
@@ -15,6 +16,7 @@ interface TestDetailModalProps {
     onDelete: (id: string | string) => Promise<void>;
     classInfo?: Class;
     layoutId?: string;
+    readOnly?: boolean;
 }
 
 export const TestDetailModal = ({
@@ -24,8 +26,17 @@ export const TestDetailModal = ({
     onDelete,
     classInfo,
     layoutId,
+    readOnly,
 }: TestDetailModalProps) => {
-    if (!test) return null;
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!test || !mounted) return null;
 
     const testTypeInfo = {
         alpha: { icon: Target, label: 'ALPHA' },
@@ -46,18 +57,18 @@ export const TestDetailModal = ({
     const hasScore = test.grade || (test.score !== null && test.maxScore !== null);
     const displayScore = test.grade || (test.score !== null ? `${test.score}/${test.maxScore}` : '');
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-xl flex items-center justify-center p-4 z-[100]" onClick={onClose}>
+                <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100] text-base" onClick={onClose}>
                     <motion.div
                         layoutId={layoutId}
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.96, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        exit={{ opacity: 0, scale: 0.96, y: 10 }}
                         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-sky-500/5 w-full max-w-md overflow-hidden border border-sky-100 dark:border-gray-800"
+                        className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-[28px] shadow-2xl shadow-sky-500/5 w-full max-w-md overflow-hidden border border-sky-100 dark:border-gray-800"
                     >
                         <div className="p-7">
                             {/* Top row: type pill + close */}
@@ -149,28 +160,55 @@ export const TestDetailModal = ({
                             )}
 
                             {/* Actions */}
-                            <div className="flex gap-2.5 pt-5 border-t border-sky-100/60 dark:border-gray-800">
-                                <Link href={`/tests/edit/${test.id}`} className="flex-1">
-                                    <button className="w-full h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors">
-                                        <Edit2 className="h-3.5 w-3.5" />
-                                        Edit Details
-                                    </button>
-                                </Link>
-                                <button
-                                    className="flex-1 h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-red-500 hover:text-white bg-red-50 dark:bg-red-500/10 hover:bg-red-500 border border-red-200/60 dark:border-red-500/20 hover:border-red-500 transition-all"
-                                    onClick={async () => {
-                                        await onDelete(test.id);
-                                        onClose();
-                                    }}
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Delete Test
-                                </button>
-                            </div>
+                            {!readOnly && (
+                                <div className="flex gap-2.5 pt-5 border-t border-sky-100/60 dark:border-gray-800">
+                                    <Link href={`/tests/edit/${test.id}`} className="flex-1">
+                                        <button className="w-full h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors">
+                                            <Edit2 className="h-3.5 w-3.5" />
+                                            Edit Details
+                                        </button>
+                                    </Link>
+
+                                    {!confirmDeleteOpen ? (
+                                        <button
+                                            className="flex-1 h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-red-500 hover:text-white bg-red-50 dark:bg-red-500/10 hover:bg-red-500 border border-red-200/60 dark:border-red-500/20 hover:border-red-500 transition-all"
+                                            onClick={() => setConfirmDeleteOpen(true)}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            Delete Test
+                                        </button>
+                                    ) : (
+                                        <div className="flex-1 flex gap-1.5">
+                                            <button
+                                                onClick={() => setConfirmDeleteOpen(false)}
+                                                className="flex-1 h-11 rounded-full flex items-center justify-center text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                disabled={deleting}
+                                                className="flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white bg-red-500 hover:bg-red-600 border border-red-500 disabled:opacity-50 transition-colors"
+                                                onClick={async () => {
+                                                    setDeleting(true);
+                                                    await onDelete(test.id);
+                                                    setDeleting(false);
+                                                    setConfirmDeleteOpen(false);
+                                                    onClose();
+                                                }}
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                                {deleting ? 'Deleting...' : 'Confirm'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 </div>
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 };

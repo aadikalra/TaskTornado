@@ -66,7 +66,6 @@ const routeSearchItems = [
 
   // ── Tutorials ──
   { title: 'Tutorials', href: '/tutorials', icon: Video, keywords: ['tutorials', 'guides', 'help', 'learn', 'how to'] },
-  { title: 'Aurora Assistant Tutorial', href: '/tutorials/aurora-assistant', icon: Sparkles, keywords: ['aurora', 'assistant', 'ai', 'tutorial', 'guide'] },
   { title: 'Onboarding Tutorial', href: '/tutorials/onboarding', icon: Video, keywords: ['onboarding', 'getting started', 'tutorial', 'setup'] },
   { title: 'Recurring Homeworks Tutorial', href: '/tutorials/recurring-homeworks', icon: Repeat, keywords: ['recurring', 'homework', 'repeat', 'tutorial'] },
   { title: 'Starring Homeworks Tutorial', href: '/tutorials/starring-homeworks', icon: Star, keywords: ['starring', 'pin', 'favorite', 'homework', 'tutorial'] },
@@ -98,7 +97,7 @@ interface SavedQuizSearchItem {
 }
 
 export function SearchResults() {
-  const { query, setQuery, closeSearch } = useSearch();
+  const { query, setQuery, closeSearch, isOpen } = useSearch();
   const { classes, homeworks, tests } = useClassContext();
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -134,15 +133,42 @@ export function SearchResults() {
     fetchDecks();
   }, [user]);
 
-  // Load saved quizzes from localStorage
+  // Load saved quizzes + current quiz from localStorage (re-read every time search opens)
   useEffect(() => {
+    if (!isOpen) return;
+    const allQuizzes: SavedQuizSearchItem[] = [];
+
+    // Load explicitly saved quizzes
     const saved = localStorage.getItem('savedQuizzes');
     if (saved) {
       try {
-        setSavedQuizzes(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) allQuizzes.push(...parsed);
       } catch { }
     }
-  }, []);
+
+    // Load the current/temp quiz from AI Assistant (stored under 'currentQuiz')
+    const current = localStorage.getItem('currentQuiz');
+    if (current) {
+      try {
+        const questions = JSON.parse(current);
+        if (Array.isArray(questions) && questions.length > 0) {
+          // Avoid duplicating if it's already in savedQuizzes
+          const topic = questions[0]?.topic || 'Recent Quiz';
+          const alreadySaved = allQuizzes.some(q => q.title === topic && q.questions.length === questions.length);
+          if (!alreadySaved) {
+            allQuizzes.unshift({
+              title: topic,
+              questions,
+              createdAt: new Date().toISOString(),
+            });
+          }
+        }
+      } catch { }
+    }
+
+    setSavedQuizzes(allQuizzes);
+  }, [isOpen]);
 
   // ENTER-to-go-first-result
   useEffect(() => {

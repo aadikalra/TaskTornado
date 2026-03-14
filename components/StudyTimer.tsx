@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
-import { Play, Pause,  Minimize2,  CheckCircle2, Circle, ChevronRight,  X, Check, Timer } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause, Minimize2, CheckCircle2, Circle, ChevronRight, X, Check, Timer, RotateCcw, Target, Brain, Sparkles, ArrowRight } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Slider } from '@/components/ui/slider';
 
@@ -352,56 +351,109 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     }
   }, [restoreSignal]);
 
+  // Step titles for the header
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 'task-selection': return 'Study Timer';
+      case 'timer': return 'Focus Session';
+      case 'completion-check': return 'Session Complete';
+      case 'progress-tracking': return 'Track Progress';
+      case 'productivity-reflection': return 'Reflection';
+      case 'next-session-suggestion': return 'Great Work!';
+      default: return 'Study Timer';
+    }
+  };
+
+  const getStepSubtitle = () => {
+    switch (currentStep) {
+      case 'task-selection': return 'Select a task to focus on';
+      case 'timer': return currentSession.taskTitle || 'Stay focused';
+      case 'completion-check': return 'How did it go?';
+      case 'progress-tracking': return 'How much did you complete?';
+      case 'productivity-reflection': return 'Rate your focus quality';
+      case 'next-session-suggestion': return 'Ready for another round?';
+      default: return '';
+    }
+  };
+
   // Render different steps
   const renderContent = () => {
     switch (currentStep) {
       case 'task-selection':
         return (
-          <div className="py-6 space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">What are you working on?</h3>
-              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">Select a task to focus on</p>
-            </div>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto px-4">
-              {/* Custom task option */}
-              <div className="space-y-2 mb-4">
+          <motion.div
+            key="task-selection"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="p-6 space-y-4"
+          >
+            {/* Custom task input */}
+            <div className="space-y-2">
+              <label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                Custom Task
+              </label>
+              <div className="relative flex items-center">
                 <input
-                  placeholder="Enter custom task name..."
+                  placeholder="Enter task name..."
                   value={customTaskName}
                   onChange={(e) => setCustomTaskName(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && customTaskName.trim()) {
+                      handleTaskSelection(null, customTaskName);
+                    }
+                  }}
+                  className="w-full h-11 pl-3 pr-12 text-sm bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
                 />
-                {customTaskName && (
+                {customTaskName.trim() && (
                   <button
                     onClick={() => handleTaskSelection(null, customTaskName)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
+                    className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 transition-colors"
                   >
-                    <Circle className="w-4 h-4 text-sky-400/50 shrink-0" />
-                    <span className="text-sm font-medium text-sky-900 dark:text-white truncate">{customTaskName}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
-
-              {/* Homework tasks */}
-              {homework.filter(hw => !hw.completed).slice(0, 5).map((task) => (
-                <button
-                  key={task.id}
-                  onClick={() => handleTaskSelection(task.id, task.title)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
-                >
-                  <Circle className="w-4 h-4 text-sky-400/50 shrink-0" />
-                  <span className="text-sm font-medium text-sky-900 dark:text-white truncate">{task.title}</span>
-                </button>
-              ))}
-
-              {homework.filter(hw => !hw.completed).length === 0 && !customTaskName && (
-                <p className="text-sm text-sky-600/40 dark:text-sky-400/40 text-center py-4">
-                  No pending tasks. Enter a custom task above.
-                </p>
-              )}
             </div>
-          </div>
+
+            {/* Homework tasks */}
+            {homework.filter(hw => !hw.completed).length > 0 && (
+              <div className="space-y-2">
+                <label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                  Your Tasks
+                </label>
+                <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                  {homework.filter(hw => !hw.completed).slice(0, 8).map((task) => (
+                    <motion.button
+                      key={task.id}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => handleTaskSelection(task.id, task.title)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 transition-all group"
+                    >
+                      <div className="h-8 w-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0 group-hover:bg-sky-100 dark:group-hover:bg-sky-500/15 transition-colors">
+                        <Target className="w-4 h-4 text-sky-500" />
+                      </div>
+                      <span className="text-sm font-medium text-sky-900 dark:text-white truncate">{task.title}</span>
+                      <ChevronRight className="w-4 h-4 text-sky-300 dark:text-sky-600 ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {homework.filter(hw => !hw.completed).length === 0 && !customTaskName && (
+              <div className="flex flex-col items-center justify-center py-6">
+                <div className="h-12 w-12 rounded-2xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center mb-3">
+                  <Target className="w-5 h-5 text-sky-400" />
+                </div>
+                <p className="text-sm text-sky-600/50 dark:text-sky-400/50 text-center">
+                  No pending tasks.<br />Enter a custom task above.
+                </p>
+              </div>
+            )}
+          </motion.div>
         );
 
       case 'timer':
@@ -439,56 +491,91 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
           setCustomTaskName('');
         };
 
+        // Calculate the SVG circle parameters
+        const circleSize = 200;
+        const strokeWidth = 4;
+        const radius = (circleSize - strokeWidth) / 2;
+        const circumference = 2 * Math.PI * radius;
+        const strokeDashoffset = circumference * (1 - progress / 100);
+
         return (
-          <div className="py-6 space-y-6">
-            {/* Task name - now clickable */}
+          <motion.div
+            key="timer"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="p-6 space-y-6"
+          >
+            {/* Task name chip */}
             {currentSession.taskTitle && (
-              <div className="px-4">
-                <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-full">
                   <button
                     onClick={handleChangeTask}
-                    className="group flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-sky-500/[0.04] transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-medium text-sky-700 dark:text-sky-300 hover:text-sky-900 dark:hover:text-white transition-colors group"
                   >
-                    <p className="text-[10px] text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider">Working on</p>
-                    <p className="text-sm font-semibold text-sky-900 dark:text-white group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors max-w-[200px] truncate">
-                      {currentSession.taskTitle}
-                    </p>
-                    <ChevronRight className="w-3 h-3 text-sky-400/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Target className="w-3 h-3" />
+                    <span className="max-w-[180px] truncate">{currentSession.taskTitle}</span>
                   </button>
                   <button
                     onClick={handleRemoveTask}
-                    className="p-1 rounded-full hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
+                    className="p-0.5 rounded-full hover:bg-sky-200/50 dark:hover:bg-sky-500/20 transition-colors"
                     title="Remove task"
                   >
-                    <span className="text-sky-400/40 hover:text-sky-600 dark:hover:text-sky-400 text-sm">×</span>
+                    <X className="w-3 h-3 text-sky-400 hover:text-sky-600 dark:hover:text-sky-300" />
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Timer Display */}
-            <div className="text-center">
-              <div className="text-7xl font-extralight tracking-tight text-sky-900 dark:text-white tabular-nums">
-                {formatTime(timeLeft)}
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="px-4">
-              <div className="w-full h-1 bg-sky-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-sky-500 dark:bg-sky-400 transition-all duration-1000 ease-linear rounded-full"
-                  style={{ width: `${progress}%` }}
-                />
+            {/* Circular Timer Display */}
+            <div className="flex items-center justify-center">
+              <div className="relative">
+                <svg width={circleSize} height={circleSize} className="transform -rotate-90">
+                  {/* Background circle */}
+                  <circle
+                    cx={circleSize / 2}
+                    cy={circleSize / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={strokeWidth}
+                    className="text-sky-100 dark:text-gray-800"
+                  />
+                  {/* Progress circle */}
+                  <circle
+                    cx={circleSize / 2}
+                    cy={circleSize / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={strokeWidth}
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    className="text-sky-500 dark:text-sky-400 transition-all duration-1000 ease-linear"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-5xl font-extralight tracking-tight text-sky-900 dark:text-white tabular-nums">
+                    {formatTime(timeLeft)}
+                  </span>
+                  {isRunning && (
+                    <span className="text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.2em] font-semibold mt-1">
+                      {isPaused ? 'paused' : 'focusing'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Duration Selection - Only show when not running */}
             {!isRunning && (
-              <div className="px-4 space-y-4">
-                <div className="text-center">
-                  <p className="text-[10px] text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider mb-3">Duration</p>
-                </div>
+              <div className="space-y-4">
+                <label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider text-center">
+                  Duration
+                </label>
 
                 {/* Preset Duration Buttons */}
                 <div className="grid grid-cols-4 gap-2">
@@ -498,7 +585,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                       onClick={() => setPresetDuration(preset.minutes)}
                       className={`h-11 text-sm font-semibold rounded-xl border transition-all ${currentTotalMinutes === preset.minutes
                         ? 'bg-sky-500 text-white border-sky-500 shadow-md shadow-sky-500/20'
-                        : 'border-sky-100 dark:border-gray-700 text-sky-700 dark:text-sky-300 hover:bg-sky-500/[0.04]'
+                        : 'bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 text-sky-700 dark:text-sky-300 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/50 dark:hover:bg-sky-500/5'
                         }`}
                     >
                       {preset.label}
@@ -514,22 +601,22 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                         setPresetDuration(customMins);
                       }
                     }}
-                    className="h-11 text-sm font-semibold rounded-xl border border-sky-100 dark:border-gray-700 text-sky-500 hover:bg-sky-500/[0.04] transition-all"
+                    className="h-11 text-sm font-semibold rounded-xl border bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 text-sky-500 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 transition-all"
                   >
                     <span className="text-lg">+</span>
                   </button>
                 </div>
 
-                {/* Quick adjust buttons */}
-                <div className="flex items-center justify-center gap-3">
+                {/* Quick adjust */}
+                <div className="flex items-center justify-center gap-4">
                   <button
                     onClick={() => {
                       const newMins = Math.max(1, currentTotalMinutes - 5);
                       setPresetDuration(newMins);
                     }}
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
+                    className="h-9 w-9 rounded-xl flex items-center justify-center text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
-                    <span className="text-lg">−</span>
+                    <span className="text-lg leading-none">−</span>
                   </button>
 
                   <div className="text-center min-w-[80px]">
@@ -541,9 +628,9 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                       const newMins = Math.min(180, currentTotalMinutes + 5);
                       setPresetDuration(newMins);
                     }}
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
+                    className="h-9 w-9 rounded-xl flex items-center justify-center text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
-                    <span className="text-lg">+</span>
+                    <span className="text-lg leading-none">+</span>
                   </button>
                 </div>
               </div>
@@ -552,215 +639,269 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             {/* Controls */}
             <div className="flex justify-center gap-3">
               {!isRunning ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={startTimer}
                   disabled={totalTime === 0}
-                  className="w-14 h-14 rounded-full bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-30 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all flex items-center justify-center"
+                  className="h-14 w-14 rounded-full bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-30 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all flex items-center justify-center"
                 >
                   <Play className="w-5 h-5 ml-0.5" />
-                </button>
+                </motion.button>
               ) : (
                 <>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={pauseTimer}
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
+                    className="h-12 w-12 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
                     {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={resetTimer}
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sky-400/50 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
+                    className="h-12 w-12 rounded-xl flex items-center justify-center text-sky-400 dark:text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <button
+                    <RotateCcw className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={endTimerEarly}
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
+                    className="h-12 w-12 rounded-xl flex items-center justify-center text-emerald-500 bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-800/30 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all"
                     title="End early"
                   >
                     <Check className="w-4 h-4" />
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setIsMinimized(true)}
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sky-400/50 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors"
+                    className="h-12 w-12 rounded-xl flex items-center justify-center text-sky-400 dark:text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
                     <Minimize2 className="w-4 h-4" />
-                  </button>
+                  </motion.button>
                 </>
               )}
             </div>
-
-            {/* Status */}
-            {isRunning && (
-              <div className="text-center">
-                <span className="text-[10px] text-sky-600/40 dark:text-sky-400/40 uppercase tracking-[0.2em] font-medium">
-                  {isPaused ? 'paused' : 'focus'}
-                </span>
-              </div>
-            )}
-          </div>
+          </motion.div>
         );
 
       case 'completion-check':
         return (
-          <div className="py-6 space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Timer Complete!</h3>
-              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">Did you finish the task?</p>
+          <motion.div
+            key="completion-check"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="p-6 space-y-4"
+          >
+            {/* Completion illustration */}
+            <div className="flex justify-center">
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                className="h-16 w-16 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center"
+              >
+                <Sparkles className="w-7 h-7 text-emerald-500" />
+              </motion.div>
             </div>
 
-            <div className="px-4 space-y-3">
-              <button
+            <div className="text-center mb-2">
+              <p className="text-sm text-sky-600/50 dark:text-sky-400/50">Did you finish the task?</p>
+            </div>
+
+            <div className="space-y-2.5">
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => handleCompletionCheck(true)}
-                className="w-full flex items-center gap-3 px-4 py-4 text-left border border-[#d4e88e] bg-[#ebf6b5]/20 rounded-xl hover:bg-[#ebf6b5]/40 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left bg-white dark:bg-gray-900 border border-emerald-200/80 dark:border-emerald-600/20 rounded-xl hover:border-emerald-300 dark:hover:border-emerald-500/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5 transition-all group"
               >
-                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/15 transition-colors">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                </div>
                 <div>
                   <p className="font-semibold text-sky-900 dark:text-white text-sm">Yes, I completed it</p>
                   <p className="text-xs text-sky-600/40 dark:text-sky-400/40">Task is done!</p>
                 </div>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => handleCompletionCheck(false)}
-                className="w-full flex items-center gap-3 px-4 py-4 text-left border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 transition-all group"
               >
-                <Circle className="w-5 h-5 text-sky-400/40 shrink-0" />
+                <div className="h-10 w-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0 group-hover:bg-sky-100 dark:group-hover:bg-sky-500/15 transition-colors">
+                  <Circle className="w-5 h-5 text-sky-400" />
+                </div>
                 <div>
                   <p className="font-semibold text-sky-900 dark:text-white text-sm">No, still in progress</p>
                   <p className="text-xs text-sky-600/40 dark:text-sky-400/40">Let me track my progress</p>
                 </div>
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         );
 
       case 'progress-tracking':
         return (
-          <div className="py-6 space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Track Your Progress</h3>
-              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">How much of the task did you complete?</p>
+          <motion.div
+            key="progress-tracking"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="p-6 space-y-5"
+          >
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                  Progress
+                </label>
+                <span className="text-2xl font-bold text-sky-900 dark:text-white tabular-nums">{progressPercentage}%</span>
+              </div>
+              <Slider
+                value={[progressPercentage]}
+                onValueChange={(value: number[]) => setProgressPercentage(value[0])}
+                min={0}
+                max={100}
+                step={5}
+                className="w-full"
+              />
+              <div className="flex justify-between text-[10px] text-sky-500/40 dark:text-sky-400/40 font-medium">
+                <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
+              </div>
             </div>
 
-            <div className="px-6 space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-sky-600/50 dark:text-sky-400/50">Progress</span>
-                  <span className="text-2xl font-bold text-sky-900 dark:text-white">{progressPercentage}%</span>
-                </div>
-                <Slider
-                  value={[progressPercentage]}
-                  onValueChange={(value: number[]) => setProgressPercentage(value[0])}
-                  min={0}
-                  max={100}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-sky-600/30 dark:text-sky-400/30">
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100%</span>
-                </div>
-              </div>
-
+            {/* Footer action */}
+            <div className="flex justify-end pt-2">
               <button
                 onClick={handleProgressTracking}
-                className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors flex items-center gap-2"
               >
                 Continue
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-          </div>
+          </motion.div>
         );
 
       case 'productivity-reflection':
         return (
-          <div className="py-6 space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Productivity Reflection</h3>
-              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">How was your focus quality?</p>
+          <motion.div
+            key="productivity-reflection"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="p-6 space-y-5"
+          >
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Brain className="w-3 h-3" />
+                  Focus Quality
+                </label>
+                <span className="text-lg font-bold text-sky-900 dark:text-white tabular-nums">{focusQuality}/10</span>
+              </div>
+              <Slider
+                value={[focusQuality]}
+                onValueChange={(value: number[]) => setFocusQuality(value[0])}
+                min={1}
+                max={10}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-[10px] text-sky-500/40 dark:text-sky-400/40 font-medium">
+                <span>Poor</span>
+                <span>Good</span>
+                <span>Excellent</span>
+              </div>
             </div>
 
-            <div className="px-6 space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-sky-600/50 dark:text-sky-400/50">Focus Quality</span>
-                  <span className="text-lg font-bold text-sky-900 dark:text-white">{focusQuality}/10</span>
-                </div>
-                <Slider
-                  value={[focusQuality]}
-                  onValueChange={(value: number[]) => setFocusQuality(value[0])}
-                  min={1}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-sky-600/30 dark:text-sky-400/30">
-                  <span>Poor</span>
-                  <span>Good</span>
-                  <span>Excellent</span>
-                </div>
-              </div>
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                Notes <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
+              </label>
+              <textarea
+                placeholder="Any thoughts on this session?"
+                value={productivityNotes}
+                onChange={(e) => setProductivityNotes(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2.5 text-sm bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none transition-colors"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-sm text-sky-600/50 dark:text-sky-400/50 font-medium">Notes (optional)</label>
-                <textarea
-                  placeholder="Any thoughts on this session?"
-                  value={productivityNotes}
-                  onChange={(e) => setProductivityNotes(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-2.5 text-sm bg-[#f5f9fc] dark:bg-gray-800 border border-sky-100 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder:text-sky-600/30 outline-none focus:ring-2 focus:ring-sky-400/30 resize-none"
-                />
-              </div>
-
+            {/* Footer action */}
+            <div className="flex justify-end pt-2">
               <button
                 onClick={handleProductivityReflection}
-                className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors flex items-center gap-2"
               >
                 Continue
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-          </div>
+          </motion.div>
         );
 
       case 'next-session-suggestion':
         return (
-          <div className="py-6 space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1">Great Work!</h3>
-              <p className="text-sm text-sky-600/40 dark:text-sky-400/40">Ready for another session?</p>
+          <motion.div
+            key="next-session-suggestion"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="p-6 space-y-5"
+          >
+            {/* Celebration */}
+            <div className="flex justify-center">
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                className="h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center"
+              >
+                <Sparkles className="w-7 h-7 text-amber-500" />
+              </motion.div>
             </div>
 
-            <div className="px-6 space-y-4">
-              {!taskCompleted && (
-                <div className="p-4 bg-[#ebf6b5]/20 dark:bg-sky-500/5 border border-[#d4e88e]/50 dark:border-sky-800/30 rounded-xl space-y-2">
-                  <p className="text-sm font-semibold text-sky-900 dark:text-white">Suggested Next Session</p>
-                  <p className="text-2xl font-bold text-sky-500 dark:text-sky-400">{suggestedNextDuration} minutes</p>
-                  <p className="text-xs text-sky-600/40 dark:text-sky-400/40">
-                    Based on {progressPercentage}% completion, you have about {100 - progressPercentage}% remaining
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <button
-                  onClick={handleStartNewSession}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
-                >
-                  Start Another Session
-                </button>
-                <button
-                  onClick={handleFinishSession}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-sky-600/60 dark:text-sky-400/60 border border-sky-100 dark:border-gray-700 rounded-xl hover:bg-sky-500/[0.03] transition-colors"
-                >
-                  Finish for Now
-                </button>
+            {!taskCompleted && (
+              <div className="p-4 bg-sky-50/60 dark:bg-sky-500/5 border border-sky-100 dark:border-sky-800/30 rounded-xl space-y-2 text-center">
+                <p className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Suggested Next Session</p>
+                <p className="text-3xl font-bold text-sky-500 dark:text-sky-400 tabular-nums">{suggestedNextDuration} min</p>
+                <p className="text-xs text-sky-600/40 dark:text-sky-400/40">
+                  Based on {progressPercentage}% completion — {100 - progressPercentage}% remaining
+                </p>
               </div>
+            )}
+
+            {/* Actions in footer style */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                onClick={handleFinishSession}
+                className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+              >
+                Finish for Now
+              </button>
+              <button
+                onClick={handleStartNewSession}
+                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
+              >
+                Start Another Session
+              </button>
             </div>
-          </div>
+          </motion.div>
         );
 
       default:
@@ -768,29 +909,84 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
     }
   };
 
+  const showModal = isOpen && !isMinimized;
+
+  // Handle external trigger click
+  const handleTriggerClick = () => {
+    setIsOpen(true);
+  };
+
   return (
     <>
-      <Dialog open={isOpen && !isMinimized} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          {trigger || (
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-              <Timer className="w-4 h-4" />
-              Timer
-            </Button>
-          )}
-        </DialogTrigger>
+      {/* Trigger — only renders when not externally controlled */}
+      {externalIsOpen === undefined ? (
+        trigger ? (
+          <div onClick={handleTriggerClick}>
+            {trigger}
+          </div>
+        ) : (
+          <button
+            onClick={handleTriggerClick}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Timer className="w-4 h-4" />
+            Timer
+          </button>
+        )
+      ) : (
+        // When externally controlled, render the trigger without click handler
+        trigger
+      )}
 
-        <DialogContent className="sm:max-w-md border border-sky-100 dark:border-gray-800 shadow-2xl shadow-sky-500/5 bg-[#fffaf4]/98 dark:bg-gray-950/98 backdrop-blur-xl">
-          <DialogTitle className="sr-only">Study Timer</DialogTitle>
-          {renderContent()}
+      {/* Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-500/5 w-full max-w-md relative border border-sky-100 dark:border-gray-800 max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white dark:bg-gray-900 flex items-center justify-between px-6 py-4 border-b border-sky-100/60 dark:border-gray-800 rounded-t-[28px] z-10">
+                <div>
+                  <h2 className="text-lg font-bold text-sky-900 dark:text-white">
+                    {getStepTitle()}
+                  </h2>
+                  <p className="text-xs text-sky-500/60 dark:text-sky-400/40 mt-0.5 max-w-[240px] truncate">
+                    {getStepSubtitle()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (isRunning) {
+                      setIsMinimized(true);
+                    } else {
+                      handleFinishSession();
+                    }
+                  }}
+                  className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
+                >
+                  {isRunning ? <Minimize2 className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                </button>
+              </div>
 
-          <audio
-            ref={audioRef}
-            preload="none"
-            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhEUOlwOi6bxhW"
-          />
-        </DialogContent>
-      </Dialog>
+              {/* Content */}
+              <AnimatePresence mode="wait">
+                {renderContent()}
+              </AnimatePresence>
+
+              <audio
+                ref={audioRef}
+                preload="none"
+                src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhEUOlwOi6bxhW"
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
