@@ -10,7 +10,7 @@ function isRestrictionEnabled(): boolean {
     return process.env.NEXT_PUBLIC_RESTRICTED_ACCESS !== 'false';
 }
 
-const BLOCKED_NAMES = ['zain', 'sadiq', 'ritvik', 'vuluvala', 'srinadh', 'yenamandra', 'tanuj', 'gummadi'];
+const BLOCKED_NAMES = ['zain', 'zane', 'zayn', 'sadiq', 'ritvik', 'vuluvala', 'srinadh', 'yenamandra', 'tanuj', 'gummadi'];
 
 /**
  * Check if a given name contains any blocked name parts.
