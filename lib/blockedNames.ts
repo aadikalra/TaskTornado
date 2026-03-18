@@ -11,6 +11,7 @@ function isRestrictionEnabled(): boolean {
 }
 
 const BLOCKED_NAMES = ['zain', 'zane', 'zayn', 'sadiq', 'ritvik', 'vuluvala', 'srinadh', 'yenamandra', 'tanuj', 'gummadi'];
+const BLOCKED_EMAILS = ['sadiqzain154@gmail.com', 'zain.sadiq@rafos.org', 'ritvik.vuluvala@rafos.org', 'tanuj.gummadi@rafos.org', 'srinadh.yenamandra@rafos.org', 'zainsadiqchess@gmail.com', 'zain.sadiq@rocklinusd.org'];
 
 /**
  * Check if a given name contains any blocked name parts.
@@ -29,7 +30,13 @@ export function isNameBlocked(name: string): boolean {
  */
 export function isEmailBlocked(email: string): boolean {
     if (!isRestrictionEnabled()) return false;
-    const localPart = email.trim().toLowerCase().split('@')[0] || '';
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (BLOCKED_EMAILS.includes(normalizedEmail)) {
+        return true;
+    }
+
+    const localPart = normalizedEmail.split('@')[0] || '';
     // Split on common email separators and digits to isolate name parts
     const segments = localPart.split(/[._\-+0-9]+/).filter(Boolean);
     return segments.some(segment => BLOCKED_NAMES.includes(segment));
