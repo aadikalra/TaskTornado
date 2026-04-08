@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, CheckCircle, XCircle, RefreshCw, Sparkle } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -105,11 +105,11 @@ export function InteractiveQuiz({ questions, onSave }: QuizProps) {
                         className="mb-6"
                     >
                         {percentage >= 80 ? (
-                            <CheckCircle className="h-20 w-20 text-emerald-500 mx-auto" />
+                            <HugeIcon name="CheckmarkCircle02" className="h-20 w-20 text-emerald-500 mx-auto" />
                         ) : percentage >= 60 ? (
-                            <CheckCircle className="h-20 w-20 text-amber-500 mx-auto" />
+                            <HugeIcon name="CheckmarkCircle02" className="h-20 w-20 text-amber-500 mx-auto" />
                         ) : (
-                            <XCircle className="h-20 w-20 text-red-400 mx-auto" />
+                            <HugeIcon name="CancelCircle" className="h-20 w-20 text-red-400 mx-auto" />
                         )}
                     </motion.div>
 
@@ -135,7 +135,7 @@ export function InteractiveQuiz({ questions, onSave }: QuizProps) {
                         onClick={handleRestart}
                         className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors mx-auto"
                     >
-                        <RefreshCw className="h-4 w-4" />
+                        <HugeIcon name="Rotate01" className="h-4 w-4" />
                         Try Again
                     </button>
                 </motion.div>
@@ -176,7 +176,7 @@ export function InteractiveQuiz({ questions, onSave }: QuizProps) {
             >
                 {/* Question header */}
                 <div className="px-6 pt-5 pb-3 flex items-center gap-2">
-                    <Sparkle className="w-3.5 h-3.5 text-sky-500/40 dark:text-sky-400/40" />
+                    <HugeIcon name="AiMagic" className="w-3.5 h-3.5 text-sky-500/40 dark:text-sky-400/40" />
                     <span className="text-[11px] font-bold text-sky-500/40 dark:text-sky-400/40 uppercase tracking-widest">
                         Question {currentIndex + 1}
                     </span>
@@ -223,8 +223,8 @@ export function InteractiveQuiz({ questions, onSave }: QuizProps) {
                                     )}>
                                         {option}
                                     </span>
-                                    {showAsCorrect && <CheckCircle className="h-4.5 w-4.5 text-emerald-500 shrink-0" />}
-                                    {showAsWrong && <XCircle className="h-4.5 w-4.5 text-red-400 shrink-0" />}
+                                    {showAsCorrect && <HugeIcon name="CheckmarkCircle02" className="h-4.5 w-4.5 text-emerald-500 shrink-0" />}
+                                    {showAsWrong && <HugeIcon name="CancelCircle" className="h-4.5 w-4.5 text-red-400 shrink-0" />}
                                 </div>
                             </motion.button>
                         );
@@ -283,7 +283,7 @@ export function InteractiveQuiz({ questions, onSave }: QuizProps) {
                     disabled={currentIndex === 0}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                    <ChevronLeft className="h-4 w-4" />
+                    <HugeIcon name="ArrowLeft01" className="h-4 w-4" />
                     Prev
                 </button>
 
@@ -293,7 +293,7 @@ export function InteractiveQuiz({ questions, onSave }: QuizProps) {
                     className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                     {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
-                    <ChevronRight className="h-4 w-4" />
+                    <HugeIcon name="ArrowRight01" className="h-4 w-4" />
                 </button>
             </div>
 

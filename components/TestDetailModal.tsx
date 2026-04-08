@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, BookOpen, Target, Zap, GraduationCap, FileText, Presentation, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
+import { getClassIcon } from '@/lib/icon-map';
 import { Test, Class } from '@/context/ClassContext';
 import { getDueDateLabel } from '@/lib/dateUtils';
 import Link from 'next/link';
@@ -39,19 +40,20 @@ export const TestDetailModal = ({
     if (!test || !mounted) return null;
 
     const testTypeInfo = {
-        alpha: { icon: Target, label: 'ALPHA' },
-        beta: { icon: Zap, label: 'BETA' },
-        exam: { icon: GraduationCap, label: 'EXAM' },
-        final: { icon: GraduationCap, label: 'FINAL' },
-        midterm: { icon: GraduationCap, label: 'MIDTERM' },
-        quiz: { icon: FileText, label: 'QUIZ' },
-        project: { icon: Presentation, label: 'PROJECT' },
-        default: { icon: BookOpen, label: 'TEST' }
+        alpha: { icon: 'Target01', label: 'ALPHA' },
+        beta: { icon: 'Zap', label: 'BETA' },
+        exam: { icon: 'GraduationCap', label: 'EXAM' },
+        final: { icon: 'GraduationCap', label: 'FINAL' },
+        midterm: { icon: 'GraduationCap', label: 'MIDTERM' },
+        quiz: { icon: 'FilePen', label: 'QUIZ' },
+        project: { icon: 'BoardMath', label: 'PROJECT' },
+        default: { icon: 'BookOpen', label: 'TEST' }
     };
 
     const type = (test.testType?.toLowerCase() || 'default') as keyof typeof testTypeInfo;
     const config = testTypeInfo[type] || testTypeInfo.default;
     const TypeIcon = config.icon;
+    const classIconName = classInfo ? getClassIcon(classInfo.icon) : 'BookOpen';
 
     const dueDateLabel = getDueDateLabel(new Date(test.testDate), true);
     const hasScore = test.grade || (test.score !== null && test.maxScore !== null);
@@ -74,14 +76,14 @@ export const TestDetailModal = ({
                             {/* Top row: type pill + close */}
                             <div className="flex items-center justify-between mb-5">
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100/60 dark:bg-sky-500/10 text-[11px] font-bold tracking-wider text-sky-600 dark:text-sky-400 uppercase">
-                                    <TypeIcon className="h-3 w-3" />
+                                    <HugeIcon name={TypeIcon} size={12} className="h-3 w-3" />
                                     {config.label}
                                 </span>
                                 <button
                                     onClick={onClose}
                                     className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400/30 hover:text-sky-900 dark:hover:text-white hover:bg-sky-500/[0.06] transition-colors"
                                 >
-                                    <X className="h-4 w-4" />
+                                    <HugeIcon name="Cancel01" size={16} className="h-4 w-4" />
                                 </button>
                             </div>
 
@@ -93,7 +95,7 @@ export const TestDetailModal = ({
                             {/* Info pills row */}
                             <div className="flex flex-wrap gap-2 mb-6">
                                 <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
-                                    <Calendar className="h-4 w-4 text-sky-500" />
+                                    <HugeIcon name="Calendar02" size={18} className="h-4.5 w-4.5 text-sky-500" />
                                     <div>
                                         <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Date</p>
                                         <p className="text-sm font-semibold text-sky-900 dark:text-white leading-tight">{dueDateLabel}</p>
@@ -102,7 +104,7 @@ export const TestDetailModal = ({
 
                                 {test.testTime && (
                                     <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
-                                        <Clock className="h-4 w-4 text-sky-500" />
+                                        <HugeIcon name="Timer01" size={18} className="h-4.5 w-4.5 text-sky-500" />
                                         <div>
                                             <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Time</p>
                                             <p className="text-sm font-semibold text-sky-900 dark:text-white leading-tight">{test.testTime}</p>
@@ -112,7 +114,7 @@ export const TestDetailModal = ({
 
                                 {classInfo && (
                                     <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700">
-                                        <BookOpen className="h-4 w-4 text-sky-500" />
+                                        <HugeIcon name={classIconName} size={18} className="h-4.5 w-4.5 text-sky-500" />
                                         <div>
                                             <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Class</p>
                                             <p className="text-sm font-semibold text-sky-900 dark:text-white leading-tight">{classInfo.name}</p>
@@ -122,7 +124,7 @@ export const TestDetailModal = ({
 
                                 {hasScore && (
                                     <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-[#ebf6b5]/30 dark:bg-[#ebf6b5]/5 border border-[#d4e88e]/30 dark:border-[#d4e88e]/10">
-                                        <CheckCircle2 className="h-4 w-4 text-sky-600" />
+                                        <HugeIcon name="CheckmarkCircle02" size={18} className="h-4.5 w-4.5 text-sky-600" />
                                         <div>
                                             <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/40 uppercase tracking-wider leading-none mb-0.5">Grade</p>
                                             <p className="text-sm font-bold text-sky-900 dark:text-white leading-tight">{displayScore}</p>
@@ -164,7 +166,7 @@ export const TestDetailModal = ({
                                 <div className="flex gap-2.5 pt-5 border-t border-sky-100/60 dark:border-gray-800">
                                     <Link href={`/tests/edit/${test.id}`} className="flex-1">
                                         <button className="w-full h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors">
-                                            <Edit2 className="h-3.5 w-3.5" />
+                                            <HugeIcon name="Pen02" size={14} className="h-3.5 w-3.5" />
                                             Edit Details
                                         </button>
                                     </Link>
@@ -174,7 +176,7 @@ export const TestDetailModal = ({
                                             className="flex-1 h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-red-500 hover:text-white bg-red-50 dark:bg-red-500/10 hover:bg-red-500 border border-red-200/60 dark:border-red-500/20 hover:border-red-500 transition-all"
                                             onClick={() => setConfirmDeleteOpen(true)}
                                         >
-                                            <Trash2 className="h-3.5 w-3.5" />
+                                            <HugeIcon name="Delete02" size={14} className="h-3.5 w-3.5" />
                                             Delete Test
                                         </button>
                                     ) : (
@@ -196,7 +198,7 @@ export const TestDetailModal = ({
                                                     onClose();
                                                 }}
                                             >
-                                                <Trash2 className="h-3.5 w-3.5" />
+                                                <HugeIcon name="Delete02" size={14} className="h-3.5 w-3.5" />
                                                 {deleting ? 'Deleting...' : 'Confirm'}
                                             </button>
                                         </div>

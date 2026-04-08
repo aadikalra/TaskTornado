@@ -9,10 +9,9 @@ import {
 } from '@/hooks/use-realtime-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Send } from 'lucide-react'
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { Loader2 } from 'lucide-react'
 
 interface RealtimeChatProps {
   roomName: string
@@ -164,7 +163,7 @@ export const RealtimeChat = ({
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <HugeIcon name="LoaderPinwheel" className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -177,7 +176,7 @@ export const RealtimeChat = ({
           <div className="h-full flex items-center justify-center text-sm text-muted-foreground p-8">
             <div className="text-center space-y-2">
               <div className="w-12 h-12 rounded-full bg-sky-500/10 flex items-center justify-center mx-auto mb-2">
-                <Send className="w-6 h-6 text-sky-500" />
+                <HugeIcon name="ArrowUp02" className="w-6 h-6 text-sky-500" />
               </div>
               <p>No messages yet.</p>
               <p className="text-xs opacity-70">Start the conversation!</p>
@@ -230,7 +229,7 @@ export const RealtimeChat = ({
               type="submit"
               disabled={!isConnected || !newMessage.trim()}
             >
-              <Send className="size-4" />
+              <HugeIcon name="ArrowUp02" className="size-4" />
             </Button>
           </div>
         </form>

@@ -1,0 +1,130 @@
+
+> tasktornado@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/aadikalra/Desktop/Coding new/Personal Projects/SchoolOrganizer/school-organizer/school-organizer/package-lock.json
+
+▲ Next.js 16.2.2 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  ✓ optimizeCss
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 12.7s
+  Running TypeScript ...
+  Finished TypeScript in 22.2s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/88) ...
+  Generating static pages using 11 workers (22/88) 
+  Generating static pages using 11 workers (44/88) 
+  Generating static pages using 11 workers (66/88) 
+✓ Generating static pages using 11 workers (88/88) in 555ms
+  Finalizing page optimization ...
+
+Route (app)                               Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ○ /ai-guidelines
+├ ƒ /api/ai
+├ ƒ /api/ai/check-worthiness
+├ ƒ /api/ai/command
+├ ƒ /api/ai/copilot
+├ ƒ /api/auth/classroom-session
+├ ƒ /api/auth/google-classroom
+├ ƒ /api/auth/google-classroom-init
+├ ƒ /api/auth/google-signin
+├ ƒ /api/auth/link-google-account
+├ ƒ /api/classroom/assignments
+├ ƒ /api/classroom/courses
+├ ƒ /api/classroom/coursework
+├ ƒ /api/classroom/debug-log
+├ ƒ /api/classroom/sync
+├ ƒ /api/grades/parse
+├ ƒ /api/guardian/ai-chat
+├ ƒ /api/guardian/child/[studentId]/data
+├ ƒ /api/guardian/children
+├ ƒ /api/guardian/generate-code
+├ ƒ /api/guardian/redeem-code
+├ ƒ /api/guardian/unlink
+├ ƒ /api/translate
+├ ƒ /api/uploadthing
+├ ƒ /auth/callback
+├ ○ /blog
+├ ○ /blog/adaptive-quizzes
+├ ○ /blog/facehash
+├ ○ /blog/flashcards-reimagined
+├ ○ /blog/focus-timer
+├ ○ /blog/global-translation
+├ ○ /blog/grade-calculator
+├ ○ /blog/learning-center
+├ ○ /blog/learning-through-play
+├ ○ /blog/making-of-aurora
+├ ○ /blog/meet-aurora
+├ ○ /blog/peer-discussions
+├ ○ /blog/research-hub
+├ ○ /blog/smart-calendar
+├ ○ /blog/study-groups
+├ ○ /blog/the-command-center
+├ ○ /blog/writing-companion
+├ ƒ /calendar
+├ ○ /changelog                                    5m      1y
+├ ƒ /classes/edit/[id]
+├ ○ /color-match
+├ ○ /complete-signup
+├ ƒ /dashboard
+├ ○ /discussions
+├ ○ /features
+├ ○ /flashcards
+├ ○ /games
+├ ○ /grade-calculator
+├ ○ /groups
+├ ƒ /groups/[groupId]
+├ ƒ /groups/join/[inviteId]
+├ ○ /guardian/dashboard
+├ ○ /guardian/link
+├ ○ /guardians
+├ ○ /hash
+├ ○ /hash/eyes
+├ ƒ /homework/[id]
+├ ƒ /homework/edit/[id]
+├ ○ /legal/privacy
+├ ○ /legal/terms
+├ ○ /letter
+├ ○ /login
+├ ○ /math-sprint
+├ ○ /memory-match
+├ ○ /pricing
+├ ○ /quiz
+├ ○ /reaction-time
+├ ○ /settings
+├ ○ /signup
+├ ○ /snake
+├ ○ /task-tower
+├ ○ /teachers
+├ ○ /test
+├ ○ /test-bulkadd
+├ ○ /tests
+├ ƒ /tests/[id]
+├ ƒ /tests/edit/[id]
+├ ○ /translate
+├ ○ /tutorials
+├ ○ /tutorials/csv-import
+├ ○ /tutorials/onboarding
+├ ○ /tutorials/recurring-homeworks
+├ ○ /tutorials/starring-homeworks
+├ ○ /tutorials/test-details
+├ ○ /typing-speed
+├ ○ /web-saves
+├ ○ /word-scramble
+└ ○ /writing-assist
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 interface WelcomeLetterProps {
   isOpen: boolean;
@@ -25,17 +26,15 @@ export default function WelcomeLetter({ isOpen, onClose }: WelcomeLetterProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <button
         onClick={onClose}
         className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
       >
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <HugeIcon name="Cancel01" size={24} className="text-white" />
       </button>
 
-      <div className="relative w-full h-full flex items-center justify-center p-4">
+      <div className="relative w-full h-full flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
         <div className="envelope-container relative cursor-pointer" onClick={() => setIsLetterOpen(!isLetterOpen)}>
           <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap');

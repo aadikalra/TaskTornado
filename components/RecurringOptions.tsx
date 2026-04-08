@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { format } from 'date-fns';
 import { RecurringFrequency, RecurringHomework } from '@/context/ClassContext';
 
@@ -81,7 +81,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
                 variant="outline"
                 className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
               >
-                <CalendarIcon className="mr-2 h-4 w-4 text-sky-500" />
+                <HugeIcon name="Calendar02" size={16} className="mr-2 h-4 w-4 text-sky-500" />
                 {recurring.endDate ? format(recurring.endDate, 'PPP') : <span className="text-sky-400">Pick an end date</span>}
               </Button>
             </PopoverTrigger>

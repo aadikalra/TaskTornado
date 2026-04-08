@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
 import { GraduationCap, Calendar, Target, Zap, Brain, CheckCircle2, Loader2 } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
@@ -129,7 +130,7 @@ export default function TestsPage() {
         onClose={dismissIntro}
         title="Welcome to Tests & Exams!"
         description="Manage your test schedule and track your academic performance"
-        icon={<GraduationCap className="h-6 w-6" />}
+        icon={<HugeIcon name="Mortarboard02" size={24} className="h-6 w-6" />}
         features={[
           'Track upcoming tests and completed exams',
           'View stats including ALPHA/BETA tests',

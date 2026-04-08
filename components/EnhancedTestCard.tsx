@@ -4,16 +4,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Test, Class } from '@/context/ClassContext';
 import { getDueDateLabel, getDueDateIcon } from '@/lib/dateUtils';
-import {
-  BookOpen,
-  GraduationCap,
-  FileText,
-  Presentation,
-  Target,
-  Zap,
-
-  CheckCircle2
-} from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 type EnhancedTestCardProps = {
   test: Test;
@@ -42,7 +33,7 @@ const EnhancedTestCard = ({
 
     const configs = {
       alpha: {
-        icon: Target,
+        icon: 'Target01',
         label: 'ALPHA',
         color: 'text-sky-600 dark:text-sky-400',
         border: 'border-l-sky-500',
@@ -50,7 +41,7 @@ const EnhancedTestCard = ({
         badge: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300'
       },
       beta: {
-        icon: Zap,
+        icon: 'Zap',
         label: 'BETA',
         color: 'text-sky-500 dark:text-sky-400',
         border: 'border-l-sky-400',
@@ -58,44 +49,44 @@ const EnhancedTestCard = ({
         badge: 'bg-[#ebf6b5]/60 text-sky-800 dark:bg-[#ebf6b5]/10 dark:text-sky-200'
       },
       final: {
-        icon: GraduationCap,
+        icon: 'GraduationCap',
         label: 'FINAL',
         color: 'text-sky-700 dark:text-sky-300',
         border: 'border-l-sky-600',
-        bg: 'bg-sky-100/50 dark:bg-sky-500/15',
-        badge: 'bg-sky-200/60 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200'
+        bg: 'bg-sky-100/50 dark:bg-sky-500/[0.12]',
+        badge: 'bg-sky-200/70 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200'
       },
       exam: {
-        icon: GraduationCap,
+        icon: 'GraduationCap',
         label: 'EXAM',
-        color: 'text-sky-700 dark:text-sky-300',
-        border: 'border-l-sky-600',
-        bg: 'bg-sky-100/50 dark:bg-sky-500/15',
+        color: 'text-sky-600 dark:text-sky-400',
+        border: 'border-l-sky-500',
+        bg: 'bg-sky-100/40 dark:bg-sky-500/10',
         badge: 'bg-sky-200/60 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200'
       },
       quiz: {
-        icon: FileText,
+        icon: 'FileText',
         label: 'QUIZ',
-        color: 'text-sky-500 dark:text-sky-400',
+        color: 'text-sky-600 dark:text-sky-400',
         border: 'border-l-sky-400',
         bg: 'bg-sky-100/30 dark:bg-sky-500/[0.07]',
-        badge: 'bg-sky-100/60 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300'
+        badge: 'bg-sky-100/50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300'
       },
       project: {
-        icon: Presentation,
+        icon: 'BoardMath',
         label: 'PROJECT',
-        color: 'text-sky-500 dark:text-sky-400',
+        color: 'text-sky-600 dark:text-sky-400',
         border: 'border-l-sky-400',
-        bg: 'bg-[#ebf6b5]/20 dark:bg-[#ebf6b5]/5',
-        badge: 'bg-[#ebf6b5]/50 text-sky-800 dark:bg-[#ebf6b5]/10 dark:text-sky-200'
+        bg: 'bg-sky-100/30 dark:bg-sky-500/[0.07]',
+        badge: 'bg-sky-100/50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300'
       },
       default: {
-        icon: BookOpen,
+        icon: 'BookOpen',
         label: 'TEST',
-        color: 'text-sky-500/70 dark:text-sky-400/50',
-        border: 'border-l-sky-300',
-        bg: 'bg-sky-50/50 dark:bg-sky-500/5',
-        badge: 'bg-sky-100/40 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400'
+        color: 'text-sky-600 dark:text-sky-400',
+        border: 'border-l-sky-400',
+        bg: 'bg-sky-100/30 dark:bg-sky-500/[0.07]',
+        badge: 'bg-sky-100/50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300'
       }
     };
 
@@ -125,7 +116,7 @@ const EnhancedTestCard = ({
           ${testTypeConfig.bg}
           transition-colors duration-200
         `}>
-          <TestTypeIcon className={`h-3 w-3 ${testTypeConfig.color}`} />
+          <HugeIcon name={TestTypeIcon} size={12} className={`h-3 w-3 ${testTypeConfig.color}`} />
         </div>
 
         <div className="flex-1 min-w-0 flex items-center justify-between">
@@ -209,7 +200,7 @@ const EnhancedTestCard = ({
               ${isCompact ? 'text-xs' : 'text-sm'}
               bg-[#ebf6b5]/30 text-sky-800 dark:bg-[#ebf6b5]/10 dark:text-sky-200 border border-[#d4e88e]/30 dark:border-[#d4e88e]/10
             `}>
-              <CheckCircle2 className="h-3 w-3" />
+              <HugeIcon name="CheckmarkCircle02" size={12} className="h-3 w-3" />
               {displayScore}
             </div>
           ) : null}

@@ -1,20 +1,10 @@
-
 'use client';
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import IconHouse from './glass-icons/IconHouse';
-import IconGear from './glass-icons/IconGear';
-import IconCalendar from './glass-icons/IconCalendar';
-import IconBookOpen from './glass-icons/IconBookOpen';
-import IconUsers from './glass-icons/IconUsers';
-import IconPin from './glass-icons/IconPin';
-import IconBox from './glass-icons/IconBox';
-import IconFile from './glass-icons/IconFile';
-import IconSparkle from './glass-icons/IconSparkle';
-import IconMessageSquare from './glass-icons/IconMessageSquare';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 interface CustomContextMenuProps {
   x: number;
@@ -38,7 +28,7 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     // Dictionary - only show for single words (at top)
     ...(isSingleWord && selectedText && onDictionaryOpen ? [{
       label: 'Define',
-      icon: IconBookOpen,
+      icon: 'Cards01',
       action: () => {
         onClose();
         onDictionaryOpen(selectedText.trim());
@@ -49,19 +39,19 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     // Auth options with fun messages
     {
       label: 'Login',
-      icon: IconUsers,
+      icon: 'UserGroup03',
       action: () => router.push('/login'),
       description: '🚀 Unlock your superpowers!'
     },
     {
       label: 'Sign Up',
-      icon: IconSparkle,
+      icon: 'AiContentGenerator02',
       action: () => router.push('/signup'),
       description: '✨ Join the adventure!'
     },
 
     // Static info pages
-    { label: 'Changelog', icon: IconFile, action: () => router.push('/changelog'), description: 'What\'s new' },
+    { label: 'Changelog', icon: 'GoogleDoc', action: () => router.push('/changelog'), description: 'What\'s new' },
     // Preview features with encouraging messages
     {
       label: 'You should def sign up! :)',
@@ -77,7 +67,7 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     // Dictionary - only show for single words (at top)
     ...(isSingleWord && selectedText && onDictionaryOpen ? [{
       label: 'Define',
-      icon: IconBookOpen,
+      icon: 'Cards01',
       action: () => {
         onClose();
         onDictionaryOpen(selectedText.trim());
@@ -86,21 +76,21 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     }] : []),
 
     // Main Navigation
-    { label: 'Dashboard', icon: IconHouse, action: () => router.push('/dashboard'), description: 'Your personal dashboard' },
+    { label: 'Dashboard', icon: 'Home02', action: () => router.push('/dashboard'), description: 'Your personal dashboard' },
 
     // Academic Tools
-    { label: 'Calendar', icon: IconCalendar, action: () => router.push('/calendar'), description: 'View your calendar' },
-    { label: 'Discussion Boards', icon: IconMessageSquare, action: () => router.push('/discussions'), description: 'Community forums' },
-    { label: 'Flashcards', icon: IconBookOpen, action: () => router.push('/flashcards'), description: 'Study with flashcards' },
-    { label: 'Groups', icon: IconUsers, action: () => router.push('/groups'), description: 'Study groups' },
+    { label: 'Calendar', icon: 'Calendar02', action: () => router.push('/calendar'), description: 'View your calendar' },
+    { label: 'Discussion Boards', icon: 'Chat', action: () => router.push('/discussions'), description: 'Community forums' },
+    { label: 'Flashcards', icon: 'Cards01', action: () => router.push('/flashcards'), description: 'Study with flashcards' },
+    { label: 'Groups', icon: 'UserGroup03', action: () => router.push('/groups'), description: 'Study groups' },
 
     // Tools & Features
-    { label: 'Web Saves', icon: IconPin, action: () => router.push('/web-saves'), description: 'Saved web content' },
-    { label: 'Games', icon: IconBox, action: () => router.push('/games'), description: 'Educational games' },
+    { label: 'Web Saves', icon: 'Bookmark03', action: () => router.push('/web-saves'), description: 'Saved web content' },
+    { label: 'Games', icon: 'Gameboy', action: () => router.push('/games'), description: 'Educational games' },
 
     // Settings & Info
-    { label: 'Settings', icon: IconGear, action: () => router.push('/settings'), description: 'App settings' },
-    { label: 'Changelog', icon: IconFile, action: () => router.push('/changelog'), description: 'What\'s new' },
+    { label: 'Settings', icon: 'Settings02', action: () => router.push('/settings'), description: 'App settings' },
+    { label: 'Changelog', icon: 'GoogleDoc', action: () => router.push('/changelog'), description: 'What\'s new' },
   ];
 
   // Choose menu items based on auth state
@@ -152,12 +142,12 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
                       item.action();
                       onClose();
                     }}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white group"
+                    className="flex items-center gap-3 px-3 py-1.5 text-sm text-sky-600 dark:text-sky-400 rounded-lg cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-sky-700 dark:hover:text-sky-300 group"
                     title={item.description}
                   >
                     {item.icon && (
                       <div className="w-4 h-4 flex items-center justify-center">
-                        <item.icon />
+                        <HugeIcon name={item.icon as any} size={16} className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                       </div>
                     )}
                     <div className="flex-1">

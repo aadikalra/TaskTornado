@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, Link as LinkIcon } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { Input } from '@/components/ui/input';
 
 type HomeworkLink = {
@@ -49,7 +49,7 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
             onClick={() => setIsAdding(true)}
             className="text-xs font-semibold text-sky-500 hover:text-sky-600 flex items-center gap-1 transition-colors"
           >
-            <Plus className="h-3 w-3" /> Add Link
+            <HugeIcon name="PlusSign" size={12} className="h-3 w-3" /> Add Link
           </button>
         )}
       </div>
@@ -98,8 +98,8 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
 
       {links.length > 0 && (
         <div className="space-y-2 mt-2">
-          {links.map((link) => (
-            <div key={link.id} className="flex items-center justify-between group bg-sky-50 dark:bg-gray-800 p-2.5 rounded-xl border border-sky-100 dark:border-gray-700">
+          {links.map((link, index) => (
+            <div key={link.id || `link-input-${index}`} className="flex items-center justify-between group bg-sky-50 dark:bg-gray-800 p-2.5 rounded-xl border border-sky-100 dark:border-gray-700">
               <a
                 href={link.url}
                 target="_blank"
@@ -107,7 +107,7 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
                 className="text-sm text-sky-600 hover:text-sky-700 hover:underline flex items-center flex-1 min-w-0"
                 title={link.url}
               >
-                <LinkIcon className="h-3.5 w-3.5 mr-2 flex-shrink-0 text-sky-500" />
+                <HugeIcon name="Globe" size={14} className="h-3.5 w-3.5 mr-2 flex-shrink-0 text-sky-500" />
                 <span className="truncate">{link.title || link.url}</span>
               </a>
               <button
@@ -116,7 +116,7 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
                 className="text-sky-400 hover:text-red-500 dark:text-sky-500 dark:hover:text-red-400 p-1 -mr-1 transition-colors"
                 title="Remove link"
               >
-                <X className="h-3.5 w-3.5" />
+                <HugeIcon name="Cancel01" size={14} className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}

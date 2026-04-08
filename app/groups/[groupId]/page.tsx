@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessagesSquare, Link as LinkIcon, ArrowLeft, Plus, WifiOff, Loader2, LogOut, ArrowRight, AlertTriangle, X } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion } from 'framer-motion';
 import { RealtimeChat } from '@/components/realtime-chat';
 import { useAuth } from '@/context/AuthContext';
@@ -194,11 +194,11 @@ export default function GroupPage() {
             onClick={() => router.push('/groups')}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 rounded-xl transition-colors mb-6"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <HugeIcon name="ArrowLeft01" className="h-4 w-4" />
             Back to Groups
           </button>
           <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl">
-            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <HugeIcon name="AlertCircle" className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         </div>
@@ -216,12 +216,12 @@ export default function GroupPage() {
             onClick={() => router.push('/groups')}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 rounded-xl transition-colors mb-6"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <HugeIcon name="ArrowLeft01" className="h-4 w-4" />
             Back to Groups
           </button>
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-              <MessagesSquare className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+              <HugeIcon name="Chat" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
             </div>
             <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">Group not found</h3>
             <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-8 text-center max-w-sm">
@@ -245,25 +245,61 @@ export default function GroupPage() {
       <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => router.push('/groups')}
-            className="p-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-sky-900 dark:text-white">{currentGroup.name}</h1>
-            <p className="text-sm text-sky-600/50 dark:text-sky-400/50">
-              {currentGroup.member_count || 0} members · Created {format(new Date(currentGroup.created_at), 'MMM d, yyyy')}
-            </p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/groups')}
+              className="p-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 transition-colors"
+            >
+              <HugeIcon name="ArrowLeft01" className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-sky-900 dark:text-white">{currentGroup.name}</h1>
+              <p className="text-sm text-sky-600/50 dark:text-sky-400/50">
+                {currentGroup.member_count || 0} members · Created {format(new Date(currentGroup.created_at), 'MMM d, yyyy')}
+              </p>
+            </div>
+          </div>
+
+          {/* Right side: Status, Share, Leave */}
+          <div className="flex items-center gap-3">
+            {connectionStatus === 'connected' && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20" title="Connected - Real-time sync active">
+                <HugeIcon name="Wifi02" className="h-4 w-4 text-emerald-500" />
+                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Connected</span>
+              </div>
+            )}
+            {connectionStatus === 'connecting' && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" title="Connecting...">
+                <HugeIcon name="LoaderPinwheel" className="h-4 w-4 animate-spin text-amber-500" />
+                <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Connecting...</span>
+              </div>
+            )}
+            {connectionStatus === 'disconnected' && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20" title="Disconnected - Messages may not sync">
+                <HugeIcon name="WifiError02" className="h-5 w-5 text-red-500" />
+                <span className="text-xs font-medium text-red-700 dark:text-red-300">Disconnected</span>
+              </div>
+            )}
+            <GroupShareMenu
+              groupId={groupId}
+              groupName={currentGroup.name}
+              className="h-10 w-10 rounded-xl hover:bg-sky-500/5 dark:hover:bg-sky-500/10 text-sky-600 dark:text-sky-400"
+            />
+            <button
+              onClick={() => setShowLeaveDialog(true)}
+              className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-sky-600 dark:text-sky-400 hover:text-red-500"
+              title="Leave Group"
+            >
+              <HugeIcon name="LogoutCircle02" className="h-5 w-5" />
+            </button>
           </div>
         </motion.div>
 
         {/* Error message */}
         {errorMessage && (
           <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl mb-6">
-            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <HugeIcon name="AlertCircle" className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
           </div>
         )}
@@ -271,10 +307,10 @@ export default function GroupPage() {
         {/* School Warning */}
         {schoolWarning?.showWarning && (
           <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl mb-6">
-            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-600 dark:text-amber-400 flex-1">{schoolWarning.message}</p>
             <button onClick={dismissSchoolWarning} className="p-1 rounded-lg text-amber-500/50 hover:text-amber-600 transition-colors">
-              <X className="h-4 w-4" />
+              <HugeIcon name="Cancel01" className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -290,7 +326,7 @@ export default function GroupPage() {
                 : 'text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
                 }`}
             >
-              <MessagesSquare className="h-3.5 w-3.5" />
+              <HugeIcon name="Chat" className="h-3.5 w-3.5" />
               Chat
             </button>
             <button
@@ -300,7 +336,7 @@ export default function GroupPage() {
                 : 'text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
                 }`}
             >
-              <LinkIcon className="h-3.5 w-3.5" />
+              <HugeIcon name="LinkSquare02" className="h-3.5 w-3.5" />
               Links
             </button>
           </div>
@@ -316,39 +352,6 @@ export default function GroupPage() {
                     <span className="text-sm font-semibold text-sky-800 dark:text-sky-300">
                       {currentGroup.member_count || 0} {(currentGroup.member_count || 0) === 1 ? 'member' : 'members'}
                     </span>
-                  </div>
-
-                  {/* Right Capsule: Status + Share */}
-                  <div className="pointer-events-auto flex items-center h-9 rounded-full bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-sky-100 dark:border-gray-800 shadow-lg">
-                    {connectionStatus === 'connected' && (
-                      <div className="pl-3 pr-2" title="Connected - Real-time sync active">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                      </div>
-                    )}
-                    {connectionStatus === 'connecting' && (
-                      <div className="pl-3 pr-2" title="Connecting...">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
-                      </div>
-                    )}
-                    {connectionStatus === 'disconnected' && (
-                      <div className="pl-3 pr-2" title="Disconnected - Messages may not sync">
-                        <WifiOff className="h-3.5 w-3.5 text-red-500" />
-                      </div>
-                    )}
-                    <div className="w-[1px] h-4 bg-sky-100 dark:bg-gray-700" />
-                    <GroupShareMenu
-                      groupId={groupId}
-                      groupName={currentGroup.name}
-                      className="h-8 w-8 rounded-full hover:bg-sky-500/5 dark:hover:bg-sky-500/10"
-                    />
-                    <div className="w-[1px] h-4 bg-sky-100 dark:bg-gray-700" />
-                    <button
-                      onClick={() => setShowLeaveDialog(true)}
-                      className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors pr-1"
-                      title="Leave Group"
-                    >
-                      <LogOut className="h-4 w-4 text-red-400" />
-                    </button>
                   </div>
                 </div>
                 <div className="flex-1 min-h-0 overflow-hidden flex flex-col pt-2">
@@ -389,7 +392,7 @@ export default function GroupPage() {
                       className="absolute right-1 top-1 bottom-1 h-9 w-9 rounded-xl bg-sky-500 hover:bg-sky-600 dark:bg-sky-500 dark:hover:bg-sky-600 transition-all transform group-focus-within:scale-105"
                       disabled={!newLink.trim()}
                     >
-                      <Plus className="h-5 w-5" />
+                      <HugeIcon name="PlusSign" className="h-5 w-5" />
                     </Button>
                   </div>
                 </form>
@@ -398,7 +401,7 @@ export default function GroupPage() {
               {links.length === 0 ? (
                 <div className="bg-[#f5f9fc] dark:bg-gray-900 backdrop-blur-md rounded-[32px] border border-sky-100 dark:border-gray-800 p-16 text-center shadow-sm">
                   <div className="w-16 h-16 rounded-3xl bg-sky-500/5 flex items-center justify-center mx-auto mb-4">
-                    <LinkIcon className="h-8 w-8 text-sky-500/30" />
+                    <HugeIcon name="LinkSquare02" className="h-8 w-8 text-sky-500/30" />
                   </div>
                   <h3 className="text-xl font-bold text-sky-900 dark:text-white">No links yet</h3>
                   <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mt-2 max-w-xs mx-auto">
@@ -502,7 +505,7 @@ export default function GroupPage() {
                               </div>
                             </div>
 
-                            <ArrowRight className={cn(
+                            <HugeIcon name="ArrowRight01" className={cn(
                               "h-4 w-4 -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 text-sky-500",
                               brandStyles.accentColor
                             )} />

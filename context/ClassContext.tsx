@@ -38,11 +38,11 @@ const generateConsistentColor = (id: string) => {
 };
 
 
-// Type for Lucide icon names
-export type LucideIconName = keyof typeof import('lucide-react');
+// Type for HugeIcon names
+export type HugeIconName = string;
 
 export type Class = Omit<Database['public']['Tables']['classes']['Row'], 'icon'> & {
-  icon: LucideIconName;
+  icon: HugeIconName;
 };
 
 export type Priority = 'low' | 'medium' | 'high';
@@ -104,11 +104,12 @@ interface ClassContextType {
   tests: Test[];
   loading: boolean;
   error: string | null;
-  addClass: (name: string, icon: LucideIconName) => Promise<string>;
+  addClass: (name: string, icon: HugeIconName) => Promise<string>;
   addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[], description?: string, completed?: boolean) => Promise<void>;
   addRecurringHomework: (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description?: string) => Promise<void>;
   toggleHomework: (id: string) => Promise<void>;
   togglePinHomework: (id: string, pinned: boolean) => Promise<void>;
+  updateClass: (id: string, updates: Partial<Class>) => Promise<void>;
   deleteClass: (id: string) => Promise<void>;
   deleteHomework: (id: string) => Promise<void>;
   deleteRecurringSeries: (recurringId: string) => Promise<void>;
@@ -208,6 +209,10 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
           try {
             links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
             if (!Array.isArray(links)) links = [];
+            links = links.map((l: any) => ({
+              ...l,
+              id: l.id || Math.random().toString(36).substring(2, 9)
+            }));
           } catch (e) {
             console.error('Error parsing links:', e);
             links = [];
@@ -280,6 +285,10 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                 try {
                   links = typeof hw.links === 'string' ? JSON.parse(hw.links) : hw.links;
                   if (!Array.isArray(links)) links = [];
+                  links = links.map((l: any) => ({
+                    ...l,
+                    id: l.id || Math.random().toString(36).substring(2, 9)
+                  }));
                 } catch (e) {
                   console.error('Error parsing links:', e);
                   links = [];
@@ -382,6 +391,10 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                       ? JSON.parse(newHomework.links)
                       : newHomework.links;
                     if (!Array.isArray(links)) links = [];
+                    links = links.map((l: any) => ({
+                      ...l,
+                      id: l.id || Math.random().toString(36).substring(2, 9)
+                    }));
                   } catch (e) {
                     console.error('Error parsing links:', e);
                     links = [];
@@ -422,7 +435,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                       classId: updated.class_id || hw.classId,
                       dueDate: updated.due_date || hw.dueDate,
                       links: updated.links
-                        ? (typeof updated.links === 'string' ? JSON.parse(updated.links) : updated.links)
+                        ? (typeof updated.links === 'string' ? JSON.parse(updated.links) : updated.links).map((l: any) => ({ ...l, id: l.id || Math.random().toString(36).substring(2, 9) }))
                         : (hw.links || []),
                       pinned: updated.pinned !== undefined ? updated.pinned : (hw.pinned || false),
                       completed: updated.completed !== undefined ? updated.completed : (hw.completed || false)
@@ -630,7 +643,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     }
   };
 
-  const addClass = async (name: string, icon: LucideIconName): Promise<string> => {
+  const addClass = async (name: string, icon: HugeIconName): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
 
     // Generate a temporary ID for the optimistic update
@@ -663,7 +676,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       setClasses(prev =>
         prev.map(cls =>
           cls.id === tempId
-            ? { ...createdClass, icon: createdClass.icon as LucideIconName }
+            ? { ...createdClass, icon: createdClass.icon as HugeIconName }
             : cls
         )
       );
@@ -677,6 +690,53 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       // Revert optimistic update on error
       setClasses(prev => prev.filter(cls => cls.id !== tempId));
 
+      throw err;
+    }
+  };
+
+  const updateClass = async (id: string, updates: Partial<Class>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Map the fields to match the database schema
+      const dbUpdates: Record<string, any> = {
+        name: updates.name,
+        color: updates.color,
+        icon: updates.icon,
+        updated_at: new Date().toISOString()
+      };
+
+      // Remove undefined values
+      Object.keys(dbUpdates).forEach((key: string) => {
+        if (dbUpdates[key] === undefined) {
+          delete dbUpdates[key];
+        }
+      });
+
+      const updated = await db.updateClass(id, dbUpdates);
+
+      // Update local state
+      setClasses(prev =>
+        prev.map(cls =>
+          cls.id === id
+            ? { ...cls, ...updates, updated_at: new Date().toISOString() }
+            : cls
+        )
+      );
+
+      // If the color was updated, we need to update the cookie for consistency
+      if (updates.color) {
+        const colorMap = classes.reduce((acc, cls) => {
+          if (cls.id && cls.color) {
+            acc[cls.id] = cls.id === id ? updates.color! : cls.color;
+          }
+          return acc;
+        }, {} as { [key: string]: string });
+        Cookies.set('classColors', JSON.stringify(colorMap), { expires: 7 });
+      }
+
+    } catch (err) {
+      console.error('Error updating class:', err);
       throw err;
     }
   };
@@ -1477,6 +1537,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     loading,
     error,
     addClass,
+    updateClass,
     addHomework,
     addRecurringHomework,
     toggleHomework,

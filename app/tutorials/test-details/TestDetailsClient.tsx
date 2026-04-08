@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import EnhancedTestCard from '@/components/EnhancedTestCard';
 import { TestDetailModal } from '@/components/TestDetailModal';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { BookOpen } from 'lucide-react';
 
 export default function TestDetailsTutorialPage() {
@@ -50,7 +51,7 @@ export default function TestDetailsTutorialPage() {
                 <div className="space-y-6 mb-12">
                     <div className="flex gap-4 items-start">
                         <div className="mt-1 bg-[#ebf6b5]/60 dark:bg-sky-500/15 p-2 rounded-lg text-sky-600 dark:text-sky-400">
-                            <BookOpen className="w-5 h-5" />
+                            <HugeIcon name="BookOpen" className="w-5 h-5" />
                         </div>
                         <div>
                             <h4 className="font-bold text-sky-800 dark:text-sky-200">Study Materials</h4>
@@ -59,7 +60,7 @@ export default function TestDetailsTutorialPage() {
                     </div>
                     <div className="flex gap-4 items-start">
                         <div className="mt-1 bg-[#ebf6b5]/60 dark:bg-sky-500/15 p-2 rounded-lg text-sky-600 dark:text-sky-400">
-                            <BookOpen className="w-5 h-5" />
+                            <HugeIcon name="BookOpen" className="w-5 h-5" />
                         </div>
                         <div>
                             <h4 className="font-bold text-sky-800 dark:text-sky-200">Full Description</h4>

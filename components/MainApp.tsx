@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { Facehash } from 'facehash';
 import { format, addDays } from 'date-fns';
 import { OnboardingModal } from './OnboardingModal';
@@ -47,86 +48,10 @@ type HomeworkLink = {
   title?: string;
 };
 
-import {
-  Archive,
-  Calendar as CalendarIcon,
-  Trash2,
-  BookOpen,
-  Calculator,
-  Code,
-  GraduationCap,
-  Layers,
-  School,
-  Atom,
-  Award,
-  Brain,
-  Briefcase,
-  Compass,
-  Cpu,
-  Database,
-  FileText,
-  Film,
-  Gamepad2,
-  GitBranch,
-  Globe2,
-  History,
-  Image,
-  Laptop,
-  Lightbulb,
-  Map,
-  Mic2,
-  Music,
-  Palette,
-  Pen,
-  PieChart,
-  Presentation,
-  Rocket,
-  Search,
-  Settings,
-  Shield,
-  Smartphone,
-  Speaker,
-  Target,
-  Terminal,
-  TrendingUp,
-  Type,
-  Video,
-  Wifi,
-  Zap,
-  ChevronRight,
-  Plus,
-  X,
-  Loader2,
-  Sparkles,
-  Book,
-  Dumbbell,
-  Music2,
-  Languages,
-  FlaskConical,
-  Microscope,
-  Sigma,
-  Variable,
-  Binary,
-  Heart,
-  Stethoscope,
-  Landmark,
-  Mountain,
-  Telescope,
-  Brush,
-  Theater,
-  Quote,
-  Shapes,
-  Gamepad,
-  Music4,
-  Coffee,
-  Star,
-  Sparkle,
-  ArrowUp
-} from "lucide-react";
-
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 
 import { HomeworkLinkInput } from './HomeworkLinkInput';
+import { RecurringOptions } from './RecurringOptions';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
@@ -143,8 +68,30 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
-import { RecurringOptions } from './RecurringOptions';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { iconMap, IconName } from '@/lib/icon-map';
+
+// Helper component to render class icon with HugeIcon fallback to Lucide
+const ClassIconRenderer: React.FC<{ iconName: string; className?: string; style?: React.CSSProperties }> = ({ iconName, className, style }) => {
+  const fallbackIcon = iconMap[iconName as keyof typeof iconMap] ?? 'Book01';
+  return (
+    <HugeIcon
+      name={iconName}
+      size={24}
+      className={className}
+      style={style}
+      fallbackIcon={fallbackIcon}
+    />
+  );
+};
+
+// Helper component to wrap ClassIconRenderer for EnhancedTestCard
+const createClassIconComponent = (iconName: string) => {
+  return (props: { className?: string; style?: React.CSSProperties }) => (
+    <ClassIconRenderer iconName={iconName} {...props} />
+  );
+};
+
 import { RecurringHomework, Class, Homework, Test } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useUpgrade } from '@/context/UpgradeContext';
@@ -152,7 +99,6 @@ import { useGamification } from '@/context/GamificationContext';
 import { useClassContext } from '../context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
-import { MarkTestAsTakenModal } from '@/components/MarkTestAsTakenModal';
 import EnhancedTestCard from '@/components/EnhancedTestCard';
 import { TaskBracket } from '@/components/TaskBracket';
 
@@ -182,6 +128,7 @@ const MainApp = () => {
     deleteRecurringSeries,
     deleteTest,
     updateHomeworkDueDate,
+    updateHomework,
     updateTestDueDate,
     markTestComplete
   } = useClassContext();
@@ -191,12 +138,11 @@ const MainApp = () => {
   const [showPinHomeworkModal, setShowPinHomeworkModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWelcomeLetter, setShowWelcomeLetter] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [newClassName, setNewClassName] = useState('');
-  const [newClassIcon, setNewClassIcon] = useState<LucideIconName>('BookOpen');
+  const [newClassIcon, setNewClassIcon] = useState<string>('Book02');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddTest, setShowAddTest] = useState(false);
-  const [showMarkTestAsTakenModal, setShowMarkTestAsTakenModal] = useState(false);
-  const [testToMark, setTestToMark] = useState<Test | null>(null);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isTestDetailModalOpen, setIsTestDetailModalOpen] = useState(false);
   const [classIdForAddTest, setClassIdForAddTest] = useState<string | undefined>(undefined);
@@ -320,69 +266,145 @@ const MainApp = () => {
 
   // Available icons with their display names and semantic tags
   const availableIcons = useMemo(() => [
-    { name: 'BookOpen', component: BookOpen, category: 'General', tags: ['reading', 'study', 'learning', 'education', 'homework', 'textbook'] },
-    { name: 'Book', component: Book, category: 'General', tags: ['reading', 'note', 'subject', 'library'] },
-    { name: 'Calculator', component: Calculator, category: 'Math & Science', tags: ['math', 'numbers', 'statistics', 'accounting', 'arithmetic'] },
-    { name: 'Code', component: Code, category: 'Computer Science', tags: ['programming', 'coding', 'software', 'development', 'it', 'tech', 'web'] },
-    { name: 'GraduationCap', component: GraduationCap, category: 'General', tags: ['degree', 'graduation', 'success', 'school', 'university', 'academic'] },
-    { name: 'Languages', component: Languages, category: 'Languages', tags: ['translation', 'foreign', 'speech', 'communication', 'global', 'linguistics'] },
-    { name: 'Dumbbell', component: Dumbbell, category: 'Fitness', tags: ['gym', 'pe', 'sports', 'health', 'exercise', 'physical', 'training'] },
-    { name: 'Microscope', component: Microscope, category: 'Science', tags: ['lab', 'biology', 'research', 'experiment', 'medicine', 'investigation'] },
-    { name: 'FlaskConical', component: FlaskConical, category: 'Science', tags: ['chemistry', 'science', 'lab', 'experiment', 'liquid'] },
-    { name: 'Atom', component: Atom, category: 'Science', tags: ['physics', 'science', 'energy', 'nuclear', 'lab', 'quantum'] },
-    { name: 'Sigma', component: Sigma, category: 'Math', tags: ['math', 'sum', 'calculation', 'advanced', 'greek', 'formulas'] },
-    { name: 'Variable', component: Variable, category: 'Math', tags: ['algebra', 'math', 'equation', 'letters', 'x', 'y'] },
-    { name: 'Binary', component: Binary, category: 'Computer Science', tags: ['data', 'it', 'low-level', 'coding', '01'] },
-    { name: 'Palette', component: Palette, category: 'Art', tags: ['design', 'painting', 'drawing', 'creativity', 'color', 'arts'] },
-    { name: 'Brush', component: Brush, category: 'Art', tags: ['painting', 'design', 'drawing', 'art'] },
-    { name: 'Theater', component: Theater, category: 'Art', tags: ['drama', 'acting', 'performance', 'stage', 'play', 'arts'] },
-    { name: 'Music2', component: Music2, category: 'Music', tags: ['notes', 'melody', 'audio', 'song', 'music'] },
-    { name: 'Music4', component: Music4, category: 'Music', tags: ['instruments', 'notes', 'rhythm', 'band', 'orchestra'] },
-    { name: 'Globe2', component: Globe2, category: 'Geography', tags: ['world', 'earth', 'travel', 'social studies', 'geography'] },
-    { name: 'History', component: History, category: 'History', tags: ['past', 'time', 'museum', 'tradition', 'historical'] },
-    { name: 'Landmark', component: Landmark, category: 'History', tags: ['government', 'politics', 'museum', 'architecture', 'civics'] },
-    { name: 'Briefcase', component: Briefcase, category: 'Business', tags: ['work', 'professional', 'career', 'management', 'economics'] },
-    { name: 'Stethoscope', component: Stethoscope, category: 'Science', tags: ['medicine', 'doctor', 'health', 'hospital', 'nursing'] },
-    { name: 'Telescope', component: Telescope, category: 'Science', tags: ['astronomy', 'space', 'ufo', 'research', 'stars'] },
-    { name: 'Mountain', component: Mountain, category: 'Geography', tags: ['nature', 'outdoors', 'environment', 'climbing', 'earth'] },
-    { name: 'Star', component: Star, category: 'General', tags: ['favorite', 'important', 'success', 'brilliant', 'rating'] },
-    { name: 'Heart', component: Heart, category: 'General', tags: ['love', 'passion', 'biology', 'empathy', 'health'] },
-    { name: 'Quote', component: Quote, category: 'Languages', tags: ['literature', 'writing', 'english', 'speech', 'referencing'] },
-    { name: 'Shapes', component: Shapes, category: 'Math', tags: ['geometry', 'basics', 'design', 'patterns'] },
-    { name: 'Gamepad', component: Gamepad, category: 'Gaming', tags: ['fun', 'play', 'video games', 'leisure'] },
-    { name: 'Coffee', component: Coffee, category: 'General', tags: ['energy', 'break', 'morning', 'cafe', 'teacher'] },
-    { name: 'School', component: School, category: 'General', tags: ['building', 'education', 'campus'] },
-    { name: 'Award', component: Award, category: 'General', tags: ['trophy', 'prize', 'achievement', 'win'] },
-    { name: 'Brain', component: Brain, category: 'Science', tags: ['psychology', 'mind', 'intellect', 'thinking'] },
-    { name: 'Compass', component: Compass, category: 'Geography', tags: ['direction', 'map', 'navigation'] },
-    { name: 'Cpu', component: Cpu, category: 'Computer Science', tags: ['hardware', 'processor', 'tech'] },
-    { name: 'Database', component: Database, category: 'Computer Science', tags: ['storage', 'data', 'backend'] },
-    { name: 'FileText', component: FileText, category: 'General', tags: ['document', 'writing', 'assignment'] },
-    { name: 'Film', component: Film, category: 'Media', tags: ['video', 'cinema', 'movie'] },
-    { name: 'Gamepad2', component: Gamepad2, category: 'Gaming', tags: ['fun', 'play', 'video games'] },
-    { name: 'GitBranch', component: GitBranch, category: 'Computer Science', tags: ['coding', 'version control', 'tech'] },
-    { name: 'Image', component: Image, category: 'Art', tags: ['picture', 'photo', 'design'] },
-    { name: 'Laptop', component: Laptop, category: 'Computer Science', tags: ['computer', 'work', 'it'] },
-    { name: 'Lightbulb', component: Lightbulb, category: 'General', tags: ['idea', 'innovation', 'thought'] },
-    { name: 'Map', component: Map, category: 'Geography', tags: ['navigation', 'places', 'travel'] },
-    { name: 'Mic2', component: Mic2, category: 'Languages', tags: ['speech', 'recording', 'audio'] },
-    { name: 'Music', component: Music, category: 'Music', tags: ['sound', 'audio', 'song'] },
-    { name: 'Pen', component: Pen, category: 'General', tags: ['writing', 'note', 'draw'] },
-    { name: 'PieChart', component: PieChart, category: 'Math', tags: ['data', 'statistics', 'graph'] },
-    { name: 'Presentation', component: Presentation, category: 'General', tags: ['slides', 'lecture', 'teaching'] },
-    { name: 'Rocket', component: Rocket, category: 'Science', tags: ['space', 'launch', 'speed'] },
-    { name: 'Search', component: Search, category: 'General', tags: ['find', 'lookup', 'research'] },
-    { name: 'Settings', component: Settings, category: 'General', tags: ['config', 'options', 'tools'] },
-    { name: 'Shield', component: Shield, category: 'General', tags: ['security', 'protection', 'safety'] },
-    { name: 'Smartphone', component: Smartphone, category: 'Technology', tags: ['mobile', 'phone', 'app'] },
-    { name: 'Speaker', component: Speaker, category: 'Languages', tags: ['audio', 'sound', 'announcement'] },
-    { name: 'Target', component: Target, category: 'General', tags: ['goal', 'focus', 'objective'] },
-    { name: 'Terminal', component: Terminal, category: 'Computer Science', tags: ['coding', 'cli', 'tech'] },
-    { name: 'TrendingUp', component: TrendingUp, category: 'Business', tags: ['growth', 'stats', 'finance'] },
-    { name: 'Type', component: Type, category: 'Languages', tags: ['font', 'text', 'writing'] },
-    { name: 'Video', component: Video, category: 'Media', tags: ['record', 'camera', 'cinema'] },
-    { name: 'Wifi', component: Wifi, category: 'Technology', tags: ['internet', 'connection', 'online'] },
-    { name: 'Zap', component: Zap, category: 'General', tags: ['energy', 'quick', 'flash'] }
+    { name: 'BookOpen', iconName: 'Book01', category: 'General', tags: ['reading', 'study', 'learning', 'education', 'homework', 'textbook'] },
+    { name: 'Book', iconName: 'Book02', category: 'General', tags: ['reading', 'note', 'subject', 'library'] },
+    { name: 'Calculator', iconName: 'Abacus', category: 'Math', tags: ['math', 'numbers', 'statistics', 'accounting', 'arithmetic'] },
+    { name: 'Code', iconName: 'Code', category: 'Computer Science', tags: ['programming', 'coding', 'software', 'development', 'it', 'tech', 'web'] },
+    { name: 'GraduationCap', iconName: 'GraduationScroll', category: 'General', tags: ['degree', 'graduation', 'success', 'school', 'university', 'academic'] },
+    { name: 'Dumbbell', iconName: 'WorkoutSport', category: 'Sports', tags: ['gym', 'pe', 'sports', 'health', 'exercise', 'physical', 'training'] },
+    { name: 'AmericanFootball', iconName: 'AmericanFootball', category: 'Sports', tags: ['football', 'sports', 'american', 'nfl'] },
+    { name: 'Baseball', iconName: 'Baseball', category: 'Sports', tags: ['baseball', 'sports', 'mlb'] },
+    { name: 'BaseballBat', iconName: 'BaseballBat', category: 'Sports', tags: ['baseball', 'sports', 'bat'] },
+    { name: 'BaseballHelmet', iconName: 'BaseballHelmet', category: 'Sports', tags: ['baseball', 'sports', 'helmet', 'protection'] },
+    { name: 'Basketball01', iconName: 'Basketball01', category: 'Sports', tags: ['basketball', 'sports', 'nba'] },
+    { name: 'Basketball02', iconName: 'Basketball02', category: 'Sports', tags: ['basketball', 'sports', 'nba'] },
+    { name: 'BasketballHoop', iconName: 'BasketballHoop', category: 'Sports', tags: ['basketball', 'sports', 'hoop'] },
+    { name: 'BowlingBall', iconName: 'BowlingBall', category: 'Sports', tags: ['bowling', 'sports', 'ball'] },
+    { name: 'Football', iconName: 'Football', category: 'Sports', tags: ['football', 'sports', 'soccer'] },
+    { name: 'FootballPitch', iconName: 'FootballPitch', category: 'Sports', tags: ['football', 'sports', 'soccer', 'field'] },
+    { name: 'TennisBall', iconName: 'TennisBall', category: 'Sports', tags: ['tennis', 'sports', 'ball'] },
+    { name: 'Volleyball', iconName: 'Volleyball', category: 'Sports', tags: ['volleyball', 'sports'] },
+    { name: 'YogaBall', iconName: 'YogaBall', category: 'Sports', tags: ['yoga', 'sports', 'fitness', 'exercise'] },
+    { name: 'FlaskConical', iconName: 'TestTube01', category: 'Science', tags: ['chemistry', 'science', 'lab', 'experiment', 'liquid'] },
+    { name: 'Sigma', iconName: 'Math', category: 'Math', tags: ['math', 'sum', 'calculation', 'advanced', 'greek', 'formulas'] },
+    { name: 'Variable', iconName: 'BinaryCode', category: 'Math', tags: ['algebra', 'math', 'equation', 'letters', 'x', 'y'] },
+    { name: 'Palette', iconName: 'Artboard', category: 'Art', tags: ['design', 'painting', 'drawing', 'creativity', 'color', 'arts'] },
+    { name: 'Brush', iconName: 'PenTool01', category: 'Art', tags: ['painting', 'design', 'drawing', 'art'] },
+    { name: 'Theater', iconName: 'Book03', category: 'Art', tags: ['drama', 'acting', 'performance', 'stage', 'play', 'arts'] },
+    { name: 'Music2', iconName: 'MusicNote01', category: 'Music', tags: ['notes', 'melody', 'audio', 'song', 'music'] },
+    { name: 'Music4', iconName: 'MusicThree', category: 'Music', tags: ['instruments', 'notes', 'rhythm', 'band', 'orchestra'] },
+    { name: 'Globe2', iconName: 'Globe', category: 'Geography', tags: ['world', 'earth', 'travel', 'social studies', 'geography'] },
+    { name: 'History', iconName: 'Scroll', category: 'History', tags: ['past', 'time', 'museum', 'tradition', 'historical'] },
+    { name: 'Landmark', iconName: 'School', category: 'History', tags: ['government', 'politics', 'museum', 'architecture', 'civics'] },
+    { name: 'Briefcase', iconName: 'Laptop', category: 'Business', tags: ['work', 'professional', 'career', 'management', 'economics'] },
+    { name: 'Activity01', iconName: 'Activity01', category: 'Business', tags: ['business', 'activity', 'work', 'tasks'] },
+    { name: 'ActivityCircle', iconName: 'ActivityCircle', category: 'Business', tags: ['business', 'activity', 'work', 'tasks'] },
+    { name: 'AnalysisTextLink', iconName: 'AnalysisTextLink', category: 'Business', tags: ['business', 'analysis', 'data', 'report'] },
+    { name: 'Analytics01', iconName: 'Analytics01', category: 'Business', tags: ['business', 'analytics', 'data', 'statistics'] },
+    { name: 'AnalyticsDown', iconName: 'AnalyticsDown', category: 'Business', tags: ['business', 'analytics', 'data', 'trends'] },
+    { name: 'AnalyticsUp', iconName: 'AnalyticsUp', category: 'Business', tags: ['business', 'analytics', 'data', 'growth'] },
+    { name: 'Mountain', iconName: 'Globe02', category: 'Geography', tags: ['nature', 'outdoors', 'environment', 'climbing', 'earth'] },
+    { name: 'Star', iconName: 'Crown', category: 'General', tags: ['favorite', 'important', 'success', 'brilliant', 'rating'] },
+    { name: 'Quote', iconName: 'FilePen', category: 'Languages', tags: ['literature', 'writing', 'english', 'speech', 'referencing'] },
+    { name: 'Shapes', iconName: 'Calculate', category: 'Math', tags: ['geometry', 'basics', 'design', 'patterns'] },
+    { name: 'Game', iconName: 'Game', category: 'Gaming', tags: ['fun', 'play', 'video games', 'leisure'] },
+    { name: 'Gameboy', iconName: 'Gameboy', category: 'Gaming', tags: ['fun', 'play', 'video games', 'leisure', 'retro'] },
+    { name: 'GameController01', iconName: 'GameController01', category: 'Gaming', tags: ['fun', 'play', 'video games', 'controller'] },
+    { name: 'GameController02', iconName: 'GameController02', category: 'Gaming', tags: ['fun', 'play', 'video games', 'controller'] },
+    { name: 'GameController03', iconName: 'GameController03', category: 'Gaming', tags: ['fun', 'play', 'video games', 'controller'] },
+    { name: 'GamepadDirectional', iconName: 'GamepadDirectional', category: 'Gaming', tags: ['fun', 'play', 'video games', 'controller'] },
+    { name: 'AiGame', iconName: 'AiGame', category: 'Gaming', tags: ['fun', 'play', 'ai', 'video games'] },
+    { name: 'AircraftGame', iconName: 'AircraftGame', category: 'Gaming', tags: ['fun', 'play', 'aircraft', 'video games'] },
+    { name: 'Coffee', iconName: 'Book04', category: 'General', tags: ['energy', 'break', 'morning', 'cafe', 'teacher'] },
+    { name: 'School', iconName: 'School', category: 'General', tags: ['building', 'education', 'campus'] },
+    { name: 'Award', iconName: 'Crown02', category: 'General', tags: ['trophy', 'prize', 'achievement', 'win'] },
+    { name: 'Compass', iconName: 'Compass', category: 'Geography', tags: ['direction', 'map', 'navigation'] },
+    { name: 'FileText', iconName: 'Scroll', category: 'General', tags: ['document', 'writing', 'assignment'] },
+    { name: 'GitBranch', iconName: 'BinaryCode', category: 'Computer Science', tags: ['coding', 'version control', 'tech'] },
+    { name: 'Image', iconName: 'Camera02', category: 'Art', tags: ['picture', 'photo', 'design'] },
+    { name: 'Laptop', iconName: 'Laptop', category: 'Computer Science', tags: ['computer', 'work', 'it'] },
+    { name: 'Lightbulb', iconName: 'LightbulbOff', category: 'General', tags: ['idea', 'innovation', 'thought'] },
+    { name: 'Map', iconName: 'Maps', category: 'Geography', tags: ['navigation', 'places', 'travel'] },
+    { name: 'Music', iconName: 'MusicNote03', category: 'Music', tags: ['sound', 'audio', 'song'] },
+    { name: 'PieChart', iconName: 'Target02', category: 'Math', tags: ['data', 'statistics', 'graph'] },
+    { name: 'RocketTarget', iconName: 'Target01', category: 'Science', tags: ['space', 'launch', 'speed'] },
+    { name: 'Shield', iconName: 'Crown03', category: 'General', tags: ['security', 'protection', 'safety'] },
+    { name: 'Terminal', iconName: 'CommandLine', category: 'Computer Science', tags: ['coding', 'cli', 'tech'] },
+    // Language icons
+    { name: 'LanguageCircle', iconName: 'LanguageCircle', category: 'Languages', tags: ['translation', 'foreign', 'speech', 'communication', 'global', 'linguistics'] },
+    { name: 'LanguageSkill', iconName: 'LanguageSkill', category: 'Languages', tags: ['language', 'skill', 'learning', 'education'] },
+    { name: 'LanguageSquare', iconName: 'LanguageSquare', category: 'Languages', tags: ['translation', 'foreign', 'speech', 'communication', 'global', 'linguistics'] },
+    // Computer Science icons
+    { name: 'Api', iconName: 'Api', category: 'Computer Science', tags: ['api', 'rest', 'backend', 'interface'] },
+    { name: 'ApiGateway', iconName: 'ApiGateway', category: 'Computer Science', tags: ['api', 'gateway', 'aws', 'cloud'] },
+    { name: 'AwsLambda', iconName: 'AwsLambda', category: 'Computer Science', tags: ['aws', 'lambda', 'serverless', 'cloud'] },
+    { name: 'Bash', iconName: 'Bash', category: 'Computer Science', tags: ['bash', 'shell', 'terminal', 'linux'] },
+    { name: 'Bucket', iconName: 'Bucket', category: 'Computer Science', tags: ['bucket', 'storage', 'aws', 's3'] },
+    { name: 'Bug01', iconName: 'Bug01', category: 'Computer Science', tags: ['bug', 'error', 'debug', 'issue'] },
+    { name: 'Bug02', iconName: 'Bug02', category: 'Computer Science', tags: ['bug', 'error', 'debug', 'issue'] },
+    { name: 'CProgramming', iconName: 'CProgramming', category: 'Computer Science', tags: ['c', 'programming', 'language', 'code'] },
+    { name: 'Cpp', iconName: 'Cpp', category: 'Computer Science', tags: ['cpp', 'c++', 'programming', 'language', 'code'] },
+    { name: 'CodeFolder', iconName: 'CodeFolder', category: 'Computer Science', tags: ['code', 'folder', 'project', 'directory'] },
+    { name: 'ComputerProgramming01', iconName: 'ComputerProgramming01', category: 'Computer Science', tags: ['programming', 'coding', 'dev', 'software'] },
+    { name: 'ComputerProgramming02', iconName: 'ComputerProgramming02', category: 'Computer Science', tags: ['programming', 'coding', 'dev', 'software'] },
+    { name: 'ComputerTerminal01', iconName: 'ComputerTerminal01', category: 'Computer Science', tags: ['terminal', 'cli', 'command', 'console'] },
+    { name: 'ComputerTerminal02', iconName: 'ComputerTerminal02', category: 'Computer Science', tags: ['terminal', 'cli', 'command', 'console'] },
+    // Science icons
+    { name: 'Acceleration', iconName: 'Acceleration', category: 'Science', tags: ['physics', 'speed', 'motion', 'velocity'] },
+    { name: 'Atom', iconName: 'Atom01', category: 'Science', tags: ['physics', 'science', 'energy', 'nuclear', 'lab', 'quantum'] },
+    { name: 'Atom02', iconName: 'Atom02', category: 'Science', tags: ['physics', 'science', 'energy', 'nuclear', 'lab', 'quantum'] },
+    { name: 'Bacteria', iconName: 'Bacteria', category: 'Science', tags: ['biology', 'microbe', 'germ', 'pathogen'] },
+    { name: 'BlackHole', iconName: 'BlackHole', category: 'Science', tags: ['space', 'astronomy', 'physics', 'cosmos'] },
+    { name: 'BlackHole01', iconName: 'BlackHole01', category: 'Science', tags: ['space', 'astronomy', 'physics', 'cosmos'] },
+    { name: 'BoundingBox', iconName: 'BoundingBox', category: 'Science', tags: ['geometry', 'box', 'frame', 'selection'] },
+    { name: 'Cells', iconName: 'Cells', category: 'Science', tags: ['biology', 'cell', 'organism', 'microscopic'] },
+    { name: 'Gravity', iconName: 'Gravity', category: 'Science', tags: ['physics', 'force', 'attraction', 'weight'] },
+    { name: 'Magnet', iconName: 'Magnet', category: 'Science', tags: ['physics', 'magnetism', 'attraction', 'force'] },
+    { name: 'Magnet01', iconName: 'Magnet01', category: 'Science', tags: ['physics', 'magnetism', 'attraction', 'force'] },
+    { name: 'Magnet02', iconName: 'Magnet02', category: 'Science', tags: ['physics', 'magnetism', 'attraction', 'force'] },
+    { name: 'Molecules', iconName: 'Molecules', category: 'Science', tags: ['chemistry', 'molecular', 'atomic', 'science'] },
+    { name: 'Nanotechnology', iconName: 'NanoTechnology', category: 'Science', tags: ['technology', 'nano', 'science', 'innovation'] },
+    { name: 'Pendulum', iconName: 'Pendulum', category: 'Science', tags: ['physics', 'motion', 'oscillation', 'time'] },
+    { name: 'Prism', iconName: 'Prism', category: 'Science', tags: ['optics', 'light', 'refraction', 'spectrum'] },
+    { name: 'Prism01', iconName: 'Prism01', category: 'Science', tags: ['optics', 'light', 'refraction', 'spectrum'] },
+    { name: 'Pulley', iconName: 'Pulley', category: 'Science', tags: ['physics', 'mechanics', 'simple machine', 'lift'] },
+    { name: 'Robot01', iconName: 'Robot01', category: 'Science', tags: ['technology', 'robot', 'automation', 'ai'] },
+    { name: 'Robot02', iconName: 'Robot02', category: 'Science', tags: ['technology', 'robot', 'automation', 'ai'] },
+    { name: 'Robotic', iconName: 'Robotic', category: 'Science', tags: ['technology', 'robot', 'automation', 'ai'] },
+    { name: 'SolarSystem', iconName: 'SolarSystem', category: 'Science', tags: ['space', 'astronomy', 'planets', 'cosmos'] },
+    { name: 'SolarSystem01', iconName: 'SolarSystem01', category: 'Science', tags: ['space', 'astronomy', 'planets', 'cosmos'] },
+    { name: 'Submerge', iconName: 'Submerge', category: 'Science', tags: ['water', 'depth', 'submarine', 'ocean'] },
+    { name: 'TestTube', iconName: 'TestTube', category: 'Science', tags: ['chemistry', 'lab', 'experiment', 'science'] },
+    { name: 'TestTube01', iconName: 'TestTube01', category: 'Science', tags: ['chemistry', 'lab', 'experiment', 'science'] },
+    { name: 'TestTube02', iconName: 'TestTube02', category: 'Science', tags: ['chemistry', 'lab', 'experiment', 'science'] },
+    { name: 'TestTube03', iconName: 'TestTube03', category: 'Science', tags: ['chemistry', 'lab', 'experiment', 'science'] },
+    { name: 'Ufo', iconName: 'Ufo', category: 'Science', tags: ['space', 'alien', 'ufo', 'extraterrestrial'] },
+    { name: 'Ufo01', iconName: 'Ufo01', category: 'Science', tags: ['space', 'alien', 'ufo', 'extraterrestrial'] },
+    { name: 'WindTurbine', iconName: 'WindTurbine', category: 'Science', tags: ['energy', 'wind', 'renewable', 'power'] },
+    // Math icons
+    { name: 'BoardMath', iconName: 'BoardMath', category: 'Math', tags: ['mathematics', 'math', 'board', 'teaching'] },
+    // ... (rest of the code remains the same)
+    { name: '1stBracket', iconName: '1stBracket', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'algebra'] },
+    { name: '1stBracketCircle', iconName: '1stBracketCircle', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'circle', 'algebra'] },
+    { name: '1stBracketSquare', iconName: '1stBracketSquare', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'square', 'algebra'] },
+    { name: '2ndBracket', iconName: '2ndBracket', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'algebra'] },
+    { name: '2ndBracketCircle', iconName: '2ndBracketCircle', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'circle', 'algebra'] },
+    { name: '2ndBracketSquare', iconName: '2ndBracketSquare', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'square', 'algebra'] },
+    { name: '3rdBracket', iconName: '3rdBracket', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'algebra'] },
+    { name: '3rdBracketCircle', iconName: '3rdBracketCircle', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'circle', 'algebra'] },
+    { name: '3rdBracketSquare', iconName: '3rdBracketSquare', category: 'Math', tags: ['math', 'brackets', 'parentheses', 'square', 'algebra'] },
+    { name: 'Absolute', iconName: 'Absolute', category: 'Math', tags: ['math', 'absolute value', 'numbers'] },
+    { name: 'Acute', iconName: 'Acute', category: 'Math', tags: ['math', 'angles', 'geometry'] },
+    { name: 'Alpha', iconName: 'Alpha', category: 'Math', tags: ['math', 'greek', 'alpha', 'letters'] },
+    { name: 'AlphaCircle', iconName: 'AlphaCircle', category: 'Math', tags: ['math', 'greek', 'alpha', 'circle', 'letters'] },
+    { name: 'AlphaSquare', iconName: 'AlphaSquare', category: 'Math', tags: ['math', 'greek', 'alpha', 'square', 'letters'] },
+    { name: 'Angle', iconName: 'Angle', category: 'Math', tags: ['math', 'angles', 'geometry'] },
+    { name: 'Angle01', iconName: 'Angle01', category: 'Math', tags: ['math', 'angles', 'geometry'] },
+    { name: 'ApproximatelyEqual', iconName: 'ApproximatelyEqual', category: 'Math', tags: ['math', 'approximation', 'equality', 'symbols'] },
+    { name: 'ApproximatelyEqualCircle', iconName: 'ApproximatelyEqualCircle', category: 'Math', tags: ['math', 'approximation', 'equality', 'circle', 'symbols'] },
+    { name: 'ApproximatelyEqualSquare', iconName: 'ApproximatelyEqualSquare', category: 'Math', tags: ['math', 'approximation', 'equality', 'square', 'symbols'] },
+    { name: 'Beta', iconName: 'Beta', category: 'Math', tags: ['math', 'greek', 'beta', 'letters'] },
+    { name: 'Cone', iconName: 'Cone01', category: 'Math', tags: ['math', 'geometry', '3d', 'shapes'] }
   ], []);
 
   // Filter icons based on search query with semantic tag support
@@ -463,6 +485,7 @@ Return ONLY a JSON object with whichever fields you can determine:
 - "dueDate": string (use the date reference above to pick the correct yyyy-MM-dd date)
 - "priority": "low" | "medium" | "high"
 - "className": string (must exactly match one of the available classes)
+- "links": array of objects [{"title": "Platform Name (e.g., Google Docs, Canvas)", "url": "https://example.com"}] (if the user provides links, smartly infer the title based on the website domain or known service, rather than something generic)
 
 Only include fields you are confident about. Omit unknown fields.
 Return ONLY valid JSON, no explanation, no markdown.`,
@@ -510,6 +533,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
             c.name.toLowerCase() === parsed.className.toLowerCase()
           );
           if (matchedClass) updates.classId = matchedClass.id;
+        }
+        if (parsed.links && Array.isArray(parsed.links)) {
+          updates.links = parsed.links.filter((l: any) => l.title && l.url);
         }
 
         if (Object.keys(updates).length > 0) {
@@ -894,7 +920,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
         priority: hw.priority || 'medium',
         classId: cls.id,
         classColor: getClassColor(index),
-        dueDateIcon: <CalendarIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />,
+        dueDateIcon: <HugeIcon name="Calendar02" size={12} className="h-3 w-3 text-sky-400 dark:text-sky-500" />,
         links: hw.links,
         onDelete: () => deleteHomework(hw.id),
         onDeleteSeries: (hw.recurring_id || hw.parent_recurring_id) ? () => deleteRecurringSeries(hw.recurring_id || hw.parent_recurring_id) : undefined,
@@ -1009,7 +1035,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
     if (!newClassName.trim()) return;
 
     try {
-      await addClass(newClassName, newClassIcon);
+      await addClass(newClassName, newClassIcon as any);
       success(
         `✅ ${newClassName} class added!`,
         'Ready to add your first assignments!'
@@ -1090,61 +1116,6 @@ Return ONLY valid JSON, no explanation, no markdown.`,
     setIsTestDetailModalOpen(true);
   };
 
-  const handleMarkTestAsTaken = async (score: number, maxScore: number, grade?: string) => {
-    if (!testToMark) return;
-
-    try {
-      await markTestComplete(testToMark.id, score, maxScore, grade);
-
-      // Calculate XP based on test performance
-      const percentageScore = (score / maxScore) * 100;
-      let xpEarned = 50; // Base XP for completing any test
-
-      // Bonus XP for good performance
-      if (percentageScore >= 90) {
-        xpEarned += 30; // Excellent performance
-      } else if (percentageScore >= 80) {
-        xpEarned += 20; // Great performance
-      } else if (percentageScore >= 70) {
-        xpEarned += 10; // Good performance
-      } else if (percentageScore >= 60) {
-        xpEarned += 5; // Passing performance
-      }
-
-      // Extra bonus for perfect scores
-      if (score === maxScore) {
-        xpEarned += 15;
-      }
-
-      // Bonus XP for high-stakes tests
-      if (testToMark.testType?.toLowerCase() === 'exam') {
-        xpEarned += 10;
-      } else if (testToMark.testType?.toLowerCase() === 'alpha') {
-        xpEarned += 5;
-      }
-
-      // Award the XP
-      const testClass = classes.find(c => c.id === testToMark.classId);
-      addXP(xpEarned, testToMark.classId, testClass?.name);
-
-      success(
-        `✅ ${testToMark.title} marked as taken!`,
-        `Score: ${score}/${maxScore}${grade ? ` (${grade})` : ''} | +${xpEarned} XP 🎯`
-      );
-      setShowMarkTestAsTakenModal(false);
-      setTestToMark(null);
-    } catch (error) {
-      toastError('Failed to mark test as taken', 'Please try again');
-      console.error('Error marking test as taken:', error);
-    }
-  };
-
-
-
-
-
-
-
   // Function to render each section based on ID
   const renderSection = (sectionId: SectionId) => {
     switch (sectionId) {
@@ -1170,13 +1141,40 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       <div
                         className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 md:hidden transition-all duration-300"
                       >
-                        <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
+                        <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
                     {/* Nav-pill style action buttons */}
                     <div className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20">
+                      {homeworks.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsSelectionMode(!isSelectionMode);
+                          }}
+                          className={`flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold rounded-full transition-all active:scale-95 ${
+                          isSelectionMode 
+                            ? 'text-white bg-sky-500 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-700' 
+                            : 'text-sky-700 dark:text-sky-300 bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30'
+                        }`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          >
+                            <path d="M15 2.5H12C7.52166 2.5 5.28249 2.5 3.89124 3.89124C2.5 5.28249 2.5 7.52166 2.5 12C2.5 16.4783 2.5 18.7175 3.89124 20.1088C5.28249 21.5 7.52166 21.5 12 21.5C16.4783 21.5 18.7175 21.5 20.1088 20.1088C21.5 18.7175 21.5 16.4783 21.5 12V10" />
+                            <path d="M8.5 10L12 13.5L21.0002 3.5" />
+                          </svg>
+                          Select
+                        </button>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1184,7 +1182,18 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         }}
                         className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 4V20M20 12H4" />
+                        </svg>
                         Class
                       </button>
                       <button
@@ -1194,7 +1203,18 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         }}
                         className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 4V20M20 12H4" />
+                        </svg>
                         Homework
                       </button>
                       {showTestsInClassCards && (
@@ -1205,7 +1225,18 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           }}
                           className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                         >
-                          <Plus className="h-3.5 w-3.5" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 4V20M20 12H4" />
+                          </svg>
                           Test
                         </button>
                       )}
@@ -1218,7 +1249,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         }}
                         className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/20 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hidden md:flex items-center justify-center transition-all duration-300"
                       >
-                        <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
+                        <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
                       </button>
                     )}
                   </div>
@@ -1247,7 +1278,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-gray-100 dark:border-gray-800"
                 >
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
-                    <Layers className="h-6 w-6 text-[#6B7280] dark:text-gray-500" />
+                    <HugeIcon name="Layers01" size={24} className="h-6 w-6 text-[#6B7280] dark:text-gray-500" />
                   </div>
                   <h3 className="text-xl font-light text-[#111827] dark:text-white mb-2 tracking-tight">No classes yet</h3>
                   <p className="text-[#6B7280] dark:text-gray-400 max-w-xs mx-auto text-sm">
@@ -1295,10 +1326,11 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           <div className="flex justify-between items-start">
                             <div className="flex items-center w-full gap-3">
                               <div className="shrink-0 transition-transform group-hover:scale-110 duration-500">
-                                {(() => {
-                                  const IconComponent = iconMap[cls.icon as keyof typeof iconMap] ?? BookOpen;
-                                  return <IconComponent className="w-6 h-6" style={{ color: getHeaderColor(index) }} />;
-                                })()}
+                                <ClassIconRenderer
+                                  iconName={cls.icon}
+                                  className="w-6 h-6"
+                                  style={{ color: getHeaderColor(index) }}
+                                />
                               </div>
 
                               <div className="flex-1 min-w-0">
@@ -1330,16 +1362,27 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                 })()}
                               </div>
 
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setClassToDelete({ id: cls.id, name: cls.name });
-                                }}
-                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
-                                aria-label="Delete class"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <div className="flex flex-row items-center gap-1">
+                                <Link
+                                  href={`/classes/edit/${cls.id}`}
+                                  className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-sky-500 dark:text-gray-500 dark:hover:text-sky-400 hover:bg-sky-500/10 dark:hover:bg-sky-500/20 transition-all shrink-0"
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label="Edit class"
+                                >
+                                  <HugeIcon name="Pen02" size={16} className="w-4 h-4" />
+                                </Link>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setClassToDelete({ id: cls.id, name: cls.name });
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition-all shrink-0"
+                                  aria-label="Delete class"
+                                >
+                                  <HugeIcon name="Delete02" size={16} className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1349,7 +1392,17 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                             items={classHomeworks.slice(0, 3)}
                             onItemToggle={handleHomeworkToggle}
                             onPinToggle={togglePinHomework}
-                            className="space-y-1.5"
+                            onBulkDelete={handleBulkDelete}
+                            onBulkMove={handleBulkMove}
+                            availableClasses={classes.map((c, idx) => ({ 
+                              id: c.id, 
+                              name: c.name, 
+                              icon: c.icon || 'BookOpen', 
+                              color: getHeaderColor(idx),
+                              bgColor: getClassColor(idx)
+                            }))}
+                            isSelectionMode={isSelectionMode}
+                            className={`transition-all duration-300 ${isSelectionMode ? 'opacity-60' : ''}`}
                           />
 
                           <AnimatePresence>
@@ -1385,7 +1438,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                   <EnhancedTestCard
                                     key={test.id}
                                     test={test}
-                                    classIcon={iconMap[cls.icon as keyof typeof iconMap] || BookOpen}
+                                    classIcon={createClassIconComponent(cls.icon)}
                                     variant="list-item"
                                     onClick={() => handleTestClick(test)}
                                     className="hover:bg-sky-500/[0.03] rounded-lg -mx-2 px-2"
@@ -1424,7 +1477,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                 onClick={() => setShowArchivedForClass(prev => ({ ...prev, [cls.id]: true }))}
                                 className="text-xs text-sky-600/40 hover:text-sky-600 dark:text-sky-400/40 dark:hover:text-sky-300 transition-colors flex items-center justify-center gap-1.5 mx-auto"
                               >
-                                <Archive className="w-3.5 h-3.5" />
+                                <HugeIcon name="Archive" size={14} className="w-3.5 h-3.5" />
                                 View {classArchivedHomeworks.length} archived assignment{classArchivedHomeworks.length > 1 ? 's' : ''}
                               </button>
                             </div>
@@ -1443,7 +1496,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                 <div className="flex items-center gap-3 my-3">
                                   <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
                                   <span className="text-[11px] uppercase font-semibold text-sky-600/30 dark:text-sky-400/30 tracking-wider flex items-center gap-1.5">
-                                    <Archive className="w-3 h-3" />
+                                    <HugeIcon name="Archive" size={12} className="w-3 h-3" />
                                     Archived
                                   </span>
                                   <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
@@ -1525,7 +1578,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     <div
                       className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 md:hidden transition-all duration-300"
                     >
-                      <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
+                      <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1538,7 +1591,18 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         }}
                         className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 4V20M20 12H4" />
+                        </svg>
                         Test
                       </button>
                     </div>
@@ -1549,7 +1613,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       }}
                       className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/20 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hidden md:flex items-center justify-center transition-all duration-300"
                     >
-                      <ChevronRight className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
+                      <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
                     </button>
                   </div>
                 </div>
@@ -1569,7 +1633,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-sky-100 dark:border-gray-800"
                   >
                     <div className="inline-flex items-center justify-center w-12 h-12 bg-sky-50 dark:bg-gray-900 rounded-xl mb-4 border border-sky-100 dark:border-gray-800">
-                      <CalendarIcon className="h-6 w-6 text-sky-400 dark:text-sky-500" />
+                      <HugeIcon name="Calendar02" size={24} className="h-6 w-6 text-sky-400 dark:text-sky-500" />
                     </div>
                     <h3 className="text-xl font-light text-sky-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
                     <p className="text-sky-600/60 dark:text-gray-400 max-w-xs mx-auto text-sm">
@@ -1606,6 +1670,26 @@ Return ONLY valid JSON, no explanation, no markdown.`,
   const [joke, setJoke] = useState<string | null>(null);
   const [jokeLoading, setJokeLoading] = useState(false);
   const jokeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Bulk action handlers
+  const handleBulkDelete = useCallback((ids: string[]) => {
+    ids.forEach(id => {
+      const homework = homeworks.find(hw => hw.id === id);
+      if (homework) {
+        deleteHomework(homework.id);
+      }
+    });
+  }, [homeworks, deleteHomework]);
+
+  const handleBulkMove = useCallback((ids: string[], targetClassId: string) => {
+    ids.forEach(id => {
+      const homework = homeworks.find(hw => hw.id === id);
+      if (homework && homework.classId !== targetClassId) {
+        // Update the homework class directly in the database
+        updateHomework(id, { classId: targetClassId });
+      }
+    });
+  }, [homeworks, updateHomework]);
 
   const fetchJoke = useCallback(async () => {
     if (jokeLoading) return;
@@ -2085,7 +2169,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                 className="shrink-0 group relative p-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-200 dark:hover:border-sky-500/30 transition-all duration-300 active:scale-90 self-center"
                 title="Task Bracket"
               >
-                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 dark:text-sky-400 group-hover:text-sky-500 transition-colors" />
+                <HugeIcon name="Sword03" size={16} className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 dark:text-sky-400 group-hover:text-sky-500 transition-colors" />
                 <span className="absolute inset-0 rounded-xl animate-ping bg-sky-400/10 pointer-events-none" style={{ animationDuration: '3s' }} />
               </button>
             </div>
@@ -2127,7 +2211,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     onClick={() => setShowAddClass(false)}
                     className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                   >
-                    <X className="h-5 w-5" />
+                    <HugeIcon name="Cancel01" size={16} className="h-5 w-5" />
                   </button>
                 </div>
 
@@ -2161,7 +2245,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         <div className="mb-2">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-[11px] font-semibold text-sky-500 flex items-center gap-1.5">
-                              <Sparkles className="h-3 w-3" />
+                              <HugeIcon name="AiMagic" size={12} className="h-3 w-3" />
                               Semantic Suggestions
                             </span>
                             <button
@@ -2173,9 +2257,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                               className="text-[10px] text-sky-500 hover:text-sky-600 transition-colors flex items-center gap-1"
                             >
                               {isSuggestingIcons ? (
-                                <Loader2 className="h-2 w-2 animate-spin" />
+                                <HugeIcon name="LoaderPinwheel" size={8} className="h-2 w-2 animate-spin" />
                               ) : (
-                                <Sparkles className="h-2 w-2" />
+                                <HugeIcon name="AiMagic" size={8} className="h-2 w-2" />
                               )}
                               {isSuggestingIcons ? 'Analyzing...' : 'Refresh Suggestions'}
                             </button>
@@ -2185,16 +2269,15 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                               <button
                                 key={`suggest-${icon.name}`}
                                 type="button"
-                                onClick={() => setNewClassIcon(icon.name)}
-                                className={`p-2.5 rounded-xl transition-all shrink-0 ${newClassIcon === icon.name
+                                onClick={() => setNewClassIcon(icon.iconName)}
+                                className={`p-2.5 rounded-xl transition-all shrink-0 ${newClassIcon === icon.iconName
                                   ? 'bg-sky-500 text-white shadow-sm scale-110'
                                   : 'bg-white dark:bg-gray-800 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-gray-700 hover:scale-105'
                                   }`}
                                 title={icon.name}
                               >
                                 {(() => {
-                                  const Icon = icon.component;
-                                  return <Icon className="h-5 w-5" />;
+                                  return <HugeIcon name={icon.iconName} className="h-5 w-5" />;
                                 })()}
                               </button>
                             ))}
@@ -2226,7 +2309,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
 
                     {/* Search Input */}
                     <div className="relative mb-3">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-400 dark:text-sky-500" />
+                      <HugeIcon name="Search01" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-400 dark:text-sky-500" />
                       <Input
                         type="text"
                         placeholder="Search icons..."
@@ -2246,22 +2329,22 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                               {category}
                             </div>
                             <div className="grid grid-cols-7 gap-1 p-2">
-                              {icons.map(({ name, component: IconComponent }) => (
+                              {icons.map(({ name, iconName }) => (
                                 <button
                                   key={name}
                                   type="button"
                                   onClick={() => {
-                                    setNewClassIcon(name as LucideIconName);
+                                    setNewClassIcon(iconName);
                                     setSearchQuery('');
                                   }}
-                                  className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${newClassIcon === name
+                                  className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${newClassIcon === iconName
                                     ? 'bg-sky-500 text-white scale-105 shadow-sm'
                                     : 'text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 hover:text-sky-600 hover:scale-105'
                                     }`}
                                   title={name}
                                 >
-                                  <IconComponent className="h-5 w-5" />
-                                  {newClassIcon === name && (
+                                  <HugeIcon name={iconName} className="h-5 w-5" />
+                                  {newClassIcon === iconName && (
                                     <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#b5d565] rounded-full border-2 border-white dark:border-gray-900" />
                                   )}
                                 </button>
@@ -2273,7 +2356,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         {filteredIcons.length === 0 && (
                           <div className="p-8 text-center">
                             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-sky-100/40 dark:bg-gray-800 mb-3">
-                              <Search className="w-5 h-5 text-sky-500" />
+                              <HugeIcon name="Search01" size={20} className="w-5 h-5 text-sky-500" />
                             </div>
                             <p className="text-sm text-sky-800 dark:text-sky-300">
                               No icons found
@@ -2340,7 +2423,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     }}
                     className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                   >
-                    <X className="h-5 w-5" />
+                    <HugeIcon name="Cancel01" size={16} className="h-5 w-5" />
                   </button>
                 </div>
 
@@ -2349,7 +2432,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   {/* AI Autofill */}
                   <div className="relative">
                     <div className="flex items-center gap-2 mb-2">
-                      <Sparkle className="h-3.5 w-3.5 text-sky-500" />
+                      <HugeIcon name="AiMagic" size={14} className="h-3.5 w-3.5 text-sky-500" />
                       <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Quick Fill</span>
                     </div>
                     <div className="relative flex items-center">
@@ -2373,9 +2456,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         title="Fill fields with AI"
                       >
                         {isAutoFilling ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <HugeIcon name="LoaderPinwheel" size={14} className="h-3.5 w-3.5 animate-spin" />
                         ) : (
-                          <ArrowUp className="h-3.5 w-3.5" />
+                          <HugeIcon name="ArrowUp02" size={14} className="h-3.5 w-3.5" />
                         )}
                       </button>
                     </div>
@@ -2450,7 +2533,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                             variant="outline"
                             className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4 text-sky-500" />
+                            <HugeIcon name="Calendar02" size={16} className="mr-2 h-4 w-4 text-sky-500" />
                             {format(newHomework.dueDate, 'PPP')}
                           </Button>
                         </PopoverTrigger>
@@ -2580,21 +2663,6 @@ Return ONLY valid JSON, no explanation, no markdown.`,
           classInfo={selectedTest ? classes.find(c => c.id === selectedTest.classId) : undefined}
           layoutId={selectedTest ? `test-card-${selectedTest.id}` : undefined}
         />
-
-        {/* Mark Test as Taken Modal */}
-        <AnimatePresence>
-          {showMarkTestAsTakenModal && testToMark && (
-            <MarkTestAsTakenModal
-              isOpen={showMarkTestAsTakenModal}
-              onClose={() => {
-                setShowMarkTestAsTakenModal(false);
-                setTestToMark(null);
-              }}
-              onSubmit={handleMarkTestAsTaken}
-              testTitle={testToMark.title}
-            />
-          )}
-        </AnimatePresence>
       </main>
 
       {/* Onboarding Modal */}

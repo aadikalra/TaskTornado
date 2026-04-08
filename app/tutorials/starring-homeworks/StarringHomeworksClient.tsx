@@ -4,8 +4,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import Image from 'next/image';
-import { Flame, AlertTriangle, Minus } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
+
+const FlameIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinejoin="round"
+  >
+    <path d="M12 22C16.4183 22 20 18.4183 20 14C20 8 12 2 12 2C11.6117 4.48692 11.2315 5.82158 10 8C8.79908 7.4449 8.5 7 8 5.75C6 8 4 11 4 14C4 18.4183 7.58172 22 12 22Z" />
+    <path d="M12 18C13.6569 18 15 16.6569 15 15C15 13.5 13.5 12 12 11C10.5 12 9 13.5 9 15C9 16.6569 10.3431 18 12 18Z" />
+  </svg>
+);
 
 export default function StarringHomeworkTutorialPage() {
     return (
@@ -54,7 +69,7 @@ export default function StarringHomeworkTutorialPage() {
                 </p>
                 <ol className="list-decimal list-inside space-y-4 text-lg text-sky-800/70 dark:text-sky-300/70 mb-8">
                     <li>Locate the homework item on your <b>Dashboard</b> or in the <b>Homework</b> tab.</li>
-                    <li>Look for the priority tag (e.g., <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15"><Flame className="w-3 h-3 text-red-500 dark:text-red-400" /></span><span className="text-red-500 font-semibold">High</span></span>, <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/12"><AlertTriangle className="w-3 h-3 text-orange-500 dark:text-orange-400" /></span><span className="text-orange-500 font-semibold">Medium</span></span>, or <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10"><Minus className="w-3 h-3 text-green-500/60 dark:text-green-400/50" /></span><span className="text-green-500 font-semibold">Low</span></span>) on the card.</li>
+                    <li>Look for the priority tag (e.g., <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15"><FlameIcon className="w-3 h-3 text-red-500 dark:text-red-400" /></span><span className="text-red-500 font-semibold">High</span></span>, <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/12"><HugeIcon name="AlertCircle" className="w-3 h-3 text-orange-500 dark:text-orange-400" /></span><span className="text-orange-500 font-semibold">Medium</span></span>, or <span className="inline-flex items-center gap-1 align-middle"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10"><HugeIcon name="MinusSignCircle" className="w-3 h-3 text-green-500/60 dark:text-green-400/50" /></span><span className="text-green-500 font-semibold">Low</span></span>) on the card.</li>
                     <li><b>Simply click directly on the priority tag.</b></li>
                     <li>The tag will instantly transform into a golden star ⭐.</li>
                 </ol>
@@ -79,15 +94,15 @@ export default function StarringHomeworkTutorialPage() {
                     <div className="flex items-center gap-6 mb-8 px-4 py-3 rounded-xl bg-sky-50/60 dark:bg-zinc-800/40 border border-sky-100/50 dark:border-sky-800/20">
                         <span className="text-sm font-medium text-sky-600/50 dark:text-sky-400/40 uppercase tracking-wider">Key</span>
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15"><Flame className="w-3 h-3 text-red-500 dark:text-red-400" /></span>
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15"><FlameIcon className="w-3 h-3 text-red-500 dark:text-red-400" /></span>
                             <span className="text-sm text-sky-800/70 dark:text-sky-300/70">High</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/12"><AlertTriangle className="w-3 h-3 text-orange-500 dark:text-orange-400" /></span>
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/12"><HugeIcon name="AlertCircle" className="w-3 h-3 text-orange-500 dark:text-orange-400" /></span>
                             <span className="text-sm text-sky-800/70 dark:text-sky-300/70">Medium</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10"><Minus className="w-3 h-3 text-green-500/60 dark:text-green-400/50" /></span>
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10"><HugeIcon name="MinusSignCircle" className="w-3 h-3 text-green-500/60 dark:text-green-400/50" /></span>
                             <span className="text-sm text-sky-800/70 dark:text-sky-300/70">Low</span>
                         </div>
                     </div>

@@ -2,14 +2,14 @@ import { createClient } from './supabase/server';
 import { getGoogleClassroomCourses, getAllGoogleClassroomCourseWork } from './services/GoogleClassroomService';
 import { Database } from '@/types/database.types';
 import { transformGoogleClassroomData } from './google-classroom-transformer';
-import { Class, Homework, Test, Priority, HomeworkLink, TestType, TestStatus, LucideIconName } from '@/context/ClassContext';
+import { Class, Homework, Test, Priority, HomeworkLink, TestType, TestStatus, HugeIconName } from '@/context/ClassContext';
 
 function transformSupabaseData(
     classesData: any[],
     homeworksData: any[],
     testsData: any[]
 ): { classes: Class[], homeworks: Homework[], tests: Test[] } {
-    const transformedClasses = classesData.map(c => ({ ...c, icon: c.icon as LucideIconName })) as Class[];
+    const transformedClasses = classesData.map(c => ({ ...c, icon: c.icon as HugeIconName })) as Class[];
 
     const transformedHomeworks = homeworksData.map(hw => {
         let links: HomeworkLink[] = [];

@@ -19,7 +19,7 @@ import {
 import { useClassContext } from '../context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useUpgrade } from '@/context/UpgradeContext';
-import { X, Calendar as CalendarIcon, ChevronDown, Clock, Sparkle, ArrowUp, Loader2 } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { format, addDays } from 'date-fns';
 
 // Build a compact date reference so the AI doesn't have to do calendar math
@@ -255,7 +255,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                 onClick={handleClose}
                 className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
               >
-                <X className="h-5 w-5" />
+                <HugeIcon name="Cancel01" size={20} className="h-5 w-5" />
               </button>
             </div>
 
@@ -264,7 +264,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
               {/* AI Autofill */}
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkle className="h-3.5 w-3.5 text-sky-500" />
+                  <HugeIcon name="AiMagic" size={14} className="h-3.5 w-3.5 text-sky-500" />
                   <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Quick Fill</span>
                 </div>
                 <div className="relative flex items-center">
@@ -288,9 +288,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     title="Fill fields with AI"
                   >
                     {isAutoFilling ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <HugeIcon name="LoaderPinwheel" size={14} className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <ArrowUp className="h-3.5 w-3.5" />
+                      <HugeIcon name="ArrowUp02" size={14} className="h-3.5 w-3.5" />
                     )}
                   </button>
                 </div>
@@ -347,7 +347,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         variant="outline"
                         className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4 text-sky-500" />
+                        <HugeIcon name="Calendar02" size={16} className="mr-2 h-4 w-4 text-sky-500" />
                         {testDate ? format(testDate, 'PPP') : <span className="text-sky-400">Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
@@ -398,7 +398,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   className="flex items-center gap-2 text-sm font-semibold text-sky-500 hover:text-sky-600 transition-colors"
                 >
                   <span>{showAdvanced ? 'Hide' : 'Show'} Advanced Options</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
+                  <HugeIcon name="ArrowDown01" size={16} className={`h-4 w-4 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
                 </button>
               </div>
 
@@ -418,7 +418,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         Test Time <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
                       </Label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-400 dark:text-sky-500" />
+                        <HugeIcon name="Timer01" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-400 dark:text-sky-500" />
                         <Input
                           id="testTime"
                           type="time"

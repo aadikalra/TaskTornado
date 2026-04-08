@@ -271,6 +271,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFullName(session?.user?.user_metadata?.full_name ?? null);
 
       if (session?.user) {
+        // Save to prior accounts for quick login
+        if (typeof window !== 'undefined') {
+          try {
+            const priorAccountsStr = localStorage.getItem('prior-accounts') || '[]';
+            let priorAccounts = JSON.parse(priorAccountsStr);
+            const account = {
+              email: session.user.email,
+              full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+              avatar_url: session.user.user_metadata?.avatar_url || null,
+              provider: session.user.app_metadata?.provider || 'email',
+              lastLogin: new Date().toISOString()
+            };
+            // Remove existing entry for this email and add to front
+            priorAccounts = priorAccounts.filter((a: any) => a.email !== account.email);
+            priorAccounts.unshift(account);
+            // Limit to 5 accounts
+            localStorage.setItem('prior-accounts', JSON.stringify(priorAccounts.slice(0, 5)));
+          } catch (e) {
+            console.warn('Failed to save to prior accounts:', e);
+          }
+        }
+
         // Block restricted users — even if they got past the login/signup page
         const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
         const userEmail = session.user.email || '';

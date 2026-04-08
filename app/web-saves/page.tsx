@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, ExternalLink, Loader2, AlertTriangle, Bookmark, Trash2, Globe, FolderOpen, FolderPlus, ArrowLeft, MoveRight, Search } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWebSaves } from '@/context/WebSavesContext';
 import { useAuth } from '@/context/AuthContext';
@@ -31,7 +31,7 @@ const SitePreview = ({ url, title }: { url: string; title?: string | null }) => 
   if (error || !faviconUrl) {
     return (
       <div className="w-9 h-9 bg-sky-100 dark:bg-sky-500/10 rounded-xl flex items-center justify-center shrink-0">
-        <Globe className="h-3.5 w-3.5 text-sky-500/40" />
+        <HugeIcon name="Globe" className="h-3.5 w-3.5 text-sky-500/40" />
       </div>
     );
   }
@@ -239,7 +239,7 @@ const FolderCard = ({
             className="absolute top-3 right-3 p-1.5 rounded-lg text-red-400/60 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
             title="Delete folder"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <HugeIcon name="Delete02" className="h-3.5 w-3.5" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -505,7 +505,7 @@ export default function WebSavesPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/20 rounded-lg transition-colors"
             >
-              <ExternalLink className="h-3 w-3" />
+              <HugeIcon name="LinkSquare02" className="h-3 w-3" />
               Open
             </a>
             {/* Move to folder */}
@@ -516,7 +516,7 @@ export default function WebSavesPage() {
                 : 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/20'
                 }`}
             >
-              {folderName ? <FolderOpen className="h-3 w-3" /> : <FolderPlus className="h-3 w-3" />}
+              {folderName ? <HugeIcon name="Folder03" className="h-3 w-3" /> : <HugeIcon name="FolderAdd" className="h-3 w-3" />}
               <span className="max-w-[80px] truncate">{folderName || 'Folder'}</span>
             </button>
             <button
@@ -524,7 +524,7 @@ export default function WebSavesPage() {
               className="p-1.5 rounded-lg text-red-400/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
               title="Delete"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <HugeIcon name="Delete02" className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
@@ -560,7 +560,7 @@ export default function WebSavesPage() {
         <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
           <h1 className="text-4xl sm:text-5xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-2">Web Saves</h1>
           <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl mt-6">
-            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <HugeIcon name="AlertCircle" className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-bold text-red-800 dark:text-red-300">Error loading saves</p>
               <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
@@ -586,11 +586,11 @@ export default function WebSavesPage() {
                     onClick={() => setActiveFolder(null)}
                     className="inline-flex items-center gap-1.5 text-sm text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors mb-3"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <HugeIcon name="ArrowLeft01" className="h-3.5 w-3.5" />
                     All Saves
                   </button>
                   <h1 className="text-4xl sm:text-5xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-2 flex items-center gap-3">
-                    <FolderOpen className="h-9 w-9" />
+                    <HugeIcon name="Folder03" className="h-9 w-9" />
                     {activeFolderData?.name}
                   </h1>
                   <p className="text-sky-600/50 dark:text-sky-400/50 text-sm font-medium">
@@ -627,7 +627,7 @@ export default function WebSavesPage() {
               >
                 {/* Search icon — pinned left, slides with the edge */}
                 <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                  <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                 </div>
 
                 {/* Input area — right of icon */}
@@ -657,7 +657,7 @@ export default function WebSavesPage() {
                       }}
                       className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <HugeIcon name="Cancel01" className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -670,7 +670,7 @@ export default function WebSavesPage() {
                     onClick={() => setShowNewFolderModal(true)}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white bg-white dark:bg-gray-900 hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-xl transition-colors"
                   >
-                    <FolderPlus className="h-4 w-4" />
+                    <HugeIcon name="FolderAdd" className="h-4 w-4" />
                     Folder
                   </button>
                 )}
@@ -678,7 +678,7 @@ export default function WebSavesPage() {
                   onClick={openModal}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                 >
-                  <Plus className="h-4 w-4" />
+                  <HugeIcon name="PlusSign" className="h-4 w-4" />
                   Add Link
                 </button>
               </div>
@@ -705,7 +705,7 @@ export default function WebSavesPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="w-16 h-16 bg-[#f5f9fc] dark:bg-gray-800 rounded-2xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-5">
-                  <FolderOpen className="h-7 w-7 text-sky-500/30" />
+                  <HugeIcon name="Folder03" className="h-7 w-7 text-sky-500/30" />
                 </div>
                 <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-1.5">Empty folder</h3>
                 <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-6">Move links here or add a new one</p>
@@ -713,7 +713,7 @@ export default function WebSavesPage() {
                   onClick={openModal}
                   className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                 >
-                  <Plus className="h-4 w-4" />
+                  <HugeIcon name="PlusSign" className="h-4 w-4" />
                   Add Link
                 </button>
               </div>
@@ -762,7 +762,7 @@ export default function WebSavesPage() {
               {saves.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24">
                   <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-                    <Bookmark className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                    <HugeIcon name="Bookmark03" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
                   </div>
                   <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Saved Links Yet</h3>
                   <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-8 max-w-sm text-center">
@@ -772,7 +772,7 @@ export default function WebSavesPage() {
                     onClick={openModal}
                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                   >
-                    <Plus className="h-4 w-4" />
+                    <HugeIcon name="PlusSign" className="h-4 w-4" />
                     Add Your First Link
                   </button>
                 </div>
@@ -819,7 +819,7 @@ export default function WebSavesPage() {
                       onClick={closeModal}
                       className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                     >
-                      <X className="h-5 w-5" />
+                      <HugeIcon name="Cancel01" className="h-5 w-5" />
                     </button>
                   </div>
 
@@ -921,7 +921,7 @@ export default function WebSavesPage() {
                                   : 'bg-sky-50 dark:bg-gray-800 text-sky-600/60 dark:text-sky-400/50 border border-sky-100 dark:border-gray-700 hover:border-sky-200'
                                   }`}
                               >
-                                <FolderOpen className="h-3 w-3" />
+                                <HugeIcon name="Folder03" className="h-3 w-3" />
                                 {f.name}
                               </button>
                             ))}
@@ -945,7 +945,7 @@ export default function WebSavesPage() {
                         >
                           {isSubmitting ? (
                             <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              <HugeIcon name="LoaderPinwheel" className="h-3.5 w-3.5 animate-spin" />
                               Saving...
                             </>
                           ) : (
@@ -983,7 +983,7 @@ export default function WebSavesPage() {
                 >
                   <div className="p-7">
                     <div className="w-12 h-12 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 rounded-2xl flex items-center justify-center mb-4">
-                      <FolderPlus className="h-6 w-6 text-sky-700 dark:text-sky-300" />
+                      <HugeIcon name="FolderAdd" className="h-6 w-6 text-sky-700 dark:text-sky-300" />
                     </div>
                     <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-1.5">New Folder</h2>
                     <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-5">Organize your saved links into folders</p>
@@ -1053,7 +1053,7 @@ export default function WebSavesPage() {
                       onClick={() => setMoveMenuOpenFor(null)}
                       className="p-2 -mr-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
                     >
-                      <X className="h-5 w-5" />
+                      <HugeIcon name="Cancel01" className="h-5 w-5" />
                     </button>
                   </div>
 
@@ -1077,7 +1077,7 @@ export default function WebSavesPage() {
                           >
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isCurrent ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-300' : 'bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 text-sky-700 dark:text-sky-400 border border-[#d4e88e]/40'
                               }`}>
-                              <FolderOpen className="h-4 w-4" />
+                              <HugeIcon name="Folder03" className="h-4 w-4" />
                             </div>
                             <span className={`text-[15px] font-semibold truncate ${isCurrent ? 'text-sky-700 dark:text-sky-300' : 'text-sky-900 dark:text-white'
                               }`}>
@@ -1126,7 +1126,7 @@ export default function WebSavesPage() {
         onClose={dismissIntro}
         title="Welcome to Web Saves!"
         description="Save and organize important links in folders for quick access"
-        icon={<Bookmark className="h-6 w-6" />}
+        icon={<HugeIcon name="Bookmark03" size={24} className="h-6 w-6" />}
         features={[
           'Save important links with custom titles',
           'Organize into folders for easy navigation',

@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
-import { RefreshCcw, Calendar, Trash2, Plus, X } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { Button } from '@/components/ui/button';
 import { RecurringOptions } from '@/components/RecurringOptions';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,7 +44,7 @@ export default function RecurringHomeworkTutorialPage() {
 
                 <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mt-12 mb-4">How to Identify Recurring Tasks</h2>
                 <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
-                    When you look at your homework list, recurring items are marked with a special <b>circular arrow icon</b> <RefreshCcw className="inline-block w-4 h-4 text-sky-500" /> next to their due date. This tells you that this task is part of a larger series.
+                    When you look at your homework list, recurring items are marked with a special <b>circular arrow icon</b> <HugeIcon name="Rotate01" className="inline-block w-4 h-4 text-sky-500" /> next to their due date. This tells you that this task is part of a larger series.
                 </p>
 
                 <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mt-12 mb-4">Setting Up Automation</h2>
@@ -72,7 +72,7 @@ export default function RecurringHomeworkTutorialPage() {
                 <ul className="space-y-6 mb-12">
                     <li className="flex gap-4">
                         <div className="mt-1 bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-red-600 dark:text-red-400 h-fit">
-                            <Trash2 className="w-5 h-5" />
+                            <HugeIcon name="Delete02" className="w-5 h-5" />
                         </div>
                         <div>
                             <h4 className="font-bold text-sky-800 dark:text-sky-200">Delete this instance</h4>
@@ -81,7 +81,7 @@ export default function RecurringHomeworkTutorialPage() {
                     </li>
                     <li className="flex gap-4">
                         <div className="mt-1 bg-red-600 p-2 rounded-lg text-white h-fit">
-                            <Trash2 className="w-5 h-5" />
+                            <HugeIcon name="Delete02" className="w-5 h-5" />
                         </div>
                         <div>
                             <h4 className="font-bold text-sky-800 dark:text-sky-200">Delete whole series</h4>
@@ -114,7 +114,7 @@ function RecurringPracticeList() {
             priority: 'medium',
             className: 'English',
             classColor: '#EC4899',
-            dueDateIcon: <RefreshCcw className="w-3.5 h-3.5" />,
+            dueDateIcon: <HugeIcon name="Rotate01" className="w-3.5 h-3.5" />,
             isRecurringInstance: true,
             parentRecurringId: 'parent-1'
         },
@@ -126,7 +126,7 @@ function RecurringPracticeList() {
             priority: 'low',
             className: 'Math',
             classColor: '#3B82F6',
-            dueDateIcon: <RefreshCcw className="w-3.5 h-3.5" />,
+            dueDateIcon: <HugeIcon name="Rotate01" className="w-3.5 h-3.5" />,
             isRecurringInstance: true,
             parentRecurringId: 'parent-2'
         }
@@ -201,7 +201,7 @@ function PracticeAddButton() {
                             onClick={() => setIsOpen(false)}
                             className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                         >
-                            <X className="h-5 w-5" />
+                            <HugeIcon name="Cancel01" className="h-5 w-5" />
                         </button>
                     </div>
 
@@ -260,7 +260,7 @@ function PracticeAddButton() {
                                     variant="outline"
                                     className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
                                 >
-                                    <Calendar className="mr-2 h-4 w-4 text-sky-500" />
+                                    <HugeIcon name="Calendar02" className="mr-2 h-4 w-4 text-sky-500" />
                                     {format(new Date(), 'PPP')}
                                 </Button>
                             </div>
@@ -343,7 +343,7 @@ function PracticeAddButton() {
                 onClick={() => setIsOpen(true)}
                 className="w-full h-16 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-lg shadow-lg shadow-sky-500/20 group"
             >
-                <Plus className="mr-2 h-6 w-6 group-hover:rotate-90 transition-transform" />
+                <HugeIcon name="PlusSign" className="mr-2 h-6 w-6 group-hover:rotate-90 transition-transform" />
                 Open Practice Modal
             </Button>
 

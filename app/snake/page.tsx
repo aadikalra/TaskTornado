@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
-import { Check, ArrowLeft, Play, RotateCcw, Pause, Trophy, Zap, AlertTriangle } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -154,12 +154,12 @@ function SnakeGame({ barrierCount }: { barrierCount: number }) {
             {/* Score bar */}
             <div className="flex items-center gap-3 mb-5 w-full max-w-[480px]">
                 <div className="flex-1 flex items-center gap-3 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                    <Trophy className="w-4 h-4 text-sky-500" />
+                    <HugeIcon name="Award01" className="w-4 h-4 text-sky-500" />
                     <span className="text-sm font-bold text-sky-900 dark:text-white">{score}</span>
                     <span className="text-[11px] text-sky-500/50 font-medium">points</span>
                 </div>
                 <div className="flex-1 flex items-center gap-3 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                    <Zap className="w-4 h-4 text-sky-500" />
+                    <HugeIcon name="Zap" className="w-4 h-4 text-sky-500" />
                     <span className="text-sm font-bold text-sky-900 dark:text-white">{barrierCount}</span>
                     <span className="text-[11px] text-sky-500/50 font-medium">barriers</span>
                 </div>
@@ -170,14 +170,14 @@ function SnakeGame({ barrierCount }: { barrierCount: number }) {
                             className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
                             title={isPaused ? 'Resume' : 'Pause'}
                         >
-                            {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                            {isPaused ? <HugeIcon name="Play" className="w-4 h-4" /> : <HugeIcon name="Pause" className="w-4 h-4" />}
                         </button>
                         <button
                             onClick={startGame}
                             className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
                             title="Restart"
                         >
-                            <RotateCcw className="w-4 h-4" />
+                            <HugeIcon name="Rotate01" className="w-4 h-4" />
                         </button>
                     </div>
                 )}
@@ -246,7 +246,7 @@ function SnakeGame({ barrierCount }: { barrierCount: number }) {
                         }}
                     >
                         <div className="w-5 h-5 bg-[#ebf6b5] rounded-full flex items-center justify-center">
-                            <Check className="text-sky-700" size={14} strokeWidth={3} />
+                            <HugeIcon name="CheckmarkCircle02" className="text-sky-700 w-3.5 h-3.5" />
                         </div>
                     </div>
                 )}
@@ -259,7 +259,7 @@ function SnakeGame({ barrierCount }: { barrierCount: number }) {
                             onClick={startGame}
                             className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
                         >
-                            <Play className="w-4 h-4" />
+                            <HugeIcon name="Play" className="w-4 h-4" />
                             Start Game
                         </button>
                     </div>
@@ -274,7 +274,7 @@ function SnakeGame({ barrierCount }: { barrierCount: number }) {
                             onClick={startGame}
                             className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors mt-2"
                         >
-                            <RotateCcw className="w-4 h-4" />
+                            <HugeIcon name="Rotate01" className="w-4 h-4" />
                             Play Again
                         </button>
                     </div>
@@ -321,7 +321,7 @@ export default function SnakePage() {
                 {/* Back button */}
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <Link href="/games" className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold transition-colors mb-6">
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         Back to Game Center
                     </Link>
                 </motion.div>
@@ -369,7 +369,7 @@ export default function SnakePage() {
 
                             <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-6">
                                 <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 rounded-xl mb-5">
-                                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
                                             75% homework required

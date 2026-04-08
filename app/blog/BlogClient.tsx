@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, ArrowRight, Clock, BookOpen } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getFullVersionString } from '@/config/version';
@@ -272,7 +272,7 @@ export default function BlogClient() {
                             <div
                                 className={`relative flex items-center gap-2 px-4 py-2.5 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full transition-all duration-300 ${searchFocused ? 'ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/5' : ''}`}
                             >
-                                <Search className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                                <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
                                 <input
                                     type="text"
                                     placeholder="Search stories..."
@@ -376,14 +376,14 @@ export default function BlogClient() {
                                                     <span className="text-[11px] text-sky-700 dark:text-sky-300 font-medium">{featuredPost.date}</span>
                                                     <span className="w-px h-4 bg-sky-200/60 dark:bg-sky-800/40" />
                                                     <span className="flex items-center gap-1 text-[11px] text-sky-700 dark:text-sky-300 font-medium">
-                                                        <Clock className="w-3 h-3" />
+                                                        <HugeIcon name="Clock01" className="w-3 h-3" />
                                                         {featuredPost.readTime}
                                                     </span>
                                                 </div>
 
                                                 <div className="flex items-center gap-1.5 mt-8 text-sm font-bold text-sky-600 dark:text-sky-400 group-hover:text-sky-500 dark:group-hover:text-sky-300 transition-all">
                                                     <span>Read story</span>
-                                                    <ArrowRight className="w-4 h-4 -translate-x-1 group-hover:translate-x-0 transition-transform duration-300" />
+                                                    <HugeIcon name="ArrowRight01" className="w-4 h-4 -translate-x-1 group-hover:translate-x-0 transition-transform duration-300" />
                                                 </div>
                                             </div>
                                         </div>
@@ -435,7 +435,7 @@ export default function BlogClient() {
                                                             <span>{post.date}</span>
                                                             <span className="w-0.5 h-0.5 rounded-full bg-sky-500/40 dark:bg-sky-400/40" />
                                                             <span className="flex items-center gap-1">
-                                                                <Clock className="w-2.5 h-2.5" />
+                                                                <HugeIcon name="Clock01" className="w-2.5 h-2.5" />
                                                                 {post.readTime}
                                                             </span>
                                                         </div>
@@ -456,7 +456,7 @@ export default function BlogClient() {
                                                                 <div className="w-5 h-5 rounded-full bg-[#ebf6b5]/60 dark:bg-sky-500/15" />
                                                                 <span className="text-[10px] font-bold text-sky-700 dark:text-sky-300">{post.author}</span>
                                                             </div>
-                                                            <ArrowRight className="w-3.5 h-3.5 text-sky-500/40 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors" />
+                                                            <HugeIcon name="ArrowRight01" className="w-3.5 h-3.5 text-sky-500/40 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -484,7 +484,7 @@ export default function BlogClient() {
                         </p>
                         <div className="flex items-center gap-2">
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-[#ebf6b5]/40 dark:bg-sky-500/10 rounded-full">
-                                <BookOpen className="w-3 h-3" />
+                                <HugeIcon name="BookOpen" className="w-3 h-3" />
                                 {blogPosts.length} stories
                             </span>
                         </div>

@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Trash2, Edit, School, Flame, AlertTriangle, Minus, Star } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { cn } from '@/lib/utils';
+import { LinkCard } from './LinkCard';
+import { Checkbox } from './animate-ui/components/radix/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,9 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-import { LinkCard } from './LinkCard';
-import { Checkbox } from './animate-ui/components/radix/checkbox';
+import confetti from 'canvas-confetti';
 
 export type TodoItem = {
   id: string;
@@ -55,20 +54,31 @@ const getPriorityIndicator = (priority: 'high' | 'medium' | 'low') => {
     case 'high':
       return (
         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 dark:bg-red-500/15">
-          <Flame className="w-3 h-3 text-red-500 dark:text-red-400" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            className="w-3 h-3 text-red-500 dark:text-red-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          >
+            <path d="M12 22C16.4183 22 20 18.4183 20 14C20 8 12 2 12 2C11.6117 4.48692 11.2315 5.82158 10 8C8.79908 7.4449 8.5 7 8 5.75C6 8 4 11 4 14C4 18.4183 7.58172 22 12 22Z" />
+            <path d="M12 18C13.6569 18 15 16.6569 15 15C15 13.5 13.5 12 12 11C10.5 12 9 13.5 9 15C9 16.6569 10.3431 18 12 18Z" />
+          </svg>
         </span>
       );
     case 'medium':
       return (
         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-500/12">
-          <AlertTriangle className="w-3 h-3 text-orange-500 dark:text-orange-400" />
+          <HugeIcon name="AlertCircle" size={12} className="w-3 h-3 text-orange-500 dark:text-orange-400" />
         </span>
       );
     case 'low':
     default:
       return (
         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-500/10">
-          <Minus className="w-3 h-3 text-green-500/60 dark:text-green-400/50" />
+          <HugeIcon name="MinusSignCircle" size={12} className="w-3 h-3 text-green-500/60 dark:text-green-400/50" />
         </span>
       );
   }
@@ -94,51 +104,99 @@ type PlayfulHomeworkListProps = {
   items: TodoItem[];
   onItemToggle: (id: string) => void;
   onPinToggle?: (id: string, pinned: boolean) => void;
+  onBulkDelete?: (ids: string[]) => void;
+  onBulkMove?: (ids: string[], classId: string) => void;
+  availableClasses?: Array<{ id: string; name: string; icon: string; color: string; bgColor: string }>;
+  isSelectionMode?: boolean;
   className?: string;
   checkboxColor?: string;
 };
-
-
 
 const PlayfulHomeworkListComponent = ({
   items,
   onItemToggle,
   onPinToggle,
-  className = '',
-  checkboxColor = 'data-[state=checked]:bg-sky-500 data-[state=checked]:!border-transparent',
+  onBulkDelete,
+  onBulkMove,
+  availableClasses = [],
+  isSelectionMode = false,
+  className,
+  checkboxColor,
 }: PlayfulHomeworkListProps) => {
-  const [mounted, setMounted] = React.useState(false);
   const [confettiItems, setConfettiItems] = React.useState<Set<string>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [draggedItems, setDraggedItems] = useState<Set<string>>(new Set());
 
-  // Set mounted to true after component mounts (client-side only)
-  React.useEffect(() => {
-    setMounted(true);
+  // Handle item selection
+  const handleItemSelect = useCallback((id: string, selected: boolean) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(id);
+      } else {
+        newSet.delete(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedItems(new Set());
   }, []);
 
   // Trigger confetti when items become completed
   React.useEffect(() => {
     confettiItems.forEach(itemId => {
       const item = items.find(i => i.id === itemId);
-      if (item?.completed) {
-        // Fun confetti burst!
+      if (item?.completed && item.classColor) {
+        // Generate color variations for more interesting confetti
+        const generateColorVariations = (baseColor: string) => {
+          // Convert hex to RGB
+          const hex = baseColor.replace('#', '');
+          const r = parseInt(hex.substr(0, 2), 16);
+          const g = parseInt(hex.substr(2, 2), 16);
+          const b = parseInt(hex.substr(4, 2), 16);
+
+          // Generate variations
+          const variations = [baseColor]; // Original color
+
+          // Lighter variations
+          variations.push(`rgba(${Math.min(r + 40, 255)}, ${Math.min(g + 40, 255)}, ${Math.min(b + 40, 255)}, 0.8)`);
+          variations.push(`rgba(${Math.min(r + 80, 255)}, ${Math.min(g + 80, 255)}, ${Math.min(b + 80, 255)}, 0.6)`);
+
+          // Darker variations
+          variations.push(`rgba(${Math.max(r - 40, 0)}, ${Math.max(g - 40, 0)}, ${Math.max(b - 40, 0)}, 0.9)`);
+          variations.push(`rgba(${Math.max(r - 80, 0)}, ${Math.max(g - 80, 0)}, ${Math.max(b - 80, 0)}, 0.7)`);
+
+          return variations;
+        };
+
+        const colorVariations = generateColorVariations(item.classColor);
+
+        // Fun confetti burst with class color variations!
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: colorVariations, // Use color variations for more visual interest
+        });
+      } else if (item?.completed) {
+        // Fallback confetti for items without class color
         confetti({
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
-          colors: item.classColor ? [item.classColor] : ['#0ea5e9', '#ebf6b5', '#38bdf8'],
-          gravity: 0.8,
-          drift: 0.1,
-        });
-
-        // Remove from confetti set after triggering
-        setConfettiItems(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(itemId);
-          return newSet;
         });
       }
     });
-  }, [confettiItems, items]);
+    // Clean up confetti items after triggering
+    if (confettiItems.size > 0) {
+      setConfettiItems(new Set());
+    }
+  }, [confettiItems, items]); // Add items to dependencies
+
+  // Memoize the items to prevent unnecessary re-renders
+  const memoizedItems = React.useMemo(() => items, [items]);
 
   const handleToggle = useCallback((id: string) => {
     const item = items.find(i => i.id === id);
@@ -147,7 +205,27 @@ const PlayfulHomeworkListComponent = ({
       setConfettiItems(prev => new Set(prev).add(id));
     }
     onItemToggle(id);
-  }, [onItemToggle, items]);
+  }, [onItemToggle]);
+
+  const handleItemClick = useCallback((id: string) => {
+    if (isSelectionMode) {
+      // In selection mode, toggle selection
+      handleItemSelect(id, !selectedItems.has(id));
+    } else {
+      // Normal mode, toggle completion
+      handleToggle(id);
+    }
+  }, [isSelectionMode, selectedItems, handleItemSelect, handleToggle]);
+
+  const handleBulkMoveToClass = useCallback((classId: string) => {
+    onBulkMove?.(Array.from(selectedItems), classId);
+    setSelectedItems(new Set());
+  }, [selectedItems, onBulkMove]);
+
+  const handleBulkDeleteSelected = useCallback(() => {
+    onBulkDelete?.(Array.from(selectedItems));
+    setSelectedItems(new Set());
+  }, [selectedItems, onBulkDelete]);
 
   const handlePinToggle = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -157,36 +235,113 @@ const PlayfulHomeworkListComponent = ({
     }
   }, [onPinToggle, items]);
 
-  // Memoize the items to prevent unnecessary re-renders
-  const memoizedItems = React.useMemo(() => items, [items]);
+  const FloatingToolbar = () => {
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    
+    if (selectedItems.size === 0) return null;
 
-  // Don't render anything on the server or during hydration
-  if (!mounted) {
     return (
-      <div className={`space-y-6 ${className}`}>
-        {memoizedItems.map((item) => (
-          <div key={item.id} className="h-16 bg-sky-100/40 dark:bg-sky-500/5 rounded-xl animate-pulse"></div>
-        ))}
-      </div>
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
+        >
+          <div className="flex items-center gap-2 p-3 bg-white dark:bg-gray-900 border border-sky-200 dark:border-sky-500/20 rounded-lg shadow-lg">
+            <span className="text-sm font-medium text-sky-900 dark:text-sky-100 mr-2">
+              {selectedItems.size} selected
+            </span>
+
+            {/* Move Button */}
+            <button
+              onClick={() => setShowMoveModal(true)}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 rounded-md hover:bg-sky-200 dark:hover:bg-sky-500/30 transition-colors border border-sky-300 dark:border-sky-500/40"
+              title="Move to class"
+            >
+              <HugeIcon name="Folder02" size={12} className="h-3 w-3" />
+              Move
+            </button>
+
+            {/* Delete Button */}
+            <button
+              onClick={() => onBulkDelete?.(Array.from(selectedItems))}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors border border-red-300 dark:border-red-500/40"
+              title="Delete selected items"
+            >
+              <HugeIcon name="Delete02" size={12} className="h-3 w-3" />
+              Delete
+            </button>
+
+            {/* Clear Selection */}
+            <button
+              onClick={clearSelection}
+              className="flex items-center gap-1 px-2 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-600"
+              title="Clear selection"
+            >
+              <HugeIcon name="Cancel01" size={16} className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Move Modal - Client only */}
+        {typeof window !== 'undefined' && (
+          <AlertDialog open={showMoveModal} onOpenChange={setShowMoveModal}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Move {selectedItems.size} homework item{selectedItems.size > 1 ? 's' : ''}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Select the class you want to move the selected homework items to.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="grid grid-cols-3 gap-3 my-4">
+                {availableClasses.map((cls) => {
+                  return (
+                    <button
+                      key={cls.id}
+                      onClick={() => {
+                        onBulkMove?.(Array.from(selectedItems), cls.id);
+                        setShowMoveModal(false);
+                        clearSelection();
+                      }}
+                      className="text-left p-3 rounded-xl border border-sky-200 dark:border-sky-500/20 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-colors flex flex-col items-center gap-2"
+                    >
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${cls.bgColor}40`, color: cls.color }}>
+                        <HugeIcon name={cls.icon as any} size={20} className="h-5 w-5" />
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-sky-900 dark:text-sky-100 text-xs">{cls.name}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </>
     );
-  }
+  };
 
   return (
     <div className={`space-y-4 ${className}`}>
       <AnimatePresence initial={false}>
-        {memoizedItems.map((item) => (
+        {memoizedItems.map((item, index) => (
           <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 10 }}
+            key={item.id || `item-${index}`}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{
-              opacity: { duration: 0.2 },
-              y: { duration: 0.2 }
-            }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className={cn(
-              "space-y-2 transition-all duration-200",
-              item.pinned && "p-3 -mx-3 rounded-xl bg-[#fef9c3] dark:bg-amber-500/10 shadow-[0_2px_12px_-2px_rgba(245,158,11,0.12)]"
+              "group relative transition-all duration-300 overflow-hidden",
+              isSelectionMode 
+                ? "bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl border border-sky-100 dark:border-sky-500/10 shadow-sm hover:shadow-lg hover:shadow-sky-500/5 p-4"
+                : "",
+              selectedItems.has(item.id) && "ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900"
             )}
           >
             <div className="flex items-center space-x-2">
@@ -217,6 +372,23 @@ const PlayfulHomeworkListComponent = ({
               <div className="relative inline-block flex-1 group">
                 <div className="flex justify-between items-start w-full">
                   <div className="flex items-center gap-2">
+                    {/* Selection Checkbox - Show when in selection mode or on hover */}
+                    {(isSelectionMode || selectedItems.has(item.id)) && (
+                      <div className="flex-shrink-0">
+                        <Checkbox
+                          checked={selectedItems.has(item.id)}
+                          onCheckedChange={(checked) => handleItemSelect(item.id, checked as boolean)}
+                          className={cn(
+                            "w-5 h-5 border-2 transition-all duration-200",
+                            selectedItems.has(item.id)
+                              ? "border-blue-500 bg-blue-500 text-white"
+                              : "border-sky-300 dark:border-sky-600 bg-white dark:bg-gray-800",
+                            checkboxColor
+                          )}
+                        />
+                      </div>
+                    )}
+
                     {!item.completed && (
                       <div className="flex items-center gap-1">
                         {item.pinned ? (
@@ -228,7 +400,7 @@ const PlayfulHomeworkListComponent = ({
                             className="cursor-pointer hover:scale-110 transition-transform"
                             title="Click to unpin this homework"
                           >
-                            <Star className="w-4 h-4 text-amber-500 fill-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.4)]" />
+                            <HugeIcon name="Star" size={16} className="w-4 h-4 text-amber-500 fill-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.4)]" />
                           </button>
                         ) : (
                           <button
@@ -247,18 +419,32 @@ const PlayfulHomeworkListComponent = ({
                     <div className="flex flex-col">
                       <label
                         htmlFor={`checkbox-${item.id}`}
-                        onClick={() => handleToggle(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isSelectionMode) {
+                            // In selection mode, toggle selection
+                            handleItemSelect(item.id, !selectedItems.has(item.id));
+                          } else {
+                            // Normal mode, toggle completion
+                            handleToggle(item.id);
+                          }
+                        }}
                         className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-sky-900/30 dark:text-sky-400/20' : 'text-sky-900 dark:text-sky-100'
                           }`}
                       >
                         {item.text}
                         {isGoogleClassroomAssignment(item) && (
                           <span title="From Google Classroom" className="ml-1">
-                            <School className="inline h-3 w-3 text-sky-400/40 dark:text-sky-500/40" />
+                            <HugeIcon name="School01" size={12} className="inline h-3 w-3 text-sky-400/40 dark:text-sky-500/40" />
+                          </span>
+                        )}
+                        {(item.isRecurringInstance || item.parentRecurringId || item.recurring) && (
+                          <span title="Recurring Homework" className="ml-1.5 inline-flex items-center justify-center px-1 rounded bg-indigo-100 dark:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30">
+                            <HugeIcon name="Repeat" size={12} className="h-3 w-3" />
                           </span>
                         )}
                       </label>
-                      <div className="flex items-center mt-1 text-xs text-sky-600/40 dark:text-sky-400/40 gap-2">
+                      <div className="flex items-center mt-1 text-xs font-medium text-sky-400 dark:text-sky-500 gap-1">
                         {!item.completed && (
                           <>
                             {item.dueDateIcon}
@@ -274,19 +460,19 @@ const PlayfulHomeworkListComponent = ({
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Link href={`/homework/edit/${item.id}`}>
                         <button
-                          className="h-8 w-8 flex items-center justify-center rounded-lg text-sky-400/40 hover:text-sky-500 hover:bg-sky-500/[0.04] transition-colors"
+                          className="h-8 w-8 flex items-center justify-center rounded-lg text-sky-400/40 hover:text-sky-500 hover:bg-sky-500/4 transition-colors"
                           title="Edit homework"
                         >
-                          <Edit className="h-4 w-4" />
+                          <HugeIcon name="Pen02" size={16} className="h-4 w-4" />
                         </button>
                       </Link>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <button
-                            className="h-8 w-8 flex items-center justify-center rounded-lg text-sky-400/40 hover:text-red-500 hover:bg-red-500/[0.04] transition-colors"
+                            className="h-8 w-8 flex items-center justify-center rounded-lg text-sky-400/40 hover:text-red-500 hover:bg-red-500/4 transition-colors"
                             title="Delete homework"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <HugeIcon name="Delete02" size={16} className="h-4 w-4" />
                           </button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -351,9 +537,9 @@ const PlayfulHomeworkListComponent = ({
             {/* Links are rendered here, below the main homework item */}
             {item.links && item.links.length > 0 && !item.completed && (
               <div className="flex flex-wrap gap-1.5 ml-8 mt-1.5 transition-opacity duration-200">
-                {item.links.map(link => (
+                {item.links.map((link, index) => (
                   <LinkCard
-                    key={link.id}
+                    key={link.id || `link-${index}`}
                     url={link.url}
                     title={link.title || item.text}
                   />
@@ -363,6 +549,7 @@ const PlayfulHomeworkListComponent = ({
           </motion.div>
         ))}
       </AnimatePresence>
+      <FloatingToolbar />
     </div>
   );
 };

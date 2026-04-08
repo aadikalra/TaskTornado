@@ -4,9 +4,7 @@ import * as React from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, CheckCircle2, BookOpen, Calculator, Globe, Footprints, Users, Waves, Music, Guitar, Mic2, Crown, PenTool, Camera, GraduationCap, Code, MessageCircle, ChevronRight, Loader2, Rocket, Sparkles } from 'lucide-react';
-import { X } from 'lucide-react';
-import { ArrowRight } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Hook to detect dark mode
@@ -50,40 +48,40 @@ interface ClassSuggestion {
 
 const gradeClassMappings: Record<string, ClassSuggestion[]> = {
   '7': [
-    { name: 'Math 7', icon: 'Calculator', colorIndex: 0 },
-    { name: 'English 7', icon: 'BookOpen', colorIndex: 1 },
+    { name: 'Math 7', icon: 'Triangle', colorIndex: 0 },
+    { name: 'English 7', icon: 'Book03', colorIndex: 1 },
     { name: 'History 7', icon: 'Globe', colorIndex: 2 },
-    { name: 'Science 7', icon: 'Flask', colorIndex: 3 },
+    { name: 'Science 7', icon: 'Atom01', colorIndex: 3 },
   ],
   '8': [
-    { name: 'Math 8', icon: 'Calculator', colorIndex: 0 },
-    { name: 'English 8', icon: 'BookOpen', colorIndex: 1 },
+    { name: 'Math 8', icon: 'Cylinder01', colorIndex: 0 },
+    { name: 'English 8', icon: 'Book03', colorIndex: 1 },
     { name: 'History 8', icon: 'Globe', colorIndex: 2 },
-    { name: 'Science 8', icon: 'Flask', colorIndex: 3 },
+    { name: 'Science 8', icon: 'Cells', colorIndex: 3 },
   ],
   '9': [
-    { name: 'IM1', icon: 'Calculator', colorIndex: 0 },
-    { name: 'English 9', icon: 'BookOpen', colorIndex: 1 },
+    { name: 'IM1', icon: 'Cos', colorIndex: 0 },
+    { name: 'English 9', icon: 'Book03', colorIndex: 1 },
     { name: 'Geography', icon: 'Globe', colorIndex: 2 },
-    { name: 'Biology', icon: 'Flask', colorIndex: 3 },
+    { name: 'Biology', icon: 'Microscope', colorIndex: 3 },
   ],
   '10': [
-    { name: 'IM2', icon: 'Calculator', colorIndex: 0 },
-    { name: 'English 10', icon: 'BookOpen', colorIndex: 1 },
+    { name: 'IM2', icon: 'Parabola03', colorIndex: 0 },
+    { name: 'English 10', icon: 'Book03', colorIndex: 1 },
     { name: 'AP World History', icon: 'Globe', colorIndex: 2 },
-    { name: 'Chemistry', icon: 'Flask', colorIndex: 3 },
+    { name: 'Chemistry', icon: 'Molecules', colorIndex: 3 },
   ],
   '11': [
-    { name: 'IM3', icon: 'Calculator', colorIndex: 0 },
-    { name: 'AP Lit', icon: 'BookOpen', colorIndex: 1 },
+    { name: 'IM3', icon: 'FunctionOfX', colorIndex: 0 },
+    { name: 'AP Lit', icon: 'Book03', colorIndex: 1 },
     { name: 'APUSH', icon: 'Globe', colorIndex: 2 },
-    { name: 'Physics', icon: 'Flask', colorIndex: 3 },
+    { name: 'Physics', icon: 'Gravity', colorIndex: 3 },
   ],
   '12': [
     { name: 'Math 12', icon: 'Calculator', colorIndex: 0 },
-    { name: 'AP English Lang', icon: 'BookOpen', colorIndex: 1 },
+    { name: 'AP English Lang', icon: 'Book03', colorIndex: 1 },
     { name: 'AP Gov', icon: 'Globe', colorIndex: 2 },
-    { name: 'Science 12', icon: 'Flask', colorIndex: 3 },
+    { name: 'Science 12', icon: 'SolarSystem', colorIndex: 3 },
   ],
 };
 
@@ -95,27 +93,27 @@ interface ElectiveOption {
 
 const electiveOptions: ElectiveOption[] = [
   // Physical Education (PE is elective choice, not automatic)
-  { name: 'MS Aerobic Walking', icon: 'Footprints', colorIndex: 0 },
-  { name: 'MS Team Sports', icon: 'Users', colorIndex: 1 },
+  { name: 'MS Aerobic Walking', icon: 'Walking', colorIndex: 0 },
+  { name: 'MS Team Sports', icon: 'BasketballHoop', colorIndex: 1 },
 
   // Sciences
-  { name: 'MS Marine Science', icon: 'Waves', colorIndex: 2 },
+  { name: 'MS Marine Science', icon: 'Boat', colorIndex: 2 },
 
   // Music Options
-  { name: 'MS Music Appreciation', icon: 'Music', colorIndex: 3 },
-  { name: 'MS Beginning Band', icon: 'Music', colorIndex: 4 },
-  { name: 'MS Concert Band', icon: 'Music', colorIndex: 5 },
-  { name: 'MS Guitar', icon: 'Guitar', colorIndex: 6 },
-  { name: 'MS Choir', icon: 'Mic2', colorIndex: 7 },
+  { name: 'MS Music Appreciation', icon: 'MusicThree', colorIndex: 3 },
+  { name: 'MS Beginning Band', icon: 'MusicNote03', colorIndex: 4 },
+  { name: 'MS Concert Band', icon: 'MusicNote01', colorIndex: 5 },
+  { name: 'MS Guitar', icon: 'Playlist03', colorIndex: 6 },
+  { name: 'MS Choir', icon: 'MusicNote04', colorIndex: 7 },
 
   // Leadership/Service
-  { name: 'MS Service Leadership', icon: 'Crown', colorIndex: 8 },
+  { name: 'MS Service Leadership', icon: 'UserGroup03', colorIndex: 8 },
 
   // Arts/Performance
-  { name: 'MS Theater Arts', icon: 'Drama', colorIndex: 9 },
-  { name: 'MS Yearbook', icon: 'BookOpen', colorIndex: 10 },
-  { name: 'MS Creative Writing', icon: 'PenTool', colorIndex: 11 },
-  { name: 'MS Digital Media Arts', icon: 'Camera', colorIndex: 12 },
+  { name: 'MS Theater Arts', icon: 'Theater', colorIndex: 9 },
+  { name: 'MS Yearbook', icon: 'Canvas', colorIndex: 10 },
+  { name: 'MS Creative Writing', icon: 'Pencil', colorIndex: 11 },
+  { name: 'MS Digital Media Arts', icon: 'WebDesign01', colorIndex: 12 },
 
   // Academic Support
   { name: 'Academic Seminar', icon: 'GraduationCap', colorIndex: 13 },
@@ -209,14 +207,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
   // Calculate the correct math class based on grade and acceleration
   const getAdjustedMathClass = () => {
-    if (!selectedGrade) return suggestedClasses.find(cls => cls.icon === 'Calculator');
+    if (!selectedGrade || suggestedClasses.length === 0) return suggestedClasses[0];
 
     if (mathAccelerationLevel === 0) {
       // If at IM3 slot and chose Precalc, override default
       if (isAtIM3Slot && mathTrack === 'precalc') {
         return { name: 'Precalc', icon: 'Calculator', colorIndex: 0 };
       }
-      return suggestedClasses.find(cls => cls.icon === 'Calculator');
+      return suggestedClasses[0];
     }
 
     return {
@@ -226,28 +224,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     };
   };
 
-  // Helper function to get icon component for electives
+  // Helper function to get icon name for electives
   const getElectiveIcon = (iconName: string) => {
-    const iconMap: Record<string, any> = {
-      'Footprints': Footprints,
-      'Users': Users,
-      'Waves': Waves,
-      'Music': Music,
-      'Guitar': Guitar,
-      'Mic2': Mic2,
-      'Crown': Crown,
-      'Drama': BookOpen, // Using BookOpen as fallback for Drama
-      'BookOpen': BookOpen,
-      'PenTool': PenTool,
-      'Camera': Camera,
-      'GraduationCap': GraduationCap,
-      'Calculator': Calculator,
-      'Code': Code,
-      'Globe': Globe,
-      'MessageCircle': MessageCircle,
-    };
-
-    return iconMap[iconName] || BookOpen;
+    return iconName;
   };
 
   const handleGradeSelect = (grade: string) => {
@@ -340,8 +319,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     try {
       // Create suggested classes with adjusted math class if needed
       const adjustedMathClass = getAdjustedMathClass();
-      const classesToCreate = suggestedClasses.map(cls =>
-        cls.name.startsWith('Math') ? adjustedMathClass! : cls
+      const classesToCreate = suggestedClasses.map((cls, idx) =>
+        idx === 0 ? adjustedMathClass || cls : cls
       );
 
       for (const classInfo of classesToCreate) {
@@ -359,7 +338,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
       // Create language class
       if (fullLanguageName) {
-        await addClass(fullLanguageName, 'MessageCircle' as any);
+        await addClass(fullLanguageName, 'LanguageCircle' as any);
       }
 
       // Show welcome letter after successful class creation
@@ -475,7 +454,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                       className="flex items-center gap-2 px-6 py-3 text-[13px] font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-full hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all active:scale-95"
                     >
                       Let&apos;s Go
-                      <ArrowRight className="w-4 h-4" />
+                      <HugeIcon name="ArrowRight01" size={16} className="w-4 h-4" />
                     </motion.button>
 
                     {/* Skip option */}
@@ -520,7 +499,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                                 ? 'text-sky-700 dark:text-sky-300'
                                 : 'text-sky-900 dark:text-white'
                                 }`}>Grade {grade}</span>
-                              <ChevronRight className={`w-4 h-4 transition-all duration-200 ${selectedGrade === grade
+                              <HugeIcon name="ArrowRight01" size={16} className={`w-4 h-4 transition-all duration-200 ${selectedGrade === grade
                                 ? 'text-sky-600 dark:text-sky-400 translate-x-0 opacity-100'
                                 : 'text-sky-400/40 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
                                 }`} />
@@ -545,8 +524,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                           <div className="grid grid-cols-2 gap-3">
                             {(() => {
                               const adjustedMathClass = getAdjustedMathClass();
-                              return suggestedClasses.map((classInfo) => {
-                                const displayClass = classInfo.name.startsWith('Math') ? adjustedMathClass! : classInfo;
+                              return suggestedClasses.map((classInfo, idx) => {
+                                const displayClass = idx === 0 ? adjustedMathClass || classInfo : classInfo;
                                 return (
                                   <div key={displayClass.name} className="flex items-center gap-3 py-1">
                                     <div
@@ -638,7 +617,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                                   ? 'text-sky-700 dark:text-sky-300'
                                   : 'text-sky-900 dark:text-white'
                                   }`}>{language}</span>
-                                <MessageCircle className={`w-5 h-5 ${selectedLanguage === language
+                                <HugeIcon name="Message" size={20} className={`w-5 h-5 ${selectedLanguage === language
                                   ? 'text-sky-600 dark:text-sky-400'
                                   : 'text-sky-400/40'
                                   }`} />
@@ -832,7 +811,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                           {electiveOptions.filter((elective) =>
                             elective.name.toLowerCase().includes(electiveSearch.toLowerCase())
                           ).map((elective) => {
-                            const IconComponent = getElectiveIcon(elective.icon);
+                            const iconName = getElectiveIcon(elective.icon);
                             const isSelected = selectedElectives.includes(elective.name);
                             return (
                               <button
@@ -847,7 +826,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                                   ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/15'
                                   : 'bg-sky-100 dark:bg-sky-500/15'
                                   }`}>
-                                  <IconComponent className={`w-4 h-4 ${isSelected
+                                  <HugeIcon name={iconName} size={16} className={`w-4 h-4 ${isSelected
                                     ? 'text-sky-600 dark:text-sky-400'
                                     : 'text-sky-500 dark:text-sky-400'
                                     }`} />
@@ -856,7 +835,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                                   ? 'text-sky-700 dark:text-sky-300'
                                   : 'text-sky-800 dark:text-sky-200'
                                   }`}>{elective.name}</span>
-                                {isSelected && <CheckCircle2 className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />}
+                                {isSelected && <HugeIcon name="CheckmarkCircle02" size={16} className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />}
                               </button>
                             );
                           })}
@@ -890,11 +869,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                             <div className="space-y-1">
                               {(() => {
                                 const adjustedMathClass = getAdjustedMathClass();
-                                const coreClasses = suggestedClasses.map(cls =>
-                                  cls.name.startsWith('Math') ? adjustedMathClass! : cls
+                                const coreClasses = suggestedClasses.map((cls, idx) =>
+                                  idx === 0 ? adjustedMathClass || cls : cls
                                 );
                                 if (fullLanguageName) {
-                                  coreClasses.push({ name: fullLanguageName, icon: 'MessageCircle', colorIndex: suggestedClasses.length });
+                                  coreClasses.push({ name: fullLanguageName, icon: 'LanguageCircle', colorIndex: suggestedClasses.length });
                                 }
                                 return coreClasses.map((classInfo, idx) => (
                                   <div key={idx} className="flex items-center gap-3 py-1.5 px-3 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-500/5 transition-colors">
@@ -965,7 +944,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               onClick={onClose}
               className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <X className="w-5 h-5" />
+              <HugeIcon name="Cancel01" size={20} className="w-5 h-5" />
             </button>
           </div>
         )}
@@ -1031,7 +1010,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               disabled={currentStep === 'grade'}
               className="h-10 px-4 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-0 disabled:pointer-events-none flex items-center gap-1.5"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <HugeIcon name="ArrowLeft01" size={14} className="w-3.5 h-3.5" />
               Back
             </button>
 
@@ -1042,10 +1021,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <HugeIcon name="LoaderPinwheel" size={16} className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <CheckCircle2 className="w-4 h-4" />
+                    <HugeIcon name="CheckmarkCircle02" size={16} className="w-4 h-4" />
                     Complete Setup
                   </>
                 )}
@@ -1060,7 +1039,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   }`}
               >
                 Next Step
-                <ArrowRight className="w-3.5 h-3.5" />
+                <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
               </button>
             )}
           </div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRightLeft, Copy, Check, Volume2, Loader2, ChevronDown, X } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
@@ -10,7 +10,6 @@ import { getFullVersionString } from '@/config/version';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Languages, Lock } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { useUpgrade } from '@/context/UpgradeContext';
@@ -110,7 +109,7 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
             >
                 <span className="text-base leading-none">{selectedLang?.flag}</span>
                 <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400">{selectedLang?.name}</span>
-                <ChevronDown className={`h-3 w-3 text-sky-600/60 dark:text-sky-400/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                <HugeIcon name="ArrowDown01" className={`h-3 w-3 text-sky-600/60 dark:text-sky-400/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -149,7 +148,7 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
                                         {lang.name}
                                     </span>
                                     {value === lang.code && (
-                                        <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 ml-auto" />
+                                        <HugeIcon name="CheckmarkCircle02" className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 ml-auto" />
                                     )}
                                 </button>
                             ))}
@@ -484,7 +483,7 @@ export default function TranslatePage() {
                                     <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400">
                                         {translationsCount}/10 free translations
                                     </span>
-                                    {translationsCount >= 10 && <Lock className="w-2.5 h-2.5 text-sky-600 dark:text-sky-400" />}
+                                    {translationsCount >= 10 && <HugeIcon name="CircleLock01" className="w-2.5 h-2.5 text-sky-600 dark:text-sky-400" />}
                                 </div>
                                 {/* Progress bar */}
                                 <div className="h-1 w-full bg-sky-100 dark:bg-sky-900/40 rounded-full overflow-hidden">
@@ -517,7 +516,7 @@ export default function TranslatePage() {
                         className="p-2 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] transition-colors group active:scale-95"
                         title="Swap languages"
                     >
-                        <ArrowRightLeft className="h-3.5 w-3.5 text-sky-600/50 dark:text-sky-400/50 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" />
+                        <HugeIcon name="ArrowRight01" className="h-3.5 w-3.5 text-sky-600/50 dark:text-sky-400/50 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" />
                     </button>
 
                     <LanguageSelector
@@ -559,7 +558,7 @@ export default function TranslatePage() {
                                     className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                     title="Listen"
                                 >
-                                    <Volume2 className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
+                                    <HugeIcon name="VolumeHigh" className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                 </button>
                                 {sourceText && (
                                     <button
@@ -573,7 +572,7 @@ export default function TranslatePage() {
                                         className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] transition-colors"
                                         title="Clear"
                                     >
-                                        <X className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
+                                        <HugeIcon name="Cancel01" className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                     </button>
                                 )}
                             </div>
@@ -582,7 +581,7 @@ export default function TranslatePage() {
                                     onClick={cancelTranslation}
                                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-700/70 dark:text-sky-400/70 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-500/5 active:scale-95"
                                 >
-                                    <X className="h-3 w-3" />
+                                    <HugeIcon name="Cancel01" className="h-3 w-3" />
                                     Stop
                                 </button>
                             ) : (
@@ -605,7 +604,7 @@ export default function TranslatePage() {
                             </span>
                             {isTranslating && (
                                 <div className="flex items-center gap-1.5">
-                                    <Loader2 className="h-3 w-3 text-emerald-500/60 animate-spin" />
+                                    <HugeIcon name="LoaderPinwheel" className="h-3 w-3 text-emerald-500/60 animate-spin" />
                                     <span className="text-[10px] font-medium text-sky-700/70 dark:text-sky-400/70">Translating...</span>
                                 </div>
                             )}
@@ -614,7 +613,7 @@ export default function TranslatePage() {
                         {isTranslating && !translatedText ? (
                             <div className="flex items-center justify-center h-56 sm:h-64">
                                 <div className="flex flex-col items-center gap-3">
-                                    <Loader2 className="h-6 w-6 text-emerald-500/50 animate-spin" />
+                                    <HugeIcon name="LoaderPinwheel" className="h-6 w-6 text-emerald-500/50 animate-spin" />
                                     <span className="text-xs text-sky-700/70 dark:text-sky-400/70">Processing...</span>
                                 </div>
                             </div>
@@ -630,7 +629,7 @@ export default function TranslatePage() {
                                             animate={{ opacity: 1, y: 0 }}
                                             className="mt-4 inline-flex items-center gap-2 px-2.5 py-1 bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.04] rounded-xl"
                                         >
-                                            <Volume2 className="h-3 w-3 text-sky-600/60 dark:text-sky-400/60" />
+                                            <HugeIcon name="VolumeHigh" className="h-3 w-3 text-sky-600/60 dark:text-sky-400/60" />
                                             <span className="text-xs text-sky-700/70 dark:text-sky-400/70 italic">
                                                 {pronunciation}
                                             </span>
@@ -644,7 +643,7 @@ export default function TranslatePage() {
                                         className="p-1.5 rounded-xl hover:bg-[#275085]/[0.04] dark:hover:bg-[#4a9cdb]/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                         title="Listen"
                                     >
-                                        <Volume2 className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
+                                        <HugeIcon name="VolumeHigh" className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                     </button>
                                     <button
                                         onClick={copyToClipboard}
@@ -653,9 +652,9 @@ export default function TranslatePage() {
                                         title="Copy"
                                     >
                                         {copied ? (
-                                            <Check className="h-3.5 w-3.5 text-emerald-500" />
+                                            <HugeIcon name="CheckmarkCircle02" className="h-3.5 w-3.5 text-emerald-500" />
                                         ) : (
-                                            <Copy className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
+                                            <HugeIcon name="Copy01" className="h-3.5 w-3.5 text-sky-600/60 dark:text-sky-400/60" />
                                         )}
                                     </button>
                                 </div>
@@ -732,7 +731,7 @@ export default function TranslatePage() {
                 onClose={dismissIntro}
                 title="Welcome to Translate!"
                 description="High-fidelity AI translation across 55+ languages"
-                icon={<Languages className="h-6 w-6" />}
+                icon={<HugeIcon name="Translate" size={24} className="h-6 w-6" />}
                 features={[
                     'Translate text between 55+ languages',
                     'Powered by GPT OSS AI model',

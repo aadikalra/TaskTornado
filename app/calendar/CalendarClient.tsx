@@ -10,7 +10,7 @@ import {
   isToday as isDateToday,
   formatDistanceToNow,
 } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight,        CalendarDays, Clock,     GraduationCap, BookOpen, X } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext, type Homework, type Test, type Class } from '@/context/ClassContext';
@@ -347,7 +347,7 @@ export default function CalendarClient() {
                 onClick={prevMonth}
                 className="inline-flex items-center gap-1.5 h-10 px-4 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/60 dark:hover:bg-sky-500/20 transition-all active:scale-95"
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
+                <HugeIcon name="ArrowLeft01" size={14} className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Prev</span>
               </button>
               <button
@@ -361,7 +361,7 @@ export default function CalendarClient() {
                 className="inline-flex items-center gap-1.5 h-10 px-4 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/60 dark:hover:bg-sky-500/20 transition-all active:scale-95"
               >
                 <span className="hidden sm:inline">Next</span>
-                <ChevronRight className="h-3.5 w-3.5" />
+                <HugeIcon name="ArrowRight01" size={14} className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
@@ -374,15 +374,15 @@ export default function CalendarClient() {
             className="flex flex-wrap gap-2 mt-5"
           >
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-[#ebf6b5]/50 dark:bg-sky-500/15 rounded-full">
-              <BookOpen className="w-3 h-3" />
+              <HugeIcon name="Book03" size={12} className="w-3 h-3" />
               {stats.hwCount} upcoming assignments
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-100/60 dark:bg-rose-500/15 rounded-full">
-              <GraduationCap className="w-3 h-3" />
+              <HugeIcon name="Mortarboard02" size={12} className="w-3 h-3" />
               {stats.testCount} upcoming tests
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-500/15 rounded-full">
-              <CalendarDays className="w-3 h-3" />
+              <HugeIcon name="Calendar02" size={12} className="w-3 h-3" />
               {stats.eventCount} event days
             </span>
           </motion.div>
@@ -471,7 +471,7 @@ export default function CalendarClient() {
                             <Tooltip key={hw.id}>
                               <TooltipTrigger asChild>
                                 <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-sky-100/80 dark:bg-sky-500/15 rounded-lg text-[9px] sm:text-[10px] text-sky-700 dark:text-sky-300 font-medium truncate">
-                                  <BookOpen className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
+                                  <HugeIcon name="Book03" size={10} className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
                                   <span className="truncate">{hw.title}</span>
                                 </div>
                               </TooltipTrigger>
@@ -488,12 +488,12 @@ export default function CalendarClient() {
                           {/* Test chips */}
                           {calendarDay.tests.slice(0, isMobile ? 1 : 2).map((test) => {
                             const classItem = classes.find((c: Class) => c.id === test.classId);
-                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
+                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : () => <HugeIcon name="Book03" size={10} className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />;
                             return (
                               <Tooltip key={test.id}>
                                 <TooltipTrigger asChild>
                                   <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-rose-100/80 dark:bg-rose-500/15 rounded-lg text-[9px] sm:text-[10px] text-rose-700 dark:text-rose-300 font-medium truncate">
-                                    <ClassIcon className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
+                                    <ClassIcon />
                                     <span className="truncate">{test.title}</span>
                                   </div>
                                 </TooltipTrigger>
@@ -503,7 +503,7 @@ export default function CalendarClient() {
                                     {classItem && <p className="text-xs text-sky-600 dark:text-sky-400">{classItem.name}</p>}
                                     <div className="space-y-1 pt-2 border-t border-sky-100 dark:border-sky-900/20">
                                       {test.testType && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Type:</span> <span className="capitalize">{test.testType}</span></p>}
-                                      {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><Clock className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}
+                                      {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><HugeIcon name="Clock01" size={12} className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}
                                       {test.location && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Location:</span> {test.location}</p>}
                                       {test.duration && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Duration:</span> {test.duration} min</p>}
                                       {test.notes && <p className="text-xs text-sky-700/70 dark:text-sky-300/70 pt-1 border-t border-sky-100 dark:border-sky-900/20">{test.notes}</p>}
@@ -519,7 +519,7 @@ export default function CalendarClient() {
                             <Tooltip key={event.id}>
                               <TooltipTrigger asChild>
                                 <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100/80 dark:bg-emerald-500/15 rounded-lg text-[9px] sm:text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
-                                  <CalendarDays className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
+                                  <HugeIcon name="Calendar02" size={10} className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
                                   <span className="truncate">{event.title}</span>
                                 </div>
                               </TooltipTrigger>
@@ -568,7 +568,7 @@ export default function CalendarClient() {
               {/* Upcoming */}
               <div className="bg-[#f5f9fc] dark:bg-zinc-800/50 border border-sky-200/40 dark:border-sky-800/20 rounded-[20px] p-5">
                 <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-4 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-sky-500" />
+                  <HugeIcon name="Clock01" size={16} className="w-4 h-4 text-sky-500" />
                   Coming Up
                 </h3>
                 <div className="space-y-2.5">
@@ -584,7 +584,7 @@ export default function CalendarClient() {
                         ? 'bg-sky-100 dark:bg-sky-500/15 text-sky-500'
                         : 'bg-rose-100 dark:bg-rose-500/15 text-rose-500'
                         }`}>
-                        {item.type === 'homework' ? <BookOpen className="w-3.5 h-3.5" /> : <GraduationCap className="w-3.5 h-3.5" />}
+                        {item.type === 'homework' ? <HugeIcon name="Book03" size={14} className="w-3.5 h-3.5" /> : <HugeIcon name="Mortarboard02" size={14} className="w-3.5 h-3.5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-bold text-sky-800 dark:text-sky-200 truncate">{item.title}</p>
@@ -658,7 +658,7 @@ export default function CalendarClient() {
                         onClick={() => setExpandedDay(null)}
                         className="w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-all"
                       >
-                        <X className="h-4 w-4" />
+                        <HugeIcon name="Cancel01" size={16} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -669,7 +669,7 @@ export default function CalendarClient() {
                     {expandedDayData.homeworks.length > 0 && (
                       <div>
                         <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-3 flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-sky-500" />
+                          <HugeIcon name="Book03" size={16} className="h-4 w-4 text-sky-500" />
                           Homework ({expandedDayData.homeworks.length})
                         </h3>
                         <div className="space-y-2">
@@ -691,20 +691,20 @@ export default function CalendarClient() {
                     {expandedDayData.tests.length > 0 && (
                       <div>
                         <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-3 flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4 text-rose-500" />
+                          <HugeIcon name="Mortarboard02" size={16} className="h-4 w-4 text-rose-500" />
                           Tests & Exams ({expandedDayData.tests.length})
                         </h3>
                         <div className="space-y-2">
                           {expandedDayData.tests.map((test) => {
                             const classItem = classes.find(c => c.id === test.classId);
-                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : BookOpen;
+                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : () => <HugeIcon name="Book03" size={12} className="h-3 w-3" />;
                             return (
                               <div key={test.id} className="p-4 bg-rose-50 dark:bg-rose-500/10 rounded-2xl border border-rose-200/40 dark:border-rose-800/20">
                                 <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{test.title}</h4>
-                                {classItem && <p className="text-xs text-sky-600 dark:text-sky-400 mt-1 flex items-center gap-1"><ClassIcon className="h-3 w-3" />{classItem.name}</p>}
+                                {classItem && <p className="text-xs text-sky-600 dark:text-sky-400 mt-1 flex items-center gap-1"><ClassIcon />{classItem.name}</p>}
                                 <div className="mt-3 space-y-1">
                                   {test.testType && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Type:</span> <span className="capitalize">{test.testType}</span></p>}
-                                  {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><Clock className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}
+                                  {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><HugeIcon name="Clock01" size={12} className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}
                                   {test.location && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Location:</span> {test.location}</p>}
                                   {test.duration && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Duration:</span> {test.duration} min</p>}
                                   {test.weight !== null && test.weight !== undefined && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Weight:</span> {test.weight}%</p>}
@@ -721,7 +721,7 @@ export default function CalendarClient() {
                     {expandedDayData.events.length > 0 && (
                       <div>
                         <h3 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-3 flex items-center gap-2">
-                          <CalendarDays className="h-4 w-4 text-emerald-500" />
+                          <HugeIcon name="Calendar02" size={16} className="h-4 w-4 text-emerald-500" />
                           School Events ({expandedDayData.events.length})
                         </h3>
                         <div className="space-y-2">
@@ -738,7 +738,7 @@ export default function CalendarClient() {
                     {/* Empty */}
                     {expandedDayData.homeworks.length === 0 && expandedDayData.tests.length === 0 && expandedDayData.events.length === 0 && (
                       <div className="text-center py-12">
-                        <CalendarIcon className="h-12 w-12 text-sky-300/40 dark:text-sky-700/40 mx-auto mb-3" />
+                        <HugeIcon name="Calendar02" size={48} className="h-12 w-12 text-sky-300/40 dark:text-sky-700/40 mx-auto mb-3" />
                         <p className="text-sky-700/60 dark:text-sky-400/60 text-sm">No items for this day</p>
                       </div>
                     )}
@@ -768,7 +768,7 @@ export default function CalendarClient() {
         onClose={dismissIntro}
         title="Welcome to Calendar!"
         description="Visualize your schedule and stay organized with your interactive calendar"
-        icon={<CalendarIcon className="h-6 w-6" />}
+        icon={<HugeIcon name="Calendar02" size={24} className="h-6 w-6" />}
         features={[
           'View all your homework, tests, and school events in one place',
           'Navigate between months to plan ahead',

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Clipboard, Loader2, RotateCcw, ChevronDown, ChevronUp, AlertCircle, ArrowLeftRight, Trash2, Plus, Lock } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { getFullVersionString } from '@/config/version';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect } from 'react';
@@ -327,7 +327,7 @@ export default function GradeCalculatorPage() {
                                         className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all active:scale-95"
                                     >
                                         Continue
-                                        <ArrowRight className="w-3.5 h-3.5" />
+                                        <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </motion.div>
@@ -366,7 +366,7 @@ export default function GradeCalculatorPage() {
                                         >
                                             <div className="flex items-center gap-1.5">
                                                 {mode === 'paste' ? 'AI Paste' : 'Manual Entry'}
-                                                {isDisabled && <Lock className="w-2.5 h-2.5 opacity-50" />}
+                                                {isDisabled && <HugeIcon name="CircleLock01" size={10} className="w-2.5 h-2.5 opacity-50" />}
                                             </div>
                                         </button>
                                     );
@@ -381,13 +381,22 @@ export default function GradeCalculatorPage() {
                                     transition={{ delay: 0.05 }}
                                     className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden"
                                 >
-                                    <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+                                    <div className="px-5 pt-4 pb-2 flex items-center justify-between relative">
                                         <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
                                             Grade Data
                                         </span>
-                                        <span className="text-[10px] font-medium text-sky-700/60 dark:text-sky-400/60">
-                                            {rawText.length > 0 ? `${rawText.length.toLocaleString()} chars` : ''}
-                                        </span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-medium text-sky-700/60 dark:text-sky-400/60">
+                                                {rawText.length > 0 ? `${rawText.length.toLocaleString()} chars` : ''}
+                                            </span>
+                                            <button
+                                                onClick={pasteFromClipboard}
+                                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 rounded-full transition-colors shadow-sm"
+                                            >
+                                                <HugeIcon name="ClipboardPaste" size={16} className="w-4 h-4" />
+                                                Paste
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="relative">
@@ -397,18 +406,11 @@ export default function GradeCalculatorPage() {
                                             placeholder={"Paste your grades table here...\n\nAssignment Name     Points     Grade\nHW 1.1              18/20      90%\nUnit 1 Test         45/50      90%\n..."}
                                             className="w-full h-56 sm:h-64 resize-none bg-transparent text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 text-[15px] leading-relaxed outline-none scrollbar-hide px-6 pb-14 font-mono"
                                         />
-                                        <button
-                                            onClick={pasteFromClipboard}
-                                            className="absolute top-2 right-3 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-sky-600/60 dark:text-sky-400/60 hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 rounded-full transition-colors"
-                                        >
-                                            <Clipboard className="w-3 h-3" />
-                                            Paste
-                                        </button>
                                     </div>
 
                                     {error && (
                                         <div className="mx-5 mb-4 flex items-center gap-2 p-3 border border-red-200 dark:border-red-900/30 rounded-lg">
-                                            <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                            <HugeIcon name="AlertCircle" size={14} className="w-3.5 h-3.5 text-red-500 shrink-0" />
                                             <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
                                         </div>
                                     )}
@@ -426,7 +428,7 @@ export default function GradeCalculatorPage() {
                                                 disabled
                                                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#275085] dark:bg-[#4a9cdb] rounded-xl opacity-70"
                                             >
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <HugeIcon name="LoaderPinwheel" size={14} className="w-3.5 h-3.5 animate-spin" />
                                                 Parsing...
                                             </button>
                                         ) : (
@@ -509,7 +511,7 @@ export default function GradeCalculatorPage() {
                                         <div className="px-5 py-3 border-t border-sky-100 dark:border-sky-900/20 flex items-center justify-between">
                                             {!user && (
                                                 <div className="flex items-center gap-1.5 px-2 text-[10px] text-sky-600/50 dark:text-sky-400/50 italic">
-                                                    <Lock className="w-2.5 h-2.5" />
+                                                    <HugeIcon name="CircleLock01" size={10} className="w-2.5 h-2.5" />
                                                     AI Paste requires an account
                                                 </div>
                                             )}
@@ -518,7 +520,7 @@ export default function GradeCalculatorPage() {
                                                 disabled={!manualName.trim() || !manualEarned || !manualPossible}
                                                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 ml-auto"
                                             >
-                                                <Plus className="w-3 h-3" />
+                                                <HugeIcon name="PlusSign" size={12} className="w-3 h-3" />
                                                 Add
                                             </button>
                                         </div>
@@ -549,7 +551,7 @@ export default function GradeCalculatorPage() {
                                                             title="Remove"
                                                             className="p-1 rounded text-sky-400/40 hover:text-red-500 dark:text-sky-600/40 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                                                         >
-                                                            <Trash2 className="w-3 h-3" />
+                                                            <HugeIcon name="Delete02" size={12} className="w-3 h-3" />
                                                         </button>
                                                     </div>
                                                 ))}
@@ -629,7 +631,7 @@ export default function GradeCalculatorPage() {
 
                             {/* Edit hint */}
                             <div className="flex items-start gap-2.5 px-5 py-3 bg-[#ebf6b5]/30 dark:bg-sky-500/10 rounded-[16px]">
-                                <AlertCircle className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0 mt-0.5" />
+                                <HugeIcon name="AlertCircle" size={14} className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0 mt-0.5" />
                                 <p className="text-[11px] text-sky-700 dark:text-sky-300 leading-relaxed">
                                     Expand a category to edit names, scores, or swap categories. Changes recalculate instantly.
                                 </p>
@@ -661,9 +663,9 @@ export default function GradeCalculatorPage() {
                                                 </p>
                                             </div>
                                             {expandedCategory === 'practice' ? (
-                                                <ChevronUp className="w-3.5 h-3.5 text-sky-500" />
+                                                <HugeIcon name="ArrowUp02" size={14} className="w-3.5 h-3.5 text-sky-500" />
                                             ) : (
-                                                <ChevronDown className="w-3.5 h-3.5 text-sky-500/50" />
+                                                <HugeIcon name="ArrowDown01" size={14} className="w-3.5 h-3.5 text-sky-500/50" />
                                             )}
                                         </div>
                                     </button>
@@ -702,10 +704,10 @@ export default function GradeCalculatorPage() {
                                                                 />
                                                             </div>
                                                             <button onClick={() => toggleCategory(idx)} title="Move to Assessments" className="p-1 rounded text-sky-400/40 hover:text-sky-500 dark:text-sky-600/40 dark:hover:text-sky-400 opacity-0 group-hover:opacity-100 transition-all">
-                                                                <ArrowLeftRight className="w-3 h-3" />
+                                                                <HugeIcon name="ArrowLeft01" size={12} className="w-3 h-3" />
                                                             </button>
                                                             <button onClick={() => removeAssignment(idx)} title="Remove" className="p-1 rounded text-sky-400/40 hover:text-red-500 dark:text-sky-600/40 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
-                                                                <Trash2 className="w-3 h-3" />
+                                                                <HugeIcon name="Delete02" size={12} className="w-3 h-3" />
                                                             </button>
                                                         </div>
                                                     ))}
@@ -739,9 +741,9 @@ export default function GradeCalculatorPage() {
                                                 </p>
                                             </div>
                                             {expandedCategory === 'assessment' ? (
-                                                <ChevronUp className="w-3.5 h-3.5 text-sky-500" />
+                                                <HugeIcon name="ArrowUp02" size={14} className="w-3.5 h-3.5 text-sky-500" />
                                             ) : (
-                                                <ChevronDown className="w-3.5 h-3.5 text-sky-500/50" />
+                                                <HugeIcon name="ArrowDown01" size={14} className="w-3.5 h-3.5 text-sky-500/50" />
                                             )}
                                         </div>
                                     </button>
@@ -780,10 +782,10 @@ export default function GradeCalculatorPage() {
                                                                 />
                                                             </div>
                                                             <button onClick={() => toggleCategory(idx)} title="Move to Practice" className="p-1 rounded text-sky-400/40 hover:text-sky-500 dark:text-sky-600/40 dark:hover:text-sky-400 opacity-0 group-hover:opacity-100 transition-all">
-                                                                <ArrowLeftRight className="w-3 h-3" />
+                                                                <HugeIcon name="ArrowLeft01" size={12} className="w-3 h-3" />
                                                             </button>
                                                             <button onClick={() => removeAssignment(idx)} title="Remove" className="p-1 rounded text-sky-400/40 hover:text-red-500 dark:text-sky-600/40 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
-                                                                <Trash2 className="w-3 h-3" />
+                                                                <HugeIcon name="Delete02" size={12} className="w-3 h-3" />
                                                             </button>
                                                         </div>
                                                     ))}
@@ -830,7 +832,7 @@ export default function GradeCalculatorPage() {
                                 onClick={reset}
                                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 transition-colors rounded-full hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10"
                             >
-                                <RotateCcw className="w-3 h-3" />
+                                <HugeIcon name="Rotate01" size={12} className="w-3 h-3" />
                                 Start over
                             </button>
                         </motion.div>

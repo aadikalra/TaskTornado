@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
-import { FileUp, CheckCircle2, AlertTriangle, Download, Upload, XCircle, FileText, Sparkles } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 export default function CSVImportTutorialPage() {
     return (
@@ -128,7 +128,7 @@ Osmosis\tMovement of water across a membrane`}
                         ['Prompt', 'Response'],
                     ].map(([col1, col2]) => (
                         <div key={col1} className="flex items-center gap-2 p-3 rounded-xl bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <HugeIcon name="CheckmarkCircle02" className="w-4 h-4 text-emerald-500 shrink-0" />
                             <span className="text-sm font-medium text-sky-800 dark:text-sky-200">
                                 {col1} / {col2}
                             </span>
@@ -201,7 +201,7 @@ Osmosis\tMovement of water across a membrane`}
                     ].map((item, i) => (
                         <div key={i} className="p-5 rounded-[20px] bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/40 dark:border-sky-800/30">
                             <div className="flex items-start gap-3">
-                                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                                <HugeIcon name="AlertCircle" className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                                 <div>
                                     <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm mb-1">{item.issue}</h4>
                                     <p className="text-sm text-sky-700/70 dark:text-sky-300/70">{item.fix}</p>
@@ -222,7 +222,7 @@ Osmosis\tMovement of water across a membrane`}
                         'Quizlet\'s "Export" feature creates a tab-separated format that works perfectly with this importer.',
                     ].map((tip, i) => (
                         <li key={i} className="flex items-start gap-3 text-sky-800/70 dark:text-sky-300/70">
-                            <CheckCircle2 className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
+                            <HugeIcon name="CheckmarkCircle02" className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
                             <span className="text-sm">{tip}</span>
                         </li>
                     ))}
@@ -429,7 +429,7 @@ function FileValidator() {
                 `}
             >
                 <div className={`p-4 rounded-2xl mb-4 transition-colors ${dragging ? 'bg-sky-100 dark:bg-sky-500/20' : 'bg-sky-100/60 dark:bg-sky-500/10'}`}>
-                    <Upload className={`w-7 h-7 ${dragging ? 'text-sky-600 dark:text-sky-400' : 'text-sky-500/60'}`} />
+                    <HugeIcon name="FileUp" className={`w-7 h-7 ${dragging ? 'text-sky-600 dark:text-sky-400' : 'text-sky-500/60'}`} />
                 </div>
                 <span className="block font-semibold text-sky-800 dark:text-sky-200 mb-1" style={{ fontSize: '14px' }}>
                     {dragging ? 'Drop it here!' : 'Drag & drop your file here'}
@@ -465,9 +465,9 @@ function FileValidator() {
                             : 'bg-red-100/60 dark:bg-red-500/10'
                             }`}>
                             {result.valid ? (
-                                <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <HugeIcon name="CheckmarkCircle02" className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             ) : (
-                                <XCircle className="w-6 h-6 text-red-500 dark:text-red-400 shrink-0" />
+                                <HugeIcon name="CancelCircle" className="w-6 h-6 text-red-500 dark:text-red-400 shrink-0" />
                             )}
                             <div>
                                 <span className={`block font-bold ${result.valid ? 'text-emerald-800 dark:text-emerald-200' : 'text-red-800 dark:text-red-200'}`} style={{ fontSize: '16px' }}>
@@ -504,19 +504,19 @@ function FileValidator() {
                                     ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                                     : 'bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300'
                                     }`}>
-                                    {result.headerDetected ? <CheckCircle2 className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                                    {result.headerDetected ? <HugeIcon name="CheckmarkCircle02" className="w-3 h-3" /> : <HugeIcon name="FileEmpty02" className="w-3 h-3" />}
                                     {result.headerDetected ? `Header detected: ${result.headerRow?.join(' / ')}` : 'No header row detected'}
                                 </span>
                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${result.validCards > 0
                                     ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                                     : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300'
                                     }`}>
-                                    <Sparkles className="w-3 h-3" />
+                                    <HugeIcon name="Star" className="w-3 h-3" />
                                     {result.validCards} valid card{result.validCards !== 1 ? 's' : ''}
                                 </span>
                                 {result.skippedRows > 0 && (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300">
-                                        <AlertTriangle className="w-3 h-3" />
+                                        <HugeIcon name="AlertCircle" className="w-3 h-3" />
                                         {result.skippedRows} skipped
                                     </span>
                                 )}
@@ -561,7 +561,7 @@ function FileValidator() {
                                 <div className="space-y-2">
                                     {result.warnings.map((warning, i) => (
                                         <div key={i} className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/40 dark:border-amber-700/20">
-                                            <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                                            <HugeIcon name="AlertCircle" className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                                             <span className="block text-amber-800 dark:text-amber-200" style={{ fontSize: '14px' }}>{warning}</span>
                                         </div>
                                     ))}
@@ -574,7 +574,7 @@ function FileValidator() {
                                 className="w-full h-11 rounded-full flex items-center justify-center gap-2 font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors"
                                 style={{ fontSize: '13px' }}
                             >
-                                <Upload className="w-4 h-4" />
+                                <HugeIcon name="FileUp" className="w-4 h-4" />
                                 Test Another File
                             </button>
                         </div>

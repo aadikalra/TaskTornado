@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Trophy, Swords, Play, RotateCcw, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 interface BracketTask {
     id: string;
@@ -127,7 +127,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                             onClick={onClose}
                             className="absolute top-4 right-4 z-20 p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
                         >
-                            <X className="h-5 w-5" />
+                            <HugeIcon name="Cancel01" size={20} className="h-5 w-5" />
                         </button>
 
                         {/* Content */}
@@ -137,7 +137,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                             {notEnoughTasks && (
                                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-8">
                                     <div className="w-16 h-16 bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-2xl flex items-center justify-center">
-                                        <Swords className="w-8 h-8 text-sky-400" />
+                                        <HugeIcon name="Sword03" size={32} className="w-8 h-8 text-sky-400" />
                                     </div>
                                     <h2 className="text-xl font-bold text-sky-900 dark:text-white tracking-tight">
                                         Need More Tasks
@@ -157,7 +157,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                                     className="flex-1 flex flex-col items-center justify-center text-center space-y-5 py-4"
                                 >
                                     <div className="w-16 h-16 bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-2xl flex items-center justify-center shadow-sm">
-                                        <Swords className="w-8 h-8 text-sky-500" strokeWidth={1.5} />
+                                        <HugeIcon name="Sword03" size={32} className="w-8 h-8 text-sky-500" />
                                     </div>
                                     <div>
                                         <h2 className="text-2xl sm:text-3xl font-bold text-sky-900 dark:text-white tracking-tight">
@@ -171,7 +171,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                                         onClick={() => setHasStarted(true)}
                                         className="mt-3 flex items-center gap-2 px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-sm rounded-full shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/30 active:scale-95 transition-all"
                                     >
-                                        <Play className="w-4 h-4 fill-white" /> Begin Tournament
+                                        <HugeIcon name="Play" size={16} className="w-4 h-4 fill-white" /> Begin Tournament
                                     </button>
                                     <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-md">
                                         {tasks.slice(0, 8).map((t) => (
@@ -295,7 +295,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                                     className="flex-1 flex flex-col items-center justify-center text-center py-4"
                                 >
                                     <div className="text-sky-400 dark:text-sky-500 font-bold tracking-widest uppercase text-[11px] mb-5 flex items-center gap-1.5">
-                                        <Sparkles size={12} /> The Champion <Sparkles size={12} />
+                                        <HugeIcon name="AiMagic" size={12} /> The Champion <HugeIcon name="AiMagic" size={12} />
                                     </div>
 
                                     {/* Winner card */}
@@ -318,7 +318,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                                             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                                         />
 
-                                        <Trophy className="w-12 h-12 text-amber-400 mx-auto mb-4" strokeWidth={1.5} />
+                                        <HugeIcon name="Award01" size={48} className="w-12 h-12 text-amber-400 mx-auto mb-4" />
                                         <h2 className="text-2xl sm:text-3xl font-bold text-sky-900 dark:text-white tracking-tight leading-tight mb-2">
                                             {winner.title}
                                         </h2>
@@ -331,7 +331,7 @@ export function TaskBracket({ open, onClose, tasks }: TaskBracketProps) {
                                         onClick={reset}
                                         className="mt-6 text-sky-400 dark:text-sky-500 hover:text-sky-600 dark:hover:text-sky-300 flex items-center gap-1.5 text-sm font-medium transition-colors"
                                     >
-                                        <RotateCcw size={14} /> Run another bracket
+                                        <HugeIcon name="Rotate01" size={14} /> Run another bracket
                                     </button>
                                 </motion.div>
                             )}

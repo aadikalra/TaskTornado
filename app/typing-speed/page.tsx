@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
-import { ArrowLeft, RotateCcw, Trophy, Zap, Timer, AlertTriangle, Play, CheckCircle2 } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -144,22 +144,22 @@ function TypingSpeedGame({ extraTime }: { extraTime: number }) {
             {/* Stats */}
             <div className="flex items-center gap-3 mb-5 w-full flex-wrap">
                 <div className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl min-w-fit">
-                    <Zap className="w-4 h-4 text-sky-500" />
+                    <HugeIcon name="Zap" className="w-4 h-4 text-sky-500" />
                     <span className="text-sm font-bold text-sky-900 dark:text-white">{wpm}</span>
                     <span className="text-[11px] text-sky-500/50 font-medium">WPM</span>
                 </div>
                 <div className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl min-w-fit">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <HugeIcon name="CheckmarkCircle02" className="w-4 h-4 text-emerald-500" />
                     <span className="text-sm font-bold text-sky-900 dark:text-white">{sentencesCompleted}</span>
                     <span className="text-[11px] text-sky-500/50 font-medium">done</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl min-w-fit">
-                    <Timer className={`w-4 h-4 ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-500'}`} />
+                    <HugeIcon name="Timer01" className={`w-4 h-4 ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-500'}`} />
                     <span className={`text-sm font-bold ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-900 dark:text-white'}`}>{timeLeft}s</span>
                 </div>
                 {gameStarted && (
                     <button onClick={startGame} className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors">
-                        <RotateCcw className="w-4 h-4" />
+                        <HugeIcon name="Rotate01" className="w-4 h-4" />
                     </button>
                 )}
             </div>
@@ -173,7 +173,7 @@ function TypingSpeedGame({ extraTime }: { extraTime: number }) {
                             Type academic sentences as fast and accurately as you can!
                         </p>
                         <button onClick={startGame} className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors">
-                            <Play className="w-4 h-4" />
+                            <HugeIcon name="Play" className="w-4 h-4" />
                             Start Game
                         </button>
                     </div>
@@ -195,7 +195,7 @@ function TypingSpeedGame({ extraTime }: { extraTime: number }) {
                             </div>
                         </div>
                         <button onClick={startGame} className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors mt-3">
-                            <RotateCcw className="w-4 h-4" />
+                            <HugeIcon name="Rotate01" className="w-4 h-4" />
                             Play Again
                         </button>
                     </div>
@@ -261,7 +261,7 @@ export default function TypingSpeedPage() {
             <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <Link href="/games" className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold transition-colors mb-6">
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         Back to Game Center
                     </Link>
                 </motion.div>
@@ -287,7 +287,7 @@ export default function TypingSpeedPage() {
                             </div>
                             <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-6">
                                 <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 rounded-xl mb-5">
-                                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">65% homework required</p>
                                         <p className="text-xs text-amber-600/80 dark:text-amber-400/80">Complete more assignments to unlock Typing Speed.</p>

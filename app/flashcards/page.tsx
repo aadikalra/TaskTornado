@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, BookOpen, Sparkle, Layers, AlertTriangle, Search, X, ChevronDown, PenLine, FileUp, HelpCircle } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { FlashcardDeck, Flashcard } from '@/components/Flashcard';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
@@ -383,14 +383,14 @@ export default function FlashcardsPage() {
                   onClick={() => { setStudyingDeck(null); setStudyingTemp(false); setFlashcards([]); }}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 rounded-xl transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <HugeIcon name="ArrowLeft01" className="h-4 w-4" />
                   All Decks
                 </button>
                 <button
                   onClick={openFlashcardAssistant}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                 >
-                  <Plus className="h-4 w-4" />
+                  <HugeIcon name="PlusSign" className="h-4 w-4" />
                   New
                 </button>
               </div>
@@ -407,7 +407,7 @@ export default function FlashcardsPage() {
           onClose={dismissIntro}
           title="Welcome to Flashcards!"
           description="Master any subject with interactive flashcards powered by AI"
-          icon={<BookOpen className="h-6 w-6" />}
+          icon={<HugeIcon name="Cards01" size={24} className="h-6 w-6" />}
           features={[
             'Create flashcard decks using the AI Aurora',
             'Flip cards to reveal answers and test your knowledge',
@@ -459,7 +459,7 @@ export default function FlashcardsPage() {
               >
                 {/* Search icon — pinned left, slides with the edge */}
                 <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                  <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                 </div>
 
                 {/* Input area — right of icon */}
@@ -489,7 +489,7 @@ export default function FlashcardsPage() {
                       }}
                       className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <HugeIcon name="Cancel01" className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -501,9 +501,9 @@ export default function FlashcardsPage() {
                   onClick={() => setCreateDropdownOpen(prev => !prev)}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                 >
-                  <Plus className="h-4 w-4" />
+                  <HugeIcon name="PlusSign" className="h-4 w-4" />
                   Create
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${createDropdownOpen ? 'rotate-180' : ''}`} />
+                  <HugeIcon name="ArrowDown01" className={`h-3.5 w-3.5 transition-transform duration-200 ${createDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -519,7 +519,7 @@ export default function FlashcardsPage() {
                         onClick={openFlashcardAssistant}
                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
                       >
-                        <Sparkle className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                        <HugeIcon name="AiMagic" className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
                         <div>
                           <div className="font-semibold text-[13px]">Smart Create</div>
                           <div className="text-[11px] text-sky-500/50 dark:text-sky-400/40">AI-powered with Aurora</div>
@@ -530,7 +530,7 @@ export default function FlashcardsPage() {
                         onClick={() => { setCreateDropdownOpen(false); setManualCreateOpen(true); }}
                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
                       >
-                        <PenLine className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                        <HugeIcon name="PencilEdit01" className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
                         <div>
                           <div className="font-semibold text-[13px]">Manual Create</div>
                           <div className="text-[11px] text-sky-500/50 dark:text-sky-400/40">Write your own cards</div>
@@ -541,7 +541,7 @@ export default function FlashcardsPage() {
                         onClick={() => { setCreateDropdownOpen(false); csvInputRef.current?.click(); }}
                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
                       >
-                        <FileUp className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                        <HugeIcon name="FileUp" className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
                         <div className="flex-1">
                           <div className="font-semibold text-[13px]">Import CSV</div>
                           <div className="text-[11px] text-sky-500/50 dark:text-sky-400/40">Upload a spreadsheet</div>
@@ -553,7 +553,7 @@ export default function FlashcardsPage() {
                           className="p-1 rounded-lg text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-100 dark:hover:bg-gray-700 transition-colors shrink-0"
                           title="How to format your CSV"
                         >
-                          <HelpCircle className="h-3.5 w-3.5" />
+                          <HugeIcon name="HelpCircle" className="h-3.5 w-3.5" />
                         </Link>
                       </button>
                     </motion.div>
@@ -580,7 +580,7 @@ export default function FlashcardsPage() {
             className="flex flex-col items-center justify-center py-24"
           >
             <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-              <BookOpen className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+              <HugeIcon name="Book03" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
             </div>
             <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">
               No Flashcards Yet
@@ -592,7 +592,7 @@ export default function FlashcardsPage() {
               onClick={openFlashcardAssistant}
               className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
             >
-              <Sparkle className="h-4 w-4" />
+              <HugeIcon name="AiMagic" className="h-4 w-4" />
               Open Aurora
             </button>
           </motion.div>
@@ -611,7 +611,7 @@ export default function FlashcardsPage() {
                 Temporarily Saved
               </h2>
               <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-500/20 rounded-full">
-                <AlertTriangle className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
+                <HugeIcon name="AlertCircle" className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
                 <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">Clears on logout</span>
               </div>
             </div>
@@ -621,7 +621,7 @@ export default function FlashcardsPage() {
             >
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-9 h-9 bg-[#ebf6b5] dark:bg-emerald-500/10 rounded-xl flex items-center justify-center border border-[#d4e88e]/50">
-                  <Layers className="h-4 w-4 text-sky-700 dark:text-emerald-400" />
+                  <HugeIcon name="Layers01" className="h-4 w-4 text-sky-700 dark:text-emerald-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-bold text-sky-900 dark:text-white truncate">
@@ -658,13 +658,13 @@ export default function FlashcardsPage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="w-9 h-9 bg-sky-100 dark:bg-sky-500/10 rounded-xl flex items-center justify-center">
-                      <Layers className="h-4 w-4 text-sky-500 dark:text-sky-400" />
+                      <HugeIcon name="Layers01" className="h-4 w-4 text-sky-500 dark:text-sky-400" />
                     </div>
                     <button
                       onClick={(e) => deleteDeck(deck.id, deck.title, e)}
                       className="p-1.5 rounded-lg text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <HugeIcon name="Delete02" className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <h3 className="text-base font-bold text-sky-900 dark:text-white mb-1 truncate group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors">
@@ -690,7 +690,7 @@ export default function FlashcardsPage() {
         onClose={dismissIntro}
         title="Welcome to Flashcards!"
         description="Master any subject with interactive flashcards powered by AI"
-        icon={<BookOpen className="h-6 w-6" />}
+        icon={<HugeIcon name="Cards01" size={24} className="h-6 w-6" />}
         features={[
           'Create flashcard decks using the AI Aurora',
           'Flip cards to reveal answers and test your knowledge',
@@ -723,7 +723,7 @@ export default function FlashcardsPage() {
                   onClick={() => setManualCreateOpen(false)}
                   className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  <HugeIcon name="Cancel01" className="h-5 w-5" />
                 </button>
               </div>
 
@@ -768,7 +768,7 @@ export default function FlashcardsPage() {
                               onClick={() => removeManualCard(index)}
                               className="p-1 rounded-lg text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <HugeIcon name="Delete02" className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
@@ -805,7 +805,7 @@ export default function FlashcardsPage() {
                     onClick={addManualCard}
                     className="mt-3 flex items-center gap-2 h-10 px-4 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-dashed border-sky-200 dark:border-gray-700 rounded-full transition-colors w-full justify-center"
                   >
-                    <Plus className="h-4 w-4" />
+                    <HugeIcon name="PlusSign" className="h-4 w-4" />
                     Add Card
                   </button>
                 </div>

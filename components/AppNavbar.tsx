@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Menu, X, Search, Sparkle, Calendar, Home, LogOut, Settings, BookOpen, Grid2x2, Pin, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Gamepad2, HelpCircle, FileText, MoreHorizontal, Pencil, Plus, X as XIcon, Check, GripVertical } from 'lucide-react';
+import { Menu, X, Calendar, Home, BookOpen, Grid2x2, Pin, Languages, Calculator, Users, MessageSquare, Gamepad2, HelpCircle, FileText, MoreHorizontal, X as XIcon, Check, GripVertical, Timer, Settings, LogOut } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
@@ -13,23 +14,24 @@ import { StudyTimer } from '@/components/StudyTimer';
 
 /* ── Always-pinned core items (cannot be removed) ────────────────────────── */
 const CORE_ITEMS = [
-    { label: 'Home', href: '/dashboard', icon: Home },
-    { label: 'Calendar', href: '/calendar', icon: Calendar },
+    { label: 'Home', href: '/dashboard', icon: Home, iconName: 'Home02' },
+    { label: 'Calendar', href: '/calendar', icon: Calendar, iconName: 'Calendar02' },
 ];
 
 /* ── All customizable items (can be pinned to nav OR live in Tools dropdown) */
 const ALL_EXTRA_ITEMS = [
-    { label: 'Flashcards', href: '/flashcards', icon: BookOpen },
-    { label: 'Quizzes', href: '/quiz', icon: Grid2x2 },
-    { label: 'Writing', href: '/writing-assist', icon: PenTool },
-    { label: 'Translate', href: '/translate', icon: Languages },
-    { label: 'Grades', href: '/grade-calculator', icon: Calculator },
-    { label: 'Web Saves', href: '/web-saves', icon: Pin },
-    { label: 'Groups', href: '/groups', icon: Users },
-    { label: 'Discuss', href: '/discussions', icon: MessageSquare },
-    { label: 'Games', href: '/games', icon: Gamepad2 },
-    { label: 'Tutorials', href: '/tutorials', icon: HelpCircle },
-    { label: 'Changelog', href: '/changelog', icon: FileText },
+    { label: 'Flashcards', href: '/flashcards', iconName: 'Cards01' },
+    { label: 'Quizzes', href: '/quiz', iconName: 'Quiz04' },
+    { label: 'Writing', href: '/writing-assist', iconName: 'AiContentGenerator02' },
+    { label: 'Translate', href: '/translate', iconName: 'Translate' },
+    { label: 'Grades', href: '/grade-calculator', iconName: 'ChartAnalysis' },
+    { label: 'Web Saves', href: '/web-saves', iconName: 'Bookmark03' },
+    { label: 'Groups', href: '/groups', iconName: 'UserGroup03' },
+    { label: 'Discuss', href: '/discussions', iconName: 'Chat' },
+    { label: 'Games', href: '/games', iconName: 'Gameboy' },
+    { label: 'Blog', href: '/blog', iconName: 'Blogger' },
+    { label: 'Tutorials', href: '/tutorials', iconName: 'HelpCircle' },
+    { label: 'Changelog', href: '/changelog', iconName: 'GoogleDoc' },
 ];
 
 const DEFAULT_PINNED = ['Flashcards', 'Quizzes', 'Writing'];
@@ -205,7 +207,7 @@ export default function AppNavbar() {
                             className={`relative px-3 py-2 rounded-full transition-colors ${isAIAssistantOpen ? 'text-amber-300' : 'text-white/70 hover:text-white'}`}
                             title="Aurora AI"
                         >
-                            <Sparkle className="w-4 h-4" />
+                            <HugeIcon name="AiMagic" size={16} className="w-4 h-4" />
                         </button>
 
                         {/* Search */}
@@ -214,7 +216,7 @@ export default function AppNavbar() {
                             className="relative px-3 py-2 text-white/70 hover:text-white transition-colors rounded-full"
                             title="Search (⌘K)"
                         >
-                            <Search className="w-4 h-4" />
+                            <HugeIcon name="Search01" size={16} className="w-4 h-4" />
                         </button>
                     </div>
 
@@ -264,7 +266,7 @@ export default function AppNavbar() {
                                     >
                                         <div className="flex flex-col min-w-[130px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
                                             {TABLET_NAV_OVERFLOW.map((item) => {
-                                                const Icon = item.icon;
+                                                const IconComponent = 'icon' in item ? (item.icon as React.ComponentType<{ className?: string }>) : null;
                                                 return (
                                                     <button
                                                         key={item.label}
@@ -274,7 +276,11 @@ export default function AppNavbar() {
                                                             : 'text-white/80 hover:bg-white/10 hover:text-white'
                                                             }`}
                                                     >
-                                                        <Icon className="w-3.5 h-3.5" />
+                                                        {IconComponent ? (
+                                                            <IconComponent className="w-3.5 h-3.5" />
+                                                        ) : (
+                                                            <HugeIcon name={item.iconName} size={14} className="w-3.5 h-3.5" />
+                                                        )}
                                                         {item.label}
                                                     </button>
                                                 );
@@ -294,7 +300,7 @@ export default function AppNavbar() {
                             className={`relative px-2 py-1.5 rounded-full transition-colors ${isAIAssistantOpen ? 'text-amber-300' : 'text-white/70 hover:text-white'}`}
                             title="Aurora AI"
                         >
-                            <Sparkle className="w-3.5 h-3.5" />
+                            <HugeIcon name="AiMagic" size={14} className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Search */}
@@ -303,7 +309,7 @@ export default function AppNavbar() {
                             className="relative px-2 py-1.5 text-white/70 hover:text-white transition-colors rounded-full"
                             title="Search (⌘K)"
                         >
-                            <Search className="w-3.5 h-3.5" />
+                            <HugeIcon name="Search01" size={14} className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -321,9 +327,9 @@ export default function AppNavbar() {
                                         : 'text-white hover:text-white/80'
                                         }`}
                                 >
-                                    <Grid2x2 className="w-3.5 h-3.5" />
+                                    <HugeIcon name="LayoutGrid" size={14} className="w-3.5 h-3.5" />
                                     Tools
-                                    <ChevronDown className={`w-3 h-3 opacity-50 transition-transform duration-300 ${toolsOpen ? 'rotate-180' : ''}`} />
+                                    <HugeIcon name="ArrowDown01" size={12} className={`w-3 h-3 opacity-50 transition-transform duration-300 ${toolsOpen ? 'rotate-180' : ''}`} />
                                 </button>
                             </div>
 
@@ -339,7 +345,6 @@ export default function AppNavbar() {
                                         <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
                                             <div className="grid grid-cols-4 gap-1">
                                                 {TOOL_ITEMS.map((tool, idx) => {
-                                                    const Icon = tool.icon;
                                                     const active = isActive(tool.href);
                                                     return (
                                                         <motion.button
@@ -353,7 +358,7 @@ export default function AppNavbar() {
                                                                 : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                                 }`}
                                                         >
-                                                            <Icon className="w-4 h-4" />
+                                                            <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
                                                             <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
                                                         </motion.button>
                                                     );
@@ -369,7 +374,7 @@ export default function AppNavbar() {
                                                         : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                         }`}
                                                 >
-                                                    <Timer className="w-4 h-4" />
+                                                    <HugeIcon name="Timer01" size={16} className="w-4 h-4" />
                                                     <span className="text-[9px] font-semibold leading-tight">Timer</span>
                                                 </motion.button>
                                             </div>
@@ -435,24 +440,24 @@ export default function AppNavbar() {
                                                     <p className="text-[10px] font-medium text-white/50 truncate">{user?.email}</p>
                                                 </div>
                                                 <button
-                                                    onClick={() => { setProfileOpen(false); setEditNavOpen(true); }}
+                                                    onClick={() => { setProfileOpen(false); setTimeout(() => setEditNavOpen(true), 10); }}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
                                                 >
-                                                    <Pencil className="w-4 h-4" />
+                                                    <HugeIcon name="Pen02" size={16} className="w-4 h-4" />
                                                     <span className="text-[12px] font-semibold">Edit Nav</span>
                                                 </button>
                                                 <button
                                                     onClick={() => handleNavClick('/settings')}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
                                                 >
-                                                    <Settings className="w-4 h-4" />
+                                                    <HugeIcon name="Settings02" size={16} className="w-4 h-4" />
                                                     <span className="text-[12px] font-semibold">Settings</span>
                                                 </button>
                                                 <button
                                                     onClick={() => { signOut?.(); router.push('/'); }}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-colors text-left"
                                                 >
-                                                    <LogOut className="w-4 h-4" />
+                                                    <HugeIcon name="LogoutCircle02" size={16} className="w-4 h-4" />
                                                     <span className="text-[12px] font-semibold">Log out</span>
                                                 </button>
                                             </div>
@@ -469,7 +474,7 @@ export default function AppNavbar() {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
                                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                            className="absolute top-full right-0 mt-3 z-[100] w-[280px]"
+                                            className="absolute top-full right-0 mt-3 z-[110] w-[280px]"
                                         >
                                             <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-3">
                                                 <div className="flex items-center justify-between mb-3">
@@ -490,14 +495,13 @@ export default function AppNavbar() {
                                                             {pinnedLabels.map(label => {
                                                                 const item = ALL_EXTRA_ITEMS.find(i => i.label === label);
                                                                 if (!item) return null;
-                                                                const Icon = item.icon;
                                                                 return (
                                                                     <button
                                                                         key={label}
                                                                         onClick={() => togglePinned(label)}
                                                                         className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-white/90 hover:bg-white/10 transition-all group text-left"
                                                                     >
-                                                                        <Icon className="w-3.5 h-3.5 text-white/60" />
+                                                                        <HugeIcon name={item.iconName} size={14} className="w-3.5 h-3.5 text-white/60" />
                                                                         <span className="text-[12px] font-semibold flex-1">{label}</span>
                                                                         <X className="w-3 h-3 text-white/30 group-hover:text-red-300 transition-colors" />
                                                                     </button>
@@ -514,7 +518,6 @@ export default function AppNavbar() {
                                                         <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1.5 px-1">Available</p>
                                                         <div className="flex flex-col gap-0.5 max-h-[160px] overflow-y-auto">
                                                             {ALL_EXTRA_ITEMS.filter(i => !pinnedLabels.includes(i.label)).map(item => {
-                                                                const Icon = item.icon;
                                                                 const atMax = pinnedLabels.length >= MAX_PINNED;
                                                                 return (
                                                                     <button
@@ -522,9 +525,9 @@ export default function AppNavbar() {
                                                                         onClick={() => !atMax && togglePinned(item.label)}
                                                                         className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl transition-all group text-left ${atMax ? 'text-white/20 cursor-not-allowed' : 'text-white/50 hover:bg-white/10 hover:text-white/80'}`}
                                                                     >
-                                                                        <Icon className="w-3.5 h-3.5" />
+                                                                        <HugeIcon name={item.iconName} size={14} className="w-3.5 h-3.5 text-white/40" />
                                                                         <span className="text-[12px] font-semibold flex-1">{item.label}</span>
-                                                                        {!atMax && <Plus className="w-3 h-3 text-white/20 group-hover:text-emerald-300 transition-colors" />}
+                                                                        {atMax ? null : <HugeIcon name="PlusSign" size={12} className="w-3 h-3 text-white/30 group-hover:text-white/60 transition-colors" />}
                                                                     </button>
                                                                 );
                                                             })}
@@ -562,8 +565,8 @@ export default function AppNavbar() {
                                         : 'text-white hover:text-white/80'
                                         }`}
                                 >
-                                    <Grid2x2 className="w-3.5 h-3.5" />
-                                    <ChevronDown className={`w-3 h-3 opacity-50 transition-transform duration-300 ${toolsOpen ? 'rotate-180' : ''}`} />
+                                    <HugeIcon name="LayoutGrid" size={14} className="w-3.5 h-3.5" />
+                                    <HugeIcon name="ArrowDown01" size={12} className={`w-3 h-3 opacity-50 transition-transform duration-300 ${toolsOpen ? 'rotate-180' : ''}`} />
                                 </button>
                             </div>
 
@@ -579,7 +582,6 @@ export default function AppNavbar() {
                                         <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
                                             <div className="grid grid-cols-4 gap-1">
                                                 {TOOL_ITEMS.map((tool, idx) => {
-                                                    const Icon = tool.icon;
                                                     const active = isActive(tool.href);
                                                     return (
                                                         <motion.button
@@ -593,7 +595,7 @@ export default function AppNavbar() {
                                                                 : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                                 }`}
                                                         >
-                                                            <Icon className="w-4 h-4" />
+                                                            <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
                                                             <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
                                                         </motion.button>
                                                     );
@@ -608,7 +610,7 @@ export default function AppNavbar() {
                                                         : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                         }`}
                                                 >
-                                                    <Timer className="w-4 h-4" />
+                                                    <HugeIcon name="Timer01" size={16} className="w-4 h-4" />
                                                     <span className="text-[9px] font-semibold leading-tight">Timer</span>
                                                 </motion.button>
                                             </div>
@@ -667,24 +669,24 @@ export default function AppNavbar() {
                                                     <p className="text-[10px] font-medium text-white/50 truncate">{user?.email}</p>
                                                 </div>
                                                 <button
-                                                    onClick={() => { setProfileOpen(false); setEditNavOpen(true); }}
+                                                    onClick={() => { setProfileOpen(false); setTimeout(() => setEditNavOpen(true), 10); }}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
                                                 >
-                                                    <Pencil className="w-4 h-4" />
+                                                    <HugeIcon name="Pen02" size={16} className="w-4 h-4" />
                                                     <span className="text-[12px] font-semibold">Edit Nav</span>
                                                 </button>
                                                 <button
                                                     onClick={() => handleNavClick('/settings')}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors text-left"
                                                 >
-                                                    <Settings className="w-4 h-4" />
+                                                    <HugeIcon name="Settings02" size={16} className="w-4 h-4" />
                                                     <span className="text-[12px] font-semibold">Settings</span>
                                                 </button>
                                                 <button
                                                     onClick={() => { signOut?.(); router.push('/'); }}
                                                     className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-colors text-left"
                                                 >
-                                                    <LogOut className="w-4 h-4" />
+                                                    <HugeIcon name="LogoutCircle02" size={16} className="w-4 h-4" />
                                                     <span className="text-[12px] font-semibold">Log out</span>
                                                 </button>
                                             </div>
@@ -715,7 +717,7 @@ export default function AppNavbar() {
                 onClick={() => handleNavClick('/pricing')}
                 className="hidden lg:flex fixed top-[68px] left-1/2 -translate-x-1/2 z-50 items-center gap-1.5 px-3 py-1 bg-white/60 hover:bg-white/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-full shadow-[0_2px_12px_rgba(39,80,133,0.08),inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer"
             >
-                <Sparkle className="w-3 h-3 text-[#275085]/70 dark:text-blue-300/70 group-hover:text-[#275085] dark:group-hover:text-blue-300 transition-colors" />
+                <HugeIcon name="AiMagic" size={12} className="w-3 h-3 text-[#275085]/70 dark:text-blue-300/70 group-hover:text-[#275085] dark:group-hover:text-blue-300 transition-colors" />
                 <span className="text-[11px] font-semibold text-[#275085]/70 dark:text-blue-200/70 group-hover:text-[#275085] dark:group-hover:text-blue-200 tracking-tight transition-colors">
                     Get Plus
                 </span>
@@ -746,8 +748,8 @@ export default function AppNavbar() {
                             <div className="p-2">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-2 px-2">Navigation</p>
                                 {NAV_ITEMS.map((item, idx) => {
-                                    const Icon = item.icon;
                                     const active = isActive(item.href);
+                                    const IconComponent = 'icon' in item ? (item.icon as React.ComponentType<{ className?: string }>) : null;
                                     return (
                                         <motion.button
                                             key={item.label}
@@ -760,7 +762,11 @@ export default function AppNavbar() {
                                                 : 'text-white/80 hover:bg-white/10 hover:text-white'
                                                 }`}
                                         >
-                                            <Icon className="w-4.5 h-4.5" />
+                                            {IconComponent ? (
+                                                <IconComponent className="w-4.5 h-4.5" />
+                                            ) : (
+                                                <HugeIcon name={item.iconName} size={18} className="w-4.5 h-4.5" />
+                                            )}
                                             {item.label}
                                         </motion.button>
                                     );
@@ -779,7 +785,7 @@ export default function AppNavbar() {
                                     onClick={() => { setMobileOpen(false); openSearch(); }}
                                     className="w-full flex items-center gap-3 text-left px-4 py-3 text-[15px] font-semibold text-white/80 hover:bg-white/10 hover:text-white rounded-2xl transition-all"
                                 >
-                                    <Search className="w-4.5 h-4.5" />
+                                    <HugeIcon name="Search01" size={18} className="w-4.5 h-4.5" />
                                     Search
                                 </motion.button>
                                 <motion.button
@@ -789,7 +795,7 @@ export default function AppNavbar() {
                                     onClick={() => { setMobileOpen(false); setAIAssistantOpen(!isAIAssistantOpen); }}
                                     className={`w-full flex items-center gap-3 text-left px-4 py-3 text-[15px] font-semibold rounded-2xl transition-all ${isAIAssistantOpen ? 'bg-white/15 text-amber-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
                                 >
-                                    <Sparkle className="w-4.5 h-4.5" />
+                                    <HugeIcon name="AiMagic" size={18} className="w-4.5 h-4.5" />
                                     Aurora AI
                                 </motion.button>
                             </div>
@@ -801,7 +807,6 @@ export default function AppNavbar() {
                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-3 px-1">All Tools</p>
                                 <div className="grid grid-cols-4 gap-1">
                                     {TOOL_ITEMS.map((tool, idx) => {
-                                        const Icon = tool.icon;
                                         const active = isActive(tool.href);
                                         return (
                                             <motion.button
@@ -815,7 +820,7 @@ export default function AppNavbar() {
                                                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                                                     }`}
                                             >
-                                                <Icon className="w-4.5 h-4.5" />
+                                                <HugeIcon name={tool.iconName} size={18} className="w-4.5 h-4.5" />
                                                 <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
                                             </motion.button>
                                         );

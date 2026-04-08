@@ -86,20 +86,6 @@ export default function GuardiansHero() {
                 {/* ── Left Column: Content ─────────────────────────────── */}
                 <div className="text-left py-12 pl-6 md:pl-12 xl:pl-20 lg:w-[50%] xl:w-[55%]">
 
-                    {/* ── Badge ────────────────────────────────────────────── */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.4 }}
-                        className="mb-6"
-                    >
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/8 dark:bg-[#275085]/10 rounded-full">
-                            <Shield className="w-2.5 h-2.5" />
-                            For Parents &amp; Guardians
-                            <span className="ml-1 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-widest bg-amber-400 text-amber-900 rounded">Alpha</span>
-                        </span>
-                    </motion.div>
-
                     {/* ── Headline with rotating word ──────────────────────── */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}

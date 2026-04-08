@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, ArrowRight, Sparkles, Loader2, X, BookOpen, Zap, FileText } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { BUILD_VERSION, getFullVersionString } from '@/config/version';
@@ -26,7 +26,7 @@ const tutorialsData: Tutorial[] = [
     difficulty: 'beginner',
     tags: ['setup', 'classes', 'onboarding'],
     href: '/tutorials/onboarding',
-    icon: <BookOpen className="w-5 h-5" />,
+    icon: <HugeIcon name="Star" className="w-5 h-5" />,
   },
   {
     id: 'starring-homeworks',
@@ -36,7 +36,7 @@ const tutorialsData: Tutorial[] = [
     difficulty: 'beginner',
     tags: ['homework', 'priority', 'organization'],
     href: '/tutorials/starring-homeworks',
-    icon: <Zap className="w-5 h-5" />,
+    icon: <HugeIcon name="Zap" className="w-5 h-5" />,
   },
   {
     id: 'test-details',
@@ -46,7 +46,7 @@ const tutorialsData: Tutorial[] = [
     difficulty: 'beginner',
     tags: ['tests', 'exams', 'study-materials'],
     href: '/tutorials/test-details',
-    icon: <FileText className="w-5 h-5" />,
+    icon: <HugeIcon name="FileEmpty02" className="w-5 h-5" />,
   },
   {
     id: 'recurring-homework',
@@ -56,7 +56,7 @@ const tutorialsData: Tutorial[] = [
     difficulty: 'intermediate',
     tags: ['homework', 'recurring', 'automation'],
     href: '/tutorials/recurring-homeworks',
-    icon: <Zap className="w-5 h-5" />,
+    icon: <HugeIcon name="Zap" className="w-5 h-5" />,
   },
   {
     id: 'csv-import',
@@ -66,7 +66,7 @@ const tutorialsData: Tutorial[] = [
     difficulty: 'beginner',
     tags: ['flashcards', 'csv', 'import', 'spreadsheet'],
     href: '/tutorials/csv-import',
-    icon: <FileText className="w-5 h-5" />,
+    icon: <HugeIcon name="FileEmpty02" className="w-5 h-5" />,
   },
   {
     id: 'changelog',
@@ -76,7 +76,7 @@ const tutorialsData: Tutorial[] = [
     difficulty: 'beginner',
     tags: ['updates', 'new-features'],
     href: '/changelog',
-    icon: <FileText className="w-5 h-5" />,
+    icon: <HugeIcon name="FileEmpty02" className="w-5 h-5" />,
   }
 ];
 
@@ -213,9 +213,9 @@ export default function TutorialsPage() {
                 >
                   <div className="w-10 h-10 flex items-center justify-center shrink-0">
                     {isSuggesting ? (
-                      <Loader2 className="w-4 h-4 text-sky-500 animate-spin" />
+                      <HugeIcon name="LoaderPinwheel" className="w-4 h-4 text-sky-500 animate-spin" />
                     ) : (
-                      <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                      <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                     )}
                   </div>
                   <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
@@ -238,7 +238,7 @@ export default function TutorialsPage() {
                         onClick={(e) => { e.stopPropagation(); setSearchQuery(''); setAiSuggestions([]); searchInputRef.current?.focus(); }}
                         className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <HugeIcon name="Cancel01" className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
@@ -261,7 +261,7 @@ export default function TutorialsPage() {
                       <Link key={t.id} href={t.href}>
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-[#ebf6b5]/60 dark:bg-sky-500/20 rounded-full hover:bg-[#ebf6b5] dark:hover:bg-sky-500/30 transition-colors">
                           {t.title}
-                          <ArrowRight className="w-2 h-2" />
+                          <HugeIcon name="ArrowRight01" className="w-2 h-2" />
                         </span>
                       </Link>
                     ))}
@@ -338,7 +338,7 @@ export default function TutorialsPage() {
                       {/* Bottom link */}
                       <div className="flex items-center gap-1.5 mt-6 text-[11px] font-bold text-sky-600 dark:text-sky-400 group-hover:text-sky-500 dark:group-hover:text-sky-300 transition-all">
                         <span>{tutorial.id === 'changelog' ? 'View changelog' : 'Read guide'}</span>
-                        <ArrowRight className="w-3 h-3 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300" />
+                        <HugeIcon name="ArrowRight01" className="w-3 h-3 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300" />
                       </div>
                     </div>
                   </Link>

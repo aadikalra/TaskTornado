@@ -94,7 +94,7 @@ export default function TeachersHero() {
                     >
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#275085] dark:text-[#4a7ba7] bg-[#275085]/8 dark:bg-[#275085]/10 rounded-full">
                             <GraduationCap className="w-2.5 h-2.5" />
-                            For Teachers
+                            work in progress
                             <span className="ml-1 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-widest bg-amber-400 text-amber-900 rounded">Alpha</span>
                         </span>
                     </motion.div>

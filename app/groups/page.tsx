@@ -4,7 +4,7 @@ import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStudyGroups } from '@/context/StudyGroupsContext';
 import { Input } from '@/components/ui/input';
-import { Plus, MessagesSquare, Users, ArrowRight, AlertTriangle, X, Loader2, Link as LinkIcon, Check, Copy, Trash2, Search } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouteIntro } from '@/hooks/use-route-intro';
@@ -176,7 +176,7 @@ export default function GroupsPage() {
                 }}
               >
                 <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                  <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                 </div>
                 <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
                   <input
@@ -198,7 +198,7 @@ export default function GroupsPage() {
                       onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
                       className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <HugeIcon name="Cancel01" className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -208,7 +208,7 @@ export default function GroupsPage() {
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
               >
-                <Plus className="h-4 w-4" />
+                <HugeIcon name="PlusSign" className="h-4 w-4" />
                 New Group
               </button>
             </div>
@@ -219,7 +219,7 @@ export default function GroupsPage() {
         {error && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl">
-              <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+              <HugeIcon name="AlertCircle" className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-red-800 dark:text-red-300">Error loading groups</p>
                 <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
@@ -232,7 +232,7 @@ export default function GroupsPage() {
         {schoolWarning?.showWarning && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl">
-              <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-bold text-amber-800 dark:text-amber-300">School Notice</p>
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{schoolWarning.message}</p>
@@ -241,7 +241,7 @@ export default function GroupsPage() {
                 onClick={dismissSchoolWarning}
                 className="p-1 rounded-lg text-amber-500/50 hover:text-amber-600 hover:bg-amber-500/5 transition-colors"
               >
-                <X className="h-4 w-4" />
+                <HugeIcon name="Cancel01" className="h-4 w-4" />
               </button>
             </div>
           </motion.div>
@@ -256,7 +256,7 @@ export default function GroupsPage() {
           {groups.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24">
               <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-                <MessagesSquare className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                <HugeIcon name="Chat" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
               </div>
               <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">
                 No Group Chats Yet
@@ -268,7 +268,7 @@ export default function GroupsPage() {
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
               >
-                <Plus className="h-4 w-4" />
+                <HugeIcon name="PlusSign" className="h-4 w-4" />
                 Create Group
               </button>
             </div>
@@ -285,7 +285,7 @@ export default function GroupsPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="w-10 h-10 bg-sky-100 dark:bg-sky-500/10 rounded-xl flex items-center justify-center shrink-0">
-                        <MessagesSquare className="h-4.5 w-4.5 text-sky-500 dark:text-sky-400" />
+                        <HugeIcon name="Chat" className="h-4.5 w-4.5 text-sky-500 dark:text-sky-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-semibold text-sky-900 dark:text-white truncate mb-1">
@@ -293,11 +293,11 @@ export default function GroupsPage() {
                         </h3>
                         <div className="flex items-center gap-3 text-sm text-sky-600/60 dark:text-sky-400/60">
                           <span className="flex items-center gap-1">
-                            <Users className="h-3.5 w-3.5" />
+                            <HugeIcon name="UserGroup03" className="h-3.5 w-3.5" />
                             {group.member_count || 0} member{(group.member_count || 0) !== 1 ? 's' : ''}
                           </span>
                           <span className="flex items-center gap-1">
-                            <MessagesSquare className="h-3.5 w-3.5" />
+                            <HugeIcon name="Chat" className="h-3.5 w-3.5" />
                             {group.messagesCount || 0} message{(group.messagesCount || 0) !== 1 ? 's' : ''}
                           </span>
                         </div>
@@ -312,12 +312,12 @@ export default function GroupsPage() {
                         className="p-1.5 text-sky-400/40 hover:text-red-500 dark:text-sky-500/30 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                         title="Delete group"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <HugeIcon name="Delete02" className="h-3.5 w-3.5" />
                       </button>
                       <Link href={`/groups/${group.id}`}>
                         <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/20 rounded-lg transition-colors">
                           View
-                          <ArrowRight className="h-3 w-3" />
+                          <HugeIcon name="ArrowRight01" className="h-3 w-3" />
                         </button>
                       </Link>
                     </div>
@@ -357,7 +357,7 @@ export default function GroupsPage() {
                       onClick={() => setShowCreateModal(false)}
                       className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                     >
-                      <X className="h-5 w-5" />
+                      <HugeIcon name="Cancel01" className="h-5 w-5" />
                     </button>
                   </div>
 
@@ -400,7 +400,7 @@ export default function GroupsPage() {
                         >
                           {isCreating ? (
                             <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              <HugeIcon name="LoaderPinwheel" className="h-3.5 w-3.5 animate-spin" />
                               Creating...
                             </>
                           ) : (
@@ -445,7 +445,7 @@ export default function GroupsPage() {
                       onClick={() => setShowShareModal(false)}
                       className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                     >
-                      <X className="h-5 w-5" />
+                      <HugeIcon name="Cancel01" className="h-5 w-5" />
                     </button>
                   </div>
 
@@ -458,7 +458,7 @@ export default function GroupsPage() {
                         transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
                         className="w-16 h-16 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#d4e88e]/40"
                       >
-                        <Users className="w-7 h-7 text-sky-600 dark:text-sky-400" />
+                        <HugeIcon name="UserGroup03" className="w-7 h-7 text-sky-600 dark:text-sky-400" />
                       </motion.div>
                       <motion.p
                         initial={{ opacity: 0, y: 5 }}
@@ -482,7 +482,7 @@ export default function GroupsPage() {
                       </label>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 flex items-center gap-2.5 h-11 px-3.5 bg-[#f5f9fc] dark:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                          <LinkIcon className="w-4 h-4 text-sky-400 shrink-0" />
+                          <HugeIcon name="LinkSquare02" className="w-4 h-4 text-sky-400 shrink-0" />
                           <span className="text-sm text-sky-800 dark:text-sky-300 truncate select-all">
                             {getInviteUrl(newGroupId)}
                           </span>
@@ -496,12 +496,12 @@ export default function GroupsPage() {
                         >
                           {linkCopied ? (
                             <>
-                              <Check className="w-4 h-4" />
+                              <HugeIcon name="CheckmarkCircle02" className="w-4 h-4" />
                               Copied!
                             </>
                           ) : (
                             <>
-                              <Copy className="w-4 h-4" />
+                              <HugeIcon name="Copy01" className="w-4 h-4" />
                               Copy
                             </>
                           )}
@@ -533,7 +533,7 @@ export default function GroupsPage() {
                         className="h-10 px-6 flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
                       >
                         Open Chat
-                        <ArrowRight className="w-4 h-4" />
+                        <HugeIcon name="ArrowRight01" className="w-4 h-4" />
                       </button>
                     </motion.div>
                   </div>
@@ -572,14 +572,14 @@ export default function GroupsPage() {
                       onClick={() => !isDeleting && setGroupToDelete(null)}
                       className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                     >
-                      <X className="h-5 w-5" />
+                      <HugeIcon name="Cancel01" className="h-5 w-5" />
                     </button>
                   </div>
 
                   {/* Content */}
                   <div className="p-6">
                     <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200/60 dark:border-red-500/20 rounded-2xl mb-5">
-                      <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                      <HugeIcon name="AlertCircle" className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
                           This action cannot be undone
@@ -616,12 +616,12 @@ export default function GroupsPage() {
                       >
                         {isDeleting ? (
                           <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <HugeIcon name="LoaderPinwheel" className="h-3.5 w-3.5 animate-spin" />
                             Deleting...
                           </>
                         ) : (
                           <>
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <HugeIcon name="Delete02" className="h-3.5 w-3.5" />
                             Delete Group
                           </>
                         )}
@@ -640,7 +640,7 @@ export default function GroupsPage() {
         onClose={dismissIntro}
         title="Welcome to Group Chats!"
         description="Collaborate with classmates in real-time group conversations"
-        icon={<Users className="h-6 w-6" />}
+        icon={<HugeIcon name="UserGroup03" size={24} className="h-6 w-6" />}
         features={[
           'Create or join group chats for your classes',
           'Collaborate with classmates in real-time',

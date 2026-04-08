@@ -4,46 +4,46 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import Image from 'next/image';
-import { Rocket, GraduationCap, Globe, Calculator, BookOpen, CheckCircle2, MessageCircle, Search } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 const stepData = [
     {
-        icon: Rocket,
+        icon: <HugeIcon name="Rocket" />,
         color: 'bg-sky-500/15 text-sky-500',
         title: 'Welcome Screen',
         description:
             'The moment you sign in for the first time, TaskTornado greets you by name with a personalized welcome screen. Tap "Let\'s Go" to begin the one-minute setup wizard, or "Skip for now" if you want to explore first — you can always run the setup later from Settings.',
     },
     {
-        icon: GraduationCap,
+        icon: <HugeIcon name="GraduationCap" />,
         color: 'bg-purple-500/15 text-purple-500',
         title: 'Grade Level',
         description:
             'Select your current grade (7th through 12th). This is the foundation of your workspace — TaskTornado uses it to auto-populate a suggested course map with standard core classes (Math, English, History, and Science) tailored to your level. A "Suggested Path" preview appears instantly so you can see exactly what will be created.',
     },
     {
-        icon: MessageCircle,
+        icon: <HugeIcon name="MessageCircle" />,
         color: 'bg-pink-500/15 text-pink-500',
         title: 'World Language',
         description:
             'For 8th and 9th graders, a world language is required — choose between Spanish and Mandarin. For grades 10-12, language is optional; simply tap "Yes" or "No." If you\'re taking a language, a level slider lets you pick your exact placement from Level 1 up to AP, and TaskTornado auto-suggests the right level based on your grade progression.',
     },
     {
-        icon: Calculator,
+        icon: <HugeIcon name="Calculator" />,
         color: 'bg-amber-500/15 text-amber-500',
         title: 'Math Placement',
         description:
             'A drag slider lets you set your exact math course. The system shows the full progression (Math 7 → Math 8 → IM1 → IM2 → IM3 → AP Calc AB → AP Calc BC → AP Stats) and lets you accelerate up to 4 grades ahead. If your slider lands on the IM3 slot, a follow-up panel asks whether you\'re in IM3 or Precalculus. The suggested path preview updates in real time.',
     },
     {
-        icon: BookOpen,
+        icon: <HugeIcon name="BookOpen" />,
         color: 'bg-emerald-500/15 text-emerald-500',
         title: 'Elective Selection',
         description:
             'Choose your electives from a searchable grid of 16 options spanning PE (Aerobic Walking, Team Sports), Sciences (Marine Science), Music (Music Appreciation, Beginning Band, Concert Band, Guitar, Choir), Leadership, Arts (Theater Arts, Yearbook, Creative Writing, Digital Media Arts), Academic Support, and Computer Science. The number of slots depends on your language choice — 2 electives if you\'re not taking a language, 1 if you are.',
     },
     {
-        icon: CheckCircle2,
+        icon: <HugeIcon name="CheckmarkCircle02" />,
         color: 'bg-[#ebf6b5]/60 text-sky-700',
         title: 'Summary & Creation',
         description:
@@ -95,7 +95,6 @@ export default function OnboardingTutorialPage() {
 
                 <div className="space-y-6">
                     {stepData.map((step, index) => {
-                        const Icon = step.icon;
                         return (
                             <motion.div
                                 key={step.title}
@@ -107,7 +106,7 @@ export default function OnboardingTutorialPage() {
                             >
                                 <div className="flex items-start gap-4">
                                     <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${step.color}`}>
-                                        <Icon className="w-5 h-5" />
+                                        {step.icon}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-3 mb-2">
@@ -140,7 +139,7 @@ export default function OnboardingTutorialPage() {
                         <strong className="text-sky-800 dark:text-sky-200">IM3 / Precalc fork</strong> — If your math slider lands on the IM3 position, a secondary panel appears asking whether you&apos;re taking IM3 or Precalculus. The summary updates in real time.
                     </li>
                     <li>
-                        <strong className="text-sky-800 dark:text-sky-200">Searchable electives</strong> — With 16 elective options, a built-in search bar helps you find yours quickly.
+                        <strong className="text-sky-800 dark:text-sky-200"><HugeIcon name="Search01" /> Searchable electives</strong> — With 16 elective options, a built-in search bar helps you find yours quickly.
                     </li>
                     <li>
                         <strong className="text-sky-800 dark:text-sky-200">Color-coded preview</strong> — The summary shows each class with the color dot that will appear on your dashboard, so you can mentally map your schedule before it&apos;s created.
@@ -153,7 +152,7 @@ export default function OnboardingTutorialPage() {
                 {/* After onboarding */}
                 <h2 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mt-16 mb-4">After Setup</h2>
                 <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70 mb-6">
-                    Once the wizard finishes, you&apos;ll land on your dashboard with a quick guided tour highlighting the Navigation dock, Instant Search (⌘K), Aurora AI, Calendar, App Drawer, Notifications, Preferences, and your class management area. After that, you&apos;re fully set — add homework, schedule tests, and let TaskTornado keep you on track.
+                    Once the wizard finishes, you&apos;ll land on your dashboard with a quick guided tour highlighting the Navigation dock, Instant <HugeIcon name="Search01" /> Search (⌘K), Aurora AI, Calendar, App Drawer, Notifications, Preferences, and your class management area. After that, you&apos;re fully set — add homework, schedule tests, and let TaskTornado keep you on track.
                 </p>
                 <p className="text-lg leading-[1.8] text-sky-800/70 dark:text-sky-300/70">
                     You can always add or remove classes later from the dashboard. The onboarding just gives you the fastest possible start.

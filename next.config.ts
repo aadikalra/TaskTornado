@@ -7,8 +7,16 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
   },
+  
+  // Add Turbopack config to silence the warning
+  turbopack: {},
+  
   // Enable bundle analyzer in development
   ...(process.env.ANALYZE === 'true' && {
     experimental: {
@@ -63,7 +71,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Webpack optimizations
+  // Webpack optimizations (keep for fallback)
   webpack: (config, { dev, isServer }) => {
     // Optimize bundle size
     if (!dev && !isServer) {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
-import { ArrowLeft, Play, RotateCcw, Pause, Trophy, Zap, Layers, AlertTriangle, Timer } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -337,15 +337,15 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                 {/* Score bar */}
                 <div className="flex items-center gap-3 mb-5 w-full">
                     <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                        <Trophy className="w-4 h-4 text-sky-500" />
+                        <HugeIcon name="Award01" className="w-4 h-4 text-sky-500" />
                         <span className="text-sm font-bold text-sky-900 dark:text-white">{score}</span>
                     </div>
                     <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                        <Layers className="w-4 h-4 text-sky-500" />
+                        <HugeIcon name="Layers01" className="w-4 h-4 text-sky-500" />
                         <span className="text-sm font-bold text-sky-900 dark:text-white">{lines}</span>
                     </div>
                     <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                        <Zap className="w-4 h-4 text-sky-500" />
+                        <HugeIcon name="Zap" className="w-4 h-4 text-sky-500" />
                         <span className="text-sm font-bold text-sky-900 dark:text-white">Lv.{level}</span>
                     </div>
                     {gameStarted && (
@@ -355,14 +355,14 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                                 className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
                                 title={isPaused ? 'Resume' : 'Pause'}
                             >
-                                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                                {isPaused ? <HugeIcon name="Play" className="w-4 h-4" /> : <HugeIcon name="Pause" className="w-4 h-4" />}
                             </button>
                             <button
                                 onClick={startGame}
                                 className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
                                 title="Restart"
                             >
-                                <RotateCcw className="w-4 h-4" />
+                                <HugeIcon name="Rotate01" className="w-4 h-4" />
                             </button>
                         </div>
                     )}
@@ -415,7 +415,7 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                                 onClick={startGame}
                                 className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
                             >
-                                <Play className="w-4 h-4" />
+                                <HugeIcon name="Play" className="w-4 h-4" />
                                 Start Game
                             </button>
                         </div>
@@ -431,7 +431,7 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
                                 onClick={startGame}
                                 className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors mt-2"
                             >
-                                <RotateCcw className="w-4 h-4" />
+                                <HugeIcon name="Rotate01" className="w-4 h-4" />
                                 Play Again
                             </button>
                         </div>
@@ -555,7 +555,7 @@ export default function TaskTowerPage() {
                 {/* Back button */}
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <Link href="/games" className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold transition-colors mb-6">
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         Back to Game Center
                     </Link>
                 </motion.div>
@@ -603,7 +603,7 @@ export default function TaskTowerPage() {
 
                             <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-6">
                                 <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 rounded-xl mb-5">
-                                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
                                             80% homework required

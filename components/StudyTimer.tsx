@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Minimize2, CheckCircle2, Circle, ChevronRight, X, Check, Timer, RotateCcw, Target, Brain, Sparkles, ArrowRight } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useData } from '@/context/DataContext';
 import { Slider } from '@/components/ui/slider';
 
@@ -411,7 +411,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     onClick={() => handleTaskSelection(null, customTaskName)}
                     className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 transition-colors"
                   >
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <HugeIcon name="ArrowRight01" className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
@@ -433,10 +433,10 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                       className="w-full flex items-center gap-3 px-4 py-3 text-left bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 transition-all group"
                     >
                       <div className="h-8 w-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0 group-hover:bg-sky-100 dark:group-hover:bg-sky-500/15 transition-colors">
-                        <Target className="w-4 h-4 text-sky-500" />
+                        <HugeIcon name="Target01" className="w-4 h-4 text-sky-500" />
                       </div>
                       <span className="text-sm font-medium text-sky-900 dark:text-white truncate">{task.title}</span>
-                      <ChevronRight className="w-4 h-4 text-sky-300 dark:text-sky-600 ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <HugeIcon name="ArrowRight01" className="w-4 h-4 text-sky-300 dark:text-sky-600 ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </motion.button>
                   ))}
                 </div>
@@ -446,7 +446,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             {homework.filter(hw => !hw.completed).length === 0 && !customTaskName && (
               <div className="flex flex-col items-center justify-center py-6">
                 <div className="h-12 w-12 rounded-2xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center mb-3">
-                  <Target className="w-5 h-5 text-sky-400" />
+                  <HugeIcon name="Target01" className="w-5 h-5 text-sky-400" />
                 </div>
                 <p className="text-sm text-sky-600/50 dark:text-sky-400/50 text-center">
                   No pending tasks.<br />Enter a custom task above.
@@ -515,7 +515,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     onClick={handleChangeTask}
                     className="flex items-center gap-1.5 text-xs font-medium text-sky-700 dark:text-sky-300 hover:text-sky-900 dark:hover:text-white transition-colors group"
                   >
-                    <Target className="w-3 h-3" />
+                    <HugeIcon name="Target01" className="w-3 h-3" />
                     <span className="max-w-[180px] truncate">{currentSession.taskTitle}</span>
                   </button>
                   <button
@@ -523,7 +523,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     className="p-0.5 rounded-full hover:bg-sky-200/50 dark:hover:bg-sky-500/20 transition-colors"
                     title="Remove task"
                   >
-                    <X className="w-3 h-3 text-sky-400 hover:text-sky-600 dark:hover:text-sky-300" />
+                    <HugeIcon name="Cancel01" className="w-3 h-3 text-sky-400 hover:text-sky-600 dark:hover:text-sky-300" />
                   </button>
                 </div>
               </div>
@@ -646,7 +646,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                   disabled={totalTime === 0}
                   className="h-14 w-14 rounded-full bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-30 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all flex items-center justify-center"
                 >
-                  <Play className="w-5 h-5 ml-0.5" />
+                  <HugeIcon name="Play" className="w-5 h-5 ml-0.5" />
                 </motion.button>
               ) : (
                 <>
@@ -656,7 +656,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     onClick={pauseTimer}
                     className="h-12 w-12 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
-                    {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
+                    {isPaused ? <HugeIcon name="Play" className="w-4 h-4 ml-0.5" /> : <HugeIcon name="Pause" className="w-4 h-4" />}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -664,7 +664,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     onClick={resetTimer}
                     className="h-12 w-12 rounded-xl flex items-center justify-center text-sky-400 dark:text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
-                    <RotateCcw className="w-4 h-4" />
+                    <HugeIcon name="Rotate01" className="w-4 h-4" />
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -673,7 +673,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     className="h-12 w-12 rounded-xl flex items-center justify-center text-emerald-500 bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-800/30 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all"
                     title="End early"
                   >
-                    <Check className="w-4 h-4" />
+                    <HugeIcon name="CheckmarkCircle02" className="w-4 h-4" />
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -681,7 +681,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                     onClick={() => setIsMinimized(true)}
                     className="h-12 w-12 rounded-xl flex items-center justify-center text-sky-400 dark:text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all"
                   >
-                    <Minimize2 className="w-4 h-4" />
+                    <HugeIcon name="ArrowDown01" className="w-4 h-4" />
                   </motion.button>
                 </>
               )}
@@ -707,7 +707,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
                 className="h-16 w-16 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center"
               >
-                <Sparkles className="w-7 h-7 text-emerald-500" />
+                <HugeIcon name="Star" className="w-7 h-7 text-emerald-500" />
               </motion.div>
             </div>
 
@@ -723,7 +723,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 className="w-full flex items-center gap-3 px-4 py-4 text-left bg-white dark:bg-gray-900 border border-emerald-200/80 dark:border-emerald-600/20 rounded-xl hover:border-emerald-300 dark:hover:border-emerald-500/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5 transition-all group"
               >
                 <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/15 transition-colors">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <HugeIcon name="CheckmarkCircle02" className="w-5 h-5 text-emerald-500" />
                 </div>
                 <div>
                   <p className="font-semibold text-sky-900 dark:text-white text-sm">Yes, I completed it</p>
@@ -738,7 +738,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 className="w-full flex items-center gap-3 px-4 py-4 text-left bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-xl hover:border-sky-300 dark:hover:border-sky-600 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 transition-all group"
               >
                 <div className="h-10 w-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0 group-hover:bg-sky-100 dark:group-hover:bg-sky-500/15 transition-colors">
-                  <Circle className="w-5 h-5 text-sky-400" />
+                  <HugeIcon name="CancelCircle" className="w-5 h-5 text-sky-400" />
                 </div>
                 <div>
                   <p className="font-semibold text-sky-900 dark:text-white text-sm">No, still in progress</p>
@@ -788,7 +788,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors flex items-center gap-2"
               >
                 Continue
-                <ChevronRight className="w-4 h-4" />
+                <HugeIcon name="ArrowRight01" className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
@@ -807,7 +807,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Brain className="w-3 h-3" />
+                  <HugeIcon name="Brain" className="w-3 h-3" />
                   Focus Quality
                 </label>
                 <span className="text-lg font-bold text-sky-900 dark:text-white tabular-nums">{focusQuality}/10</span>
@@ -848,7 +848,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors flex items-center gap-2"
               >
                 Continue
-                <ChevronRight className="w-4 h-4" />
+                <HugeIcon name="ArrowRight01" className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
@@ -872,7 +872,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                 transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
                 className="h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center"
               >
-                <Sparkles className="w-7 h-7 text-amber-500" />
+                <HugeIcon name="Star" className="w-7 h-7 text-amber-500" />
               </motion.div>
             </div>
 
@@ -929,7 +929,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
             onClick={handleTriggerClick}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <Timer className="w-4 h-4" />
+            <HugeIcon name="Timer01" className="w-4 h-4" />
             Timer
           </button>
         )
@@ -969,7 +969,7 @@ export function StudyTimer({ trigger, onComplete, isOpen: externalIsOpen, onOpen
                   }}
                   className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
                 >
-                  {isRunning ? <Minimize2 className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                  {isRunning ? <HugeIcon name="ArrowDown01" className="h-5 w-5" /> : <HugeIcon name="Cancel01" className="h-5 w-5" />}
                 </button>
               </div>
 

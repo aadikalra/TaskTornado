@@ -3,28 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
-import {
-    MessageSquare,
-    Plus,
-    Pin,
-    CheckCircle,
-    Eye,
-    ThumbsUp,
-    Send,
-    ArrowLeft,
-    FileText,
-    Link as LinkIcon,
-    Video,
-    File,
-    Search,
-    Trash2,
-    MoreVertical,
-    Award,
-    X,
-    Users,
-    LogIn,
-    LogOut,
-} from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useDiscussionBoards } from '@/context/DiscussionBoardsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -276,11 +255,11 @@ export function ClassDiscussionBoards() {
 
     const getResourceIcon = (type: ResourceType) => {
         switch (type) {
-            case 'link': return <LinkIcon className="w-4 h-4" />;
-            case 'video': return <Video className="w-4 h-4" />;
-            case 'document': return <FileText className="w-4 h-4" />;
-            case 'file': return <File className="w-4 h-4" />;
-            default: return <FileText className="w-4 h-4" />;
+            case 'link': return <HugeIcon name="LinkSquare02" className="w-4 h-4" />;
+            case 'video': return <HugeIcon name="Video01" className="w-4 h-4" />;
+            case 'document': return <HugeIcon name="File02" className="w-4 h-4" />;
+            case 'file': return <HugeIcon name="FileEmpty02" className="w-4 h-4" />;
+            default: return <HugeIcon name="File02" className="w-4 h-4" />;
         }
     };
 
@@ -298,7 +277,7 @@ export function ClassDiscussionBoards() {
                         onClick={() => setCurrentThread(null)}
                         className="flex items-center gap-2 mb-6 text-sm font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         Back to Threads
                     </button>
 
@@ -314,12 +293,12 @@ export function ClassDiscussionBoards() {
                                     <div className="flex items-center gap-3 mb-3">
                                         {currentThread.is_pinned && (
                                             <span className="p-1.5 bg-sky-100 dark:bg-sky-500/15 rounded-lg">
-                                                <Pin className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                                <HugeIcon name="Pin" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                                             </span>
                                         )}
                                         {currentThread.is_resolved && (
                                             <span className="p-1.5 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg">
-                                                <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                                                <HugeIcon name="CheckmarkCircle02" className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                                             </span>
                                         )}
                                         <h1 className="text-3xl sm:text-4xl font-bold text-sky-900 dark:text-white tracking-tight">
@@ -332,7 +311,7 @@ export function ClassDiscussionBoards() {
                                         <span className="text-sky-600/60 dark:text-sky-400/60">{currentThread.created_at ? new Date(currentThread.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
                                         <span className="text-sky-300 dark:text-sky-600">•</span>
                                         <span className="flex items-center gap-1.5 text-sky-600/60 dark:text-sky-400/60">
-                                            <Eye className="w-3.5 h-3.5" />
+                                            <HugeIcon name="Eye" className="w-3.5 h-3.5" />
                                             {currentThread.view_count || 0} views
                                         </span>
                                     </div>
@@ -353,16 +332,16 @@ export function ClassDiscussionBoards() {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="sm">
-                                                <MoreVertical className="w-4 h-4" />
+                                                <HugeIcon name="MoreVertical" className="w-4 h-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
                                             <DropdownMenuItem onClick={() => toggleThreadPin(currentThread.id)}>
-                                                <Pin className="w-4 h-4 mr-2" />
+                                                <HugeIcon name="Pin" className="w-4 h-4 mr-2" />
                                                 {currentThread.is_pinned ? 'Unpin' : 'Pin'} Thread
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => toggleThreadResolved(currentThread.id)}>
-                                                <CheckCircle className="w-4 h-4 mr-2" />
+                                                <HugeIcon name="CheckmarkCircle02" className="w-4 h-4 mr-2" />
                                                 Mark as {currentThread.is_resolved ? 'Unresolved' : 'Resolved'}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
@@ -372,7 +351,7 @@ export function ClassDiscussionBoards() {
                                                 }}
                                                 className="text-red-600"
                                             >
-                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                <HugeIcon name="Delete02" className="w-4 h-4 mr-2" />
                                                 Delete Thread
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -414,7 +393,7 @@ export function ClassDiscussionBoards() {
                                                             : 'text-sky-400/30 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10'
                                                             }`}
                                                     >
-                                                        <ThumbsUp className="w-4 h-4" />
+                                                        <HugeIcon name="ThumbsUp" className="w-4 h-4" />
                                                     </button>
                                                     <span className={`text-sm font-bold ${post.user_upvoted ? 'text-sky-600 dark:text-sky-400' : 'text-sky-600/40 dark:text-sky-400/40'}`}>{post.upvotes}</span>
                                                 </div>
@@ -425,7 +404,7 @@ export function ClassDiscussionBoards() {
                                                             <span className="font-semibold text-sky-900 dark:text-white">{post.user_name}</span>
                                                             {post.is_answer && (
                                                                 <span className="flex items-center gap-1 px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-bold">
-                                                                    <Award className="w-3 h-3" />
+                                                                    <HugeIcon name="Award01" className="w-3 h-3" />
                                                                     Accepted
                                                                 </span>
                                                             )}
@@ -440,7 +419,7 @@ export function ClassDiscussionBoards() {
                                                                     onClick={() => markAsAnswer(post.id)}
                                                                     className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-full transition-colors"
                                                                 >
-                                                                    <Award className="w-3 h-3" />
+                                                                    <HugeIcon name="Award01" className="w-3 h-3" />
                                                                     Mark as Answer
                                                                 </button>
                                                             )}
@@ -449,7 +428,7 @@ export function ClassDiscussionBoards() {
                                                                     onClick={() => deletePost(post.id)}
                                                                     className="p-1.5 rounded-full text-sky-400/30 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                                 >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                    <HugeIcon name="Delete02" className="w-3.5 h-3.5" />
                                                                 </button>
                                                             )}
                                                         </div>
@@ -484,7 +463,7 @@ export function ClassDiscussionBoards() {
                                     disabled={!replyContent.trim()}
                                     className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors disabled:opacity-50"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <HugeIcon name="ArrowUp02" className="w-4 h-4" />
                                     Post Reply
                                 </button>
                             </div>
@@ -497,7 +476,7 @@ export function ClassDiscussionBoards() {
                                     onClick={() => currentBoard && handleJoinBoard(currentBoard.id)}
                                     className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
                                 >
-                                    <LogIn className="w-4 h-4" />
+                                    <HugeIcon name="Login01" className="w-4 h-4" />
                                     Join Board
                                 </button>
                             </div>
@@ -551,7 +530,7 @@ export function ClassDiscussionBoards() {
                                     }}
                                 >
                                     <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                                        <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                        <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                                     </div>
                                     <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
                                         <input
@@ -573,7 +552,7 @@ export function ClassDiscussionBoards() {
                                                 onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
                                                 className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
                                             >
-                                                <X className="w-3.5 h-3.5" />
+                                                <HugeIcon name="Cancel01" className="w-3.5 h-3.5" />
                                             </button>
                                         )}
                                     </div>
@@ -585,7 +564,7 @@ export function ClassDiscussionBoards() {
                                         onClick={() => setShowNewBoardModal(true)}
                                         className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors whitespace-nowrap"
                                     >
-                                        <Plus className="w-4 h-4" />
+                                        <HugeIcon name="PlusSign" className="w-4 h-4" />
                                         New Board
                                     </button>
                                 )}
@@ -613,17 +592,17 @@ export function ClassDiscussionBoards() {
                                     >
                                         <div className="flex items-center gap-4 flex-1 min-w-0">
                                             <div className="w-10 h-10 bg-sky-100 dark:bg-sky-500/10 rounded-xl flex items-center justify-center shrink-0">
-                                                <MessageSquare className="h-4.5 w-4.5 text-sky-500 dark:text-sky-400" />
+                                                <HugeIcon name="Chat" className="h-4.5 w-4.5 text-sky-500 dark:text-sky-400" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="text-base font-semibold text-sky-900 dark:text-white truncate mb-1">{board.name}</h3>
                                                 <div className="flex items-center gap-3 text-sm text-sky-600/50 dark:text-sky-400/50">
                                                     <span className="flex items-center gap-1">
-                                                        <Users className="w-3 h-3" />
+                                                        <HugeIcon name="UserGroup03" className="w-3 h-3" />
                                                         {board.member_count || 0} member{(board.member_count || 0) !== 1 ? 's' : ''}
                                                     </span>
                                                     <span className="flex items-center gap-1">
-                                                        <MessageSquare className="w-3 h-3" />
+                                                        <HugeIcon name="Chat" className="w-3 h-3" />
                                                         {board.thread_count || 0} thread{(board.thread_count || 0) !== 1 ? 's' : ''}
                                                     </span>
                                                     <span className="text-sky-600/30 dark:text-sky-400/30">by {board.creator_name}</span>
@@ -646,7 +625,7 @@ export function ClassDiscussionBoards() {
                                                                 className="p-1.5 rounded-full text-sky-400/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                                 title="Leave Board"
                                                             >
-                                                                <LogOut className="w-4 h-4" />
+                                                                <HugeIcon name="LogoutCircle02" className="w-4 h-4" />
                                                             </button>
                                                             {board.created_by === user.id && (
                                                                 <button
@@ -654,7 +633,7 @@ export function ClassDiscussionBoards() {
                                                                     className="p-1.5 rounded-full text-sky-400/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                                     title="Delete Board"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" />
+                                                                    <HugeIcon name="Delete02" className="w-4 h-4" />
                                                                 </button>
                                                             )}
                                                         </>
@@ -663,7 +642,7 @@ export function ClassDiscussionBoards() {
                                                             onClick={() => handleJoinBoard(board.id)}
                                                             className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
                                                         >
-                                                            <LogIn className="w-3.5 h-3.5" />
+                                                            <HugeIcon name="Login01" className="w-3.5 h-3.5" />
                                                             Join
                                                         </button>
                                                     )}
@@ -677,7 +656,7 @@ export function ClassDiscussionBoards() {
                         {boards.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-24">
                                 <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-                                    <MessageSquare className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                                    <HugeIcon name="Chat" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
                                 </div>
                                 <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Discussion Boards Yet</h3>
                                 <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-8 text-center max-w-sm">
@@ -688,7 +667,7 @@ export function ClassDiscussionBoards() {
                                         onClick={() => setShowNewBoardModal(true)}
                                         className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                                     >
-                                        <Plus className="w-4 h-4" />
+                                        <HugeIcon name="PlusSign" className="w-4 h-4" />
                                         Create Board
                                     </button>
                                 )}
@@ -704,7 +683,7 @@ export function ClassDiscussionBoards() {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                                    className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm z-50"
                                     onClick={() => setShowNewBoardModal(false)}
                                 />
                                 <motion.div
@@ -716,7 +695,7 @@ export function ClassDiscussionBoards() {
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-bold text-sky-900 dark:text-white">Create New Board</h2>
                                         <button onClick={() => setShowNewBoardModal(false)} className="p-1 rounded-lg text-sky-400/40 hover:text-sky-600 transition-colors">
-                                            <X className="w-5 h-5" />
+                                            <HugeIcon name="Cancel01" className="w-5 h-5" />
                                         </button>
                                     </div>
                                     <p className="text-sm text-sky-600/50 dark:text-sky-400/50">Create a public forum for discussions on any topic</p>
@@ -760,7 +739,7 @@ export function ClassDiscussionBoards() {
                     onClose={dismissIntro}
                     title="Welcome to Discussions!"
                     description="Collaborate with classmates by sharing questions, answers, and resources."
-                    icon={<MessageSquare className="h-6 w-6" />}
+                    icon={<HugeIcon name="Chat" size={24} className="h-6 w-6" />}
                     features={[
                         'Create and join public discussion boards',
                         'Start threads and share ideas',
@@ -777,7 +756,7 @@ export function ClassDiscussionBoards() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                                className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm z-50"
                                 onClick={() => !isDeleting && setBoardToDelete(null)}
                             />
                             <motion.div
@@ -789,7 +768,7 @@ export function ClassDiscussionBoards() {
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-lg font-bold text-sky-900 dark:text-white">Delete Board?</h2>
                                     <button onClick={() => !isDeleting && setBoardToDelete(null)} className="p-1 rounded-lg text-sky-400/40 hover:text-sky-600 transition-colors">
-                                        <X className="w-5 h-5" />
+                                        <HugeIcon name="Cancel01" className="w-5 h-5" />
                                     </button>
                                 </div>
                                 <p className="text-sm text-sky-600/60 dark:text-sky-400/60">
@@ -818,7 +797,7 @@ export function ClassDiscussionBoards() {
                                             </>
                                         ) : (
                                             <>
-                                                <Trash2 className="w-4 h-4" />
+                                                <HugeIcon name="Delete02" className="w-4 h-4" />
                                                 Delete
                                             </>
                                         )}
@@ -853,7 +832,7 @@ export function ClassDiscussionBoards() {
                         }}
                         className="flex items-center gap-2 mb-6 text-sm font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         Back to Boards
                     </button>
 
@@ -891,7 +870,7 @@ export function ClassDiscussionBoards() {
                                 }}
                             >
                                 <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                                    <Search className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                                    <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                                 </div>
                                 <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
                                     <input
@@ -912,7 +891,7 @@ export function ClassDiscussionBoards() {
                                             onClick={(e) => { e.stopPropagation(); setSearchQuery(''); searchInputRef.current?.focus(); }}
                                             className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"
                                         >
-                                            <X className="w-3.5 h-3.5" />
+                                            <HugeIcon name="Cancel01" className="w-3.5 h-3.5" />
                                         </button>
                                     )}
                                 </div>
@@ -929,7 +908,7 @@ export function ClassDiscussionBoards() {
                                         : 'text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
                                         }`}
                                 >
-                                    <MessageSquare className="h-3.5 w-3.5" />
+                                    <HugeIcon name="Chat" className="h-3.5 w-3.5" />
                                     Threads
                                 </button>
                                 <button
@@ -939,7 +918,7 @@ export function ClassDiscussionBoards() {
                                         : 'text-sky-600/60 dark:text-sky-400/60 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10'
                                         }`}
                                 >
-                                    <FileText className="h-3.5 w-3.5" />
+                                    <HugeIcon name="File02" className="h-3.5 w-3.5" />
                                     Resources
                                 </button>
 
@@ -978,7 +957,7 @@ export function ClassDiscussionBoards() {
                                     onClick={() => setShowNewThreadModal(true)}
                                     className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
                                 >
-                                    <Plus className="w-4 h-4" />
+                                    <HugeIcon name="PlusSign" className="w-4 h-4" />
                                     New Thread
                                 </button>
                             )}
@@ -988,7 +967,7 @@ export function ClassDiscussionBoards() {
                                     onClick={() => setShowNewResourceModal(true)}
                                     className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors"
                                 >
-                                    <Plus className="w-4 h-4" />
+                                    <HugeIcon name="PlusSign" className="w-4 h-4" />
                                     Add Resource
                                 </button>
                             )}
@@ -1017,8 +996,8 @@ export function ClassDiscussionBoards() {
                                             {/* Thread content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    {thread.is_pinned && <Pin className="w-3.5 h-3.5 text-sky-500 shrink-0" />}
-                                                    {thread.is_resolved && <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                                                    {thread.is_pinned && <HugeIcon name="Pin" className="w-3.5 h-3.5 text-sky-500 shrink-0" />}
+                                                    {thread.is_resolved && <HugeIcon name="CheckmarkCircle02" className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
                                                     <h3 className="text-base font-semibold text-sky-900 dark:text-white truncate">{thread.title}</h3>
                                                 </div>
                                                 <p className="text-sm text-sky-700/60 dark:text-sky-300/60 line-clamp-1 mb-1.5">
@@ -1030,7 +1009,7 @@ export function ClassDiscussionBoards() {
                                                     <span>{thread.created_at ? new Date(thread.created_at).toLocaleDateString() : 'N/A'}</span>
                                                     <span>•</span>
                                                     <span className="flex items-center gap-1">
-                                                        <Eye className="w-3 h-3" />
+                                                        <HugeIcon name="Eye" className="w-3 h-3" />
                                                         {thread.view_count || 0}
                                                     </span>
                                                 </div>
@@ -1056,7 +1035,7 @@ export function ClassDiscussionBoards() {
                                 {filteredThreads.length === 0 && (
                                     <div className="flex flex-col items-center justify-center py-24">
                                         <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-                                            <MessageSquare className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                                            <HugeIcon name="Chat" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
                                         </div>
                                         <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Threads Yet</h3>
                                         <p className="text-sm text-sky-600/50 dark:text-sky-400/50 text-center max-w-sm">
@@ -1089,7 +1068,7 @@ export function ClassDiscussionBoards() {
                                                         onClick={() => deleteResource(resource.id)}
                                                         className="p-1.5 rounded-full text-sky-400/30 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
+                                                        <HugeIcon name="Delete02" className="w-4 h-4" />
                                                     </button>
                                                 )}
                                             </div>
@@ -1126,7 +1105,7 @@ export function ClassDiscussionBoards() {
                                                     onClick={() => toggleResourceUpvote(resource.id)}
                                                     className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors ${resource.user_upvoted ? 'text-sky-600 dark:text-sky-400' : 'text-sky-400/40 hover:text-sky-500'}`}
                                                 >
-                                                    <ThumbsUp className="w-3.5 h-3.5" />
+                                                    <HugeIcon name="ThumbsUp" className="w-3.5 h-3.5" />
                                                     <span className="text-xs font-medium">{resource.upvotes}</span>
                                                 </button>
                                             </div>
@@ -1137,7 +1116,7 @@ export function ClassDiscussionBoards() {
                                 {filteredResources.length === 0 && (
                                     <div className="col-span-full flex flex-col items-center justify-center py-24">
                                         <div className="w-20 h-20 bg-[#f5f9fc] dark:bg-gray-800 rounded-3xl border border-sky-100 dark:border-gray-700 flex items-center justify-center mb-6">
-                                            <FileText className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
+                                            <HugeIcon name="File02" className="h-9 w-9 text-sky-500/30 dark:text-sky-400/30" />
                                         </div>
                                         <h3 className="text-xl font-bold text-sky-900 dark:text-white mb-2">No Resources Yet</h3>
                                         <p className="text-sm text-sky-600/50 dark:text-sky-400/50 text-center max-w-sm">
@@ -1159,7 +1138,7 @@ export function ClassDiscussionBoards() {
                 onClose={dismissIntro}
                 title="Welcome to Discussion Boards!"
                 description="Join public forums and collaborate with students worldwide"
-                icon={<MessageSquare className="h-6 w-6" />}
+                icon={<HugeIcon name="Chat" className="h-6 w-6" />}
                 features={[
                     'Join or create public discussion boards',
                     'Ask questions and share knowledge',

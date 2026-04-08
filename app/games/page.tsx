@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Gamepad2, Trophy, Zap, ArrowRight, Lock, Layers, Waves, Sparkles, PartyPopper, X, Brain, Type, Target, Calculator, Keyboard, Palette } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useClassContext } from '@/context/ClassContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
@@ -84,7 +84,7 @@ export default function GamesPage() {
             id: 'color-match',
             title: 'Color Match',
             description: 'The Stroop effect! The word says one color but appears in another — pick the right color!',
-            icon: Palette,
+            icon: <HugeIcon name="PaintBoard" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/color-match',
             accent: 'pink',
             unlockThreshold: 55,
@@ -97,7 +97,7 @@ export default function GamesPage() {
             id: 'math-sprint',
             title: 'Math Sprint',
             description: 'Solve rapid-fire math problems in 60 seconds — addition, subtraction, multiplication & more!',
-            icon: Calculator,
+            icon: <HugeIcon name="Calculate" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/math-sprint',
             accent: 'sky',
             unlockThreshold: 60,
@@ -110,7 +110,7 @@ export default function GamesPage() {
             id: 'typing-speed',
             title: 'Typing Speed',
             description: 'Type academic sentences as fast as you can — complete homework for bonus time!',
-            icon: Keyboard,
+            icon: <HugeIcon name="Keyboard" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/typing-speed',
             accent: 'sky',
             unlockThreshold: 65,
@@ -123,7 +123,7 @@ export default function GamesPage() {
             id: 'memory-match',
             title: 'Memory Match',
             description: 'Flip cards to find matching pairs — more homework remaining means more cards to match!',
-            icon: Brain,
+            icon: <HugeIcon name="Brain" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/memory-match',
             accent: 'violet',
             unlockThreshold: 70,
@@ -136,7 +136,7 @@ export default function GamesPage() {
             id: 'snake',
             title: 'Snake',
             description: 'Classic snake game with a twist — difficulty scales with your remaining homework!',
-            icon: Waves,
+            icon: <HugeIcon name="Maze" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/snake',
             accent: 'sky',
             unlockThreshold: 75,
@@ -149,7 +149,7 @@ export default function GamesPage() {
             id: 'task-tower',
             title: 'Task Tower',
             description: 'Tetris-style game where blocks are your tasks! Clear lines by organizing assignments efficiently.',
-            icon: Layers,
+            icon: <HugeIcon name="PisaTower" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/task-tower',
             accent: 'emerald',
             unlockThreshold: 80,
@@ -162,7 +162,7 @@ export default function GamesPage() {
             id: 'word-scramble',
             title: 'Word Scramble',
             description: 'Unscramble academic vocabulary against the clock — less time per word with more homework left!',
-            icon: Type,
+            icon: <HugeIcon name="TextFont" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/word-scramble',
             accent: 'amber',
             unlockThreshold: 85,
@@ -175,7 +175,7 @@ export default function GamesPage() {
             id: 'reaction-time',
             title: 'Reaction Time',
             description: 'Test your reflexes! Click colorful targets before they vanish — speed matters!',
-            icon: Target,
+            icon: <HugeIcon name="Target01" className="w-6 h-6 text-sky-500 dark:text-sky-400" />,
             href: '/reaction-time',
             accent: 'emerald',
             unlockThreshold: 90,
@@ -222,7 +222,7 @@ export default function GamesPage() {
                 >
                     <div className="flex items-center gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
                         <div className="w-11 h-11 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
-                            <Gamepad2 className="w-5 h-5 text-sky-500 dark:text-sky-400" />
+                            <HugeIcon name="GameController01" className="w-5 h-5 text-sky-500 dark:text-sky-400" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-sky-900 dark:text-white leading-none mb-0.5">
@@ -236,7 +236,7 @@ export default function GamesPage() {
 
                     <div className="flex items-center gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
                         <div className="w-11 h-11 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center shrink-0">
-                            <Sparkles className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                            <HugeIcon name="Star" className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-sky-900 dark:text-white leading-none mb-0.5">
@@ -250,7 +250,7 @@ export default function GamesPage() {
 
                     <div className="flex items-center gap-4 px-5 py-4 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
                         <div className="w-11 h-11 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
-                            <Trophy className="w-5 h-5 text-sky-500 dark:text-sky-400" />
+                            <HugeIcon name="Award01" className="w-5 h-5 text-sky-500 dark:text-sky-400" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-sky-900 dark:text-white leading-none mb-0.5">
@@ -295,10 +295,10 @@ export default function GamesPage() {
                                 >
                                     {/* Icon */}
                                     <div className="relative w-12 h-12 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center shrink-0">
-                                        <Icon className="w-6 h-6 text-sky-500 dark:text-sky-400" />
+                                        {Icon}
                                         {!isUnlocked && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-xl backdrop-blur-[1px]">
-                                                <Lock className="w-4 h-4 text-sky-400/50" />
+                                                <HugeIcon name="CircleLock01" className="w-4 h-4 text-sky-400/50" />
                                             </div>
                                         )}
                                     </div>
@@ -311,12 +311,12 @@ export default function GamesPage() {
                                             </h3>
                                             {isUnlocked ? (
                                                 <span className="flex items-center gap-1 px-2.5 py-0.5 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 text-sky-600 dark:text-sky-400 rounded-full text-[11px] font-bold">
-                                                    <Trophy className="w-3 h-3" />
+                                                    <HugeIcon name="Award01" className="w-3 h-3" />
                                                     Unlocked
                                                 </span>
                                             ) : (
                                                 <span className="flex items-center gap-1 px-2.5 py-0.5 bg-sky-50 dark:bg-sky-500/10 text-sky-500/50 dark:text-sky-400/50 rounded-full text-[11px] font-medium">
-                                                    <Lock className="w-3 h-3" />
+                                                    <HugeIcon name="CircleLock01" className="w-3 h-3" />
                                                     {game.stats.value}
                                                 </span>
                                             )}
@@ -330,7 +330,7 @@ export default function GamesPage() {
                                     {isUnlocked && (
                                         <button className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors shrink-0">
                                             Play
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                                            <HugeIcon name="ArrowRight01" className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                                         </button>
                                     )}
                                 </motion.div>
@@ -402,7 +402,7 @@ export default function GamesPage() {
                                         onClick={() => setShowUnlockedModal(false)}
                                         className="absolute top-4 right-4 p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 rounded-full transition-colors"
                                     >
-                                        <X className="h-4 w-4" />
+                                        <HugeIcon name="Cancel01" className="h-4 w-4" />
                                     </button>
 
                                     {/* Trophy icon with glow */}
@@ -412,7 +412,7 @@ export default function GamesPage() {
                                         transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
                                         className="w-20 h-20 bg-[#ebf6b5]/60 dark:bg-emerald-500/15 rounded-3xl flex items-center justify-center mx-auto mb-5 border border-[#d4e88e]/40"
                                     >
-                                        <PartyPopper className="w-9 h-9 text-sky-600 dark:text-sky-400" />
+                                        <HugeIcon name="Party" className="w-9 h-9 text-sky-600 dark:text-sky-400" />
                                     </motion.div>
 
                                     <motion.h3
@@ -430,7 +430,7 @@ export default function GamesPage() {
                                         transition={{ delay: 0.2 }}
                                         className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-6"
                                     >
-                                        You&apos;ve earned access to <span className="font-semibold text-sky-700 dark:text-sky-300">{selectedGame.title}</span>. Have fun!
+                                        You've earned access to <span className="font-semibold text-sky-700 dark:text-sky-300">{selectedGame.title}</span>. Have fun!
                                     </motion.p>
 
                                     <motion.div
@@ -442,7 +442,7 @@ export default function GamesPage() {
                                             onClick={() => router.push(selectedGame.href)}
                                             className="w-full h-11 flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
                                         >
-                                            <Gamepad2 className="w-4 h-4" />
+                                            <HugeIcon name="GameController01" className="w-4 h-4" />
                                             Play {selectedGame.title}
                                         </button>
                                     </motion.div>
@@ -468,7 +468,7 @@ export default function GamesPage() {
                 onClose={dismissIntro}
                 title="Welcome to Game Center!"
                 description="Earn games by completing your homework - the more you finish, the easier they become!"
-                icon={<Gamepad2 className="h-6 w-6" />}
+                icon={<HugeIcon name="Gameboy" size={24} className="h-6 w-6" />}
                 features={[
                     'Unlock games by completing homework assignments',
                     'Game difficulty adjusts based on remaining homework',

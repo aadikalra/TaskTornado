@@ -4,7 +4,7 @@ import { PlateEditor } from '@/components/editor/plate-editor';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
-import { PenTool, Lock, Sparkles, Zap, MessageSquare } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { useUpgrade } from '@/context/UpgradeContext';
@@ -33,7 +33,7 @@ const WritingAssistPage = () => {
         >
           {/* Icon */}
           <div className="mx-auto w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 dark:from-violet-500/20 dark:to-fuchsia-500/20 border border-violet-200/30 dark:border-violet-500/20 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-violet-400 dark:text-violet-300" />
+            <HugeIcon name="CircleLock01" className="w-8 h-8 text-violet-400 dark:text-violet-300" />
           </div>
 
           {/* Heading */}
@@ -50,10 +50,10 @@ const WritingAssistPage = () => {
           {/* Feature list */}
           <div className="space-y-3 text-left max-w-xs mx-auto">
             {[
-              { icon: PenTool, label: 'Rich text editor with full formatting' },
-              { icon: Sparkles, label: 'AI Copilot autocomplete on every pause' },
-              { icon: MessageSquare, label: 'AI Commands — edit, generate, comment' },
-            ].map(({ icon: Icon, label }, i) => (
+              { icon: 'PenTool01', label: 'Rich text editor with full formatting' },
+              { icon: 'AiMagic', label: 'AI Copilot autocomplete on every pause' },
+              { icon: 'Chat', label: 'AI Commands — edit, generate, comment' },
+            ].map(({ icon, label }, i) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, x: -12 }}
@@ -62,7 +62,7 @@ const WritingAssistPage = () => {
                 className="flex items-center gap-3 py-2"
               >
                 <div className="w-8 h-8 rounded-xl bg-violet-500/8 dark:bg-violet-500/15 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+                  <HugeIcon name={icon} className="w-4 h-4 text-violet-500 dark:text-violet-400" />
                 </div>
                 <span className="text-sm text-sky-800 dark:text-sky-200">{label}</span>
               </motion.div>
@@ -99,7 +99,7 @@ const WritingAssistPage = () => {
           onClose={dismissIntro}
           title="Welcome to Writing Assist!"
           description="AI-powered writing assistant with intelligent autocomplete and rich text editing"
-          icon={<PenTool className="h-6 w-6" />}
+          icon={<HugeIcon name="AiContentGenerator02" size={24} className="h-6 w-6" />}
           features={[
             'Rich text editor with full formatting options',
             'AI-powered writing improvements (Cmd+J)',

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
-import { ChevronLeft, ChevronRight, RotateCcw, Save, Loader2, X, Sparkle } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useAuth } from '@/context/AuthContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { toast } from 'sonner';
@@ -135,7 +135,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
                 {/* Card header */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-3">
                   <div className="flex items-center gap-2">
-                    <Sparkle className="w-3.5 h-3.5 text-sky-500/40 dark:text-sky-400/40" />
+                    <HugeIcon name="AiMagic" className="w-3.5 h-3.5 text-sky-500/40 dark:text-sky-400/40" />
                     <span className="text-[11px] font-bold text-sky-500/40 dark:text-sky-400/40 uppercase tracking-widest">
                       Question
                     </span>
@@ -166,7 +166,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
                 {/* Card header */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-3">
                   <div className="flex items-center gap-2">
-                    <Sparkle className="w-3.5 h-3.5 text-sky-700/40 dark:text-sky-400/40" />
+                    <HugeIcon name="AiMagic" className="w-3.5 h-3.5 text-sky-700/40 dark:text-sky-400/40" />
                     <span className="text-[11px] font-bold text-sky-700/40 dark:text-sky-400/40 uppercase tracking-widest">
                       Answer
                     </span>
@@ -194,7 +194,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
           disabled={cards.length <= 1}
           className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <HugeIcon name="ArrowLeft01" className="h-4 w-4" />
           Prev
         </button>
 
@@ -203,7 +203,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
             onClick={() => setIsFlipped(!isFlipped)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <HugeIcon name="Rotate01" className="h-3.5 w-3.5" />
             Flip
           </button>
 
@@ -215,12 +215,12 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <HugeIcon name="LoaderPinwheel" className="h-3.5 w-3.5 animate-spin" />
                   Saving
                 </>
               ) : (
                 <>
-                  <Save className="h-3.5 w-3.5" />
+                  <HugeIcon name="CheckmarkCircle02" className="h-3.5 w-3.5" />
                   Save
                 </>
               )}
@@ -234,7 +234,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
           className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Next
-          <ChevronRight className="h-4 w-4" />
+          <HugeIcon name="ArrowRight01" className="h-4 w-4" />
         </button>
       </div>
 
@@ -283,7 +283,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
                       onClick={() => setShowSaveDialog(false)}
                       className="p-1.5 rounded-lg text-sky-500/40 hover:text-sky-600 dark:text-sky-400/40 dark:hover:text-sky-400 hover:bg-sky-500/5 dark:hover:bg-sky-400/5 transition-colors"
                     >
-                      <X className="h-4 w-4" />
+                      <HugeIcon name="Cancel01" className="h-4 w-4" />
                     </button>
                   </div>
 
@@ -317,7 +317,7 @@ export function FlashcardDeck({ cards, onSave }: FlashcardProps) {
                       >
                         {isSaving ? (
                           <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <HugeIcon name="LoaderPinwheel" className="h-3.5 w-3.5 animate-spin" />
                             Saving...
                           </>
                         ) : (

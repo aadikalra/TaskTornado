@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useClassContext } from '@/context/ClassContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
-import { ArrowLeft, RotateCcw, Trophy, Zap, Timer, AlertTriangle, Play, CheckCircle2, XCircle, Settings2 } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -255,7 +255,7 @@ function TopicSelector({ selected, onToggle, onStart }: {
         <div className="w-full max-w-xl">
             <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-sky-100 dark:bg-sky-500/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Settings2 className="w-7 h-7 text-sky-500" />
+                    <HugeIcon name="Settings02" className="w-7 h-7 text-sky-500" />
                 </div>
                 <h2 className="text-2xl font-bold text-sky-900 dark:text-white mb-2">Choose Your Topics</h2>
                 <p className="text-sm text-sky-600/50 dark:text-sky-400/50">
@@ -302,7 +302,7 @@ function TopicSelector({ selected, onToggle, onStart }: {
                                 >
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold ${isSelected ? 'bg-sky-500 text-white' : 'bg-sky-100 dark:bg-gray-800 text-sky-500/50'
                                         }`}>
-                                        {isSelected ? '✓' : topic.emoji}
+                                        {isSelected ? <HugeIcon name="CheckmarkCircle02" className="w-4 h-4" /> : topic.emoji}
                                     </div>
                                     <div className="min-w-0">
                                         <p className={`text-[13px] font-semibold leading-tight ${isSelected ? 'text-sky-900 dark:text-white' : 'text-sky-700/70 dark:text-sky-300/70'
@@ -327,7 +327,7 @@ function TopicSelector({ selected, onToggle, onStart }: {
                     disabled={selected.size === 0}
                     className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                    <Play className="w-4 h-4" />
+                    <HugeIcon name="Play" className="w-4 h-4" />
                     Start Sprint ({selected.size} topic{selected.size !== 1 ? 's' : ''})
                 </button>
             </div>
@@ -422,21 +422,21 @@ function MathSprintGame({ topics, onBack }: { topics: string[]; onBack: () => vo
             {/* Stats */}
             <div className="flex items-center gap-3 mb-5 w-full">
                 <div className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                    <Trophy className="w-4 h-4 text-sky-500" />
+                    <HugeIcon name="Award01" className="w-4 h-4 text-sky-500" />
                     <span className="text-sm font-bold text-sky-900 dark:text-white">{score}</span>
                     <span className="text-[11px] text-sky-500/50 font-medium">pts</span>
                 </div>
                 <div className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                    <Zap className="w-4 h-4 text-amber-500" />
+                    <HugeIcon name="Zap" className="w-4 h-4 text-amber-500" />
                     <span className="text-sm font-bold text-sky-900 dark:text-white">{streak}</span>
                     <span className="text-[11px] text-sky-500/50 font-medium">streak</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl">
-                    <Timer className={`w-4 h-4 ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-500'}`} />
+                    <HugeIcon name="Timer01" className={`w-4 h-4 ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-500'}`} />
                     <span className={`text-sm font-bold ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-900 dark:text-white'}`}>{timeLeft}s</span>
                 </div>
                 <button onClick={startGame} className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors" title="Restart">
-                    <RotateCcw className="w-4 h-4" />
+                    <HugeIcon name="Rotate01" className="w-4 h-4" />
                 </button>
             </div>
 
@@ -462,11 +462,11 @@ function MathSprintGame({ topics, onBack }: { topics: string[]; onBack: () => vo
                         <p className="text-sm text-sky-600/40 mt-1">{correct}/{totalAnswered} correct · {topics.length} topic{topics.length !== 1 ? 's' : ''}</p>
                         <div className="flex items-center gap-3 mt-3">
                             <button onClick={startGame} className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-full transition-colors">
-                                <RotateCcw className="w-4 h-4" />
+                                <HugeIcon name="Rotate01" className="w-4 h-4" />
                                 Play Again
                             </button>
                             <button onClick={onBack} className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-500 hover:text-sky-600 bg-sky-500/[0.06] hover:bg-sky-500/[0.1] rounded-full transition-colors">
-                                <Settings2 className="w-4 h-4" />
+                                <HugeIcon name="Settings02" className="w-4 h-4" />
                                 Topics
                             </button>
                         </div>
@@ -518,7 +518,7 @@ function MathSprintGame({ topics, onBack }: { topics: string[]; onBack: () => vo
                                     className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-lg font-bold text-sky-900 dark:text-white placeholder:text-sky-300/30 outline-none focus:border-sky-400 dark:focus:border-sky-500/40 transition-colors text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                                 <button type="submit" disabled={!userInput.trim()} className="px-5 py-3 bg-sky-500 text-white font-semibold text-sm rounded-xl hover:bg-sky-600 disabled:opacity-40 transition-all">
-                                    <CheckCircle2 className="w-5 h-5" />
+                                    <HugeIcon name="CheckmarkCircle02" className="w-5 h-5" />
                                 </button>
                             </div>
                         </form>
@@ -536,9 +536,9 @@ function MathSprintGame({ topics, onBack }: { topics: string[]; onBack: () => vo
                                         }`}
                                 >
                                     {feedback === 'correct' ? (
-                                        <><CheckCircle2 className="w-4 h-4" /> Correct!</>
+                                        <><HugeIcon name="CheckmarkCircle02" className="w-4 h-4" /> Correct!</>
                                     ) : (
-                                        <><XCircle className="w-4 h-4" /> Answer: {problem?.answer}</>
+                                        <><HugeIcon name="CancelCircle" className="w-4 h-4" /> Answer: {problem?.answer}</>
                                     )}
                                 </motion.div>
                             )}
@@ -584,7 +584,7 @@ export default function MathSprintPage() {
             <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <Link href="/games" className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold transition-colors mb-6">
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         Back to Game Center
                     </Link>
                 </motion.div>
@@ -622,7 +622,7 @@ export default function MathSprintPage() {
                             </div>
                             <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-6">
                                 <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 rounded-xl mb-5">
-                                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">60% homework required</p>
                                         <p className="text-xs text-amber-600/80 dark:text-amber-400/80">Complete more assignments to unlock Math Sprint.</p>

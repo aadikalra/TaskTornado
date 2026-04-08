@@ -19,7 +19,6 @@ import {
   FileQuestion,
   FileSearch,
   FileClock,
-  FileTerminal,
   FileCode,
   FileJson,
   FileSpreadsheet,
@@ -189,6 +188,8 @@ import {
 import { Pen } from 'lucide-react';
 import React from 'react';
 
+import { HugeIcon, hugeIconMap } from './huge-icon-map';
+
 // Map of icon names to their corresponding Lucide icon components
 export const iconMap = {
   // School & Education
@@ -351,23 +352,12 @@ export const iconMap = {
 
 export type IconName = keyof typeof iconMap;
 
-// Helper function to get a class icon component by name
-export const getClassIcon = (iconName?: string): React.ComponentType<any> => {
-  if (!iconName) return BookOpen;
-
-  // First try exact match
-  if (iconMap[iconName as IconName]) {
-    return iconMap[iconName as IconName];
+// Helper function to get a HugeIcon name by class name (with fallback to BookOpen)
+export const getClassIcon = (iconName?: string): string => {
+  // If the icon name is already a HugeIcon name (exists in hugeIconMap), return it
+  // Otherwise, return 'BookOpen' as fallback
+  if (iconName && hugeIconMap[iconName as keyof typeof hugeIconMap]) {
+    return iconName;
   }
-
-  // Fallback to case-insensitive search
-  const lowerIconName = iconName.toLowerCase();
-  for (const [key, iconComponent] of Object.entries(iconMap)) {
-    if (key.toLowerCase() === lowerIconName) {
-      return iconComponent;
-    }
-  }
-
-  // Final fallback
-  return BookOpen;
+  return 'BookOpen';
 };

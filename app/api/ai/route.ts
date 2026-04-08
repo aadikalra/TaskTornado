@@ -6,7 +6,7 @@ const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
 
 // Ollama Cloud API configuration
 const OLLAMA_CLOUD_API_URL = 'https://ollama.com/api';
-const OLLAMA_CLOUD_API_KEY = process.env.OLLAMA_API_KEY;
+const OLLAMA_CLOUD_API_KEY = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY;
 
 // Rate limiting: 60 requests per minute
 const RATE_LIMIT_PER_MINUTE = 60;
@@ -412,9 +412,8 @@ export async function POST(req: NextRequest) {
       // Strip the -cloud suffix as Ollama expects the base model name
       const ollamaModelName = model.replace(/-cloud$/, '');
 
-      const ollamaRequestBody = {
+      let ollamaRequestBody: any = {
         model: ollamaModelName,
-        messages: messages ? convertToOllamaMessages(messages) : [{ role: 'user', content: prompt }],
         options: {
           temperature: 0.7,
           top_p: 0.9,
@@ -422,10 +421,17 @@ export async function POST(req: NextRequest) {
         stream: true, // Enable streaming
       };
 
+      if (action === 'chat') {
+        ollamaRequestBody.messages = messages ? convertToOllamaMessages(messages) : [{ role: 'user', content: prompt }];
+      } else {
+        // For action === 'generate'
+        ollamaRequestBody.prompt = prompt || (messages && messages.length > 0 ? messages[messages.length - 1].content : '');
+      }
+
       console.log('Ollama Cloud request:', {
         originalModel: model,
         ollamaModel: ollamaModelName,
-        messageCount: ollamaRequestBody.messages.length,
+        isChat: action === 'chat',
         stream: ollamaRequestBody.stream
       });
 

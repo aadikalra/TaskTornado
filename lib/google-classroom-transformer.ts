@@ -1,4 +1,4 @@
-import { Class, Homework, LucideIconName } from '@/context/ClassContext';
+import { Class, Homework, HugeIconName } from '@/context/ClassContext';
 import { classroom_v1 } from 'googleapis';
 
 const classColorPalette = [
@@ -25,7 +25,7 @@ export function transformGoogleClassroomData(
     const transformedClasses: Class[] = courses.map((course, index) => ({
         id: course.id || `gc-${index}`,
         name: course.name || 'Unknown Course',
-        icon: 'BookOpen' as LucideIconName,
+        icon: 'BookOpen' as HugeIconName,
         color: generateConsistentColor(course.id || `gc-${index}`),
         user_id: userId,
         created_at: course.creationTime || new Date().toISOString(),

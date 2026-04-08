@@ -64,6 +64,7 @@ import { Toast, ToastContainer } from './Toast';
 import { AIChecklist } from '@/components/ai-checklist';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { useUpgrade } from '@/context/UpgradeContext';
+import BulkAddHomeworkDisplay from '@/components/BulkAddHomeworkDisplay';
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -74,6 +75,10 @@ interface Message {
   images?: string[];
   interactiveButtons?: InteractiveButton[];
   checklist?: AIChecklistData;
+  bulkAddDisplay?: {
+    homeworks: Homework[];
+    classes: Class[];
+  };
 }
 
 interface AIChecklistData {
@@ -87,6 +92,8 @@ interface InteractiveButton {
   shortcut?: string;
   prompt: string;
   style?: 'primary' | 'secondary' | 'outline';
+  action?: 'send_prompt' | 'copy';
+  payload?: string;
 }
 
 function parseInteractiveButtons(content: string): { content: string; buttons: InteractiveButton[] } {
@@ -108,8 +115,10 @@ function parseInteractiveButtons(content: string): { content: string; buttons: I
         id: `btn_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
         text: btn.text,
         shortcut: btn.shortcut,
-        prompt: btn.prompt,
-        style: btn.style || 'secondary'
+        prompt: btn.prompt || '',
+        style: btn.style || 'secondary',
+        action: btn.action || 'send_prompt',
+        payload: btn.payload
       }))
     };
   } catch (error) {
@@ -366,6 +375,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     homeworks = [],
     tests = [],
     classes = [],
+    addHomework = async () => {},
   } = classContext || {};
 
   // State to trigger chip rotation
@@ -435,7 +445,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
   // Track active @-command
   const [activeCommand, setActiveCommand] = useState<
-    'data' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | null
+    'data' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | 'bulkadd' | null
   >(null);
 
   // Toast state
@@ -507,6 +517,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     { id: 'quiz', label: 'Quiz', icon: HelpCircle, color: 'orange', description: 'Generate interactive quizzes' },
     { id: 'therapist', label: 'Therapist', icon: MessageSquare, color: 'cyan', description: 'Mental health support' },
     { id: 'grade', label: 'Grade', icon: Calculator, color: 'green', description: 'Grade assignments' },
+    { id: 'bulkadd', label: 'Bulk Add', icon: Plus, color: 'sky', description: 'Smart fill multiple homeworks' },
   ];
 
   const clearConversation = () => {
@@ -608,6 +619,10 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       dataToastShownRef.current = false;
     } else if (inputLower.includes('@grade')) {
       setActiveCommand('grade');
+      setShowHomeworkEffect(false);
+      dataToastShownRef.current = false;
+    } else if (inputLower.includes('@bulkadd')) {
+      setActiveCommand('bulkadd');
       setShowHomeworkEffect(false);
       dataToastShownRef.current = false;
     } else {
@@ -855,6 +870,185 @@ Please try your request again in a few minutes, or be more specific about what y
     }
   };
 
+
+  /* ---------------------------------------------------------------------- */
+  /* @bulkadd command handling                                              */
+  /* ---------------------------------------------------------------------- */
+  const handleBulkAddCommand = async (userInput: string, onProgress?: (content: string) => void) => {
+    const text = userInput.replace(/@bulkadd/i, '').trim();
+
+    if (!text) {
+      return `# Bulk Add Homework
+I can add multiple homework assignments at once! Just type:
+
+@bulkadd [your list of assignments]
+
+For example:
+- @bulkadd Math ch5 due Friday high priority, history draft next week, read physical science ch 12 tomorrow`;
+    }
+
+    // First, let the user know we're working on it
+    const loadingMsg = {
+      id: Date.now(),
+      role: 'assistant' as const,
+      content: 'Parsing and adding your homework assignments...',
+      timestamp: new Date(),
+      isLoading: true,
+    };
+    setMessages(prev => [...prev, loadingMsg]);
+
+    try {
+      const classNames = classes.map((c: any) => c.name).join(', ');
+      const today = new Date().toISOString().split('T')[0];
+      const dateRef = `Today is ${today}. For contextual dates, resolve against today.`;
+
+      const prompt = `Extract all homework assignments from the following text and return them as a JSON array.
+Text: "${text}"
+
+Available classes: ${classNames}
+Date Reference: ${dateRef}
+Priority Options: "low", "medium", "high"
+Example Output format:
+[
+  {
+    "title": "Ch 5 Questions",
+    "description": "",
+    "dueDate": "2024-11-20",
+    "priority": "high",
+    "className": "Homeroom",
+    "links": [{"title": "Google Docs", "url": "https://docs.google.com"}]
+  }
+]
+
+Return ONLY a valid JSON array of objects. Each object should have:
+- "title": string
+- "description": string (optional)
+- "dueDate": string (use the date reference to pick the correct yyyy-MM-dd date)
+- "priority": "low" | "medium" | "high" (default to medium if unsure)
+- "className": string (must exactly match one of the available classes)
+- "links": array of objects [{"title": "Platform Name", "url": "https://example.com"}] (if links are provided, smartly infer title from domain)
+
+Do not include any other text, markdown, or explanation. It MUST be an unformatted array [] of items.`;
+
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          action: 'chat',
+          model: selectedModel
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(`${errData.error || 'Failed to communicate with AI provider'}${errData.details ? `: ${errData.details}` : ''}`);
+      }
+
+      const reader = response.body?.getReader();
+      let aiText = '';
+      
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.response) {
+                  aiText += data.response;
+                }
+              } catch (e) { }
+            }
+          }
+        }
+      }
+
+      // Remove loading message
+      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id));
+
+      // Robust JSON extraction
+      let jsonString = aiText.trim();
+      // Remove markdown codeblock if present
+      if (jsonString.startsWith('```json')) {
+        jsonString = jsonString.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+      } else if (jsonString.startsWith('```')) {
+        jsonString = jsonString.replace(/^```\n?/, '').replace(/\n?```$/, '');
+      }
+
+      const jsonMatch = jsonString.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+         console.error('Failed to parse AI output:', aiText);
+         const safePayload = JSON.stringify(aiText).slice(1, -1);
+         const fallbackButtons = `\n\n\`\`\`interactive_buttons\n[\n  {\n    "text": "❔ Copy AI Output",\n    "prompt": "",\n    "action": "copy",\n    "style": "outline",\n    "payload": "${safePayload}"\n  }\n]\n\`\`\``;
+         return 'Could not understand the homework list. Please try phrasing it more clearly.' + fallbackButtons;
+      }
+
+      let tasks = [];
+      try {
+        tasks = JSON.parse(jsonMatch[0]);
+      } catch (e) {
+         console.error('Failed to parse JSON string:', jsonMatch[0]);
+         const safePayload = JSON.stringify(aiText).slice(1, -1);
+         const fallbackButtons = `\n\n\`\`\`interactive_buttons\n[\n  {\n    "text": "❔ Copy AI Output",\n    "prompt": "",\n    "action": "copy",\n    "style": "outline",\n    "payload": "${safePayload}"\n  }\n]\n\`\`\``;
+         return 'Sorry, there was an issue processing the list format. Please try again.' + fallbackButtons;
+      }
+
+      let addedCount = 0;
+      const addedHomeworks: any[] = [];
+
+      for (const task of tasks) {
+        const d = task.dueDate ? new Date(task.dueDate + 'T12:00:00') : new Date();
+        const matchedClass = classes.find((c: any) => c.name.toLowerCase() === task.className?.toLowerCase());
+        
+        if (matchedClass) {
+          const processedLinks = (task.links && Array.isArray(task.links)) 
+              ? task.links.filter((l: any) => l.title && l.url) 
+              : [];
+
+          const homework = await addHomework(
+            matchedClass.id, 
+            task.title || 'Untitled Homework', 
+            d, 
+            task.priority || 'medium', 
+            processedLinks, 
+            task.description || ''
+          );
+          
+          addedCount++;
+          
+          // Create a simple object for display
+          addedHomeworks.push({
+            id: (homework as any)?.id || `temp-${Date.now()}-${addedCount}`,
+            title: task.title || 'Untitled Homework',
+            description: task.description || '',
+            dueDate: d.toISOString(),
+            priority: task.priority || 'medium',
+            completed: false,
+            classId: matchedClass.id,
+            links: processedLinks,
+            pinned: false,
+          });
+        }
+      }
+
+      // Return a special response with bulk add data
+      const specialResponse = `BULK_ADD_SUCCESS:${JSON.stringify({
+        count: addedCount,
+        homeworks: addedHomeworks,
+        classes: classes
+      })}`;
+      
+      return specialResponse;
+    } catch (error) {
+      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id));
+      console.error(error);
+      return 'An error occurred while trying to add assignments.';
+    }
+  };
 
   /* ---------------------------------------------------------------------- */
   /* @flashcards command handling                  */
@@ -1323,6 +1517,59 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
   };
 
   const handleInteractiveButtonClick = async (button: InteractiveButton) => {
+    if (button.action === 'copy') {
+      if (button.payload) {
+        const fallbackCopy = (text: string) => {
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          // Avoid scrolling to bottom
+          textArea.style.top = '0';
+          textArea.style.left = '0';
+          textArea.style.position = 'fixed';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (!successful) throw new Error('Fallback string copy failed');
+          } catch (err) {
+            document.body.removeChild(textArea);
+            throw err;
+          }
+        };
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+              await navigator.clipboard.writeText(button.payload);
+            } catch (err) {
+              // If modern clipboard API fails (e.g. insecure local context), try fallback
+              fallbackCopy(button.payload);
+            }
+          } else {
+            fallbackCopy(button.payload);
+          }
+          
+          addToast({
+            type: 'success',
+            title: 'Copied!',
+            message: 'AI response copied to clipboard.',
+            duration: 3000
+          });
+        } catch (err) {
+          console.error('Failed to copy text:', err);
+          addToast({
+            type: 'error',
+            title: 'Copy Failed',
+            message: 'Could not copy to clipboard. Please check browser permissions.',
+            duration: 4000
+          });
+        }
+      }
+      return;
+    }
+
     // Create a user message directly with the button's prompt
     const userMessage: Message = {
       id: Date.now(),
@@ -1658,6 +1905,7 @@ Examples of correct button prompts:
     const isQuizCommand = userInput.toLowerCase().includes('@quiz');
     const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
     const isGradeCommand = userInput.toLowerCase().includes('@grade');
+    const isBulkAddCommand = userInput.toLowerCase().includes('@bulkadd');
 
     if ((!userInput && selectedImages.length === 0) || isAILoading) return;
 
@@ -1814,6 +2062,90 @@ Examples of correct button prompts:
         timestamp: new Date()
       }]);
       return;
+    }
+
+    // --------------------------------------------------------------
+    // @bulkadd command
+    // --------------------------------------------------------------
+    if (isBulkAddCommand) {
+      // Show initial loading message
+      const initialLoadingMsg = {
+        id: Date.now(),
+        role: 'assistant' as const,
+        content: 'Analyzing your homework assignments...',
+        timestamp: new Date(),
+        isLoading: true,
+      };
+      setMessages(prev => [...prev, initialLoadingMsg]);
+
+      try {
+        const response = await handleBulkAddCommand(userInput);
+        
+        if (response) {
+          // Check if this is a special bulk add success response
+          if (response.startsWith('BULK_ADD_SUCCESS:')) {
+            try {
+              const data = JSON.parse(response.replace('BULK_ADD_SUCCESS:', ''));
+              
+              // Replace loading message with bulk add display
+              setMessages((prev) => [
+                ...prev.filter(m => m.id !== initialLoadingMsg.id),
+                userMessage,
+                {
+                  id: Date.now(),
+                  role: 'assistant',
+                  content: '',
+                  bulkAddDisplay: {
+                    homeworks: data.homeworks,
+                    classes: data.classes
+                  },
+                  timestamp: new Date(),
+                },
+              ]);
+            } catch (parseError) {
+              // Fallback to regular message if parsing fails
+              setMessages((prev) => [
+                ...prev.filter(m => m.id !== initialLoadingMsg.id),
+                userMessage,
+                {
+                  id: Date.now(),
+                  role: 'assistant',
+                  content: 'Successfully added homework assignments to your dashboard!',
+                  timestamp: new Date(),
+                },
+              ]);
+            }
+          } else {
+            // Regular response handling - remove loading and show response
+            setMessages((prev) => [
+              ...prev.filter(m => m.id !== initialLoadingMsg.id),
+              userMessage,
+              {
+                id: Date.now(),
+                role: 'assistant',
+                content: response,
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        }
+        return;
+      } catch (error: any) {
+        // Remove loading message and show error
+        setMessages((prev) => [
+          ...prev.filter(m => m.id !== initialLoadingMsg.id),
+          userMessage,
+          {
+            id: Date.now(),
+            role: 'assistant',
+            content: `Error: ${error.message}`,
+            timestamp: new Date(),
+            isError: true,
+          },
+        ]);
+        if (handlePlanLimitError(error)) return;
+        return;
+      }
     }
 
     // --------------------------------------------------------------
@@ -2268,13 +2600,27 @@ Examples of correct button prompts:
                               </div>
                             )}
 
+                            {/* Bulk Add Display */}
+                            {msg.role === 'assistant' && msg.bulkAddDisplay && (
+                              <div className="mt-4 max-w-[95%]">
+                                <BulkAddHomeworkDisplay
+                                  homeworks={msg.bulkAddDisplay.homeworks}
+                                  classes={msg.bulkAddDisplay.classes}
+                                />
+                              </div>
+                            )}
+
                             {/* Interactive Buttons */}
                             {msg.role === 'assistant' && msg.interactiveButtons && msg.interactiveButtons.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-4">
                                 {msg.interactiveButtons.map((button) => (
                                   <Button
                                     key={button.id}
-                                    onClick={() => handleInteractiveButtonClick(button)}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleInteractiveButtonClick(button);
+                                    }}
                                     variant={
                                       button.style === 'primary' ? 'default' :
                                         button.style === 'outline' ? 'outline' : 'secondary'

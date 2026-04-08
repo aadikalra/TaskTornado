@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Calendar, User, List, Share2, Bookmark, Check, ArrowRight } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -96,7 +96,7 @@ export function BlogArticleTemplate({
             <nav className="absolute top-16 sm:top-[72px] lg:top-20 inset-x-0 z-40 px-4 sm:px-6 h-20 bg-transparent">
                 <div className="max-w-[1200px] mx-auto flex items-center justify-between h-full">
                     <Link href="/blog" className="flex items-center gap-2 text-sky-600/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors">
-                        <ArrowLeft className="w-4 h-4" />
+                        <HugeIcon name="ArrowLeft01" className="w-4 h-4" />
                         <span className="text-sm font-bold uppercase tracking-widest hidden sm:inline">Journal</span>
                     </Link>
 
@@ -105,10 +105,10 @@ export function BlogArticleTemplate({
                             onClick={() => setSaved(!saved)}
                             className="p-2 text-sky-600/50 hover:text-sky-600 dark:text-sky-400/50 dark:hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-100/40 dark:hover:bg-sky-500/10"
                         >
-                            {saved ? <Check className="w-5 h-5 text-emerald-500" /> : <Bookmark className="w-5 h-5" />}
+                            {saved ? <HugeIcon name="CheckmarkCircle02" className="w-5 h-5 text-emerald-500" /> : <HugeIcon name="Bookmark03" className="w-5 h-5" />}
                         </button>
                         <button className="p-2 text-sky-600/50 hover:text-sky-600 dark:text-sky-400/50 dark:hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-100/40 dark:hover:bg-sky-500/10">
-                            <Share2 className="w-5 h-5" />
+                            <HugeIcon name="Share03" className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
@@ -136,7 +136,7 @@ export function BlogArticleTemplate({
 
                         <div className="flex items-center gap-6 py-8 border-y border-sky-100/60 dark:border-sky-900/20">
                             <div className="w-12 h-12 rounded-full bg-[#ebf6b5]/60 dark:bg-sky-500/15 flex items-center justify-center">
-                                <User className="w-6 h-6 text-sky-600/50 dark:text-sky-400/50" />
+                                <HugeIcon name="User01" className="w-6 h-6 text-sky-600/50 dark:text-sky-400/50" />
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm font-bold text-sky-800 dark:text-sky-200">{author}</p>
@@ -144,10 +144,10 @@ export function BlogArticleTemplate({
                             </div>
                             <div className="hidden sm:flex flex-col items-end gap-1">
                                 <div className="flex items-center gap-2 text-xs text-sky-600/50 dark:text-sky-400/50 font-medium uppercase tracking-widest">
-                                    <Calendar className="w-3 h-3" /> {date}
+                                    <HugeIcon name="Calendar02" className="w-3 h-3" /> {date}
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-sky-600/50 dark:text-sky-400/50 font-medium uppercase tracking-widest">
-                                    <Clock className="w-3 h-3" /> {readTime}
+                                    <HugeIcon name="Clock01" className="w-3 h-3" /> {readTime}
                                 </div>
                             </div>
                         </div>
@@ -197,7 +197,7 @@ export function BlogArticleTemplate({
                 <aside className="hidden xl:block w-64">
                     <div className="sticky top-28">
                         <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold uppercase tracking-[0.2em] text-[10px] mb-8">
-                            <List className="w-3 h-3" />
+                            <HugeIcon name="List" className="w-3 h-3" />
                             <span>In this article</span>
                         </div>
                         <nav className="space-y-4">
@@ -228,7 +228,7 @@ export function BlogArticleTemplate({
                     <div className="flex flex-wrap justify-center gap-4">
                         <Link href="/blog" className="inline-flex items-center gap-2 px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-sky-500/20">
                             Browse Journal
-                            <ArrowRight className="w-4 h-4" />
+                            <HugeIcon name="ArrowRight01" className="w-4 h-4" />
                         </Link>
                         <Link href="/tutorials" className="inline-flex items-center gap-2 px-8 py-3 bg-[#f5f9fc] dark:bg-zinc-800 text-sky-700 dark:text-sky-300 font-bold rounded-full hover:scale-105 active:scale-95 transition-all border border-sky-200/60 dark:border-sky-800/30">
                             View Tutorials

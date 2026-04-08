@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 interface RouteIntroPopupProps {
     isOpen: boolean;
@@ -50,7 +50,7 @@ export function RouteIntroPopup({
                                         className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400/30 hover:text-sky-900 dark:hover:text-white hover:bg-sky-500/[0.06] transition-colors"
                                         aria-label="Close"
                                     >
-                                        <X className="h-4 w-4" />
+                                        <HugeIcon name="Cancel01" size={16} className="h-4 w-4" />
                                     </button>
                                 </div>
 
