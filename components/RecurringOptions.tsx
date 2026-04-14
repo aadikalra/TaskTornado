@@ -49,12 +49,12 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
   return (
     <div className="space-y-4">
       <div>
-        <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-1.5">
-          Recurring Frequency
+        <Label className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5">
+          Frequency
         </Label>
         <Select value={recurring.frequency} onValueChange={handleFrequencyChange}>
-          <SelectTrigger className="w-full bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl">
-            <SelectValue placeholder="Select frequency" />
+          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+            <SelectValue placeholder="Frequency" />
           </SelectTrigger>
           <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
             {frequencyOptions.map((option) => (
@@ -72,17 +72,17 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="endDate" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-1.5">
-            End Date <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
+          <Label htmlFor="endDate" className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5">
+            End Date
           </Label>
           <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
+                className="w-full justify-start text-left font-normal h-10 bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] rounded-xl transition-all"
               >
-                <HugeIcon name="Calendar02" size={16} className="mr-2 h-4 w-4 text-sky-500" />
-                {recurring.endDate ? format(recurring.endDate, 'PPP') : <span className="text-sky-400">Pick an end date</span>}
+                <HugeIcon name="CalendarRemove01" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500" />
+                <span className="text-left truncate">{recurring.endDate ? format(recurring.endDate, 'MMM d, yyyy') : "Pick date"}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
@@ -105,8 +105,8 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
         </div>
 
         <div>
-          <Label htmlFor="maxOccurrences" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-1.5">
-            Max Occurrences <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
+          <Label htmlFor="maxOccurrences" className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5">
+            Occurrences
           </Label>
           <Input
             id="maxOccurrences"
@@ -115,7 +115,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
             value={recurring.maxOccurrences || ''}
             onChange={(e) => handleMaxOccurrencesChange(e.target.value)}
             placeholder="No limit"
-            className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+            className="w-full h-10 bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none"
           />
         </div>
       </div>

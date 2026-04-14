@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
 interface CustomContextMenuProps {
@@ -19,6 +20,7 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
   const menuRef = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { info } = useToast();
 
   // Check if selected text is just one word
   const isSingleWord = hasSelection && selectedText ? selectedText.trim().split(/\s+/).length === 1 : false;
@@ -93,8 +95,28 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     { label: 'Changelog', icon: 'GoogleDoc', action: () => router.push('/changelog'), description: 'What\'s new' },
   ];
 
+  // Common developer tool
+  const devToolItem = {
+    label: 'Developer Tools',
+    icon: 'CommandLine',
+    action: () => {
+      const isDebug = document.body.classList.toggle('debug-mode');
+      if (isDebug) {
+        info('Developer Mode Enabled', 'Layout inspection active 🚀');
+        console.log('%c[Developer Tools] Layout Inspection: ON', 'color: #275085; font-weight: bold; font-size: 14px;');
+      } else {
+        info('Developer Mode Disabled', 'Restoring normal view');
+        console.log('%c[Developer Tools] Layout Inspection: OFF', 'color: #ef4444; font-weight: bold; font-size: 14px;');
+      }
+    },
+    description: 'Toggle layout inspection'
+  };
+
   // Choose menu items based on auth state
-  const menuItems = loading ? [] : (user ? loggedInMenuItems : loggedOutMenuItems);
+  const baseItems = loading ? [] : (user ? loggedInMenuItems : loggedOutMenuItems);
+
+  // Add dev tools with a divider at the bottom
+  const menuItems = baseItems.length > 0 ? [...baseItems, { isDivider: true }, devToolItem] : baseItems;
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -132,28 +154,32 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg overflow-hidden min-w-[200px]">
             <div className="max-h-[400px] overflow-y-auto">
               <div className="p-1">
-                {menuItems.map((item, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03, duration: 0.1 }}
-                    onClick={() => {
-                      item.action();
-                      onClose();
-                    }}
-                    className="flex items-center gap-3 px-3 py-1.5 text-sm text-sky-600 dark:text-sky-400 rounded-lg cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-sky-700 dark:hover:text-sky-300 group"
-                    title={item.description}
-                  >
-                    {item.icon && (
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        <HugeIcon name={item.icon as any} size={16} className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                {menuItems.map((item: any, index) => (
+                  item.isDivider ? (
+                    <div key={`divider-${index}`} className="h-px bg-gray-100 dark:bg-gray-800 my-1 mx-2" />
+                  ) : (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.03, duration: 0.1 }}
+                      onClick={() => {
+                        item.action();
+                        onClose();
+                      }}
+                      className="flex items-center gap-3 px-3 py-1.5 text-sm text-sky-600 dark:text-sky-400 rounded-lg cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-sky-700 dark:hover:text-sky-300 group"
+                      title={item.description}
+                    >
+                      {item.icon && (
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          <HugeIcon name={item.icon as any} size={16} className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <span className="font-medium">{item.label}</span>
                       </div>
-                    )}
-                    <div className="flex-1">
-                      <span className="font-medium">{item.label}</span>
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  )
                 ))}
               </div>
             </div>

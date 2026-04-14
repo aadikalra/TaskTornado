@@ -159,6 +159,16 @@
   body.reduce-motion {
     scroll-behavior: auto;
   }
+
+  body.debug-mode * {
+    outline: 1px solid rgba(255, 0, 0, 0.3) !important;
+    outline-offset: -1px !important;
+  }
+
+  body.debug-mode *:hover {
+    outline: 1px solid rgba(255, 0, 0, 0.8) !important;
+    background-color: rgba(255, 0, 0, 0.05) !important;
+  }
 }
 
 body[style*="overflow: hidden"] .fixed-padding-adjust {

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { memo, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -238,48 +239,47 @@ const PlayfulHomeworkListComponent = ({
   const FloatingToolbar = () => {
     const [showMoveModal, setShowMoveModal] = useState(false);
     
-    if (selectedItems.size === 0) return null;
+    if (selectedItems.size === 0 || typeof document === 'undefined') return null;
 
-    return (
+    const toolbar = (
       <>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
+          className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[999]"
         >
-          <div className="flex items-center gap-2 p-3 bg-white dark:bg-gray-900 border border-sky-200 dark:border-sky-500/20 rounded-lg shadow-lg">
-            <span className="text-sm font-medium text-sky-900 dark:text-sky-100 mr-2">
-              {selectedItems.size} selected
+          <div className="flex items-center gap-2 p-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-sky-200 dark:border-sky-500/20 rounded-2xl shadow-2xl">
+            <span className="text-sm font-semibold text-sky-900 dark:text-sky-100 px-2">
+              {selectedItems.size} <span className="opacity-50">selected</span>
             </span>
+
+            <div className="w-px h-6 bg-sky-200 dark:bg-sky-500/20 mx-1" />
 
             {/* Move Button */}
             <button
               onClick={() => setShowMoveModal(true)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 rounded-md hover:bg-sky-200 dark:hover:bg-sky-500/30 transition-colors border border-sky-300 dark:border-sky-500/40"
-              title="Move to class"
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 rounded-xl hover:bg-sky-500/20 transition-all border border-sky-500/20"
             >
-              <HugeIcon name="Folder02" size={12} className="h-3 w-3" />
+              <HugeIcon name="Folder02" size={14} className="h-3.5 w-3.5" />
               Move
             </button>
 
             {/* Delete Button */}
             <button
               onClick={() => onBulkDelete?.(Array.from(selectedItems))}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors border border-red-300 dark:border-red-500/40"
-              title="Delete selected items"
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/20 transition-all border border-red-500/20"
             >
-              <HugeIcon name="Delete02" size={12} className="h-3 w-3" />
+              <HugeIcon name="Delete02" size={14} className="h-3.5 w-3.5" />
               Delete
             </button>
 
             {/* Clear Selection */}
             <button
               onClick={clearSelection}
-              className="flex items-center gap-1 px-2 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-600"
-              title="Clear selection"
+              className="flex items-center justify-center w-10 h-10 text-sky-900/40 dark:text-sky-100/40 hover:text-sky-900 dark:hover:text-sky-100 hover:bg-sky-500/5 rounded-xl transition-all"
             >
-              <HugeIcon name="Cancel01" size={16} className="h-4 w-4" />
+              <HugeIcon name="Cancel01" size={18} className="h-4.5 w-4.5" />
             </button>
           </div>
         </motion.div>
@@ -324,6 +324,8 @@ const PlayfulHomeworkListComponent = ({
         )}
       </>
     );
+
+    return createPortal(toolbar, document.body);
   };
 
   return (
@@ -345,49 +347,46 @@ const PlayfulHomeworkListComponent = ({
             )}
           >
             <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                <div className="flex items-center">
+              {!isSelectionMode && (
+                <Checkbox
+                  checked={item.completed}
+                  onCheckedChange={() => handleToggle(item.id)}
+                  className={cn(
+                    item.completed
+                      ? checkboxColor
+                      : 'border-2 border-sky-200 dark:border-sky-800/40 bg-white dark:bg-white/5 hover:bg-sky-50 dark:hover:bg-sky-500/10'
+                  )}
+                  style={
+                    item.completed && item.classColor
+                      ? {
+                        backgroundColor: item.classColor,
+                        // @ts-ignore — custom CSS variable, must be kebab-case
+                        '--tw-ring-color': item.classColor,
+                        // @ts-ignore
+                        '--tw-ring-offset-color': '#fff',
+                      }
+                      : undefined
+                  }
+                />
+              )}
+              {isSelectionMode && (
+                <div className="flex-shrink-0">
                   <Checkbox
-                    checked={item.completed}
-                    onCheckedChange={() => handleToggle(item.id)}
+                    checked={selectedItems.has(item.id)}
+                    onCheckedChange={(checked) => handleItemSelect(item.id, checked as boolean)}
                     className={cn(
-                      item.completed
-                        ? checkboxColor
-                        : 'border-2 border-sky-200 dark:border-sky-800/40 bg-white dark:bg-white/5 hover:bg-sky-50 dark:hover:bg-sky-500/10'
+                      "w-5 h-5 border-2 transition-all duration-200 rounded-lg",
+                      selectedItems.has(item.id)
+                        ? "border-[#d4e88e] bg-[#d4e88e] text-sky-900"
+                        : "border-sky-200 dark:border-sky-800/40 bg-white dark:bg-white/5",
                     )}
-                    style={
-                      item.completed && item.classColor
-                        ? {
-                          backgroundColor: item.classColor,
-                          // @ts-ignore — custom CSS variable, must be kebab-case
-                          '--tw-ring-color': item.classColor,
-                          // @ts-ignore
-                          '--tw-ring-offset-color': '#fff',
-                        }
-                        : undefined
-                    }
                   />
                 </div>
-              </div>
+              )}
               <div className="relative inline-block flex-1 group">
                 <div className="flex justify-between items-start w-full">
                   <div className="flex items-center gap-2">
-                    {/* Selection Checkbox - Show when in selection mode or on hover */}
-                    {(isSelectionMode || selectedItems.has(item.id)) && (
-                      <div className="flex-shrink-0">
-                        <Checkbox
-                          checked={selectedItems.has(item.id)}
-                          onCheckedChange={(checked) => handleItemSelect(item.id, checked as boolean)}
-                          className={cn(
-                            "w-5 h-5 border-2 transition-all duration-200",
-                            selectedItems.has(item.id)
-                              ? "border-blue-500 bg-blue-500 text-white"
-                              : "border-sky-300 dark:border-sky-600 bg-white dark:bg-gray-800",
-                            checkboxColor
-                          )}
-                        />
-                      </div>
-                    )}
+                    {/* Selection Checkbox - removed from here as it's now conditionally at the left */}
 
                     {!item.completed && (
                       <div className="flex items-center gap-1">

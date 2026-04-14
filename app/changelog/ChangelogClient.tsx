@@ -304,6 +304,10 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
                       <span className="text-sky-500/40 dark:text-sky-400/40 mt-0.5 shrink-0">•</span>
                       <span className="leading-relaxed">App publication and mobile app store deployment</span>
                     </li>
+                    <li className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-sky-700/70 dark:text-sky-400/70">
+                      <span className="text-sky-500/40 dark:text-sky-400/40 mt-0.5 shrink-0">•</span>
+                      <span className="leading-relaxed">Test search bar and test filter functionality</span>
+                    </li>
                   </ul>
                 </div>
               </div>

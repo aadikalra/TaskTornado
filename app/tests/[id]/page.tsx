@@ -11,10 +11,7 @@ import { motion } from 'framer-motion';
 
 const CLASS_COLORS = ['#DC2626', '#2563EB', '#D97706', '#16A34A', '#7C3AED', '#DB2777', '#0D9488', '#475569'];
 
-type StudyMaterial = string | { url: string; title?: string };
-type Test = Omit<TestType, 'studyMaterials'> & {
-  studyMaterials: StudyMaterial[];
-};
+type Test = TestType;
 
 export default function TestDetailPage() {
   const { id } = useParams() as { id: string };

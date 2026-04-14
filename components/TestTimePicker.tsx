@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { HugeIcon } from '@/lib/huge-icon-map';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
@@ -122,26 +123,26 @@ export function TestTimePicker({
           type="button"
           variant="outline"
           className={cn(
-            'w-full justify-between px-4 py-2 text-left font-medium rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-[#264f84] focus:ring-2 focus:ring-[#264f84]/40 transition-colors',
-            !value && 'text-muted-foreground',
+            'w-full justify-between px-4 py-2 h-10 text-left font-medium rounded-xl border border-sky-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus:ring-2 focus:ring-[#ebf6b5]/40 transition-all outline-none',
+            !value && 'text-sky-300 dark:text-sky-700',
             className,
           )}
         >
-          <span className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <span className="flex items-center gap-2 text-sky-900 dark:text-sky-100 text-sm">
+            <HugeIcon name="Timer01" size={16} className="h-4 w-4 text-sky-500" />
             {displayLabel}
           </span>
-          <span className="text-xs text-gray-400">Edit</span>
+          <span className="text-[11px] font-bold text-sky-500/50 uppercase tracking-wider">Edit</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-2xl p-4">
-        <div className="flex items-start justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+      <PopoverContent className="w-80 rounded-[24px] border border-sky-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl shadow-sky-500/10 p-4 z-[160]">
+        <div className="flex items-start justify-between pb-3 border-b border-sky-50 dark:border-gray-800/50">
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Select a time</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Tap hour, minute & period</p>
+            <p className="text-sm font-bold text-sky-900 dark:text-sky-100">Select Time</p>
+            <p className="text-[10px] uppercase tracking-widest text-sky-500/60 font-medium">Hour, Minute & Period</p>
           </div>
           {value && (
-            <Button variant="ghost" size="sm" className="text-xs text-gray-500" onClick={handleClear} type="button">
+            <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full" onClick={handleClear} type="button">
               Clear
             </Button>
           )}
@@ -149,19 +150,19 @@ export function TestTimePicker({
 
         <div className="grid grid-cols-3 gap-3 py-4">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Hour</p>
-            <ScrollArea className="h-40 rounded-xl border border-gray-100 dark:border-gray-800">
-              <div className="p-1 space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-sky-500/40 mb-2 ml-1">Hour</p>
+            <ScrollArea className="h-40 rounded-xl border border-sky-50 dark:border-gray-800 bg-sky-50/30 dark:bg-gray-900/50">
+              <div className="p-1.5 space-y-1">
                 {HOURS.map((h) => (
                   <button
                     key={h}
                     type="button"
                     onClick={() => updateTime(h)}
                     className={cn(
-                      'w-full rounded-lg py-1.5 text-sm font-semibold transition-colors',
+                      'w-full rounded-lg py-1.5 text-sm font-bold transition-all',
                       hour === h
-                        ? 'bg-[#264f84] text-white shadow-sm'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-[#ebf6b5] text-sky-900 shadow-sm'
+                        : 'text-sky-800/70 dark:text-sky-200/70 hover:bg-white dark:hover:bg-gray-800 hover:text-sky-900 dark:hover:text-white'
                     )}
                   >
                     {h}
@@ -172,19 +173,19 @@ export function TestTimePicker({
           </div>
 
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Minute</p>
-            <ScrollArea className="h-40 rounded-xl border border-gray-100 dark:border-gray-800">
-              <div className="p-1 space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-sky-500/40 mb-2 ml-1">Minute</p>
+            <ScrollArea className="h-40 rounded-xl border border-sky-50 dark:border-gray-800 bg-sky-50/30 dark:bg-gray-900/50">
+              <div className="p-1.5 space-y-1">
                 {MINUTES.map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => updateTime(hour, m)}
                     className={cn(
-                      'w-full rounded-lg py-1.5 text-sm font-semibold transition-colors',
+                      'w-full rounded-lg py-1.5 text-sm font-bold transition-all',
                       minute === m
-                        ? 'bg-[#264f84] text-white shadow-sm'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-[#ebf6b5] text-sky-900 shadow-sm'
+                        : 'text-sky-800/70 dark:text-sky-200/70 hover:bg-white dark:hover:bg-gray-800 hover:text-sky-900 dark:hover:text-white'
                     )}
                   >
                     {m}
@@ -195,7 +196,7 @@ export function TestTimePicker({
           </div>
 
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Period</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-sky-500/40 mb-2 ml-1">Period</p>
             <div className="space-y-2">
               {PERIODS.map((p) => (
                 <button
@@ -203,10 +204,10 @@ export function TestTimePicker({
                   type="button"
                   onClick={() => updateTime(hour, minute, p)}
                   className={cn(
-                    'w-full rounded-lg py-2 text-sm font-semibold border transition-colors',
+                    'w-full rounded-xl py-3 text-sm font-bold border transition-all',
                     period === p
-                      ? 'bg-[#264f84] text-white border-[#264f84] shadow-sm'
-                      : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#264f84]'
+                      ? 'bg-[#ebf6b5] text-sky-900 border-[#d4e88e] shadow-sm'
+                      : 'border-sky-50 dark:border-gray-800 text-sky-800/70 dark:text-sky-200/70 hover:border-[#d4e88e]'
                   )}
                 >
                   {p}
@@ -216,15 +217,15 @@ export function TestTimePicker({
           </div>
         </div>
 
-        <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
-          <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Quick picks</p>
+        <div className="pt-3 border-t border-sky-50 dark:border-gray-800">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-sky-500/40 mb-2 ml-1">Quick Picks</p>
           <div className="flex flex-wrap gap-2">
             {QUICK_OPTIONS.map((option) => (
               <button
                 key={option.label}
                 type="button"
                 onClick={() => handleQuickPick(option)}
-                className="rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#264f84] hover:text-[#264f84] dark:hover:text-[#7ab8ff] transition-colors"
+                className="rounded-full border border-sky-100 dark:border-gray-800 px-3 py-1.5 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5] hover:text-sky-900 hover:border-[#d4e88e] transition-all"
               >
                 {option.label}
               </button>

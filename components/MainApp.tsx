@@ -56,6 +56,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
 import { MiniCalendar } from './MiniCalendar';
+import { MobileWeekCalendar } from './MobileWeekCalendar';
 import { ComingUp } from './ComingUp';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -65,6 +66,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
 } from "@/components/ui/select";
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
@@ -219,13 +223,15 @@ const MainApp = () => {
   const [hasShownInitialNotifications, setHasShownInitialNotifications] = useState(false);
 
   // Test filtering state
-  const [testFilter, setTestFilter] = useState<'all' | 'upcoming' | 'taken'>(() => {
+  const [testFilter, setTestFilter] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('testFilter');
-      return (saved as 'all' | 'upcoming' | 'taken') || 'all';
+      return saved || 'all';
     }
     return 'all';
   });
+  const [testSearch, setTestSearch] = useState('');
+  const [isTestSearchExpanded, setIsTestSearchExpanded] = useState(false);
 
   // Section order state - Reordering disabled
   type SectionId = 'pinned' | 'classes' | 'tests';
@@ -254,7 +260,7 @@ const MainApp = () => {
 
 
   // Wrapper functions for test filters that save to cookies
-  const handleTestFilterChange = (value: 'all' | 'upcoming' | 'taken') => {
+  const handleTestFilterChange = (value: string) => {
     setTestFilter(value);
     setCookie('testFilter', value);
   };
@@ -994,18 +1000,46 @@ Return ONLY valid JSON, no explanation, no markdown.`,
     return tests.filter(test => {
       const testDate = new Date(test.testDate + 'T00:00:00');
       const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-
+      today.setUTCHours(0, 0, 0, 0);      // First apply status/type filter
+      let matches = true;
       switch (testFilter) {
         case 'upcoming':
-          return testDate >= today;
+          matches = testDate >= today;
+          break;
         case 'taken':
-          return testDate < today;
+          matches = testDate < today;
+          break;
+        case 'alpha_only':
+          matches = test.testType === 'ALPHA';
+          break;
+        case 'beta_only':
+          matches = test.testType === 'BETA';
+          break;
+        case 'exams':
+          matches = ['exam', 'midterm', 'final'].includes(test.testType?.toLowerCase() || '');
+          break;
+        case 'quizzes':
+          matches = ['quiz', 'Quiz'].includes(test.testType || '');
+          break;
         default:
-          return true;
+          matches = true;
       }
+
+      if (!matches) return false;
+
+      // Then apply search filter
+      if (testSearch.trim()) {
+        const searchLower = testSearch.toLowerCase();
+        return (
+          test.title.toLowerCase().includes(searchLower) ||
+          test.description?.toLowerCase().includes(searchLower) ||
+          classes.find(c => c.id === test.classId)?.name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
     });
-  }, [tests, testFilter]);
+  }, [tests, testFilter, testSearch, classes]);
 
   // Memoized: group tests by class
   const testsByClass = useMemo(() => {
@@ -1149,38 +1183,57 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     {/* Nav-pill style action buttons */}
                     <div className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20">
                       {homeworks.length > 0 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsSelectionMode(!isSelectionMode);
-                          }}
-                          className={`flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold rounded-full transition-all active:scale-95 ${
-                          isSelectionMode 
-                            ? 'text-white bg-sky-500 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-700' 
-                            : 'text-sky-700 dark:text-sky-300 bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30'
-                        }`}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            className="h-3.5 w-3.5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
+                        <>
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsSelectionMode(!isSelectionMode);
+                            }}
+                            whileHover="hover"
+                            initial="initial"
+                            className={`group relative flex items-center h-8 rounded-full transition-all active:scale-95 overflow-hidden border-0 ${isSelectionMode
+                                ? 'text-white bg-sky-500 dark:bg-sky-600'
+                                : 'text-sky-700 dark:text-sky-300 bg-sky-500/25 dark:bg-sky-400/20'
+                              }`}
                           >
-                            <path d="M15 2.5H12C7.52166 2.5 5.28249 2.5 3.89124 3.89124C2.5 5.28249 2.5 7.52166 2.5 12C2.5 16.4783 2.5 18.7175 3.89124 20.1088C5.28249 21.5 7.52166 21.5 12 21.5C16.4783 21.5 18.7175 21.5 20.1088 20.1088C21.5 18.7175 21.5 16.4783 21.5 12V10" />
-                            <path d="M8.5 10L12 13.5L21.0002 3.5" />
-                          </svg>
-                          Select
-                        </button>
+                            <div className="flex items-center justify-center w-8 h-8 shrink-0">
+                              {isSelectionMode ? (
+                                <HugeIcon name="Tick02" size={14} className="h-3.5 w-3.5" />
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  className="h-3.5 w-3.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                >
+                                  <path d="M15 2.5H12C7.52166 2.5 5.28249 2.5 3.89124 3.89124C2.5 5.28249 2.5 7.52166 2.5 12C2.5 16.4783 2.5 18.7175 3.89124 20.1088C5.28249 21.5 7.52166 21.5 12 21.5C16.4783 21.5 18.7175 21.5 20.1088 20.1088C21.5 18.7175 21.5 16.4783 21.5 12V10" />
+                                  <path d="M8.5 10L12 13.5L21.0002 3.5" />
+                                </svg>
+                              )}
+                            </div>
+                            <motion.span 
+                              variants={{
+                                initial: { width: isSelectionMode ? 'auto' : 0, opacity: isSelectionMode ? 1 : 0, marginRight: isSelectionMode ? 12 : 0 },
+                                hover: { width: 'auto', opacity: 1, marginRight: 12 }
+                              }}
+                              transition={{ duration: 0.25, ease: "easeInOut" }}
+                              className="text-[13px] font-semibold whitespace-nowrap overflow-hidden"
+                            >
+                              {isSelectionMode ? 'Done' : 'Select'}
+                            </motion.span>
+                          </motion.button>
+                          <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 mx-0.5" />
+                        </>
                       )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowAddClass(true);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1201,7 +1254,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           e.stopPropagation();
                           setShowAddHomework(true);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1223,7 +1276,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                             e.stopPropagation();
                             setShowAddTest(true);
                           }}
-                          className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
+                          className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1275,15 +1328,24 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-gray-100 dark:border-gray-800"
+                  className="bg-[#f5f9fc] dark:bg-sky-500/[0.03] backdrop-blur-md rounded-[32px] border border-sky-100 dark:border-sky-500/10 p-12 sm:p-20 text-center shadow-sm relative overflow-hidden group"
                 >
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-100 dark:border-gray-800">
-                    <HugeIcon name="Layers01" size={24} className="h-6 w-6 text-[#6B7280] dark:text-gray-500" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-sky-500/[0.02] to-transparent pointer-events-none" />
+                  <div className="relative z-10">
+                    <div className="w-16 h-16 rounded-3xl bg-white dark:bg-gray-900 flex items-center justify-center mx-auto mb-6 border border-sky-100 dark:border-sky-500/20 shadow-sm group-hover:scale-110 transition-transform duration-500">
+                      <HugeIcon name="Layers01" size={32} className="h-8 w-8 text-sky-500/40 dark:text-sky-400/40" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">No classes yet</h3>
+                    <p className="text-sky-600/50 dark:text-sky-400/40 max-w-xs mx-auto text-sm font-medium leading-relaxed">
+                      Get started by adding your first class to organize your schoolwork and track your progress.
+                    </p>
+                    <button
+                      onClick={() => setShowAddClass(true)}
+                      className="mt-8 px-6 py-2.5 bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-900 font-bold rounded-xl border border-[#d4e88e] transition-all active:scale-95 shadow-sm"
+                    >
+                      Add Your First Class
+                    </button>
                   </div>
-                  <h3 className="text-xl font-light text-[#111827] dark:text-white mb-2 tracking-tight">No classes yet</h3>
-                  <p className="text-[#6B7280] dark:text-gray-400 max-w-xs mx-auto text-sm">
-                    Get started by adding your first class to organize your schoolwork.
-                  </p>
                 </motion.div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1394,10 +1456,10 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                             onPinToggle={togglePinHomework}
                             onBulkDelete={handleBulkDelete}
                             onBulkMove={handleBulkMove}
-                            availableClasses={classes.map((c, idx) => ({ 
-                              id: c.id, 
-                              name: c.name, 
-                              icon: c.icon || 'BookOpen', 
+                            availableClasses={classes.map((c, idx) => ({
+                              id: c.id,
+                              name: c.name,
+                              icon: c.icon || 'BookOpen',
                               color: getHeaderColor(idx),
                               bgColor: getClassColor(idx)
                             }))}
@@ -1583,13 +1645,83 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   </div>
                   <div className="flex items-center gap-1.5">
                     {/* Nav-pill style action buttons — matching My Classes */}
-                    <div className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20">
+                    <div 
+                      className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div 
+                        className="relative flex items-center h-8"
+                        onClick={(e) => {
+                          if (!isTestSearchExpanded) {
+                            setIsTestSearchExpanded(true);
+                            // Auto-focus the input after animation or immediately
+                            setTimeout(() => {
+                              const input = document.getElementById('test-search-input');
+                              input?.focus();
+                            }, 10);
+                          }
+                        }}
+                      >
+                        <motion.div
+                          initial={false}
+                          animate={{ 
+                            width: isTestSearchExpanded || testSearch ? (window.innerWidth < 640 ? 128 : 160) : 32 
+                          }}
+                          className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full border-0 transition-all overflow-hidden"
+                          style={{ minWidth: isTestSearchExpanded || testSearch ? undefined : '32px' }}
+                        >
+                          <HugeIcon 
+                            name="Search01" 
+                            size={14} 
+                            className={`absolute left-[9px] h-3.5 w-3.5 text-sky-700 dark:text-sky-300 transition-colors ${isTestSearchExpanded || testSearch ? 'opacity-90' : 'opacity-100'}`} 
+                          />
+                          <motion.input
+                            id="test-search-input"
+                            type="text"
+                            placeholder="Search tests..."
+                            value={testSearch}
+                            onChange={(e) => setTestSearch(e.target.value)}
+                            onBlur={() => {
+                              if (!testSearch) setIsTestSearchExpanded(false);
+                            }}
+                            animate={{ opacity: isTestSearchExpanded || testSearch ? 1 : 0 }}
+                            className="w-full h-full pl-8 pr-3 text-[12px] font-semibold bg-transparent text-sky-700 dark:text-sky-300 placeholder-sky-700/40 dark:placeholder-sky-300/40 border-0 focus:ring-0 outline-none"
+                          />
+                        </motion.div>
+                      </div>
+                      
+                      <div className="w-px h-4 bg-sky-500/20 dark:bg-sky-400/10 mx-0.5" />
+
+                      <Select value={testFilter} onValueChange={(value: string) => handleTestFilterChange(value)}>
+                        <SelectTrigger size="sm" hideIcon className="w-8 h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
+                          <HugeIcon name="Filter" size={14} className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
+                        </SelectTrigger>
+                        <SelectContent className="w-56 bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl p-1.5" position="popper" sideOffset={4}>
+                          <SelectGroup>
+                            <SelectLabel className="px-3 py-2 text-[10px] font-bold text-sky-500/50 uppercase tracking-widest">Visibility</SelectLabel>
+                            <SelectItem value="all" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">All Tests</SelectItem>
+                            <SelectItem value="upcoming" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Upcoming</SelectItem>
+                            <SelectItem value="taken" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Taken</SelectItem>
+                          </SelectGroup>
+                          
+                          <SelectSeparator className="my-1.5 bg-sky-100/50 dark:bg-gray-800/50" />
+                          
+                          <SelectGroup>
+                            <SelectLabel className="px-3 py-2 text-[10px] font-bold text-sky-500/50 uppercase tracking-widest">Test Types</SelectLabel>
+                            <SelectItem value="alpha_only" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">ALPHA</SelectItem>
+                            <SelectItem value="beta_only" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">BETA</SelectItem>
+                            <SelectItem value="exams" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Exams</SelectItem>
+                            <SelectItem value="quizzes" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Quizzes</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 mx-0.5" />
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowAddTest(true);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1630,20 +1762,28 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white dark:bg-gray-950 rounded-2xl p-6 text-center border border-sky-100 dark:border-gray-800"
+                    className="bg-[#f5f9fc] dark:bg-sky-500/[0.03] backdrop-blur-md rounded-[32px] border border-sky-100 dark:border-sky-500/10 p-12 sm:p-20 text-center shadow-sm relative overflow-hidden group"
                   >
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-sky-50 dark:bg-gray-900 rounded-xl mb-4 border border-sky-100 dark:border-gray-800">
-                      <HugeIcon name="Calendar02" size={24} className="h-6 w-6 text-sky-400 dark:text-sky-500" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-sky-500/[0.02] to-transparent pointer-events-none" />
+                    <div className="relative z-10">
+                      <div className="w-16 h-16 rounded-3xl bg-white dark:bg-gray-900 flex items-center justify-center mx-auto mb-6 border border-sky-100 dark:border-sky-500/20 shadow-sm group-hover:scale-110 transition-transform duration-500">
+                        <HugeIcon name="Calendar02" size={32} className="h-8 w-8 text-sky-500/40 dark:text-sky-400/40" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
+                      <p className="text-sky-600/50 dark:text-sky-400/40 max-w-xs mx-auto text-sm font-medium leading-relaxed">
+                        Start by adding your first test to keep track of your exam schedule and academic performance.
+                      </p>
+                      <button
+                        onClick={() => setShowAddTest(true)}
+                        className="mt-8 px-6 py-2.5 bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-900 font-bold rounded-xl border border-[#d4e88e] transition-all active:scale-95 shadow-sm"
+                      >
+                        Add Your First Test
+                      </button>
                     </div>
-                    <h3 className="text-xl font-light text-sky-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
-                    <p className="text-sky-600/60 dark:text-gray-400 max-w-xs mx-auto text-sm">
-                      Start by adding your first test to keep track of your exam schedule
-                    </p>
                   </motion.div>
                 ) : (
                   <StatusGroupedTestList
-                    tests={filteredTests}
-                    classes={classes}
+                    tests={tests}
                     onDeleteTest={deleteTest}
                   />
                 )}
@@ -2178,7 +2318,12 @@ Return ONLY valid JSON, no explanation, no markdown.`,
 
         {/* Calendar + Coming Up */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8 h-[300px]">
-          <MiniCalendar />
+          <div className="hidden md:block">
+            <MiniCalendar />
+          </div>
+          <div className="block md:hidden">
+            <MobileWeekCalendar />
+          </div>
           <ComingUp />
         </div>
 
@@ -2219,7 +2364,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                 <div className="p-6 space-y-4">
                   {/* Class Name Input */}
                   <div>
-                    <Label htmlFor="className" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                    <Label htmlFor="className" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-2 block">
                       Class Name
                     </Label>
                     <Input
@@ -2228,7 +2373,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       value={newClassName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewClassName(e.target.value)}
                       placeholder="e.g., Mathematics 101"
-                      className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 rounded-xl focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none"
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleAddClass()}
                     />
                   </div>
@@ -2244,9 +2389,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       >
                         <div className="mb-2">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[11px] font-semibold text-sky-500 flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-[#a8b86d] uppercase tracking-widest flex items-center gap-1.5">
                               <HugeIcon name="AiMagic" size={12} className="h-3 w-3" />
-                              Semantic Suggestions
+                              AI Suggestions
                             </span>
                             <button
                               onClick={(e) => {
@@ -2254,14 +2399,14 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                 handleAISuggest();
                               }}
                               disabled={isSuggestingIcons}
-                              className="text-[10px] text-sky-500 hover:text-sky-600 transition-colors flex items-center gap-1"
+                              className="text-[10px] font-bold text-sky-500 hover:text-sky-600 transition-colors flex items-center gap-1 uppercase tracking-widest"
                             >
                               {isSuggestingIcons ? (
-                                <HugeIcon name="LoaderPinwheel" size={8} className="h-2 w-2 animate-spin" />
+                                <HugeIcon name="LoaderPinwheel" size={10} className="h-2.5 w-2.5 animate-spin" />
                               ) : (
-                                <HugeIcon name="AiMagic" size={8} className="h-2 w-2" />
+                                <HugeIcon name="Rotate01" size={10} className="h-2.5 w-2.5" />
                               )}
-                              {isSuggestingIcons ? 'Analyzing...' : 'Refresh Suggestions'}
+                              {isSuggestingIcons ? 'Analyzing...' : 'Refresh'}
                             </button>
                           </div>
                           <div className="flex gap-2 p-2 bg-sky-50/40 dark:bg-sky-500/5 rounded-xl border border-sky-100/50 dark:border-sky-500/10 overflow-x-auto min-h-[52px]">
@@ -2271,8 +2416,8 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                 type="button"
                                 onClick={() => setNewClassIcon(icon.iconName)}
                                 className={`p-2.5 rounded-xl transition-all shrink-0 ${newClassIcon === icon.iconName
-                                  ? 'bg-sky-500 text-white shadow-sm scale-110'
-                                  : 'bg-white dark:bg-gray-800 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-gray-700 hover:scale-105'
+                                  ? 'bg-[#ebf6b5] text-sky-900 shadow-sm scale-110 border-[#d4e88e]'
+                                  : 'bg-white dark:bg-gray-800 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-gray-800 hover:bg-sky-50 dark:hover:bg-gray-700 hover:scale-105'
                                   }`}
                                 title={icon.name}
                               >
@@ -2303,7 +2448,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
 
                   {/* Icon Selection */}
                   <div>
-                    <Label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
+                    <Label className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-2 block">
                       Choose an Icon
                     </Label>
 
@@ -2315,7 +2460,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         placeholder="Search icons..."
                         value={searchQuery}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                        className="pl-10 w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                        className="pl-10 w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none"
                         autoComplete="off"
                       />
                     </div>
@@ -2325,7 +2470,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       <div className="max-h-64 overflow-y-auto">
                         {Object.entries(groupedIcons).map(([category, icons]) => (
                           <div key={category}>
-                            <div className="sticky top-0 bg-sky-50 dark:bg-gray-800 px-3 py-2 text-[10px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider border-b border-sky-100 dark:border-gray-700">
+                            <div className="sticky top-0 bg-sky-50/80 dark:bg-gray-800/80 backdrop-blur-md px-3 py-2 text-[9px] font-bold text-sky-500/80 uppercase tracking-[0.2em] border-b border-sky-100/50 dark:border-gray-700/50 z-10">
                               {category}
                             </div>
                             <div className="grid grid-cols-7 gap-1 p-2">
@@ -2338,14 +2483,14 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                     setSearchQuery('');
                                   }}
                                   className={`relative p-2.5 rounded-xl flex items-center justify-center transition-all ${newClassIcon === iconName
-                                    ? 'bg-sky-500 text-white scale-105 shadow-sm'
-                                    : 'text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 hover:text-sky-600 hover:scale-105'
+                                    ? 'bg-[#ebf6b5] text-sky-900 scale-105 shadow-sm border border-[#d4e88e]'
+                                    : 'text-sky-700/60 dark:text-sky-300/60 hover:bg-sky-50 dark:hover:bg-gray-800 hover:text-sky-900 dark:hover:text-white hover:scale-110'
                                     }`}
                                   title={name}
                                 >
                                   <HugeIcon name={iconName} className="h-5 w-5" />
                                   {newClassIcon === iconName && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#b5d565] rounded-full border-2 border-white dark:border-gray-900" />
+                                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#b5d565] rounded-full border-2 border-white dark:border-gray-900 shadow-sm" />
                                   )}
                                 </button>
                               ))}
@@ -2428,12 +2573,14 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-5">
+                <div className="p-6 space-y-6">
                   {/* AI Autofill */}
                   <div className="relative">
-                    <div className="flex items-center gap-2 mb-2">
-                      <HugeIcon name="AiMagic" size={14} className="h-3.5 w-3.5 text-sky-500" />
-                      <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Quick Fill</span>
+                    <div className="flex items-center gap-1.5 ml-1 mb-1.5">
+                      <HugeIcon name="AiMagic" size={12} className="h-3 w-3 text-sky-500/60 dark:text-sky-400/60" />
+                      <Label className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest">
+                        Quick Fill
+                      </Label>
                     </div>
                     <div className="relative flex items-center">
                       <input
@@ -2447,12 +2594,12 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           }
                         }}
                         placeholder='e.g., "Math ch5 exercises due friday high priority"'
-                        className="w-full h-11 pl-3 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+                        className="w-full h-9 pl-3 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] focus:bg-white dark:focus:bg-gray-900 transition-colors"
                       />
                       <button
                         onClick={handleAutoFill}
                         disabled={!autoFillText.trim() || isAutoFilling}
-                        className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="absolute right-1 h-7 w-7 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         title="Fill fields with AI"
                       >
                         {isAutoFilling ? (
@@ -2463,133 +2610,134 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       </button>
                     </div>
                   </div>
-
                   <div className="border-t border-sky-100/60 dark:border-gray-800" />
-                  {/* Class Selection */}
-                  <div>
-                    <Label htmlFor="class" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                      Class
-                    </Label>
-                    <Select
-                      value={newHomework.classId}
-                      onValueChange={(value) => setNewHomework({ ...newHomework, classId: value })}
-                    >
-                      <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
-                        <SelectValue placeholder="Select a class" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                        {classes.map((cls: any) => (
-                          <SelectItem
-                            key={cls.id}
-                            value={cls.id}
-                            className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg"
-                          >
-                            {cls.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
-                  {/* Title Input */}
-                  <div>
-                    <Label htmlFor="homeworkTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                      Title
-                    </Label>
-                    <Input
-                      id="homeworkTitle"
-                      type="text"
-                      value={newHomework.title}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHomework({ ...newHomework, title: e.target.value })}
-                      placeholder="e.g., Chapter 5 Exercises"
-                      className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                    />
-                  </div>
-
-                  {/* Description Input */}
-                  <div>
-                    <Label htmlFor="homeworkDescription" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                      Description <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
-                    </Label>
-                    <textarea
-                      id="homeworkDescription"
-                      value={newHomework.description}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewHomework({ ...newHomework, description: e.target.value })}
-                      placeholder="Add any additional details..."
-                      rows={3}
-                      className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
-                    />
-                  </div>
-
-                  {/* Due Date and Priority */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="dueDate" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                        Due Date
+                  <div className="space-y-4">
+                    {/* Title Input - Large & Prominent */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="homeworkTitle" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase ml-1">
+                        <span className="tracking-widest">Title</span><span className="text-red-500">*</span>
                       </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
-                          >
-                            <HugeIcon name="Calendar02" size={16} className="mr-2 h-4 w-4 text-sky-500" />
-                            {format(newHomework.dueDate, 'PPP')}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
-                          <Calendar
-                            mode="single"
-                            selected={newHomework.dueDate}
-                            onSelect={(date) => date && setNewHomework({ ...newHomework, dueDate: date })}
-                            initialFocus
-                            className="text-sky-900 dark:text-white rounded-2xl"
-                            classNames={{
-                              today: "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-md data-[selected=true]:rounded-none",
-                              weekday: "text-sky-500 dark:text-sky-400 rounded-md flex-1 font-medium text-[0.8rem] select-none",
-                              caption_label: "text-sky-900 dark:text-white font-semibold text-sm select-none",
-                              button_previous: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
-                              button_next: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
-                            }}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        id="homeworkTitle"
+                        type="text"
+                        value={newHomework.title}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHomework({ ...newHomework, title: e.target.value })}
+                        placeholder="Homework title..."
+                        className="w-full h-9 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sm text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all font-normal outline-none"
+                      />
                     </div>
 
-                    <div>
-                      <Label htmlFor="priority" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                        Priority
+                    {/* Metadata Grid - Compact & Efficient */}
+                    <div className="grid grid-cols-12 gap-3">
+                      <div className="col-span-4 space-y-1.5">
+                        <Label htmlFor="class" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase ml-1">
+                          <span className="tracking-widest">Class</span><span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          value={newHomework.classId}
+                          onValueChange={(value) => setNewHomework({ ...newHomework, classId: value })}
+                        >
+                          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+                            <SelectValue placeholder="Class" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl" position="popper" sideOffset={4}>
+                            {classes.map((cls: any) => (
+                              <SelectItem
+                                key={cls.id}
+                                value={cls.id}
+                                className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg"
+                              >
+                                {cls.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="col-span-4 space-y-1.5">
+                        <Label htmlFor="priority" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                          Priority
+                        </Label>
+                        <Select
+                          value={newHomework.priority}
+                          onValueChange={(value) => setNewHomework({ ...newHomework, priority: value as Priority })}
+                        >
+                          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+                            <SelectValue placeholder="Prio" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl" position="popper" sideOffset={4}>
+                            <SelectItem value="low" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">Low</SelectItem>
+                            <SelectItem value="medium" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">Medium</SelectItem>
+                            <SelectItem value="high" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">High</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="col-span-4 space-y-1.5">
+                        <Label htmlFor="dueDate" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase ml-1">
+                          <span className="tracking-widest">Due Date</span><span className="text-red-500">*</span>
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              hoverScale={1}
+                              tapScale={1}
+                              className="w-full justify-start px-3 font-normal h-9 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 hover:bg-[#ebf6b5]/10 dark:hover:bg-[#ebf6b5]/5 hover:border-[#d4e88e] rounded-xl transition-all"
+                            >
+                              <HugeIcon name="Calendar02" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500" />
+                              <span className="text-left truncate">{format(newHomework.dueDate, 'MMM d')}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
+                            <Calendar
+                              mode="single"
+                              selected={newHomework.dueDate}
+                              onSelect={(date) => date && setNewHomework({ ...newHomework, dueDate: date })}
+                              initialFocus
+                              className="text-sky-900 dark:text-white rounded-2xl"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
+                    <HomeworkLinkInput
+                      links={newHomework.links}
+                      onChange={(links) => setNewHomework({ ...newHomework, links })}
+                    />
+
+                    {/* Description Input */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="homeworkDescription" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                        Description
                       </Label>
-                      <Select
-                        value={newHomework.priority}
-                        onValueChange={(value) => setNewHomework({ ...newHomework, priority: value as Priority })}
-                      >
-                        <SelectTrigger className="w-full !h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                          <SelectItem value="low" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Low</SelectItem>
-                          <SelectItem value="medium" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Medium</SelectItem>
-                          <SelectItem value="high" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">High</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <textarea
+                        id="homeworkDescription"
+                        value={newHomework.description}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewHomework({ ...newHomework, description: e.target.value })}
+                        placeholder="Add some details..."
+                        rows={2}
+                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/30 focus:border-[#d4e88e] text-sm resize-none transition-all"
+                      />
                     </div>
                   </div>
 
-                  {/* Recurring Homework Section */}
+                  {/* Recurring and Links - More Compact Footer Section */}
                   <div className="pt-2 space-y-4">
-                    <div className="flex items-center gap-3 p-3 bg-sky-50 dark:bg-gray-800 rounded-xl border border-sky-100 dark:border-gray-700">
+                    <div className="flex items-center gap-2.5 p-1">
                       <Checkbox
                         id="recurringHomework"
                         checked={isRecurringEnabled}
                         onCheckedChange={(checked) => setIsRecurringEnabled(checked as boolean)}
-                        className="size-5 rounded-md bg-sky-200 dark:bg-gray-700 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
+                        className="size-5 rounded-md border-2 border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900 data-[state=checked]:bg-lime-500 data-[state=checked]:border-lime-600 data-[state=checked]:text-white focus-visible:ring-2 focus-visible:ring-lime-400/40 outline-none"
                       />
                       <Label
                         htmlFor="recurringHomework"
-                        className="text-sm font-semibold text-sky-800 dark:text-sky-300 cursor-pointer select-none"
+                        className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest cursor-pointer select-none"
                       >
-                        Make this a recurring homework
+                        Make this recurring
                       </Label>
                     </div>
 
@@ -2607,10 +2755,6 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       </motion.div>
                     )}
 
-                    <HomeworkLinkInput
-                      links={newHomework.links}
-                      onChange={(links) => setNewHomework({ ...newHomework, links })}
-                    />
                   </div>
                 </div>
 

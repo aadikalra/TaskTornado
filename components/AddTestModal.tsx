@@ -16,11 +16,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useClassContext } from '../context/ClassContext';
+import { useClassContext, StudyMaterial } from '../context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useUpgrade } from '@/context/UpgradeContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
+import { HomeworkLinkInput } from './HomeworkLinkInput';
+import { TestTimePicker } from './TestTimePicker';
 import { format, addDays } from 'date-fns';
+
+type StudyMaterialLink = { id: string; url: string; title?: string };
 
 // Build a compact date reference so the AI doesn't have to do calendar math
 function getDateReference(): string {
@@ -51,7 +55,7 @@ export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalPr
   const [testType, setTestType] = useState('Quiz');
   const [testTime, setTestTime] = useState('');
   const [description, setDescription] = useState('');
-  const [studyMaterials, setStudyMaterials] = useState('');
+  const [studyMaterials, setStudyMaterials] = useState<StudyMaterialLink[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // AI Autofill state
@@ -141,6 +145,14 @@ Return ONLY valid JSON, no explanation, no markdown.`,
           if (matchedClass) setClassId(matchedClass.id);
         }
 
+        if (parsed.studyMaterials && Array.isArray(parsed.studyMaterials)) {
+          setStudyMaterials(parsed.studyMaterials.map((m: any) => ({
+            id: Math.random().toString(36).substr(2, 9),
+            url: typeof m === 'string' ? m : (m.url || ''),
+            title: typeof m === 'string' ? '' : (m.title || '')
+          })));
+          setShowAdvanced(true);
+        }
         setAutoFillText('');
       }
     } catch (error) {
@@ -163,7 +175,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setStudyMaterials('');
+    setStudyMaterials([]);
     setTestType('Quiz');
     setTestTime('');
     setTestDate(new Date());
@@ -184,8 +196,8 @@ Return ONLY valid JSON, no explanation, no markdown.`,
     }
 
     const materialsList = studyMaterials
-      .split('\n')
-      .filter((s) => s.trim() !== '');
+      .filter((m) => m.url.trim() !== '')
+      .map((m) => ({ url: m.url.trim(), title: m.title?.trim() }));
 
     // Format the date with time if provided
     let testDateTime = new Date(testDate);
@@ -260,12 +272,14 @@ Return ONLY valid JSON, no explanation, no markdown.`,
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-6">
               {/* AI Autofill */}
               <div className="relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <HugeIcon name="AiMagic" size={14} className="h-3.5 w-3.5 text-sky-500" />
-                  <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Quick Fill</span>
+                <div className="flex items-center gap-1.5 ml-1 mb-1.5">
+                  <HugeIcon name="AiMagic" size={12} className="h-3 w-3 text-sky-500/60 dark:text-sky-400/60" />
+                  <Label className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest">
+                    Quick Fill
+                  </Label>
                 </div>
                 <div className="relative flex items-center">
                   <input
@@ -279,12 +293,12 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       }
                     }}
                     placeholder='e.g., "Biology midterm next friday at 10am"'
-                    className="w-full h-11 pl-3 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+                    className="w-full h-9 pl-3 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] focus:bg-white dark:focus:bg-gray-900 transition-colors"
                   />
                   <button
                     onClick={handleAutoFill}
                     disabled={!autoFillText.trim() || isAutoFilling}
-                    className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="absolute right-1 h-7 w-7 flex items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     title="Fill fields with AI"
                   >
                     {isAutoFilling ? (
@@ -297,173 +311,153 @@ Return ONLY valid JSON, no explanation, no markdown.`,
               </div>
 
               <div className="border-t border-sky-100/60 dark:border-gray-800" />
-              {/* Class Selection */}
-              <div>
-                <Label htmlFor="testClass" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                  Class
-                </Label>
-                <Select value={classId} onValueChange={setClassId}>
-                  <SelectTrigger className="h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
-                    <SelectValue placeholder="Select a class" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                    {classes.map((cls) => (
-                      <SelectItem
-                        key={cls.id}
-                        value={cls.id}
-                        className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg"
-                      >
-                        {cls.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {/* Title Input */}
-              <div>
-                <Label htmlFor="testTitle" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                  Test Title
-                </Label>
-                <Input
-                  id="testTitle"
-                  type="text"
-                  value={title}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-                  placeholder="e.g., Biology Midterm"
-                  className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              <div className="space-y-4">
+                {/* Title Input - Large & Prominent */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="testTitle" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase ml-1">
+                    <span className="tracking-widest">Title</span><span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="testTitle"
+                    type="text"
+                    value={title}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+                    placeholder="Test title..."
+                    className="w-full h-9 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sm font-normal text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none"
+                  />
+                </div>
+
+                {/* Metadata Grid - Compact & Efficient */}
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-4 space-y-1.5">
+                    <Label htmlFor="class" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase ml-1">
+                      <span className="tracking-widest">Class</span><span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={classId} onValueChange={setClassId}>
+                      <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+                        <SelectValue placeholder="Class" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl" position="popper" sideOffset={4}>
+                        {classes.map((cls) => (
+                          <SelectItem
+                            key={cls.id}
+                            value={cls.id}
+                            className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg"
+                          >
+                            {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="col-span-4 space-y-1.5">
+                    <Label htmlFor="dueDate" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase ml-1">
+                      <span className="tracking-widest">Due Date</span><span className="text-red-500">*</span>
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start px-3 font-normal h-9 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 hover:bg-[#ebf6b5]/10 dark:hover:bg-[#ebf6b5]/5 hover:border-[#d4e88e] rounded-xl transition-all"
+                        >
+                          <HugeIcon name="Calendar02" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500" />
+                          <span className="text-left truncate">{testDate ? format(testDate, 'MMM d') : "Pick"}</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
+                        <Calendar
+                          mode="single"
+                          selected={testDate}
+                          onSelect={setTestDate}
+                          initialFocus
+                          className="text-sky-900 dark:text-white rounded-2xl"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="col-span-4 space-y-1.5">
+                    <Label htmlFor="testType" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                      Type
+                    </Label>
+                    <Select value={testType} onValueChange={setTestType}>
+                      <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl" position="popper" sideOffset={4}>
+                        <SelectItem value="ALPHA" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">ALPHA</SelectItem>
+                        <SelectItem value="BETA" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">BETA</SelectItem>
+                        <SelectItem value="Quiz" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">Quiz</SelectItem>
+                        <SelectItem value="Midterm" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">Midterm</SelectItem>
+                        <SelectItem value="Final" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">Final</SelectItem>
+                        <SelectItem value="Other" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <HomeworkLinkInput
+                  links={studyMaterials}
+                  onChange={(links) => setStudyMaterials(links)}
                 />
-              </div>
 
-              {/* Date and Type */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="testDate" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                    Test Date
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal h-11 text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-500 rounded-xl"
-                      >
-                        <HugeIcon name="Calendar02" size={16} className="mr-2 h-4 w-4 text-sky-500" />
-                        {testDate ? format(testDate, 'PPP') : <span className="text-sky-400">Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
-                      <Calendar
-                        mode="single"
-                        selected={testDate}
-                        onSelect={setTestDate}
-                        initialFocus
-                        className="text-sky-900 dark:text-white rounded-2xl"
-                        classNames={{
-                          today: "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-md data-[selected=true]:rounded-none",
-                          weekday: "text-sky-500 dark:text-sky-400 rounded-md flex-1 font-medium text-[0.8rem] select-none",
-                          caption_label: "text-sky-900 dark:text-white font-semibold text-sm select-none",
-                          button_previous: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
-                          button_next: "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg",
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div>
-                  <Label htmlFor="testType" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                    Test Type
-                  </Label>
-                  <Select value={testType} onValueChange={setTestType}>
-                    <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white text-sm hover:border-sky-500 rounded-xl">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                      <SelectItem value="ALPHA" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">ALPHA</SelectItem>
-                      <SelectItem value="BETA" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">BETA</SelectItem>
-                      <SelectItem value="Quiz" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Quiz</SelectItem>
-                      <SelectItem value="Midterm" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Midterm</SelectItem>
-                      <SelectItem value="Final" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Final</SelectItem>
-                      <SelectItem value="Other" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Advanced Options Toggle */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="flex items-center gap-2 text-sm font-semibold text-sky-500 hover:text-sky-600 transition-colors"
-                >
-                  <span>{showAdvanced ? 'Hide' : 'Show'} Advanced Options</span>
-                  <HugeIcon name="ArrowDown01" size={16} className={`h-4 w-4 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-
-              {/* Advanced Options */}
-              <AnimatePresence>
-                {showAdvanced && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-5 overflow-hidden"
+                {/* Advanced Options Toggle */}
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="flex items-center gap-2 text-xs font-bold text-sky-500 hover:text-sky-600 transition-colors uppercase tracking-widest"
                   >
-                    {/* Test Time */}
-                    <div>
-                      <Label htmlFor="testTime" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                        Test Time <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
-                      </Label>
-                      <div className="relative">
-                        <HugeIcon name="Timer01" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-400 dark:text-sky-500" />
-                        <Input
-                          id="testTime"
-                          type="time"
-                          value={testTime}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestTime(e.target.value)}
-                          className="w-full h-11 pl-10 bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    <span>{showAdvanced ? 'Hide' : 'Show'} Advanced</span>
+                    <HugeIcon name="ArrowDown01" size={14} className={`h-3.5 w-3.5 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div className="h-px bg-sky-100 dark:bg-sky-500/10 flex-1 ml-4"></div>
+                </div>
+
+                {/* Advanced Options */}
+                <AnimatePresence>
+                  {showAdvanced && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-4 pt-1 overflow-hidden"
+                    >
+                      {/* Test Time */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="testTime" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5 flex items-center gap-1">
+                          <HugeIcon name="Timer01" size={12} className="h-3 w-3" />
+                          Time
+                        </Label>
+                        <div className="relative">
+                          <TestTimePicker
+                            value={testTime || undefined}
+                            onChange={(value) => setTestTime(value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="description" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                          Description
+                        </Label>
+                        <textarea
+                          id="description"
+                          value={description}
+                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                          placeholder="Enter a brief description..."
+                          rows={2}
+                          className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] text-sm resize-none transition-all"
                         />
                       </div>
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                      <Label htmlFor="description" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                        Description <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
-                      </Label>
-                      <textarea
-                        id="description"
-                        value={description}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
-                        placeholder="Enter a brief description..."
-                        rows={3}
-                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
-                      />
-                    </div>
-
-                    {/* Study Materials */}
-                    <div>
-                      <Label htmlFor="studyMaterials" className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-                        Study Materials / Topics <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span>
-                      </Label>
-                      <textarea
-                        id="studyMaterials"
-                        value={studyMaterials}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setStudyMaterials(e.target.value)}
-                        placeholder="Enter topics or paste links, one per line..."
-                        rows={3}
-                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
-                      />
-                      <p className="mt-1.5 text-xs text-sky-500 dark:text-sky-400">
-                        Add links or topics, one per line. Links will be clickable in the test view.
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             {/* Footer */}

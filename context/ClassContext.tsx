@@ -74,6 +74,7 @@ export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'li
 
 // Test types
 export type TestType = 'ALPHA' | 'BETA' | 'Quiz' | 'Other' | 'exam' | 'quiz' | 'midterm' | 'final' | 'project' | 'presentation';
+export type StudyMaterial = string | { url: string; title?: string };
 export type TestStatus = 'upcoming' | 'preparing' | 'taken' | 'not_started' | 'in_progress' | 'completed' | 'postponed' | 'cancelled';
 
 export type Test = Omit<Database['public']['Tables']['tests']['Row'],
@@ -85,7 +86,7 @@ export type Test = Omit<Database['public']['Tables']['tests']['Row'],
   testTime: string | null; // ISO time string
   testType: TestType;
   maxScore: number | null;
-  studyMaterials: string[];
+  studyMaterials: StudyMaterial[];
   weight: number | null;
   location: string | null;
   duration: number | null;
@@ -126,7 +127,7 @@ interface ClassContextType {
     duration?: number;
     priority?: Priority;
     description?: string;
-    studyMaterials?: string[];
+    studyMaterials?: StudyMaterial[];
     notes?: string;
   }) => Promise<void>;
   updateTest: (id: string, updates: Partial<Test>) => Promise<void>;
@@ -238,7 +239,17 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         testTime: test.test_time,
         testType: test.test_type as TestType,
         maxScore: test.max_score,
-        studyMaterials: test.study_materials || [],
+        studyMaterials: (test.study_materials || []).map((m: any) => {
+          if (typeof m === 'string' && m.startsWith('{')) {
+            try {
+              const parsed = JSON.parse(m);
+              return parsed;
+            } catch (e) {
+              return m;
+            }
+          }
+          return m;
+        }),
         weight: test.weight,
         location: test.location,
         duration: test.duration,
@@ -488,7 +499,16 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                     testTime: newTest.test_time,
                     testType: newTest.test_type as TestType,
                     maxScore: newTest.max_score,
-                    studyMaterials: newTest.study_materials || [],
+                    studyMaterials: (newTest.study_materials || []).map((m: any) => {
+                      if (typeof m === 'string' && m.startsWith('{')) {
+                        try {
+                          return JSON.parse(m);
+                        } catch (e) {
+                          return m;
+                        }
+                      }
+                      return m;
+                    }),
                     weight: newTest.weight,
                     location: newTest.location,
                     duration: newTest.duration,
@@ -516,7 +536,18 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
                       testTime: updated.test_time !== undefined ? updated.test_time : test.testTime,
                       testType: updated.test_type ? updated.test_type as TestType : test.testType,
                       maxScore: updated.max_score !== undefined ? updated.max_score : test.maxScore,
-                      studyMaterials: updated.study_materials !== undefined ? updated.study_materials : test.studyMaterials,
+                      studyMaterials: updated.study_materials !== undefined 
+                        ? (updated.study_materials as any[]).map((m: any) => {
+                            if (typeof m === 'string' && m.startsWith('{')) {
+                              try {
+                                return JSON.parse(m);
+                              } catch (e) {
+                                return m;
+                              }
+                            }
+                            return m;
+                          })
+                        : test.studyMaterials,
                       weight: updated.weight !== undefined ? updated.weight : test.weight,
                       location: updated.location !== undefined ? updated.location : test.location,
                       duration: updated.duration !== undefined ? updated.duration : test.duration,
@@ -1182,7 +1213,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
     duration?: number;
     priority?: Priority;
     description?: string;
-    studyMaterials?: string[];
+    studyMaterials?: StudyMaterial[];
     notes?: string;
   } = {}) => {
     if (!user) throw new Error('User not authenticated');
@@ -1243,7 +1274,9 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         priority: options.priority || 'medium',
         class_id: classId,
         user_id: user.id,
-        study_materials: options.studyMaterials || [],
+        study_materials: (options.studyMaterials || []).map(m => 
+          typeof m === 'string' ? m : JSON.stringify(m)
+        ) as string[],
         notes: options.notes
       };
 
@@ -1264,7 +1297,16 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
               testType: createdTest.test_type as TestType,
               maxScore: createdTest.max_score,
               priority: (createdTest.priority as Priority) || 'medium',
-              studyMaterials: createdTest.study_materials || [],
+              studyMaterials: (createdTest.study_materials || []).map((m: any) => {
+                if (typeof m === 'string' && m.startsWith('{')) {
+                  try {
+                    return JSON.parse(m);
+                  } catch (e) {
+                    return m;
+                  }
+                }
+                return m;
+              }),
               created_at: createdTest.created_at,
               status: (createdTest.status as TestStatus) || 'upcoming',
             }
@@ -1335,7 +1377,9 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         score: updateData.score,
         max_score: updateData.maxScore,
         grade: updateData.grade,
-        study_materials: updateData.studyMaterials,
+        study_materials: updateData.studyMaterials 
+          ? updateData.studyMaterials.map(m => typeof m === 'string' ? m : JSON.stringify(m))
+          : undefined,
         notes: updateData.notes,
         updated_at: new Date().toISOString()
       };

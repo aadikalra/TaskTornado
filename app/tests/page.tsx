@@ -118,7 +118,6 @@ export default function TestsPage() {
         >
           <StatusGroupedTestList
             tests={tests}
-            classes={classes}
             onDeleteTest={deleteTest}
           />
         </motion.div>

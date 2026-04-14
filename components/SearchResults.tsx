@@ -56,6 +56,12 @@ const routeSearchItems = [
   { title: 'Games', href: '/games', icon: 'Gameboy', keywords: ['games', 'play', 'fun'] },
   { title: 'Snake Game', href: '/snake', icon: 'Trophy', keywords: ['snake', 'game', 'arcade'] },
   { title: 'Task Tower', href: '/task-tower', icon: 'ChartAnalysis', keywords: ['task tower', 'tower', 'productivity'] },
+  { title: 'Color Match', href: '/color-match', icon: 'Swatch', keywords: ['color', 'match', 'game'] },
+  { title: 'Math Sprint', href: '/math-sprint', icon: 'Function', keywords: ['math', 'sprint', 'game', 'calculation'] },
+  { title: 'Memory Match', href: '/memory-match', icon: 'Brain', keywords: ['memory', 'match', 'game', 'brain'] },
+  { title: 'Reaction Time', href: '/reaction-time', icon: 'Timer01', keywords: ['reaction', 'time', 'speed', 'game'] },
+  { title: 'Typing Speed', href: '/typing-speed', icon: 'Keyboard', keywords: ['typing', 'speed', 'game', 'keyboard'] },
+  { title: 'Word Scramble', href: '/word-scramble', icon: 'Text', keywords: ['word', 'scramble', 'game', 'puzzle'] },
 
   // ── Tutorials ──
   { title: 'Tutorials', href: '/tutorials', icon: 'HelpCircle', keywords: ['tutorials', 'guides', 'help', 'learn', 'how to'] },
@@ -74,6 +80,14 @@ const routeSearchItems = [
   { title: 'Settings', href: '/settings', icon: 'Settings02', keywords: ['settings', 'preferences', 'account', 'profile'] },
   { title: 'Privacy Policy', href: '/legal/privacy', icon: 'Security01', keywords: ['privacy', 'policy', 'data'] },
   { title: 'Terms of Service', href: '/legal/terms', icon: 'Scroll', keywords: ['terms', 'service', 'legal'] },
+
+  // ── Other ──
+  { title: 'Features', href: '/features', icon: 'Star', keywords: ['features', 'capabilities', 'what we offer'] },
+  { title: 'Pricing', href: '/pricing', icon: 'Tag', keywords: ['pricing', 'cost', 'price', 'plans'] },
+  { title: 'Letter', href: '/letter', icon: 'Mail01', keywords: ['letter', 'message', 'correspondence'] },
+  { title: 'Guardian', href: '/guardian', icon: 'Shield', keywords: ['guardian', 'parent account'] },
+  { title: 'Login', href: '/login', icon: 'Login', keywords: ['login', 'sign in', 'auth'] },
+  { title: 'Sign Up', href: '/signup', icon: 'UserAdd01', keywords: ['signup', 'register', 'create account', 'sign up'] },
 ];
 
 interface FlashcardDeckSearchItem {

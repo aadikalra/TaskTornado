@@ -136,7 +136,7 @@ export const MiniCalendar = () => {
             </div>
 
             <TooltipProvider>
-                <div className="grid grid-cols-7 gap-y-0.5 text-center flex-1" style={{ gridTemplateRows: `auto repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }}>
+                <div className="grid grid-cols-7 gap-y-0.5 text-center" style={{ gridTemplateRows: `auto repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }}>
                     {/* Day headers */}
                     <div className="col-span-7 grid grid-cols-7 mb-1">
                         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
@@ -162,24 +162,24 @@ export const MiniCalendar = () => {
                                 <TooltipTrigger asChild>
                                     <div
                                         className={cn(
-                                            "relative flex items-center justify-center text-xs transition-all rounded-lg cursor-default font-semibold",
+                                            "relative flex flex-col items-center justify-center aspect-square md:aspect-auto md:h-9 text-[13px] transition-all rounded-xl cursor-default font-bold",
                                             calDay.isCurrentMonth
                                                 ? "text-blue-900 dark:text-blue-100"
-                                                : "text-blue-900/25 dark:text-blue-400/25 font-normal",
-                                            isToday && "bg-blue-700 dark:bg-blue-500 text-white dark:text-white font-bold shadow-md scale-105 z-10",
-                                            !isToday && calDay.isCurrentMonth && "hover:bg-blue-700/10 dark:hover:bg-blue-400/10"
+                                                : "text-blue-900/20 dark:text-blue-400/20 font-medium",
+                                            isToday && "bg-blue-600 dark:bg-blue-500 text-white dark:text-white shadow-lg scale-110 z-10",
+                                            !isToday && calDay.isCurrentMonth && "hover:bg-blue-600/10 dark:hover:bg-blue-400/10"
                                         )}
                                     >
-                                        <span className="relative z-0">{calDay.day}</span>
-                                        <div className="absolute bottom-0.5 flex gap-0.5">
+                                        <span className={cn("leading-none", isToday ? "mt-0" : "mt-0.5")}>{calDay.day}</span>
+                                        <div className="absolute bottom-1.5 flex justify-center gap-0.5 w-full">
                                             {dayTests.length > 0 && (
-                                                <div className={cn("w-1.5 h-1.5 rounded-full", isToday ? "bg-white/50" : "bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]")} />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", isToday ? "bg-white/70" : "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]")} />
                                             )}
                                             {dayHomeworks.length > 0 && (
-                                                <div className={cn("w-1.5 h-1.5 rounded-full", isToday ? "bg-white/50" : "bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.4)]")} />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", isToday ? "bg-white/70" : "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]")} />
                                             )}
                                             {dayEvents.length > 0 && (
-                                                <div className={cn("w-1.5 h-1.5 rounded-full", isToday ? "bg-white/50" : "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]")} />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", isToday ? "bg-white/70" : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]")} />
                                             )}
                                         </div>
                                     </div>

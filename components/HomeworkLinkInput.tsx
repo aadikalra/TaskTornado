@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { Input } from '@/components/ui/input';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type HomeworkLink = {
   id: string;
@@ -40,88 +41,91 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <label className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Links <span className="text-sky-400 font-normal normal-case tracking-normal">(Optional)</span></label>
-        {!isAdding && (
-          <button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            className="text-xs font-semibold text-sky-500 hover:text-sky-600 flex items-center gap-1 transition-colors"
-          >
-            <HugeIcon name="PlusSign" size={12} className="h-3 w-3" /> Add Link
-          </button>
-        )}
+        <label className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+          Links
+        </label>
+        <button
+          type="button"
+          onClick={() => setIsAdding(!isAdding)}
+          className={`text-[11px] font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all ${
+            isAdding 
+              ? 'bg-red-50 text-red-500 dark:bg-red-500/10' 
+              : 'text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10'
+          }`}
+        >
+          <motion.div animate={{ rotate: isAdding ? 45 : 0 }}>
+            <HugeIcon name="PlusSign" size={12} className="h-3 w-3" />
+          </motion.div>
+          {isAdding ? 'Cancel' : 'Add Link'}
+        </button>
       </div>
 
-      {isAdding && (
-        <div className="space-y-2 p-3 bg-sky-50 dark:bg-gray-800 rounded-xl border border-sky-100 dark:border-gray-700">
-          <div className="space-y-2">
-            <Input
-              type="url"
-              value={newLink}
-              onChange={(e) => setNewLink(e.target.value)}
-              placeholder="https://example.com"
-              className="text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            />
-            <Input
-              type="text"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Link title (optional)"
-              className="text-sm bg-white dark:bg-gray-900 border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setIsAdding(false);
-                setNewLink('');
-                setNewTitle('');
-              }}
-              className="h-8 px-3 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleAddLink}
-              disabled={!newLink.trim()}
-              className="h-8 px-4 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Add Link
-            </button>
-          </div>
-        </div>
-      )}
-
-      {links.length > 0 && (
-        <div className="space-y-2 mt-2">
-          {links.map((link, index) => (
-            <div key={link.id || `link-input-${index}`} className="flex items-center justify-between group bg-sky-50 dark:bg-gray-800 p-2.5 rounded-xl border border-sky-100 dark:border-gray-700">
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-sky-600 hover:text-sky-700 hover:underline flex items-center flex-1 min-w-0"
-                title={link.url}
+      <AnimatePresence>
+        {isAdding && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-2.5 p-3.5 bg-sky-50/50 dark:bg-gray-800/50 rounded-2xl border border-sky-100/60 dark:border-gray-700/50">
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="url"
+                  value={newLink}
+                  onChange={(e) => setNewLink(e.target.value)}
+                  placeholder="Paste URL..."
+                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
+                />
+                <Input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Label (e.g. Canvas)"
+                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddLink}
+                disabled={!newLink.trim()}
+                className="w-full h-9 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-[#ebf6b5] dark:bg-[#ebf6b5]/20 hover:bg-[#d4e88e] dark:hover:bg-[#ebf6b5]/30 border border-[#d4e88e]/50 dark:border-[#ebf6b5]/30 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-lime-900/5"
               >
-                <HugeIcon name="Globe" size={14} className="h-3.5 w-3.5 mr-2 flex-shrink-0 text-sky-500" />
-                <span className="truncate">{link.title || link.url}</span>
-              </a>
+                Attach Link
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap gap-2">
+        <AnimatePresence mode="popLayout">
+          {links.map((link) => (
+            <motion.div
+              key={link.id}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="group flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl shadow-sm hover:border-sky-300 dark:hover:border-sky-500 transition-all max-w-[200px]"
+            >
+              <HugeIcon name="Link" size={14} className="h-3.5 w-3.5 text-sky-500 flex-shrink-0" />
+              <span className="text-[11px] font-medium text-sky-700 dark:text-sky-300 truncate">
+                {link.title || link.url.replace(/^https?:\/\/(www\.)?/, '')}
+              </span>
               <button
                 type="button"
                 onClick={() => removeLink(link.id)}
-                className="text-sky-400 hover:text-red-500 dark:text-sky-500 dark:hover:text-red-400 p-1 -mr-1 transition-colors"
-                title="Remove link"
+                className="h-5 w-5 flex items-center justify-center rounded-full text-sky-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                title="Remove"
               >
-                <HugeIcon name="Cancel01" size={14} className="h-3.5 w-3.5" />
+                <HugeIcon name="Cancel01" size={12} className="h-3 w-3" />
               </button>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

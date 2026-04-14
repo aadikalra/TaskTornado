@@ -99,6 +99,7 @@ import {
   Home02Icon,
   Calendar02Icon,
   CalendarMinus02Icon,
+  CalendarRemove01Icon,
   FilterIcon,
   AlertCircleIcon,
   CancelCircleIcon,
@@ -139,6 +140,8 @@ import {
   WaveIcon,
   Message01Icon,
   Message02Icon,
+  Link01Icon,
+  Link02Icon,
   ScrollIcon,
   LaptopIcon,
   BrainIcon,
@@ -460,6 +463,7 @@ export const hugeIconMap = {
   'Pause': PauseIcon,
   'Home02': Home02Icon,
   'Calendar02': Calendar02Icon,
+  'CalendarRemove01': CalendarRemove01Icon,
   'CalendarMinus02': CalendarMinus02Icon,
   'Filter': FilterIcon,
   'AlertCircle': AlertCircleIcon,
@@ -596,6 +600,9 @@ export const hugeIconMap = {
   'Target01': Target01Icon,
   'Target02': Target02Icon,
   'Target': Target01Icon,
+  'Link01': Link01Icon,
+  'Link02': Link02Icon,
+  'Link': Link01Icon,
 } as const;
 
 export type HugeIconName = keyof typeof hugeIconMap;

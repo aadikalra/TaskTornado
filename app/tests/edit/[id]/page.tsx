@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useClassContext, TestType, TestStatus } from '@/context/ClassContext';
+import { useClassContext, TestType, TestStatus, StudyMaterial } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,7 @@ import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-type StudyMaterial = string | { url: string; title?: string };
+
 
 export default function EditTestPage() {
   const { id } = useParams() as { id: string };
@@ -107,10 +107,13 @@ export default function EditTestPage() {
         description: description || null,
         studyMaterials: studyMaterials.map(m => typeof m === 'string' ? m : m.url),
         status: status as TestStatus,
-        score: score || null,
-        maxScore: maxScore || 100,
+        score: score,
+        maxScore: maxScore,
+        grade: grade || null,
         notes: notes || null,
-        completed_at: completedAt ? completedAt.toISOString() : null
+        completed_at: status === 'completed' 
+          ? (completedAt ? completedAt.toISOString() : new Date().toISOString()) 
+          : null
       });
 
       success('Test updated successfully');
