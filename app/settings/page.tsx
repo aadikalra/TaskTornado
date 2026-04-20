@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useClassContext } from '@/context/ClassContext';
-import { useWideLayout } from '@/hooks/use-wide-layout';
 import {
   PreferencesSection,
   AccessibilitySection,
@@ -20,6 +19,7 @@ import GoogleClassroomSection from '@/components/settings/GoogleClassroomSection
 import GuardianAccessSettings from '@/components/settings/GuardianAccessSettings';
 import { getFullVersionString } from '@/config/version';
 import { useDarkMode } from '@/context/DarkModeContext';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 
 // Cookie utilities
@@ -88,9 +88,9 @@ export default function SettingsPage() {
   const [showTestsInClassCards, setShowTestsInClassCards] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('showTestsInClassCards');
-      return saved !== null ? saved === 'true' : true;
+      return saved !== null ? saved === 'true' : false;
     }
-    return true;
+    return false;
   });
 
   const handleToggleTestsInClassCards = (checked: boolean) => {
@@ -110,6 +110,19 @@ export default function SettingsPage() {
   const handlePersonalityChange = (value: AIPersonality) => {
     setAIPersonality(value);
     setCookie('aiPersonality', value);
+  };
+
+  const [advancedAIMode, setAdvancedAIMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('advancedAIMode');
+      return saved !== null ? saved === 'true' : false;
+    }
+    return false;
+  });
+
+  const handleToggleAdvancedAIMode = (checked: boolean) => {
+    setAdvancedAIMode(checked);
+    setCookie('advancedAIMode', checked.toString());
   };
 
   useEffect(() => {
@@ -231,7 +244,7 @@ export default function SettingsPage() {
         <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#ebf6b5]/30 dark:bg-emerald-500/[0.04] rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl px-6 sm:px-10 md:px-16 pt-28 pb-16">
+      <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
         {/* Header */}
         <header className="mb-10">
           <motion.div
@@ -324,6 +337,8 @@ export default function SettingsPage() {
                 onToggleWideLayout={toggleWideLayout}
                 showTestsInClassCards={showTestsInClassCards}
                 onToggleTestsInClassCards={handleToggleTestsInClassCards}
+                advancedAIMode={advancedAIMode}
+                onToggleAdvancedAIMode={handleToggleAdvancedAIMode}
               />
               <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
             </section>

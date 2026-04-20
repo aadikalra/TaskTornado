@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Facehash } from 'facehash';
 import { format, addDays } from 'date-fns';
@@ -71,20 +71,18 @@ import {
   SelectSeparator,
 } from "@/components/ui/select";
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
-import { PlayfulHomeworkList } from '@/components/PlayfulHomeworkList';
-import { HugeIcon } from '@/lib/huge-icon-map';
+import { PlayfulHomeworkList, PlayfulHomeworkListRef } from '@/components/PlayfulHomeworkList';
+import { HugeIcon, hugeIconMap } from '@/lib/huge-icon-map';
 import { iconMap, IconName } from '@/lib/icon-map';
 
-// Helper component to render class icon with HugeIcon fallback to Lucide
+// Helper component to render class icon with HugeIcon fallback
 const ClassIconRenderer: React.FC<{ iconName: string; className?: string; style?: React.CSSProperties }> = ({ iconName, className, style }) => {
-  const fallbackIcon = iconMap[iconName as keyof typeof iconMap] ?? 'Book01';
   return (
     <HugeIcon
       name={iconName}
       size={24}
       className={className}
       style={style}
-      fallbackIcon={fallbackIcon}
     />
   );
 };
@@ -146,12 +144,20 @@ const MainApp = () => {
   const [newClassName, setNewClassName] = useState('');
   const [newClassIcon, setNewClassIcon] = useState<string>('Book02');
   const [searchQuery, setSearchQuery] = useState('');
+  const [homeworkSearch, setHomeworkSearch] = useState('');
+  const [isHomeworkSearchExpanded, setIsHomeworkSearchExpanded] = useState(false);
+  const [homeworkFilter, setHomeworkFilter] = useState('all');
+  const [isAddMenuExpanded, setIsAddMenuExpanded] = useState(false);
+  const [isAddTestExpanded, setIsAddTestExpanded] = useState(false);
   const [showAddTest, setShowAddTest] = useState(false);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isTestDetailModalOpen, setIsTestDetailModalOpen] = useState(false);
   const [classIdForAddTest, setClassIdForAddTest] = useState<string | undefined>(undefined);
   const [classToDelete, setClassToDelete] = useState<{ id: string; name: string } | null>(null);
   const [showBracket, setShowBracket] = useState(false);
+
+  // Refs for PlayfulHomeworkList instances to clear selection
+  const homeworkListRefs = useRef<Map<string, PlayfulHomeworkListRef | null>>(new Map());
 
   // Initialize section visibility states from cookies with defaults
   const [showPinnedHomeworks, setShowPinnedHomeworks] = useState(() => {
@@ -899,10 +905,91 @@ Return ONLY valid JSON, no explanation, no markdown.`,
     return colors[index % colors.length];
   }, []);
 
+  // Memoized: test filtering logic
+  const filteredTests = useMemo(() => {
+    return tests.filter(test => {
+      const testDate = new Date(test.testDate + 'T00:00:00');
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);      // First apply status/type filter
+      let matches = true;
+      switch (testFilter) {
+        case 'upcoming':
+          matches = testDate >= today;
+          break;
+        case 'taken':
+          matches = testDate < today;
+          break;
+        case 'alpha_only':
+          matches = test.testType === 'ALPHA';
+          break;
+        case 'beta_only':
+          matches = test.testType === 'BETA';
+          break;
+        case 'exams':
+          matches = ['exam', 'midterm', 'final'].includes(test.testType?.toLowerCase() || '');
+          break;
+        case 'quizzes':
+          matches = ['quiz', 'Quiz'].includes(test.testType || '');
+          break;
+        default:
+          matches = true;
+      }
+
+      if (!matches) return false;
+
+      // Then apply search filter
+      if (testSearch.trim()) {
+        const searchLower = testSearch.toLowerCase();
+        return (
+          test.title.toLowerCase().includes(searchLower) ||
+          test.description?.toLowerCase().includes(searchLower) ||
+          classes.find(c => c.id === test.classId)?.name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
+    });
+  }, [tests, testFilter, testSearch, classes]);
+
+  // Memoized: homework filtering logic
+  const filteredHomeworks = useMemo(() => {
+    return homeworks.filter(hw => {
+      // First apply status filter
+      let matches = true;
+      switch (homeworkFilter) {
+        case 'completed':
+          matches = hw.completed;
+          break;
+        case 'incomplete':
+          matches = !hw.completed;
+          break;
+        case 'pinned':
+          matches = hw.pinned;
+          break;
+        default:
+          matches = true;
+      }
+
+      if (!matches) return false;
+
+      // Then apply search filter
+      if (homeworkSearch.trim()) {
+        const searchLower = homeworkSearch.toLowerCase();
+        return (
+          hw.title.toLowerCase().includes(searchLower) ||
+          hw.description?.toLowerCase().includes(searchLower) ||
+          classes.find(c => c.id === hw.classId)?.name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
+    });
+  }, [homeworks, homeworkFilter, homeworkSearch, classes]);
+
   // Memoize the processed class data to prevent re-renders
   const processedClasses = useMemo(() => {
     return classes.map((cls: any, index: number) => {
-      const classTests = tests.filter((t: any) => {
+      const classTests = filteredTests.filter((t: any) => {
         const testDate = new Date(t.testDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -910,7 +997,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
       });
 
       // Get all homeworks for this class
-      const allClassHomeworks = homeworks
+      const allClassHomeworks = filteredHomeworks
         .filter((hw: any) => hw.classId === cls.id)
         .filter((hw: any) => hw.is_recurring_instance === true || hw.recurring_id == null);
 
@@ -958,7 +1045,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
         index
       };
     });
-  }, [classes, homeworks, tests, getClassColor, isHomeworkArchived]);
+  }, [classes, filteredHomeworks, filteredTests, getClassColor, isHomeworkArchived]);
 
   // Memoized: overdue homework count (used in stats section)
   const overdueCount = useMemo(() => {
@@ -994,52 +1081,6 @@ Return ONLY valid JSON, no explanation, no markdown.`,
       : null;
     return { nextUpcomingTest: next, daysUntilNextTest: days };
   }, [tests]);
-
-  // Memoized: test filtering logic
-  const filteredTests = useMemo(() => {
-    return tests.filter(test => {
-      const testDate = new Date(test.testDate + 'T00:00:00');
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);      // First apply status/type filter
-      let matches = true;
-      switch (testFilter) {
-        case 'upcoming':
-          matches = testDate >= today;
-          break;
-        case 'taken':
-          matches = testDate < today;
-          break;
-        case 'alpha_only':
-          matches = test.testType === 'ALPHA';
-          break;
-        case 'beta_only':
-          matches = test.testType === 'BETA';
-          break;
-        case 'exams':
-          matches = ['exam', 'midterm', 'final'].includes(test.testType?.toLowerCase() || '');
-          break;
-        case 'quizzes':
-          matches = ['quiz', 'Quiz'].includes(test.testType || '');
-          break;
-        default:
-          matches = true;
-      }
-
-      if (!matches) return false;
-
-      // Then apply search filter
-      if (testSearch.trim()) {
-        const searchLower = testSearch.toLowerCase();
-        return (
-          test.title.toLowerCase().includes(searchLower) ||
-          test.description?.toLowerCase().includes(searchLower) ||
-          classes.find(c => c.id === test.classId)?.name.toLowerCase().includes(searchLower)
-        );
-      }
-
-      return true;
-    });
-  }, [tests, testFilter, testSearch, classes]);
 
   // Memoized: group tests by class
   const testsByClass = useMemo(() => {
@@ -1181,13 +1222,83 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   </div>
                   <div className="flex items-center gap-1.5">
                     {/* Nav-pill style action buttons */}
-                    <div className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20">
+                    <div 
+                      className="flex items-center gap-0 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {homeworks.length > 0 && (
                         <>
+                          <div
+                            className="relative flex items-center h-8"
+                            onClick={(e) => {
+                              if (!isHomeworkSearchExpanded) {
+                                setIsHomeworkSearchExpanded(true);
+                                // Auto-focus the input after animation or immediately
+                                setTimeout(() => {
+                                  const input = document.getElementById('homework-search-input');
+                                  input?.focus();
+                                }, 10);
+                              }
+                            }}
+                          >
+                            <motion.div
+                              initial={false}
+                              animate={{
+                                width: isHomeworkSearchExpanded || homeworkSearch ? (window.innerWidth < 640 ? 128 : 160) : 32
+                              }}
+                              className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-l-full border-r border-sky-500/20 dark:border-sky-400/20 transition-all overflow-hidden"
+                              style={{ minWidth: isHomeworkSearchExpanded || homeworkSearch ? undefined : '32px' }}
+                            >
+                              <HugeIcon
+                                name="Search01"
+                                size={14}
+                                className={`absolute left-[9px] h-3.5 w-3.5 text-sky-700 dark:text-sky-300 transition-colors ${isHomeworkSearchExpanded || homeworkSearch ? 'opacity-90' : 'opacity-100'}`}
+                              />
+                              <motion.input
+                                id="homework-search-input"
+                                type="text"
+                                placeholder="Search homework..."
+                                value={homeworkSearch}
+                                onChange={(e) => setHomeworkSearch(e.target.value)}
+                                onBlur={() => {
+                                  if (!homeworkSearch) setIsHomeworkSearchExpanded(false);
+                                }}
+                                animate={{ opacity: isHomeworkSearchExpanded || homeworkSearch ? 1 : 0 }}
+                                className="w-full h-full pl-8 pr-3 text-[12px] font-semibold bg-transparent text-sky-700 dark:text-sky-300 placeholder-sky-700/40 dark:placeholder-sky-300/40 border-0 focus:ring-0 outline-none"
+                              />
+                            </motion.div>
+                          </div>
+
+                          <Select value={homeworkFilter} onValueChange={(value: string) => setHomeworkFilter(value)}>
+                            <SelectTrigger size="sm" hideIcon className="w-8 h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
+                              <HugeIcon name="Filter" size={14} className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
+                            </SelectTrigger>
+                            <SelectContent className="w-56 bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl p-1.5" position="popper" sideOffset={4}>
+                              <SelectGroup>
+                                <SelectLabel className="px-3 py-2 text-[10px] font-bold text-sky-500/50 uppercase tracking-widest">Status</SelectLabel>
+                                <SelectItem value="all" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">All Homework</SelectItem>
+                                <SelectItem value="completed" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Completed</SelectItem>
+                                <SelectItem value="incomplete" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Incomplete</SelectItem>
+                                <SelectItem value="pinned" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Pinned</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1.5 mr-1.5" />
                           <motion.button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setIsSelectionMode(!isSelectionMode);
+                              if (isSelectionMode) {
+                                // First clear all selections
+                                homeworkListRefs.current.forEach(ref => {
+                                  ref?.clearSelection();
+                                });
+                                // Then exit selection mode after a short delay
+                                setTimeout(() => {
+                                  setIsSelectionMode(false);
+                                }, 50);
+                              } else {
+                                setIsSelectionMode(true);
+                              }
                             }}
                             whileHover="hover"
                             initial="initial"
@@ -1198,7 +1309,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           >
                             <div className="flex items-center justify-center w-8 h-8 shrink-0">
                               {isSelectionMode ? (
-                                <HugeIcon name="Tick02" size={14} className="h-3.5 w-3.5" />
+                                <HugeIcon name="CheckmarkCircle02" size={14} className="h-3.5 w-3.5" />
                               ) : (
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
@@ -1225,63 +1336,47 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                               {isSelectionMode ? 'Done' : 'Select'}
                             </motion.span>
                           </motion.button>
-                          <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 mx-0.5" />
+                          <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1.5 mr-1.5" />
                         </>
                       )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAddClass(true);
-                        }}
-                        className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                      <div className="relative flex items-center h-8">
+                        <motion.div
+                          initial={false}
+                          animate={{ width: isAddMenuExpanded ? 165 : 32 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                          className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full overflow-hidden"
+                          onMouseEnter={() => setIsAddMenuExpanded(true)}
+                          onMouseLeave={() => setIsAddMenuExpanded(false)}
                         >
-                          <path d="M12 4V20M20 12H4" />
-                        </svg>
-                        Class
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAddHomework(true);
-                        }}
-                        className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 4V20M20 12H4" />
-                        </svg>
-                        Homework
-                      </button>
-                      {showTestsInClassCards && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowAddTest(true);
-                          }}
-                          className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
-                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAddClass(true);
+                            }}
+                            className="flex items-center px-3 h-full text-[13px] font-semibold text-sky-700 dark:text-sky-300 transition-opacity duration-200 whitespace-nowrap"
+                            style={{ opacity: isAddMenuExpanded ? 1 : 0 }}
+                          >
+                            Class
+                          </button>
+                          <div 
+                            className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 shrink-0 transition-opacity duration-200" 
+                            style={{ opacity: isAddMenuExpanded ? 1 : 0 }} 
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAddHomework(true);
+                            }}
+                            className="flex items-center pl-3 pr-7 h-full text-[13px] font-semibold text-sky-700 dark:text-sky-300 transition-opacity duration-200 whitespace-nowrap"
+                            style={{ opacity: isAddMenuExpanded ? 1 : 0 }}
+                          >
+                            Homework
+                          </button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
-                            className="h-3.5 w-3.5"
+                            className="absolute h-3.5 w-3.5 text-sky-700 dark:text-sky-300 pointer-events-none transition-all duration-200"
+                            style={{ right: isAddMenuExpanded ? '12px' : '9px', top: '50%', transform: 'translateY(-50%)' }}
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="1.5"
@@ -1290,8 +1385,41 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           >
                             <path d="M12 4V20M20 12H4" />
                           </svg>
-                          Test
-                        </button>
+                        </motion.div>
+                      </div>
+                      {showTestsInClassCards && (
+                        <motion.div
+                          initial={false}
+                          animate={{ width: isAddTestExpanded ? 72 : 32 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                          className="relative h-8 flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full overflow-hidden cursor-pointer shrink-0"
+                          onMouseEnter={() => setIsAddTestExpanded(true)}
+                          onMouseLeave={() => setIsAddTestExpanded(false)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowAddTest(true);
+                          }}
+                        >
+                          <span
+                            className="flex items-center pl-3 h-full text-[13px] font-semibold text-sky-700 dark:text-sky-300 transition-opacity duration-200 whitespace-nowrap"
+                            style={{ opacity: isAddTestExpanded ? 1 : 0 }}
+                          >
+                            Test
+                          </span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className="absolute h-3.5 w-3.5 text-sky-700 dark:text-sky-300 pointer-events-none transition-all duration-200"
+                            style={{ right: isAddTestExpanded ? '10px' : '9px', top: '50%', transform: 'translateY(-50%)' }}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 4V20M20 12H4" />
+                          </svg>
+                        </motion.div>
                       )}
                     </div>
                     {!showTestsInClassCards && (
@@ -1451,6 +1579,13 @@ Return ONLY valid JSON, no explanation, no markdown.`,
 
                         <div className="space-y-1 mt-1">
                           <PlayfulHomeworkList
+                            ref={ref => {
+                              if (ref) {
+                                homeworkListRefs.current.set(`${cls.id}-main`, ref);
+                              } else {
+                                homeworkListRefs.current.delete(`${cls.id}-main`);
+                              }
+                            }}
                             items={classHomeworks.slice(0, 3)}
                             onItemToggle={handleHomeworkToggle}
                             onPinToggle={togglePinHomework}
@@ -1477,6 +1612,13 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                 style={{ overflow: 'hidden' }}
                               >
                                 <PlayfulHomeworkList
+                                  ref={ref => {
+                                    if (ref) {
+                                      homeworkListRefs.current.set(`${cls.id}-expanded`, ref);
+                                    } else {
+                                      homeworkListRefs.current.delete(`${cls.id}-expanded`);
+                                    }
+                                  }}
                                   items={classHomeworks.slice(3)}
                                   onItemToggle={handleHomeworkToggle}
                                   onPinToggle={togglePinHomework}
@@ -1564,6 +1706,13 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                                   <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
                                 </div>
                                 <PlayfulHomeworkList
+                                  ref={ref => {
+                                    if (ref) {
+                                      homeworkListRefs.current.set(`${cls.id}-archived`, ref);
+                                    } else {
+                                      homeworkListRefs.current.delete(`${cls.id}-archived`);
+                                    }
+                                  }}
                                   items={classArchivedHomeworks}
                                   onItemToggle={handleHomeworkToggle}
                                   onPinToggle={togglePinHomework}
@@ -1645,8 +1794,8 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   </div>
                   <div className="flex items-center gap-1.5">
                     {/* Nav-pill style action buttons — matching My Classes */}
-                    <div 
-                      className="flex items-center gap-1.5 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20"
+                    <div
+                      className="flex items-center gap-0 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div 
@@ -1664,10 +1813,10 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       >
                         <motion.div
                           initial={false}
-                          animate={{ 
-                            width: isTestSearchExpanded || testSearch ? (window.innerWidth < 640 ? 128 : 160) : 32 
+                          animate={{
+                            width: isTestSearchExpanded || testSearch ? (window.innerWidth < 640 ? 128 : 160) : 32
                           }}
-                          className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full border-0 transition-all overflow-hidden"
+                          className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-l-full border-r border-sky-500/20 dark:border-sky-400/20 transition-all overflow-hidden"
                           style={{ minWidth: isTestSearchExpanded || testSearch ? undefined : '32px' }}
                         >
                           <HugeIcon 
@@ -1689,11 +1838,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           />
                         </motion.div>
                       </div>
-                      
-                      <div className="w-px h-4 bg-sky-500/20 dark:bg-sky-400/10 mx-0.5" />
 
                       <Select value={testFilter} onValueChange={(value: string) => handleTestFilterChange(value)}>
-                        <SelectTrigger size="sm" hideIcon className="w-8 h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
+                        <SelectTrigger size="sm" hideIcon className="w-8 h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
                           <HugeIcon name="Filter" size={14} className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
                         </SelectTrigger>
                         <SelectContent className="w-56 bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl p-1.5" position="popper" sideOffset={4}>
@@ -1715,18 +1862,30 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 mx-0.5" />
-                      <button
+                      <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1.5 mr-1.5" />
+                      <motion.div
+                        initial={false}
+                        animate={{ width: isAddTestExpanded ? 72 : 32 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                        className="relative h-8 flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full overflow-hidden cursor-pointer shrink-0"
+                        onMouseEnter={() => setIsAddTestExpanded(true)}
+                        onMouseLeave={() => setIsAddTestExpanded(false)}
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowAddTest(true);
                         }}
-                        className="flex items-center gap-1.5 px-4 h-8 text-[13px] font-semibold text-sky-700 dark:text-sky-300 rounded-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all active:scale-95"
                       >
+                        <span
+                          className="flex items-center pl-3 h-full text-[13px] font-semibold text-sky-700 dark:text-sky-300 transition-opacity duration-200 whitespace-nowrap"
+                          style={{ opacity: isAddTestExpanded ? 1 : 0 }}
+                        >
+                          Test
+                        </span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
-                          className="h-3.5 w-3.5"
+                          className="absolute h-3.5 w-3.5 text-sky-700 dark:text-sky-300 pointer-events-none transition-all duration-200"
+                          style={{ right: isAddTestExpanded ? '10px' : '9px', top: '50%', transform: 'translateY(-50%)' }}
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="1.5"
@@ -1735,8 +1894,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         >
                           <path d="M12 4V20M20 12H4" />
                         </svg>
-                        Test
-                      </button>
+                      </motion.div>
                     </div>
                     <button
                       onClick={(e) => {
@@ -1783,7 +1941,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   </motion.div>
                 ) : (
                   <StatusGroupedTestList
-                    tests={tests}
+                    tests={filteredTests}
                     onDeleteTest={deleteTest}
                   />
                 )}

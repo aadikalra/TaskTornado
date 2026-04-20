@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { memo, useCallback, useState, useEffect } from 'react';
+import { memo, useCallback, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { HugeIcon } from '@/lib/huge-icon-map';
@@ -113,7 +113,11 @@ type PlayfulHomeworkListProps = {
   checkboxColor?: string;
 };
 
-const PlayfulHomeworkListComponent = ({
+export interface PlayfulHomeworkListRef {
+  clearSelection: () => void;
+}
+
+export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHomeworkListProps>(({
   items,
   onItemToggle,
   onPinToggle,
@@ -123,7 +127,7 @@ const PlayfulHomeworkListComponent = ({
   isSelectionMode = false,
   className,
   checkboxColor,
-}: PlayfulHomeworkListProps) => {
+}, ref) => {
   const [confettiItems, setConfettiItems] = React.useState<Set<string>>(new Set());
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [draggedItems, setDraggedItems] = useState<Set<string>>(new Set());
@@ -144,6 +148,11 @@ const PlayfulHomeworkListComponent = ({
   const clearSelection = useCallback(() => {
     setSelectedItems(new Set());
   }, []);
+
+  // Expose clearSelection function to parent via ref
+  useImperativeHandle(ref, () => ({
+    clearSelection
+  }), [clearSelection]);
 
   // Trigger confetti when items become completed
   React.useEffect(() => {
@@ -428,7 +437,7 @@ const PlayfulHomeworkListComponent = ({
                             handleToggle(item.id);
                           }
                         }}
-                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-sky-900/30 dark:text-sky-400/20' : 'text-sky-900 dark:text-sky-100'
+                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-sky-900/30 dark:text-sky-400/50' : 'text-sky-900 dark:text-sky-100'
                           }`}
                       >
                         {item.text}
@@ -551,13 +560,6 @@ const PlayfulHomeworkListComponent = ({
       <FloatingToolbar />
     </div>
   );
-};
-
-export const PlayfulHomeworkList = memo(PlayfulHomeworkListComponent, (prevProps, nextProps) => {
-  return prevProps.items === nextProps.items &&
-    prevProps.onItemToggle === nextProps.onItemToggle &&
-    prevProps.onPinToggle === nextProps.onPinToggle &&
-    prevProps.className === nextProps.className;
 });
 
 PlayfulHomeworkList.displayName = 'PlayfulHomeworkList';

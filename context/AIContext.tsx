@@ -27,6 +27,7 @@ type AIContextType = {
   setError: (error: string | null) => void;
   generateText: (prompt: string, model?: string) => Promise<string>;
   chat: (messages: AIMessage[], model?: string) => Promise<AIResponse>;
+  streamChat: (messages: AIMessage[], model?: string, onChunk?: (chunk: string) => void) => Promise<AIResponse>;
   clearError: () => void;
   isAIAssistantOpen: boolean;
   setAIAssistantOpen: (open: boolean) => void;
@@ -256,6 +257,103 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const streamChat = useCallback(async (messages: AIMessage[], model = 'gemma-3n-e4b-it', onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+    const defaultResponse: AIResponse = {
+      response: 'I encountered an error. Please try again.',
+      done: true,
+      model,
+      created_at: new Date().toISOString(),
+    };
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          action: 'chat',
+          options: {
+            temperature: 0.7,
+            top_p: 0.9,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData?.error || 'Failed to get response');
+      }
+
+      if (response.headers.get('content-type')?.includes('text/plain')) {
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedResponse = '';
+
+        if (!reader) throw new Error('No reader available');
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.response) {
+                    accumulatedResponse += data.response;
+                    if (onChunk) onChunk(data.response);
+                  }
+                  if (data.done) {
+                    return {
+                      response: accumulatedResponse,
+                      done: true,
+                      model,
+                      created_at: new Date().toISOString(),
+                    };
+                  }
+                } catch (e) {}
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        return {
+          response: accumulatedResponse,
+          done: true,
+          model,
+          created_at: new Date().toISOString(),
+        };
+      } else {
+        const data = await response.json();
+        const content = data.message?.content || data.response || '';
+        if (onChunk) onChunk(content);
+        return {
+          response: content,
+          done: true,
+          model,
+          created_at: new Date().toISOString(),
+        };
+      }
+    } catch (err: any) {
+      setError(err.message);
+      return { ...defaultResponse, raw: err.message };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -267,6 +365,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       setError,
       generateText,
       chat,
+      streamChat,
       clearError,
       isAIAssistantOpen,
       setAIAssistantOpen,

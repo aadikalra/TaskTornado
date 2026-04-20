@@ -11,6 +11,7 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import ReboundNavbar from '@/components/ReboundNavbar';
 import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
+import AdvancedAIGlow from '@/components/AdvancedAIGlow';
 
 // Register custom eye types before any Facehash renders
 patchFacehashFaces();
@@ -54,6 +55,16 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const { user, isGuardian } = useAuth() || {};
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
+  
+  // Advanced AI Mode state
+  const [advancedAIMode, setAdvancedAIMode] = React.useState(false);
+  
+  React.useEffect(() => {
+    const saved = document.cookie.split('; ').find(row => row.startsWith('advancedAIMode='));
+    if (saved) {
+      setAdvancedAIMode(saved.split('=')[1] === 'true');
+    }
+  }, []);
 
   // Track if we're on desktop (md+) for sidebar margin
   const [isDesktop, setIsDesktop] = React.useState(false);
@@ -129,6 +140,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <>
       <Analytics />
+      <AdvancedAIGlow enabled={advancedAIMode} />
       <div className="min-h-screen flex flex-col" onContextMenu={handleContextMenu}>
         {/* SearchBar - rendered globally so it can be opened from anywhere */}
         <SearchBar />

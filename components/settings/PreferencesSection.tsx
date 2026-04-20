@@ -1,6 +1,6 @@
 'use client';
 
-import { Brain, Check, Maximize2, BookOpen, Crown, FlaskConical } from 'lucide-react';
+import { Brain, Check, Maximize2, BookOpen, Crown, FlaskConical, Sparkles } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -16,6 +16,8 @@ interface PreferencesSectionProps {
   onToggleWideLayout: (checked: boolean) => void;
   showTestsInClassCards: boolean;
   onToggleTestsInClassCards: (checked: boolean) => void;
+  advancedAIMode: boolean;
+  onToggleAdvancedAIMode: (checked: boolean) => void;
 }
 
 export default function PreferencesSection({
@@ -24,7 +26,9 @@ export default function PreferencesSection({
   useWideLayout,
   onToggleWideLayout,
   showTestsInClassCards,
-  onToggleTestsInClassCards
+  onToggleTestsInClassCards,
+  advancedAIMode,
+  onToggleAdvancedAIMode
 }: PreferencesSectionProps) {
   const { tier, setTier } = usePlanTier();
 
@@ -95,14 +99,19 @@ export default function PreferencesSection({
 
       <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3">
-          <BookOpen className="h-[18px] w-[18px] text-sky-500/50" />
-          <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
-            Show Tests in Class Cards
-          </span>
+          <Sparkles className="h-[18px] w-[18px] text-purple-500/50" />
+          <div className="flex flex-col">
+            <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
+              Advanced AI Mode (codename Nova)
+            </span>
+            <span className="text-[11px] text-sky-600/40 dark:text-sky-400/40">
+              Enhanced AI capabilities
+            </span>
+          </div>
         </div>
         <Switch
-          checked={showTestsInClassCards}
-          onCheckedChange={onToggleTestsInClassCards}
+          checked={advancedAIMode}
+          onCheckedChange={onToggleAdvancedAIMode}
         />
       </div>
 

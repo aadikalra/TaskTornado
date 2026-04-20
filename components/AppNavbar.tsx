@@ -709,19 +709,6 @@ export default function AppNavbar() {
                 </div>
             </nav>
 
-            {/* ── "Get Plus" pill — centered below desktop nav ── */}
-            <motion.button
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => handleNavClick('/pricing')}
-                className="hidden lg:flex fixed top-[68px] left-1/2 -translate-x-1/2 z-50 items-center gap-1.5 px-3 py-1 bg-white/60 hover:bg-white/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-full shadow-[0_2px_12px_rgba(39,80,133,0.08),inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer"
-            >
-                <HugeIcon name="AiMagic" size={12} className="w-3 h-3 text-[#275085]/70 dark:text-blue-300/70 group-hover:text-[#275085] dark:group-hover:text-blue-300 transition-colors" />
-                <span className="text-[11px] font-semibold text-[#275085]/70 dark:text-blue-200/70 group-hover:text-[#275085] dark:group-hover:text-blue-200 tracking-tight transition-colors">
-                    Get Plus
-                </span>
-            </motion.button>
 
             {/* ════════════════════════════════════════════════════════
                 MOBILE MENU — full-screen overlay

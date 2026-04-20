@@ -184,4 +184,13 @@ body[style*="overflow: hidden"] .fixed-padding-adjust {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .bg-dotted {
+    background-image: radial-gradient(circle, #cbd5e1 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
+
+  .dark .bg-dotted {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
+  }
 }

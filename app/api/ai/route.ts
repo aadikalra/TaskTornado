@@ -4,9 +4,9 @@ import { NextResponse, NextRequest } from 'next/server';
 const GOOGLE_AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
 
-// Ollama Cloud API configuration
-const OLLAMA_CLOUD_API_URL = 'https://ollama.com/api';
-const OLLAMA_CLOUD_API_KEY = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY;
+// Ollama API configuration - primary is local, secondary is cloud if configured
+const OLLAMA_API_URL = process.env.OLLAMA_HOST ? `${process.env.OLLAMA_HOST}/api` : 'http://localhost:11434/api';
+const OLLAMA_API_KEY = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY;
 
 // Rate limiting: 60 requests per minute
 const RATE_LIMIT_PER_MINUTE = 60;
@@ -107,14 +107,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if this is an Ollama model (ends with -cloud OR contains : which is Ollama's tag format)
-    const isCloudModel = model.endsWith('-cloud') || model.includes(':');
+    const isOllamaModel = model.endsWith('-cloud') || model.includes(':');
 
     // Check if API key is configured for the appropriate service
-    if (isCloudModel) {
-      if (!OLLAMA_CLOUD_API_KEY) {
+    if (isOllamaModel) {
+      // Local Ollama doesn't strictly need a key, so we only check if it's NOT localhost
+      const isLocal = OLLAMA_API_URL.includes('localhost') || OLLAMA_API_URL.includes('127.0.0.1');
+      if (!isLocal && !OLLAMA_API_KEY) {
         return new NextResponse(JSON.stringify({
-          error: 'Ollama Cloud API key not configured',
-          details: 'Please set OLLAMA_API_KEY environment variable'
+          error: 'Ollama API key not configured',
+          details: 'Please set OLLAMA_API_KEY environment variable for cloud Ollama'
         }), {
           status: 500,
           headers: {
@@ -141,10 +143,10 @@ export async function POST(req: NextRequest) {
     // Log parameters for debugging
     console.log('API Request:', {
       model,
-      isCloudModel,
+      isOllamaModel,
       action,
-      hasKey: !!OLLAMA_CLOUD_API_KEY,
-      keyPrefix: OLLAMA_CLOUD_API_KEY ? OLLAMA_CLOUD_API_KEY.substring(0, 4) + '...' : 'none'
+      hasKey: !!OLLAMA_API_KEY,
+      keyPrefix: OLLAMA_API_KEY ? OLLAMA_API_KEY.substring(0, 4) + '...' : 'none'
     });
 
     // Check if API key is configured for the appropriate service
@@ -267,7 +269,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (!isCloudModel) {
+    if (!isOllamaModel) {
       // Handle Google AI Studio models with streaming
       console.log('Sending streaming request to Google AI Studio:', {
         url: `${GOOGLE_AI_API_URL}/models/${model}:streamGenerateContent`,
@@ -393,9 +395,9 @@ export async function POST(req: NextRequest) {
         }
       );
     } else {
-      // Handle Ollama Cloud models with streaming
-      console.log('Sending request to Ollama Cloud:', {
-        url: `${OLLAMA_CLOUD_API_URL}/${action}`,
+      // Handle Ollama models with streaming
+      console.log('Sending request to Ollama:', {
+        url: `${OLLAMA_API_URL}/${action}`,
         method: 'POST',
       });
 
@@ -408,9 +410,8 @@ export async function POST(req: NextRequest) {
         }));
       };
 
-      // Prepare the request body for Ollama Cloud with streaming
-      // Strip the -cloud suffix as Ollama expects the base model name
-      const ollamaModelName = model.replace(/-cloud$/, '');
+      // Prepare the request body for Ollama with streaming
+      const ollamaModelName = model;
 
       let ollamaRequestBody: any = {
         model: ollamaModelName,
@@ -435,21 +436,26 @@ export async function POST(req: NextRequest) {
         stream: ollamaRequestBody.stream
       });
 
-      // Forward the streaming request to Ollama Cloud
+      // Forward the streaming request to Ollama
       let response;
       try {
-        response = await fetch(`${OLLAMA_CLOUD_API_URL}/${action}`, {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        if (OLLAMA_API_KEY) {
+          headers['Authorization'] = `Bearer ${OLLAMA_API_KEY}`;
+        }
+
+        response = await fetch(`${OLLAMA_API_URL}/${action}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OLLAMA_CLOUD_API_KEY}`,
-          },
+          headers,
           body: JSON.stringify(ollamaRequestBody),
         });
       } catch (fetchError) {
-        console.error('Failed to connect to Ollama Cloud:', fetchError);
+        console.error('Failed to connect to Ollama:', fetchError);
         return new NextResponse(JSON.stringify({
-          error: 'Failed to connect to Ollama Cloud',
+          error: 'Failed to connect to Ollama',
           details: fetchError instanceof Error ? fetchError.message : 'Connection error',
           type: 'connection_error'
         }), {
@@ -464,7 +470,7 @@ export async function POST(req: NextRequest) {
       // Handle non-OK responses
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Ollama Cloud API error:', {
+        console.error('Ollama API error:', {
           status: response.status,
           statusText: response.statusText,
           error: errorText,
@@ -474,7 +480,7 @@ export async function POST(req: NextRequest) {
         if (response.status === 429) {
           return new NextResponse(JSON.stringify({
             error: 'Rate limit exceeded',
-            details: 'Too many requests to Ollama Cloud. Please try again later.',
+            details: 'Too many requests to Ollama. Please try again later.',
           }), {
             status: 429,
             headers: {
@@ -485,7 +491,7 @@ export async function POST(req: NextRequest) {
         }
 
         return new NextResponse(JSON.stringify({
-          error: 'Failed to get response from Ollama Cloud',
+          error: 'Failed to get response from Ollama',
           details: errorText,
         }), {
           status: response.status,
@@ -515,7 +521,7 @@ export async function POST(req: NextRequest) {
                 if (done) break;
 
                 const chunk = decoder.decode(value, { stream: true });
-                console.log('Streaming chunk from Ollama Cloud:', chunk);
+                console.log('Streaming chunk from Ollama:', chunk);
 
                 // Parse Ollama streaming format
                 const lines = chunk.split('\n');

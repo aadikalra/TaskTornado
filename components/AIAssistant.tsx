@@ -79,6 +79,7 @@ interface Message {
     homeworks: Homework[];
     classes: Class[];
   };
+  chunks?: string[];
 }
 
 interface AIChecklistData {
@@ -346,7 +347,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [commandFilter, setCommandFilter] = useState('');
 
   // Model selection state
-  const [selectedModel, setSelectedModel] = useState<'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'deepseek-v3.1:671b'>('gemma-3n-e4b-it');
+  const [selectedModel, setSelectedModel] = useState<'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud'>('gemma-3n-e4b-it');
 
   // Input wipe animation state
   const [hasWiped, setHasWiped] = useState(false);
@@ -389,7 +390,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     if (homeworks.length > 0 || tests.length > 0) {
       priorityChips.push({
         label: 'Workload Overview',
-        prompt: '@data Give me a quick summary of my current workload and tell me what I should prioritize today.'
+        prompt: 'Give me a quick summary of my current workload and tell me what I should prioritize today.'
       });
     }
 
@@ -400,7 +401,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     if (nextHw) {
       priorityChips.push({
         label: `Plan: ${nextHw.title}`,
-        prompt: `@data I need to work on "${nextHw.title}". Can you help me break this assignment into small, manageable steps?`
+        prompt: `I need to work on "${nextHw.title}". Can you help me break this assignment into small, manageable steps?`
       });
     }
 
@@ -411,7 +412,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     if (nextTest) {
       priorityChips.push({
         label: `Quiz me: ${nextTest.title}`,
-        prompt: `@data I have a test on "${nextTest.title}" coming up. Can you generate a quick 5-question practice quiz for me?`
+        prompt: `I have a test on "${nextTest.title}" coming up. Can you generate a quick 5-question practice quiz for me?`
       });
     }
 
@@ -425,7 +426,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       { label: 'Study Tip', prompt: 'Tell me a scientifically proven study technique to improve memory.' },
       { label: 'Focus Boost', prompt: 'I am struggling to focus. What are some quick tips to get back into deep work?' },
       { label: 'Practice Quiz', prompt: '@quiz Generate a surprise interactive quiz to test my general knowledge.' },
-      { label: 'Review Data', prompt: '@data Show me my recent academic progress and subject mastery.' },
+      { label: 'Review Progress', prompt: 'Show me my recent academic progress and subject mastery.' },
       { label: 'Explain Concept', prompt: 'I found a difficult concept today. Can you explain it to me in simple terms?' }
     ];
 
@@ -511,7 +512,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   /* Command Definitions                       */
   /* ---------------------------------------------------------------------- */
   const commands = [
-    { id: 'data', label: 'Data', icon: BookOpen, color: 'yellow', description: 'View all your school data' },
     { id: 'resources', label: 'Resources', icon: Search, color: 'purple', description: 'Find study resources' },
     { id: 'flashcards', label: 'Flashcards', icon: Bookmark, color: 'pink', description: 'Generate flashcards' },
     { id: 'quiz', label: 'Quiz', icon: HelpCircle, color: 'orange', description: 'Generate interactive quizzes' },
@@ -590,14 +590,12 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     const inputLower = input.toLowerCase();
 
     if (inputLower.includes('@data')) {
-      setActiveCommand('data');
-      setShowHomeworkEffect(true);
       if (!dataToastShownRef.current) {
         addToast({
-          type: 'info',
-          title: 'Smart Model Recommended',
-          message: 'For the best response with @data, consider switching to Deep or Max model.',
-          duration: 6000
+          type: 'warning',
+          title: '@data Deprecated',
+          message: 'Your school data is now included by default in all AI responses. No need to use @data anymore!',
+          duration: 5000
         });
         dataToastShownRef.current = true;
       }
@@ -1623,7 +1621,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
       setQuickMessageCounter(prev => prev + 1);
     } else if (selectedModel === 'gemini-2.5-flash-lite') {
       setDeeperMessageCounter(prev => prev + 1);
-    } else if (selectedModel === 'deepseek-v3.1:671b') {
+    } else if (selectedModel === 'gpt-oss:20b-cloud') {
       setCloudMessageCounter(prev => prev + 1);
     }
 
@@ -1642,6 +1640,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
       content: 'Thinking...',
       timestamp: new Date(),
       isLoading: true,
+      chunks: []
     };
 
     // Add both messages to state simultaneously (preserves Aurora morph animation)
@@ -1749,10 +1748,8 @@ Examples of correct button prompts:
 - Button text: "Simplify this" → Prompt: "Can you explain photosynthesis in simpler terms?"
 `;
 
-      if (isRequestingData) {
-        const dataContext = getDataContext();
-        systemPrompt += `\n\nSCHOOL DATA CONTEXT:\n${dataContext}`;
-      }
+      const dataContext = getDataContext();
+      systemPrompt += `\n\nSCHOOL DATA CONTEXT:\n${dataContext}`;
 
       // Call AI API
       const response = await fetch('/api/ai', {
@@ -1813,6 +1810,7 @@ Examples of correct button prompts:
                       copy[idx] = {
                         ...copy[idx],
                         content: accumulatedResponse,
+                        chunks: [...(copy[idx].chunks || []), content],
                         isLoading: true,
                       };
                     }
@@ -2579,12 +2577,26 @@ Examples of correct button prompts:
                               msg.content === "Thinking..." ? (
                                 <span className="animate-pulse opacity-70">Thinking...</span>
                               ) : (
-                                <>
-                                  <Markdown>{msg.content}</Markdown>
-                                  {(msg.content.startsWith('Generating quiz') || msg.content.startsWith('Generating flashcards')) && (
+                                <div className="whitespace-pre-wrap">
+                                  {msg.chunks ? (
+                                    msg.chunks.map((chunk, i) => (
+                                      <motion.span
+                                        key={i}
+                                        initial={{ opacity: 0, y: 1 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="inline"
+                                      >
+                                        {chunk}
+                                      </motion.span>
+                                    ))
+                                  ) : (
+                                    <Markdown>{msg.content}</Markdown>
+                                  )}
+                                  {(msg.content.startsWith('Generating quiz') || msg.content.startsWith('Generating flashcards') || msg.content.startsWith('Generating checklist')) && (
                                     <GenerationProgressBar />
                                   )}
-                                </>
+                                </div>
                               )
                             ) : (
                               <Markdown>{msg.content}</Markdown>
@@ -2847,20 +2859,20 @@ Examples of correct button prompts:
                           placeholder={
                             (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                               (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                              (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
+                              (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                               ? `Daily limit reached for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} mode - try again tomorrow`
                               : "Ask away..."
                           }
                           disabled={
                             (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                            (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
+                            (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                           }
                           className={cn(
                             `min-h-[44px] w-full resize-none border-0 bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0`,
                             ((selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                               (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                              (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
+                              (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
                             'opacity-50 cursor-not-allowed',
                             activeCommand === 'data'
                               ? 'text-yellow-700 dark:text-yellow-200'
@@ -2983,7 +2995,7 @@ Examples of correct button prompts:
                         />
                         <Select
                           value={selectedModel}
-                          onValueChange={(value) => setSelectedModel(value as 'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'deepseek-v3.1:671b')}
+                          onValueChange={(value) => setSelectedModel(value as 'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud')}
                         >
                           <motion.div
                             whileHover={{ scale: 1.05 }}
@@ -3019,7 +3031,7 @@ Examples of correct button prompts:
                                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border border-emerald-300/40 dark:border-emerald-500/20"><span className="bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">PRO</span></span>
                               </div>
                             </SelectItem>
-                            <SelectItem value="deepseek-v3.1:671b">
+                            <SelectItem value="gpt-oss:20b-cloud">
                               <div className="flex items-center gap-2">
                                 <Cloud className="h-3.5 w-3.5" />
                                 <span>Max</span>
@@ -3084,7 +3096,7 @@ Examples of correct button prompts:
                             (!isAILoading && (!input.trim() && selectedImages.length === 0)) ||
                             (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                            (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
+                            (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                           }
                           className={cn(
                             `p-2 rounded-3xl transition-all duration-300 shadow-sm relative`,
@@ -3107,7 +3119,7 @@ Examples of correct button prompts:
                                           : 'bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-700 shadow-sm shadow-[#ebf6b5]/20',
                             ((selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                               (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                              (selectedModel === 'deepseek-v3.1:671b' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
+                              (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
                             'opacity-30 grayscale pointer-events-none'
                           )}
                         >
