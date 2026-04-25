@@ -58,6 +58,7 @@ import { Input } from '@/components/ui/input';
 import { MiniCalendar } from './MiniCalendar';
 import { MobileWeekCalendar } from './MobileWeekCalendar';
 import { ComingUp } from './ComingUp';
+import { EmailWidget } from './EmailWidget';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -2474,15 +2475,20 @@ Return ONLY valid JSON, no explanation, no markdown.`,
           </div>
         </motion.div>
 
-        {/* Calendar + Coming Up */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8 h-[300px]">
-          <div className="hidden md:block">
+        {/* Calendar + Coming Up + Email */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8 h-auto lg:h-[300px]">
+          <div className="hidden md:block h-[300px]">
             <MiniCalendar />
           </div>
           <div className="block md:hidden">
             <MobileWeekCalendar />
           </div>
-          <ComingUp />
+          <div className="h-[300px]">
+            <ComingUp />
+          </div>
+          <div className="hidden lg:block h-[300px]">
+            <EmailWidget />
+          </div>
         </div>
 
         {/* Render sections in user-defined order */}

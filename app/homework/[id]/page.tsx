@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useClassContext, type Homework, type Class } from '@/context/ClassContext';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Calendar, Edit, BookOpen } from 'lucide-react';
+import { ArrowLeft, Calendar, Edit, BookOpen, Link as LinkIcon, Repeat, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
@@ -50,11 +50,11 @@ export default function HomeworkDetailPage() {
         <h1 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">Homework not found</h1>
         <p className="text-sky-600/60 dark:text-gray-400 text-sm mb-6">This assignment may have been deleted or doesn't exist.</p>
         <Link
-          href="/"
+          href="/dashboard"
           className="inline-flex items-center gap-2 h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Home
+          Back to Dashboard
         </Link>
       </div>
     );
@@ -82,11 +82,11 @@ export default function HomeworkDetailPage() {
       <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-12">
         {/* Back link */}
         <Link
-          href="/"
+          href="/dashboard"
           className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Home
+          Back to Dashboard
         </Link>
 
         {/* Header */}
@@ -139,11 +139,18 @@ export default function HomeworkDetailPage() {
               </span>
             </div>
 
-            {/* Due date */}
             <div className="flex items-center gap-2 text-sm text-sky-600/60 dark:text-sky-400/50">
               <Calendar className="h-4 w-4" />
               <span className="font-medium">{formattedDate}</span>
             </div>
+
+            {/* Recurring Info */}
+            {homework.recurring && (
+              <div className="flex items-center gap-2 text-sm text-sky-600/60 dark:text-sky-400/50">
+                <Repeat className="h-4 w-4 text-sky-500" />
+                <span className="font-medium text-[11px] uppercase tracking-wider font-bold">Recurring: {homework.recurring.frequency}</span>
+              </div>
+            )}
 
             {/* Divider */}
             <div className="flex items-center gap-3">
@@ -160,18 +167,57 @@ export default function HomeworkDetailPage() {
             ) : (
               <p className="text-sm text-sky-500/40 dark:text-sky-400/30 italic">No description provided.</p>
             )}
+
+            {/* Links section */}
+            {homework.links && homework.links.length > 0 && (
+              <div className="pt-2 space-y-4">
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1" />
+                  <span className="text-[10px] uppercase font-semibold text-sky-600/30 dark:text-sky-400/30 tracking-wider">Links & Resources</span>
+                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {homework.links.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between p-3 bg-sky-50/50 dark:bg-gray-800/40 border border-sky-100 dark:border-gray-700/50 rounded-2xl hover:border-sky-300 dark:hover:border-sky-500 hover:bg-white dark:hover:bg-gray-800 transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <LinkIcon className="h-3.5 w-3.5 text-sky-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-sky-900 dark:text-white truncate">
+                            {link.title || 'Attached Link'}
+                          </p>
+                          <p className="text-[10px] text-sky-500/60 dark:text-sky-400/40 truncate">
+                            {link.url.replace(/^https?:\/\/(www\.)?/, '')}
+                          </p>
+                        </div>
+                      </div>
+                      <ExternalLink className="h-3 w-3 text-sky-300 group-hover:text-sky-500 transition-colors shrink-0" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer with actions */}
           <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-            <Link href="/">
+            <Link href="/dashboard">
               <button
                 type="button"
                 className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Home
+                  Dashboard
                 </span>
               </button>
             </Link>

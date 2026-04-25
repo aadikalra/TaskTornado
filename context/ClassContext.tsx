@@ -1176,6 +1176,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
         class_id: updates.classId,
         completed: updates.completed,
         priority: updates.priority,
+        links: updates.links,
         updated_at: new Date().toISOString()
       };
 

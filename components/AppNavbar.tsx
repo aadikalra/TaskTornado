@@ -23,6 +23,7 @@ const ALL_EXTRA_ITEMS = [
     { label: 'Flashcards', href: '/flashcards', iconName: 'Cards01' },
     { label: 'Quizzes', href: '/quiz', iconName: 'Quiz04' },
     { label: 'Writing', href: '/writing-assist', iconName: 'AiContentGenerator02' },
+    { label: 'Mail', href: '/mail', iconName: 'MailSend01' },
     { label: 'Translate', href: '/translate', iconName: 'Translate' },
     { label: 'Grades', href: '/grade-calculator', iconName: 'ChartAnalysis' },
     { label: 'Web Saves', href: '/web-saves', iconName: 'Bookmark03' },

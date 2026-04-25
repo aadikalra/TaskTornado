@@ -1,9 +1,9 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useClassContext } from '@/context/ClassContext';
+import { useClassContext, HomeworkLink } from '@/context/ClassContext';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Save, Loader2, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Calendar as CalendarIcon, BookOpen, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
+import { HomeworkLinkInput } from '@/components/HomeworkLinkInput';
 
 export default function EditHomeworkPage() {
   const { id } = useParams() as { id: string };
@@ -26,7 +27,8 @@ export default function EditHomeworkPage() {
     dueDate: '',
     classId: '',
     completed: false,
-    priority: 'medium' as 'low' | 'medium' | 'high'
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    links: [] as HomeworkLink[]
   });
 
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,8 @@ export default function EditHomeworkPage() {
         dueDate: homework.dueDate,
         classId: homework.classId,
         completed: homework.completed || false,
-        priority: homework.priority || 'medium'
+        priority: homework.priority || 'medium',
+        links: homework.links || []
       });
       setDate(dueDate);
     }
@@ -70,7 +73,7 @@ export default function EditHomeworkPage() {
     }
   };
 
-  const handleChange = (name: string, value: string | boolean) => {
+  const handleChange = (name: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -185,6 +188,14 @@ export default function EditHomeworkPage() {
                   placeholder="Add details about the homework..."
                   rows={4}
                   className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
+                />
+              </div>
+
+              {/* Links */}
+              <div>
+                <HomeworkLinkInput 
+                  links={formData.links} 
+                  onChange={(links) => handleChange('links', links)} 
                 />
               </div>
 
