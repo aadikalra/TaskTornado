@@ -16,33 +16,7 @@ import { useClassContext } from '@/context/ClassContext';
 import { useRateLimitReset } from '@/hooks/useRateLimitReset';
 import { useDarkMode } from '@/context/DarkModeContext';
 
-import {
-  MessageSquare,
-  Sparkles,
-
-
-  X as XIcon,
-  ArrowUp,
-  BookOpen,
-
-
-  Plus,
-  Search,
-
-  Zap,
-  Brain,
-  Calculator,
-  Bookmark,
-  Cloud,
-  HelpCircle,
-  PanelRightClose,
-  PanelRightOpen,
-} from 'lucide-react';
-
-// import { Bot } from '@/components/animate-ui/icons/bot';
-// import { UserRound } from '@/components/animate-ui/icons/user-round';
-// import { AnimateIcon } from '@/components/animate-ui/animate-icon';
-import { UserRound } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from './ui/textarea';
@@ -80,6 +54,23 @@ interface Message {
     classes: Class[];
   };
   chunks?: string[];
+  toolCall?: string;
+  toolArgs?: any;
+  toolCalls?: Array<{ name: string; args?: any; status?: 'loading' | 'success' | 'error'; error?: string }>;
+  thought?: string;
+  groundingMetadata?: {
+    searchEntryPoint?: {
+      renderedContent?: string;
+    };
+    groundingChunks?: Array<{
+      web?: {
+        uri: string;
+        title?: string;
+      };
+    }>;
+    groundingSupports?: any[];
+    webSearchQueries?: string[];
+  };
 }
 
 interface AIChecklistData {
@@ -236,7 +227,7 @@ const AuraVideoIcon = ({ isLoading, selectedModel, layoutId }: { isLoading?: boo
     >
       <video
         ref={videoRef}
-        src={isDark ? "/AI SphereDark.mp4" : "/AI Sphere.mp4"}
+        src={isDark ? "/AI SphereDark2.mp4" : "/AI SphereNew.mp4"}
         muted
         playsInline
         loop
@@ -244,7 +235,7 @@ const AuraVideoIcon = ({ isLoading, selectedModel, layoutId }: { isLoading?: boo
       />
       <div className={cn(
         "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-white dark:border-zinc-900 z-10 shadow-sm",
-        selectedModel === 'gemma-3n-e4b-it' ? "bg-teal-500" :
+        selectedModel === 'gemma-4-26b-a4b-it' ? "bg-teal-500" :
           selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" :
             "bg-blue-500"
       )} />
@@ -261,6 +252,30 @@ const messageVariants = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
 };
+
+const handwritingSentenceVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.3,
+    },
+  },
+} as const;
+
+const handwritingCharVariants = {
+  hidden: { opacity: 0, scale: 0.8, filter: 'blur(2px)' },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.25,
+      ease: 'easeOut',
+    },
+  },
+} as const;
 
 interface AIAssistantProps {
   isOpen?: boolean;
@@ -304,6 +319,9 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
   // State management moved to AIContext for global sync
   const { aiInput: input, setAIInput: setInput } = useAI();
+  const [expandedThoughts, setExpandedThoughts] = useState<Record<string, boolean>>({});
+  const [expandedUserMessages, setExpandedUserMessages] = useState<Record<string, boolean>>({});
+  const [expandedToolDetails, setExpandedToolDetails] = useState<Record<string, boolean>>({});
 
   const [messages, setMessages] = useState<Message[]>(() => {
     // Restore messages from cookies on initial load
@@ -326,6 +344,25 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     console.log('No saved messages found, starting with empty array');
     return [];
   });
+
+  useEffect(() => {
+    const activeMsg = messages.find(m => m.isLoading && m.role === 'assistant');
+    if (!activeMsg) return;
+
+    const hasThoughtsOrTools = !!(activeMsg.thought || activeMsg.toolCall);
+    const hasActualResponseContent = !!(activeMsg.content && activeMsg.content !== 'Thinking...');
+
+    if (hasThoughtsOrTools) {
+      setExpandedThoughts(prev => {
+        const currentVal = prev[activeMsg.id];
+        const nextVal = !hasActualResponseContent;
+        if (currentVal !== nextVal) {
+          return { ...prev, [activeMsg.id]: nextVal };
+        }
+        return prev;
+      });
+    }
+  }, [messages]);
   const [isAILoading, setIsAILoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -341,13 +378,10 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   const [cloudMessageCounter, setCloudMessageCounter] = useState(0);
   const { user } = useAuth();
 
-  // Command menu state
-  const [showCommandMenu, setShowCommandMenu] = useState(false);
-  const [commandMenuPosition, setCommandMenuPosition] = useState({ top: 0, left: 0 });
-  const [commandFilter, setCommandFilter] = useState('');
+
 
   // Model selection state
-  const [selectedModel, setSelectedModel] = useState<'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud'>('gemma-3n-e4b-it');
+  const [selectedModel, setSelectedModel] = useState<'gemma-4-26b-a4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud'>('gemma-4-26b-a4b-it');
 
   // Input wipe animation state
   const [hasWiped, setHasWiped] = useState(false);
@@ -376,7 +410,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     homeworks = [],
     tests = [],
     classes = [],
-    addHomework = async () => {},
+    addHomework = async () => { },
+    addTest = async () => { },
   } = classContext || {};
 
   // State to trigger chip rotation
@@ -416,18 +451,17 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
       });
     }
 
-    // 2. Utility Pool: Varied actions and @commands
+    // 2. Utility Pool: Varied actions
     const utilityPool = [
-      { label: 'Study Resources', prompt: '@resources Help me find study materials and helpful links for my classes.' },
-      { label: 'Generate Flashcards', prompt: '@flashcards Help me create a set of flashcards for my upcoming topics.' },
-      { label: 'Grade my draft', prompt: '@grade Can you evaluate my current assignment draft and give me feedback?' },
-
-      { label: 'Mental Support', prompt: '@therapist I am feeling a bit stressed with school lately. Can we talk?' },
+      { label: 'Study Resources', prompt: 'Help me find study materials and helpful links for my classes.' },
+      { label: 'Generate Flashcards', prompt: 'Help me create a set of flashcards for my upcoming topics.' },
+      { label: 'Grade my draft', prompt: 'Can you evaluate my current assignment draft and give me feedback?' },
+      { label: 'Mental Support', prompt: 'I am feeling a bit stressed with school lately. Can we talk?' },
       { label: 'Study Tip', prompt: 'Tell me a scientifically proven study technique to improve memory.' },
       { label: 'Focus Boost', prompt: 'I am struggling to focus. What are some quick tips to get back into deep work?' },
-      { label: 'Practice Quiz', prompt: '@quiz Generate a surprise interactive quiz to test my general knowledge.' },
+      { label: 'Practice Quiz', prompt: 'Generate a surprise interactive quiz to test my general knowledge.' },
       { label: 'Review Progress', prompt: 'Show me my recent academic progress and subject mastery.' },
-      { label: 'Explain Concept', prompt: 'I found a difficult concept today. Can you explain it to me in simple terms?' }
+      { label: 'Explain Concept', prompt: 'I found a difficult concept today. Can you explain it to me in simple terms.' }
     ];
 
     // Shuffle utility pool using rotation seed
@@ -444,14 +478,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     return combined.slice(0, 4); // Show 4 chips now for more choice
   }, [homeworks, tests, chipRotation]);
 
-  // Track active @-command
-  const [activeCommand, setActiveCommand] = useState<
-    'data' | 'resources' | 'flashcards' | 'quiz' | 'therapist' | 'grade' | 'bulkadd' | null
-  >(null);
-
   // Toast state
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const dataToastShownRef = useRef(false);
 
   // Dark mode
   const { isDark } = useDarkMode();
@@ -508,17 +536,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     lastScrollY.current = currentScrollY;
   };
 
-  /* ---------------------------------------------------------------------- */
-  /* Command Definitions                       */
-  /* ---------------------------------------------------------------------- */
-  const commands = [
-    { id: 'resources', label: 'Resources', icon: Search, color: 'purple', description: 'Find study resources' },
-    { id: 'flashcards', label: 'Flashcards', icon: Bookmark, color: 'pink', description: 'Generate flashcards' },
-    { id: 'quiz', label: 'Quiz', icon: HelpCircle, color: 'orange', description: 'Generate interactive quizzes' },
-    { id: 'therapist', label: 'Therapist', icon: MessageSquare, color: 'cyan', description: 'Mental health support' },
-    { id: 'grade', label: 'Grade', icon: Calculator, color: 'green', description: 'Grade assignments' },
-    { id: 'bulkadd', label: 'Bulk Add', icon: Plus, color: 'sky', description: 'Smart fill multiple homeworks' },
-  ];
+
 
   const clearConversation = () => {
     setMessages([]);
@@ -528,7 +546,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     setShowQuiz(false);
     setError(null);
     setIsTherapistMode(false);
-    setActiveCommand(null);
     setShowHomeworkEffect(false);
 
     // Clear cookies and localStorage
@@ -585,50 +602,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     }
   }, [messages]);
 
-  // Detect @-commands
-  useEffect(() => {
-    const inputLower = input.toLowerCase();
 
-    if (inputLower.includes('@data')) {
-      if (!dataToastShownRef.current) {
-        addToast({
-          type: 'warning',
-          title: '@data Deprecated',
-          message: 'Your school data is now included by default in all AI responses. No need to use @data anymore!',
-          duration: 5000
-        });
-        dataToastShownRef.current = true;
-      }
-    } else if (inputLower.includes('@resources')) {
-      setActiveCommand('resources');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    } else if (inputLower.includes('@flashcards') || inputLower.includes('@flashcard')) {
-      setActiveCommand('flashcards');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    } else if (inputLower.includes('@quiz')) {
-      setActiveCommand('quiz');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    } else if (inputLower.includes('@therapist')) {
-      setActiveCommand('therapist');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    } else if (inputLower.includes('@grade')) {
-      setActiveCommand('grade');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    } else if (inputLower.includes('@bulkadd')) {
-      setActiveCommand('bulkadd');
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    } else {
-      setActiveCommand(null);
-      setShowHomeworkEffect(false);
-      dataToastShownRef.current = false;
-    }
-  }, [input]);
 
   // Show AI error as a message
   useEffect(() => {
@@ -768,17 +742,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
     }
   }, [quickMessageCounter, deeperMessageCounter, cloudMessageCounter, user]);
 
-  // Close command menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (showCommandMenu && !(e.target as Element).closest('.command-menu-container')) {
-        setShowCommandMenu(false);
-      }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showCommandMenu]);
 
   /* ---------------------------------------------------------------------- */
   /* Helper & Parsing Functions                      */
@@ -789,547 +753,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   };
 
 
-
-
-
-
-
   /* ---------------------------------------------------------------------- */
-  /* @resources command handling                   */
-  /* ---------------------------------------------------------------------- */
-  const handleResourcesCommand = async (userInput: string) => {
-    const topic = userInput.split('@resources')[1]?.trim() || 'general study';
-
-    if (!userInput.split('@resources')[1]?.trim()) {
-      return `# Study Resources Assistant
-
-I'm here to help you find great study resources! To get the most relevant recommendations, please be more specific about what you're looking for. For example:
-
-- @resources calculus
-- @resources world war 2 history
-- @resources python programming
-- @resources organic chemistry
-
-I'll help you find videos, articles, practice problems, and interactive tools to support your learning.`;
-    }
-
-    const prompt = `I'm a student looking for study resources about: ${topic}.
-
-Please provide a list of high-quality, free resources that would be helpful. Include:
-1. Video tutorials (YouTube, Khan Academy, etc.)
-2. Online articles or blog posts
-3. Practice problems or exercises
-4. Interactive learning tools or apps
-5. Recommended books (with links if available online for free)
-
-Format the response in markdown with clear section headers. If the topic is too broad, suggest ways to narrow it down.`;
-
-    try {
-      const response = await chat([
-        {
-          role: 'system',
-          content: `You are an expert study assistant that provides educational resources. 
-          - Focus on free, high-quality resources from reputable sources.
-          - Format your response in markdown with clear section headers.
-          - Include direct links when possible.
-          - If the topic is too broad, suggest ways to narrow it down.
-          - If you can't find good resources, explain why and suggest alternative topics.`
-        },
-        { role: 'user', content: prompt }
-      ]);
-
-      if (response && typeof response.response === 'string') {
-        return response.response;
-      }
-
-      console.error('Unexpected response format:', response);
-      return `# Study Resources for ${topic}
-
-I had trouble finding specific resources for "${topic}" right now. Here are some general study sites that might help:
-
-- [Khan Academy](https://www.khanacademy.org/)
-- [Coursera](https://www.coursera.org/)
-- [edX](https://www.edx.org/)
-- [YouTube Education](https://www.youtube.com/education)
-
-Try being more specific with your request, or let me know what aspect of "${topic}" you're interested in.`;
-    } catch (error) {
-      console.error('Error getting resources:', error);
-      return `# Study Resources Assistant
-
-I’m having trouble connecting to the resource database right now. Here are some general study sites that might help:
-
-- [Khan Academy](https://www.khanacademy.org/)
-- [Coursera](https://www.coursera.org/)
-- [edX](https://www.edx.org/)
-- [MIT OpenCourseWare](https://ocw.mit.edu/)
-
-Please try your request again in a few minutes, or be more specific about what you need.`;
-    }
-  };
-
-
-  /* ---------------------------------------------------------------------- */
-  /* @bulkadd command handling                                              */
-  /* ---------------------------------------------------------------------- */
-  const handleBulkAddCommand = async (userInput: string, onProgress?: (content: string) => void) => {
-    const text = userInput.replace(/@bulkadd/i, '').trim();
-
-    if (!text) {
-      return `# Bulk Add Homework
-I can add multiple homework assignments at once! Just type:
-
-@bulkadd [your list of assignments]
-
-For example:
-- @bulkadd Math ch5 due Friday high priority, history draft next week, read physical science ch 12 tomorrow`;
-    }
-
-    // First, let the user know we're working on it
-    const loadingMsg = {
-      id: Date.now(),
-      role: 'assistant' as const,
-      content: 'Parsing and adding your homework assignments...',
-      timestamp: new Date(),
-      isLoading: true,
-    };
-    setMessages(prev => [...prev, loadingMsg]);
-
-    try {
-      const classNames = classes.map((c: any) => c.name).join(', ');
-      const today = new Date().toISOString().split('T')[0];
-      const dateRef = `Today is ${today}. For contextual dates, resolve against today.`;
-
-      const prompt = `Extract all homework assignments from the following text and return them as a JSON array.
-Text: "${text}"
-
-Available classes: ${classNames}
-Date Reference: ${dateRef}
-Priority Options: "low", "medium", "high"
-Example Output format:
-[
-  {
-    "title": "Ch 5 Questions",
-    "description": "",
-    "dueDate": "2024-11-20",
-    "priority": "high",
-    "className": "Homeroom",
-    "links": [{"title": "Google Docs", "url": "https://docs.google.com"}]
-  }
-]
-
-Return ONLY a valid JSON array of objects. Each object should have:
-- "title": string
-- "description": string (optional)
-- "dueDate": string (use the date reference to pick the correct yyyy-MM-dd date)
-- "priority": "low" | "medium" | "high" (default to medium if unsure)
-- "className": string (must exactly match one of the available classes)
-- "links": array of objects [{"title": "Platform Name", "url": "https://example.com"}] (if links are provided, smartly infer title from domain)
-
-Do not include any other text, markdown, or explanation. It MUST be an unformatted array [] of items.`;
-
-      const response = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }],
-          action: 'chat',
-          model: selectedModel
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(`${errData.error || 'Failed to communicate with AI provider'}${errData.details ? `: ${errData.details}` : ''}`);
-      }
-
-      const reader = response.body?.getReader();
-      let aiText = '';
-      
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.response) {
-                  aiText += data.response;
-                }
-              } catch (e) { }
-            }
-          }
-        }
-      }
-
-      // Remove loading message
-      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id));
-
-      // Robust JSON extraction
-      let jsonString = aiText.trim();
-      // Remove markdown codeblock if present
-      if (jsonString.startsWith('```json')) {
-        jsonString = jsonString.replace(/^```json\n?/, '').replace(/\n?```$/, '');
-      } else if (jsonString.startsWith('```')) {
-        jsonString = jsonString.replace(/^```\n?/, '').replace(/\n?```$/, '');
-      }
-
-      const jsonMatch = jsonString.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-         console.error('Failed to parse AI output:', aiText);
-         const safePayload = JSON.stringify(aiText).slice(1, -1);
-         const fallbackButtons = `\n\n\`\`\`interactive_buttons\n[\n  {\n    "text": "❔ Copy AI Output",\n    "prompt": "",\n    "action": "copy",\n    "style": "outline",\n    "payload": "${safePayload}"\n  }\n]\n\`\`\``;
-         return 'Could not understand the homework list. Please try phrasing it more clearly.' + fallbackButtons;
-      }
-
-      let tasks = [];
-      try {
-        tasks = JSON.parse(jsonMatch[0]);
-      } catch (e) {
-         console.error('Failed to parse JSON string:', jsonMatch[0]);
-         const safePayload = JSON.stringify(aiText).slice(1, -1);
-         const fallbackButtons = `\n\n\`\`\`interactive_buttons\n[\n  {\n    "text": "❔ Copy AI Output",\n    "prompt": "",\n    "action": "copy",\n    "style": "outline",\n    "payload": "${safePayload}"\n  }\n]\n\`\`\``;
-         return 'Sorry, there was an issue processing the list format. Please try again.' + fallbackButtons;
-      }
-
-      let addedCount = 0;
-      const addedHomeworks: any[] = [];
-
-      for (const task of tasks) {
-        const d = task.dueDate ? new Date(task.dueDate + 'T12:00:00') : new Date();
-        const matchedClass = classes.find((c: any) => c.name.toLowerCase() === task.className?.toLowerCase());
-        
-        if (matchedClass) {
-          const processedLinks = (task.links && Array.isArray(task.links)) 
-              ? task.links.filter((l: any) => l.title && l.url) 
-              : [];
-
-          const homework = await addHomework(
-            matchedClass.id, 
-            task.title || 'Untitled Homework', 
-            d, 
-            task.priority || 'medium', 
-            processedLinks, 
-            task.description || ''
-          );
-          
-          addedCount++;
-          
-          // Create a simple object for display
-          addedHomeworks.push({
-            id: (homework as any)?.id || `temp-${Date.now()}-${addedCount}`,
-            title: task.title || 'Untitled Homework',
-            description: task.description || '',
-            dueDate: d.toISOString(),
-            priority: task.priority || 'medium',
-            completed: false,
-            classId: matchedClass.id,
-            links: processedLinks,
-            pinned: false,
-          });
-        }
-      }
-
-      // Return a special response with bulk add data
-      const specialResponse = `BULK_ADD_SUCCESS:${JSON.stringify({
-        count: addedCount,
-        homeworks: addedHomeworks,
-        classes: classes
-      })}`;
-      
-      return specialResponse;
-    } catch (error) {
-      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id));
-      console.error(error);
-      return 'An error occurred while trying to add assignments.';
-    }
-  };
-
-  /* ---------------------------------------------------------------------- */
-  /* @flashcards command handling                  */
-  /* ---------------------------------------------------------------------- */
-  const handleFlashcardsCommand = async (userInput: string) => {
-    const topic = userInput.split(/@flashcards|@flashcard/i)[1]?.trim() || 'general knowledge';
-
-    if (!topic) {
-      return `# Flashcard Generator
-
-I'll help you create study flashcards! Just type:
-
-@flashcards [your topic or notes] (or @flashcard)
-
-For example:
-- @flashcard French vocabulary for food
-- @flashcards World War 2 key events
-- @flashcard Photosynthesis process`;
-    }
-
-    // ─── Plan tier: flashcard generation rate limit ─────────────────
-    if (limits.aiFlashcardGenPerDay !== Infinity) {
-      const today = new Date().toISOString().slice(0, 10);
-      const cookieKey = limits.aiFlashcardGenPerDay > 0 ? `ai_flashcard_gen_${today}` : `ai_flashcard_gen_week`;
-      const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
-      const max = limits.aiFlashcardGenPerDay > 0 ? limits.aiFlashcardGenPerDay : limits.aiFlashcardGenPerWeek;
-      if (max !== Infinity && currentCount >= max) {
-        const period = limits.aiFlashcardGenPerDay > 0 ? 'today' : 'this week';
-        throw new Error(`PLAN_LIMIT:You've used all ${max} flashcard generation${max === 1 ? '' : 's'} for ${period} — upgrade for more.`);
-      }
-    }
-
-    // First, let the user know we're working on it
-    const loadingMsg = {
-      id: Date.now(),
-      role: 'assistant' as const,
-      content: `Generating flashcards about: ${topic}`,
-      timestamp: new Date(),
-      isLoading: true,
-    };
-    setMessages(prev => [...prev, loadingMsg]);
-
-    try {
-      const prompt = `You are an expert educational content creator. 
-      
-      Create high-quality flashcards about: ${topic}
-
-      Guidelines:
-      - Create exactly 10 flashcards unless the user specifies a different number
-      - Each flashcard should have:
-        * A clear, concise question
-        * A detailed, educational answer (maximum 2-3 sentences)
-        * Cover key concepts, terms, and important details
-        * Keep answers concise yet comprehensive for effective studying
-
-      Format the response as a JSON array of objects with 'question' and 'answer' properties.`;
-
-      const response = await chat([
-        {
-          role: 'system',
-          content: 'You are a helpful study assistant that creates educational flashcards. Return ONLY a valid JSON array of objects with question and answer properties.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]);
-
-      // Parse the response
-      let jsonString = response.response.trim();
-
-      // Remove markdown code block syntax if present
-      if (jsonString.startsWith('```json')) {
-        jsonString = jsonString.replace(/^```json\n?|\n?```$/g, '').trim();
-      } else if (jsonString.startsWith('```')) {
-        jsonString = jsonString.replace(/^```\n?|\n?```$/g, '').trim();
-      }
-
-      // Parse the JSON and ensure it's an array
-      let parsedCards = JSON.parse(jsonString);
-      if (!Array.isArray(parsedCards)) {
-        parsedCards = [parsedCards];
-      }
-
-      // Format the cards to match the Flashcard interface
-      interface FlashcardData {
-        question?: string;
-        answer?: string;
-      }
-
-      const formattedCards = parsedCards.map((card: FlashcardData, index: number) => ({
-        id: `card-${Date.now()}-${index}`,
-        question: card.question || `Question ${index + 1}`,
-        answer: card.answer || 'No answer provided',
-        topic: topic,
-        createdAt: new Date()
-      }));
-
-      // Save to localStorage for the flashcards page
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('currentFlashcards', JSON.stringify(formattedCards));
-      }
-
-      // Remove the loading message
-      setMessages(prev => prev.filter(msg => !msg.isLoading));
-
-      // ─── Increment flashcard generation counter ────────────────────
-      if (limits.aiFlashcardGenPerDay !== Infinity) {
-        const today = new Date().toISOString().slice(0, 10);
-        const cookieKey = limits.aiFlashcardGenPerDay > 0 ? `ai_flashcard_gen_${today}` : `ai_flashcard_gen_week`;
-        const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
-        setCookie(cookieKey, (currentCount + 1).toString(), limits.aiFlashcardGenPerDay > 0 ? 1 : 7);
-      }
-
-      // Return a success message with a link to the flashcards page
-      return `# 🗂️ Flashcard Set: ${topic}
-
-I've created ${formattedCards.length} flashcards for you to study. 
-
-[Open Flashcards](/flashcards?t=${Date.now()}) to start reviewing them!
-
-*The flashcards will be saved for this session. You can access them later from the navigation menu.*`;
-
-    } catch (error) {
-      console.error('Error generating flashcards:', error);
-      // Remove the loading message
-      setMessages(prev => prev.filter(msg => !msg.isLoading));
-      return `❌ I couldn't generate flashcards right now. Please try again with a different topic.`;
-    }
-  };
-
-  /* ---------------------------------------------------------------------- */
-  /* @quiz command handling                    */
-  /* ---------------------------------------------------------------------- */
-  const handleQuizCommand = async (userInput: string) => {
-    const topic = userInput.split('@quiz')[1]?.trim() || 'general knowledge';
-
-    if (!topic) {
-      return `# Quiz Generator
-
-I'll help you create interactive quiz questions! Just type:
-
-@quiz [your topic or subject]
-
-For example:
-- @quiz French Revolution
-- @quiz Algebra equations
-- @quiz Cell biology`;
-    }
-
-    // ─── Plan tier: quiz generation rate limit ─────────────────────
-    if (limits.aiQuizGenPerDay !== Infinity) {
-      const today = new Date().toISOString().slice(0, 10);
-      const cookieKey = limits.aiQuizGenPerDay > 0 ? `ai_quiz_gen_${today}` : `ai_quiz_gen_week`;
-      const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
-      const max = limits.aiQuizGenPerDay > 0 ? limits.aiQuizGenPerDay : limits.aiQuizGenPerWeek;
-      if (max !== Infinity && currentCount >= max) {
-        const period = limits.aiQuizGenPerDay > 0 ? 'today' : 'this week';
-        throw new Error(`PLAN_LIMIT:You've used all ${max} quiz generation${max === 1 ? '' : 's'} for ${period} — upgrade for more.`);
-      }
-    }
-
-    // First, let the user know we're working on it
-    const loadingMsg = {
-      id: Date.now(),
-      role: 'assistant' as const,
-      content: `Generating quiz questions about: ${topic}`,
-      timestamp: new Date(),
-      isLoading: true,
-    };
-    setMessages(prev => [...prev, loadingMsg]);
-
-    try {
-      const prompt = `You are an expert educational content creator. 
-      
-      Create high-quality multiple-choice quiz questions about: ${topic}
-
-      Guidelines:
-      - Create exactly 5 quiz questions unless the user specifies a different number
-      - Each question should have:
-        * A clear, specific question
-        * Exactly 4 multiple choice options
-        * The index (0-3) of the correct answer
-        * A brief explanation of why the answer is correct (1-2 sentences)
-        * Cover key concepts and important details
-        * Make the questions challenging but fair
-        * Ensure distractors (wrong answers) are plausible but clearly incorrect
-
-      Format the response as a JSON array of objects with these properties:
-      - 'question': string (the question text)
-      - 'options': array of 4 strings (the answer choices)
-      - 'correctAnswer': number (index 0-3 of the correct option)
-      - 'explanation': string (brief explanation)
-      - 'topic': string (topic name)`;
-
-      const response = await chat([
-        {
-          role: 'system',
-          content: 'You are a helpful study assistant that creates educational quiz questions. Return ONLY a valid JSON array of objects with question, options (array of 4 strings), correctAnswer (number 0-3), explanation, and topic properties.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]);
-
-      // Check if the AI service returned an error instead of quiz data
-      const responseText = response.response?.trim() || '';
-      if (!responseText || responseText.startsWith('Failed to') || responseText.startsWith('I encountered an error')) {
-        // Remove the loading message
-        setMessages(prev => prev.filter(msg => !msg.isLoading));
-        return `❌ The AI service is temporarily unavailable. Please try again in a moment.\n\n*Tip: If this keeps happening, try switching to a different model mode.*`;
-      }
-
-      // Parse the response
-      let jsonString = responseText;
-
-      // Remove markdown code block syntax if present
-      if (jsonString.startsWith('```json')) {
-        jsonString = jsonString.replace(/^```json\n?|\n?```$/g, '').trim();
-      } else if (jsonString.startsWith('```')) {
-        jsonString = jsonString.replace(/^```\n?|\n?```$/g, '').trim();
-      }
-
-      // Parse the JSON and ensure it's an array
-      let parsedQuestions = JSON.parse(jsonString);
-      if (!Array.isArray(parsedQuestions)) {
-        parsedQuestions = [parsedQuestions];
-      }
-
-      // Format the questions to match the QuizQuestion interface
-      interface QuizData {
-        question?: string;
-        options?: string[];
-        correctAnswer?: number;
-        explanation?: string;
-        topic?: string;
-      }
-
-      const formattedQuestions = parsedQuestions.map((q: QuizData, index: number) => ({
-        id: `question-${Date.now()}-${index}`,
-        question: q.question || `Question ${index + 1}`,
-        options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
-        correctAnswer: q.correctAnswer ?? 0,
-        explanation: q.explanation || '',
-        topic: q.topic || topic,
-      }));
-
-      // Save to localStorage for the quiz page
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('currentQuiz', JSON.stringify(formattedQuestions));
-      }
-
-      // Remove the loading message
-      setMessages(prev => prev.filter(msg => !msg.isLoading));
-
-      // ─── Increment quiz generation counter ───────────────────────
-      if (limits.aiQuizGenPerDay !== Infinity) {
-        const today = new Date().toISOString().slice(0, 10);
-        const cookieKey = limits.aiQuizGenPerDay > 0 ? `ai_quiz_gen_${today}` : `ai_quiz_gen_week`;
-        const currentCount = parseInt(getCookie(cookieKey) || '0', 10);
-        setCookie(cookieKey, (currentCount + 1).toString(), limits.aiQuizGenPerDay > 0 ? 1 : 7);
-      }
-
-      // Return a success message with a link to the quiz page  
-      return `# Quiz: ${topic}
-
-I've created ${formattedQuestions.length} multiple-choice questions for you to test your knowledge.
-
-[Start Quiz](/quiz?t=${Date.now()}) to begin!
-
-*The quiz will be saved for this session. Good luck!*`;
-
-    } catch (error) {
-      console.error('Error generating quiz:', error);
-      // Remove the loading message
-      setMessages(prev => prev.filter(msg => !msg.isLoading));
-      return `❌ I couldn't generate quiz questions right now. Please try again with a different topic.`;
-    }
-  };
-
-  /* ---------------------------------------------------------------------- */
-  /* Data context for AI prompts (@data)                 */
+  /* Data context for AI prompts                                            */
   /* ---------------------------------------------------------------------- */
   const getDataContext = (): string => {
     const now = new Date();
@@ -1371,6 +796,13 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
     }
 
     let context = 'SCHOOL DATA CONTEXT:\n\n';
+
+    // --- Available Classes ---
+    if (classes && classes.length > 0) {
+      context += `AVAILABLE CLASSES / SUBJECTS (${classes.length} classes):\n`;
+      context += classes.map((c) => `- ${c.name}`).join('\n');
+      context += '\n\n';
+    }
 
     // --- Format Helper ---
     const formatHw = (hw: Homework) => {
@@ -1548,7 +980,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
           } else {
             fallbackCopy(button.payload);
           }
-          
+
           addToast({
             type: 'success',
             title: 'Copied!',
@@ -1583,19 +1015,12 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
   };
 
   const triggerAIResponse = async (userInput: string, images?: string[]) => {
-    // Check if it's a special command
-    const isRequestingData = userInput.toLowerCase().includes('@data');
-
-    const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards') || userInput.toLowerCase().includes('@flashcard');
-    const isQuizCommand = userInput.toLowerCase().includes('@quiz');
-    const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
-    const isGradeCommand = userInput.toLowerCase().includes('@grade');
 
     // Check daily message limit
-    const currentCounter = selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
+    const currentCounter = selectedModel === 'gemma-4-26b-a4b-it' ? quickMessageCounter :
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
-    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? quickLimit :
+    const maxLimit = selectedModel === 'gemma-4-26b-a4b-it' ? quickLimit :
       selectedModel === 'gemini-2.5-flash-lite' ? deepLimit :
         cloudLimit;
 
@@ -1608,7 +1033,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
 
     if (maxLimit !== Infinity && currentCounter >= maxLimit) {
       try {
-        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} messages for today — upgrade for more.`);
+        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'gemma-4-26b-a4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} messages for today — upgrade for more.`);
       } catch (err: any) { handlePlanLimitError(err); }
       return;
     }
@@ -1617,7 +1042,7 @@ I've created ${formattedQuestions.length} multiple-choice questions for you to t
     setIsAILoading(true);
 
     // Increment the appropriate message counter
-    if (selectedModel === 'gemma-3n-e4b-it') {
+    if (selectedModel === 'gemma-4-26b-a4b-it') {
       setQuickMessageCounter(prev => prev + 1);
     } else if (selectedModel === 'gemini-2.5-flash-lite') {
       setDeeperMessageCounter(prev => prev + 1);
@@ -1746,10 +1171,13 @@ Examples of correct button prompts:
 - Button text: "Explain differently" → Prompt: "I don't understand, can you explain photosynthesis in a different way?"
 - Button text: "Tell me more" → Prompt: "Can you tell me more about how photosynthesis works?"
 - Button text: "Simplify this" → Prompt: "Can you explain photosynthesis in simpler terms?"
+
+**Tool-Calling Mandate:**
+- When the user asks about their workload, schedule, priorities, homework, tests, events, or what they need to do today, you MUST call the 'get_school_data' tool immediately before answering. Do not provide a generic response without fetching their actual data first.
+- Before calling the 'add_homework' or 'add_test' tools to create new tasks, you MUST call 'get_school_data' first in order to load the user's available class list. This ensures you schedule tasks only for their actual, existing classes and use the exact correct class names.
 `;
 
       const dataContext = getDataContext();
-      systemPrompt += `\n\nSCHOOL DATA CONTEXT:\n${dataContext}`;
 
       // Call AI API
       const response = await fetch('/api/ai', {
@@ -1760,6 +1188,7 @@ Examples of correct button prompts:
         body: JSON.stringify({
           model: selectedModel,
           messages: [{ role: 'system', content: systemPrompt }, ...chatMessages],
+          schoolData: dataContext,
           action: 'chat',
           options: {
             temperature: 0.7,
@@ -1784,6 +1213,7 @@ Examples of correct button prompts:
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let accumulatedResponse = '';
+      const accumulatedToolCalls: { name: string, args: any, status?: 'loading' | 'success' | 'error', error?: string }[] = [];
 
       if (reader) {
         while (true) {
@@ -1818,16 +1248,77 @@ Examples of correct button prompts:
                   });
                 }
 
-                if (data.done) {
-                  // Final update - parse buttons and remove loading
-                  const { content: cleanContent, buttons } = parseInteractiveButtons(accumulatedResponse);
-                  const { content: finalCleanContent, checklist } = parseChecklist(cleanContent);
-
+                if (data.groundingMetadata) {
                   setMessages(prev => {
                     const copy = [...prev];
                     const idx = copy.findIndex(m => m.isLoading);
                     if (idx !== -1) {
                       copy[idx] = {
+                        ...copy[idx],
+                        groundingMetadata: data.groundingMetadata,
+                      };
+                    }
+                    return copy;
+                  });
+                }
+
+                if (data.toolCall) {
+                  const initialStatus: 'loading' | 'success' = (data.toolCall === 'add_homework' || data.toolCall === 'add_multiple_homeworks' || data.toolCall === 'add_test') ? 'loading' : 'success';
+                  const exists = accumulatedToolCalls.some(tc => tc.name === data.toolCall);
+                  if (exists) {
+                    const target = accumulatedToolCalls.find(tc => tc.name === data.toolCall);
+                    if (target) target.args = data.toolArgs || target.args;
+                  } else {
+                    accumulatedToolCalls.push({ name: data.toolCall, args: data.toolArgs, status: initialStatus });
+                  }
+
+                  setMessages(prev => {
+                    const copy = [...prev];
+                    const idx = copy.findIndex(m => m.isLoading);
+                    if (idx !== -1) {
+                      const currentCalls = copy[idx].toolCalls || [];
+                      const existsInState = currentCalls.some(tc => tc.name === data.toolCall);
+                      const updatedCalls = existsInState
+                        ? currentCalls.map(tc => tc.name === data.toolCall ? { ...tc, args: data.toolArgs || tc.args } : tc)
+                        : [...currentCalls, { name: data.toolCall as string, args: data.toolArgs, status: initialStatus }];
+
+                      copy[idx] = {
+                        ...copy[idx],
+                        toolCall: data.toolCall,
+                        toolArgs: data.toolArgs || copy[idx].toolArgs,
+                        toolCalls: updatedCalls
+                      };
+                    }
+                    return copy;
+                  });
+                }
+
+                if (data.thought) {
+                  setMessages(prev => {
+                    const copy = [...prev];
+                    const idx = copy.findIndex(m => m.isLoading);
+                    if (idx !== -1) {
+                      copy[idx] = {
+                        ...copy[idx],
+                        thought: (copy[idx].thought || '') + data.thought,
+                      };
+                    }
+                    return copy;
+                  });
+                }
+
+                if (data.done) {
+                  // Final update - parse buttons and remove loading
+                  const { content: cleanContent, buttons } = parseInteractiveButtons(accumulatedResponse);
+                  const { content: finalCleanContent, checklist } = parseChecklist(cleanContent);
+
+                  let messageIdToUpdate: number | undefined = loadingMsg.id;
+
+                  setMessages(prev => {
+                    const copy = [...prev];
+                    const idx = copy.findIndex(m => m.isLoading);
+                    if (idx !== -1) {
+                      const finalMsg = {
                         ...copy[idx],
                         content: finalCleanContent,
                         interactiveButtons: buttons,
@@ -1835,9 +1326,251 @@ Examples of correct button prompts:
                         isLoading: false,
                         timestamp: new Date(),
                       };
+                      copy[idx] = finalMsg;
+
+                      // Handle tools that need UI triggers
+                      if (finalMsg.toolCall === 'start_flashcards' && finalMsg.toolArgs?.flashcards) {
+                        const topic = finalMsg.toolArgs.topic || 'Flashcards';
+                        const cards = finalMsg.toolArgs.flashcards.map((card: any, index: number) => ({
+                          id: `card-${Date.now()}-${index}`,
+                          question: card.front || card.question || `Question ${index + 1}`,
+                          answer: card.back || card.answer || 'No answer provided',
+                          topic: topic,
+                          createdAt: new Date()
+                        }));
+
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('currentFlashcards', JSON.stringify(cards));
+                        }
+
+                        finalMsg.content = `# 🗂️ Flashcard Set: ${topic}\n\nI've created ${cards.length} flashcards for you to study. \n\n[Open Flashcards](/flashcards?t=${Date.now()}) to start reviewing them!\n\n*The flashcards will be saved for this session. You can access them later from the navigation menu.*`;
+                      }
+
+                      // Handle start_quiz tool
+                      if (finalMsg.toolCall === 'start_quiz' && finalMsg.toolArgs?.questions) {
+                        const topic = finalMsg.toolArgs.topic || 'Quiz';
+                        const questions = finalMsg.toolArgs.questions.map((q: any, index: number) => {
+                          const options = q.options || ['Option A', 'Option B', 'Option C', 'Option D'];
+                          const correctIndex = Array.isArray(options) ? options.indexOf(q.correctAnswer) : 0;
+                          return {
+                            id: `question-${Date.now()}-${index}`,
+                            question: q.question || `Question ${index + 1}`,
+                            options: options,
+                            correctAnswer: correctIndex === -1 ? 0 : correctIndex,
+                            explanation: q.explanation || '',
+                            topic: topic
+                          };
+                        });
+
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('currentQuiz', JSON.stringify(questions));
+                        }
+
+                        finalMsg.content = `# 📝 Quiz: ${topic}\n\nI've created ${questions.length} multiple-choice questions for you to test your knowledge.\n\n[Start Quiz](/quiz?t=${Date.now()}) to begin!\n\n*The quiz will be saved for this session. Good luck!*`;
+                      }
                     }
                     return copy;
                   });
+
+                  // Execute state-modifying database updates completely outside of the render cycle
+                  for (const tc of accumulatedToolCalls) {
+                    const toolCall = tc.name;
+                    const toolArgs = tc.args;
+
+                    setTimeout(async () => {
+                      if (toolCall === 'add_homework' && toolArgs) {
+                        const { className, title, dueDate, priority, description, links } = toolArgs;
+                        const matchedClass = classes.find((c: any) => c.name.toLowerCase() === className?.toLowerCase());
+                        if (matchedClass) {
+                          const parsedDate = dueDate ? new Date(dueDate + 'T12:00:00') : new Date();
+                          try {
+                            await addHomework(matchedClass.id, title, parsedDate, priority || 'medium', links || [], description || '');
+                            if (messageIdToUpdate !== undefined) {
+                              setMessages(prev => {
+                                const copy = [...prev];
+                                const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                                if (idx !== -1) {
+                                  const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                                    (tc.name === 'add_homework' && tc.args?.title === title) ? { ...tc, status: 'success' as const } : tc
+                                  );
+                                  copy[idx] = {
+                                    ...copy[idx],
+                                    toolCalls: updatedCalls,
+                                    bulkAddDisplay: {
+                                      homeworks: [{
+                                        id: 'temp-homework',
+                                        title,
+                                        dueDate: dueDate || new Date().toISOString(),
+                                        priority: priority || 'medium',
+                                        description: description || '',
+                                        links: links || [],
+                                        classId: matchedClass.id,
+                                        pinned: false,
+                                        completed: false
+                                      } as any],
+                                      classes: [matchedClass]
+                                    }
+                                  };
+                                }
+                                return copy;
+                              });
+                            }
+                          } catch (err: any) {
+                            console.error('Error adding homework from AI:', err);
+                            if (messageIdToUpdate !== undefined) {
+                              setMessages(prev => {
+                                const copy = [...prev];
+                                const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                                if (idx !== -1) {
+                                  const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                                    (tc.name === 'add_homework' && tc.args?.title === title) ? { ...tc, status: 'error' as const, error: err.message || 'Error inserting into database' } : tc
+                                  );
+                                  copy[idx] = { ...copy[idx], toolCalls: updatedCalls };
+                                }
+                                return copy;
+                              });
+                            }
+                          }
+                        } else {
+                          if (messageIdToUpdate !== undefined) {
+                            setMessages(prev => {
+                              const copy = [...prev];
+                              const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                              if (idx !== -1) {
+                                const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                                  (tc.name === 'add_homework' && tc.args?.title === title) ? { ...tc, status: 'error' as const, error: `Class "${className}" not found` } : tc
+                                );
+                                copy[idx] = { ...copy[idx], toolCalls: updatedCalls };
+                              }
+                              return copy;
+                            });
+                          }
+                        }
+                      }
+
+                      if (toolCall === 'add_multiple_homeworks' && toolArgs?.homeworks) {
+                        const homeworksToAdd = toolArgs.homeworks;
+                        const addedHomeworks: Homework[] = [];
+                        const matchedClassesSet = new Set<Class>();
+                        let hasFailures = false;
+                        let lastErrorMessage = '';
+
+                        for (const hw of homeworksToAdd) {
+                          const { className, title, dueDate, priority, description } = hw;
+                          const matchedClass = classes.find((c: any) => c.name.toLowerCase() === className?.toLowerCase());
+                          if (matchedClass) {
+                            const parsedDate = dueDate ? new Date(dueDate + 'T12:00:00') : new Date();
+                            try {
+                              await addHomework(matchedClass.id, title, parsedDate, priority || 'medium', [], description || '');
+                              
+                              addedHomeworks.push({
+                                id: `hw-${Date.now()}-${Math.random()}`,
+                                title,
+                                dueDate: dueDate || new Date().toISOString(),
+                                priority: priority || 'medium',
+                                description: description || '',
+                                links: [],
+                                className: matchedClass.name,
+                                classId: matchedClass.id
+                              } as any);
+                              matchedClassesSet.add(matchedClass);
+                            } catch (err: any) {
+                              console.error('Error adding multiple homework item:', err);
+                              hasFailures = true;
+                              lastErrorMessage = err.message || `Failed to add "${title}"`;
+                            }
+                          } else {
+                            hasFailures = true;
+                            lastErrorMessage = `Class "${className}" not found for "${title}"`;
+                          }
+                        }
+
+                        if (messageIdToUpdate !== undefined) {
+                          setMessages(prev => {
+                            const copy = [...prev];
+                            const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                            if (idx !== -1) {
+                              const updatedCalls = (copy[idx].toolCalls || []).map(tc => {
+                                if (tc.name === 'add_multiple_homeworks') {
+                                  if (hasFailures && addedHomeworks.length === 0) {
+                                    return { ...tc, status: 'error' as const, error: lastErrorMessage };
+                                  } else if (hasFailures) {
+                                    return { ...tc, status: 'success' as const, error: `Partially added: ${lastErrorMessage}` };
+                                  } else {
+                                    return { ...tc, status: 'success' as const };
+                                  }
+                                }
+                                return tc;
+                              });
+
+                              copy[idx] = {
+                                ...copy[idx],
+                                toolCalls: updatedCalls,
+                                bulkAddDisplay: addedHomeworks.length > 0 ? {
+                                  homeworks: addedHomeworks,
+                                  classes: Array.from(matchedClassesSet)
+                                } : copy[idx].bulkAddDisplay
+                              };
+                            }
+                            return copy;
+                          });
+                        }
+                      }
+
+                      if (toolCall === 'add_test' && toolArgs) {
+                        const { className, title, date, testType, description } = toolArgs;
+                        const matchedClass = classes.find((c: any) => c.name.toLowerCase() === className?.toLowerCase());
+                        if (matchedClass) {
+                          const parsedDate = date ? new Date(date + 'T12:00:00') : new Date();
+                          try {
+                            await addTest(matchedClass.id, title, parsedDate, (testType || 'exam') as any, { description: description || '', priority: 'high' });
+                            if (messageIdToUpdate !== undefined) {
+                              setMessages(prev => {
+                                const copy = [...prev];
+                                const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                                if (idx !== -1) {
+                                  const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                                    (tc.name === 'add_test' && tc.args?.title === title) ? { ...tc, status: 'success' as const } : tc
+                                  );
+                                  copy[idx] = { ...copy[idx], toolCalls: updatedCalls };
+                                }
+                                return copy;
+                              });
+                            }
+                          } catch (err: any) {
+                            console.error('Error adding test from AI:', err);
+                            if (messageIdToUpdate !== undefined) {
+                              setMessages(prev => {
+                                const copy = [...prev];
+                                const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                                if (idx !== -1) {
+                                  const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                                    (tc.name === 'add_test' && tc.args?.title === title) ? { ...tc, status: 'error' as const, error: err.message || 'Error inserting into database' } : tc
+                                  );
+                                  copy[idx] = { ...copy[idx], toolCalls: updatedCalls };
+                                }
+                                return copy;
+                              });
+                            }
+                          }
+                        } else {
+                          if (messageIdToUpdate !== undefined) {
+                            setMessages(prev => {
+                              const copy = [...prev];
+                              const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                              if (idx !== -1) {
+                                const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                                  (tc.name === 'add_test' && tc.args?.title === title) ? { ...tc, status: 'error' as const, error: `Class "${className}" not found` } : tc
+                                );
+                                copy[idx] = { ...copy[idx], toolCalls: updatedCalls };
+                              }
+                              return copy;
+                            });
+                          }
+                        }
+                      }
+                    }, 0);
+                  }
                   break;
                 }
               } catch (error) {
@@ -1897,21 +1630,14 @@ Examples of correct button prompts:
     e.preventDefault();
 
     const userInput = input.trim();
-    const isRequestingData = userInput.toLowerCase().includes('@data');
-
-    const isFlashcardsCommand = userInput.toLowerCase().includes('@flashcards') || userInput.toLowerCase().includes('@flashcard');
-    const isQuizCommand = userInput.toLowerCase().includes('@quiz');
-    const isTherapistCommand = userInput.toLowerCase().includes('@therapist');
-    const isGradeCommand = userInput.toLowerCase().includes('@grade');
-    const isBulkAddCommand = userInput.toLowerCase().includes('@bulkadd');
 
     if ((!userInput && selectedImages.length === 0) || isAILoading) return;
 
     // Check daily message limit based on selected model
-    const currentCounter = selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
+    const currentCounter = selectedModel === 'gemma-4-26b-a4b-it' ? quickMessageCounter :
       selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
         cloudMessageCounter;
-    const maxLimit = selectedModel === 'gemma-3n-e4b-it' ? quickLimit :
+    const maxLimit = selectedModel === 'gemma-4-26b-a4b-it' ? quickLimit :
       selectedModel === 'gemini-2.5-flash-lite' ? deepLimit :
         cloudLimit;
 
@@ -1924,7 +1650,7 @@ Examples of correct button prompts:
 
     if (maxLimit !== Infinity && currentCounter >= maxLimit) {
       try {
-        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} messages for today — upgrade for more.`);
+        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'gemma-4-26b-a4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} messages for today — upgrade for more.`);
       } catch (err: any) { handlePlanLimitError(err); }
       return;
     }
@@ -1949,213 +1675,7 @@ Examples of correct button prompts:
       localStorage.removeItem('ai-assistant-input');
     }
 
-    // --------------------------------------------------------------
-    // @resources command
-    // --------------------------------------------------------------
-    const isResourcesCommand = userInput.toLowerCase().includes('@resources');
-    if (isResourcesCommand) {
-      const loadingMsg: Message = {
-        id: messages.length + 1,
-        role: 'assistant',
-        content: 'Finding the best study resources for you...',
-        timestamp: new Date(),
-        isLoading: true,
-      };
-      setMessages((prev) => [...prev, userMessage, loadingMsg]);
-
-      try {
-        const response = await handleResourcesCommand(userInput);
-        setMessages((prev) => {
-          const copy = [...prev];
-          const idx = copy.findIndex((m) => m.isLoading);
-          if (idx !== -1) {
-            copy[idx] = {
-              ...copy[idx],
-              content: response,
-              isLoading: false,
-            };
-          }
-          return copy;
-        });
-      } catch (err) {
-        console.error(err);
-        setError('Failed to find resources. Please try again.');
-      }
-      return;
-    }
-
-    // --------------------------------------------------------------
-    // @flashcards command
-    // --------------------------------------------------------------
-    if (isFlashcardsCommand) {
-      try {
-        const response = await handleFlashcardsCommand(userInput);
-
-        // If the handler returned an error string, show it as a normal assistant message
-        if (response) {
-          setMessages((prev) => [
-            ...prev,
-            userMessage,
-            {
-              id: Date.now(),
-              role: 'assistant',
-              content: response,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-        return;
-      } catch (error: any) {
-        if (handlePlanLimitError(error)) return;
-        setError(error instanceof Error ? error.message : 'Failed to generate flashcards');
-        return;
-      }
-    }
-
-    // --------------------------------------------------------------
-    // @quiz command
-    // --------------------------------------------------------------
-    if (isQuizCommand) {
-      try {
-        const response = await handleQuizCommand(userInput);
-
-        // If the handler returned a response string, show it as a normal assistant message
-        if (response) {
-          setMessages((prev) => [
-            ...prev,
-            userMessage,
-            {
-              id: Date.now(),
-              role: 'assistant',
-              content: response,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-        return;
-      } catch (error: any) {
-        if (handlePlanLimitError(error)) return;
-        setError(error instanceof Error ? error.message : 'Failed to generate quiz');
-        return;
-      }
-    }
-
-
-
-    // --------------------------------------------------------------
-    // @therapist command
-    // --------------------------------------------------------------
-    if (isTherapistCommand) {
-      const newTherapistMode = !isTherapistMode;
-      setIsTherapistMode(newTherapistMode);
-
-      const response = newTherapistMode
-        ? "I'm now in therapist mode. I'm here to listen and provide support. What's on your mind?"
-        : "I've switched back to regular mode. How can I assist you with your studies today?";
-
-      setMessages(prev => [...prev, userMessage, {
-        id: Date.now(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      }]);
-      return;
-    }
-
-    // --------------------------------------------------------------
-    // @bulkadd command
-    // --------------------------------------------------------------
-    if (isBulkAddCommand) {
-      // Show initial loading message
-      const initialLoadingMsg = {
-        id: Date.now(),
-        role: 'assistant' as const,
-        content: 'Analyzing your homework assignments...',
-        timestamp: new Date(),
-        isLoading: true,
-      };
-      setMessages(prev => [...prev, initialLoadingMsg]);
-
-      try {
-        const response = await handleBulkAddCommand(userInput);
-        
-        if (response) {
-          // Check if this is a special bulk add success response
-          if (response.startsWith('BULK_ADD_SUCCESS:')) {
-            try {
-              const data = JSON.parse(response.replace('BULK_ADD_SUCCESS:', ''));
-              
-              // Replace loading message with bulk add display
-              setMessages((prev) => [
-                ...prev.filter(m => m.id !== initialLoadingMsg.id),
-                userMessage,
-                {
-                  id: Date.now(),
-                  role: 'assistant',
-                  content: '',
-                  bulkAddDisplay: {
-                    homeworks: data.homeworks,
-                    classes: data.classes
-                  },
-                  timestamp: new Date(),
-                },
-              ]);
-            } catch (parseError) {
-              // Fallback to regular message if parsing fails
-              setMessages((prev) => [
-                ...prev.filter(m => m.id !== initialLoadingMsg.id),
-                userMessage,
-                {
-                  id: Date.now(),
-                  role: 'assistant',
-                  content: 'Successfully added homework assignments to your dashboard!',
-                  timestamp: new Date(),
-                },
-              ]);
-            }
-          } else {
-            // Regular response handling - remove loading and show response
-            setMessages((prev) => [
-              ...prev.filter(m => m.id !== initialLoadingMsg.id),
-              userMessage,
-              {
-                id: Date.now(),
-                role: 'assistant',
-                content: response,
-                timestamp: new Date(),
-              },
-            ]);
-          }
-        }
-        return;
-      } catch (error: any) {
-        // Remove loading message and show error
-        setMessages((prev) => [
-          ...prev.filter(m => m.id !== initialLoadingMsg.id),
-          userMessage,
-          {
-            id: Date.now(),
-            role: 'assistant',
-            content: `Error: ${error.message}`,
-            timestamp: new Date(),
-            isError: true,
-          },
-        ]);
-        if (handlePlanLimitError(error)) return;
-        return;
-      }
-    }
-
-    // --------------------------------------------------------------
-    // @grade command
-    // --------------------------------------------------------------
-    if (isGradeCommand) {
-      // Don't return early - let it go through AI for grading assignments
-    }
-
-    // --------------------------------------------------------------
-    // Regular AI chat
-    // This part is now handled by triggerAIResponse (handles adding both messages)
+    // Regular AI chat — triggerAIResponse handles adding both user and assistant messages
     await triggerAIResponse(userInput, selectedImages.length ? [...selectedImages] : undefined);
   };
 
@@ -2250,7 +1770,7 @@ Examples of correct button prompts:
                 exit={{ opacity: 0, y: -10 }}
                 className="absolute"
               >
-                <MessageSquare className="h-6 w-6" />
+                <HugeIcon name="Chat" size={24} className="h-6 w-6" />
               </motion.div>
             ) : (
               <motion.div
@@ -2260,7 +1780,7 @@ Examples of correct button prompts:
                 exit={{ opacity: 0, scale: 1.2 }}
                 className="absolute"
               >
-                <Sparkles className="h-6 w-6" />
+                <HugeIcon name="Sparkles" size={24} className="h-6 w-6" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -2389,15 +1909,15 @@ Examples of correct button prompts:
                   <div className="flex items-center gap-1.5 h-full px-3 rounded-full hover:bg-sky-50/50 dark:hover:bg-gray-800/50 transition-colors">
                     <div className={cn(
                       "w-2 h-2 rounded-full animate-pulse",
-                      selectedModel === 'gemma-3n-e4b-it' ? "bg-teal-500" :
+                      selectedModel === 'gemma-4-26b-a4b-it' ? "bg-teal-500" :
                         selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" : "bg-blue-500"
                     )} />
                     <span className="text-xs font-medium tabular-nums text-sky-700 dark:text-sky-200">
-                      {selectedModel === 'gemma-3n-e4b-it' ? quickMessageCounter :
+                      {selectedModel === 'gemma-4-26b-a4b-it' ? quickMessageCounter :
                         selectedModel === 'gemini-2.5-flash-lite' ? deeperMessageCounter :
                           cloudMessageCounter}
                       <span className="opacity-40 mx-0.5">/</span>
-                      {selectedModel === 'gemma-3n-e4b-it' ? (quickLimit === Infinity ? '∞' : quickLimit) :
+                      {selectedModel === 'gemma-4-26b-a4b-it' ? (quickLimit === Infinity ? '∞' : quickLimit) :
                         selectedModel === 'gemini-2.5-flash-lite' ? (deepLimit === Infinity ? '∞' : deepLimit) :
                           (cloudLimit === Infinity ? '∞' : cloudLimit)}
                     </span>
@@ -2407,17 +1927,21 @@ Examples of correct button prompts:
 
               {/* Floating Action Capsule */}
               <div className="pointer-events-auto flex items-center h-9 p-0.5 rounded-full bg-white/50 dark:bg-gray-900/50 border border-sky-100 dark:border-white/5 shadow-lg backdrop-blur-md">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={clearConversation}
-                  className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all"
-                  title="New Chat"
-                >
-                  <Plus size={18} />
-                </motion.button>
+                {messages.length > 0 && (
+                  <>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={clearConversation}
+                      className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all"
+                      title="New Chat"
+                    >
+                      <HugeIcon name="PlusSign" size={18} />
+                    </motion.button>
 
-                <div className="w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
+                    <div className="w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
+                  </>
+                )}
 
                 {/* Sidebar toggle — desktop only */}
                 <motion.button
@@ -2427,7 +1951,7 @@ Examples of correct button prompts:
                   className="hidden md:flex h-8 w-8 items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all"
                   title={isAISidebarMode ? 'Floating panel' : 'Sidebar mode'}
                 >
-                  {isAISidebarMode ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+                  {isAISidebarMode ? <HugeIcon name="ArrowRight01" size={16} /> : <HugeIcon name="ArrowLeft01" size={16} />}
                 </motion.button>
 
                 <div className="hidden md:block w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
@@ -2438,7 +1962,7 @@ Examples of correct button prompts:
                   onClick={onClose || (() => setInternalIsOpen(false))}
                   className="h-8 w-8 flex items-center justify-center rounded-full text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 transition-all font-medium"
                 >
-                  <XIcon size={18} />
+                  <HugeIcon name="Cancel01" size={18} />
                 </motion.button>
               </div>
             </motion.div>
@@ -2449,33 +1973,7 @@ Examples of correct button prompts:
               className="flex-1 min-h-0 overflow-y-auto p-4 pt-20 pb-24 space-y-4 scrollbar-thin scrollbar-thumb-sky-200 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scroll-smooth relative"
             >
               <AnimatePresence>
-                {/* Flashcard Deck - Only show when there are flashcards */}
-                {showFlashcards && flashcards.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 p-4 bg-muted/20 rounded-lg overflow-hidden"
-                  >
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="font-semibold text-lg">📚 Flashcard Set</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowFlashcards(false)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <XIcon className="h-4 w-4 mr-1" /> Close
-                      </Button>
-                    </div>
-                    <FlashcardDeck
-                      cards={flashcards}
-                      onSave={(updatedCards) => {
-                        console.log('Updated cards:', updatedCards);
-                      }}
-                    />
-                  </motion.div>
-                )}
+
 
                 {messages.length === 0 ? (
                   <motion.div
@@ -2497,19 +1995,27 @@ Examples of correct button prompts:
                         playsInline
                         className="w-32 h-32 object-contain"
                       >
-                        <source src={isDark ? "/AI SphereDark.mp4" : "/AI Sphere.mp4"} type="video/mp4" />
+                        <source src={isDark ? "/AI SphereDark2.mp4" : "/AI SphereNew.mp4"} type="video/mp4" />
                       </video>
                     </motion.div>
 
                     <motion.div
                       key="landing-text"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      initial="hidden"
+                      animate="visible"
+                      variants={handwritingSentenceVariants}
                       className="relative -top-10 max-w-[450px]"
                     >
-                      <h2 className="block text-xl font-semibold text-center text-sky-900 dark:text-sky-200">
-                        Hey {user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}!
+                      <h2 className="block text-3xl font-medium font-cursive text-center text-sky-900 dark:text-sky-200">
+                        {`Hey, ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}!`.split('').map((char, index) => (
+                          <motion.span
+                            key={`${char}-${index}`}
+                            variants={handwritingCharVariants}
+                            style={{ display: 'inline-block', whiteSpace: 'pre' }}
+                          >
+                            {char}
+                          </motion.span>
+                        ))}
                       </h2>
                     </motion.div>
                   </motion.div>
@@ -2528,35 +2034,403 @@ Examples of correct button prompts:
                           msg.role === 'user' ? 'items-end' : 'items-start'
                         )}
                       >
-                        {msg.role === 'user' && (
-                          // <AnimateIcon>
-                          //   <motion.div
-                          //     initial={{ scale: 0.8, opacity: 0 }}
-                          //     animate={{ scale: 1, opacity: 1 }}
-                          //     className="h-8 w-8 rounded-full flex items-center justify-center"
-                          //   >
-                          <UserRound className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-                          //   </motion.div>
-                          // </AnimateIcon>
-                        )}
+
                         {msg.role === 'assistant' && (
-                          // <AnimateIcon>
-                          <AuraVideoIcon
-                            isLoading={msg.isLoading}
-                            selectedModel={selectedModel}
-                            layoutId={messages.findIndex(m => m.role === 'assistant') === idx ? "aurora-sphere" : undefined}
-                          />
-                          // </AnimateIcon>
+                          <div className="flex flex-col gap-1 w-full">
+                            <div className="flex items-start gap-2">
+                              <div className="flex-shrink-0">
+                                <AuraVideoIcon
+                                  isLoading={msg.isLoading}
+                                  selectedModel={selectedModel}
+                                  layoutId={messages.findIndex(m => m.role === 'assistant') === idx ? "aurora-sphere" : undefined}
+                                />
+                              </div>
+                              {(msg.thought || msg.toolCall || (msg.groundingMetadata?.webSearchQueries && msg.groundingMetadata.webSearchQueries.length > 0)) && (
+                                <div className="select-none">
+                                  <button
+                                    onClick={() => setExpandedThoughts(prev => ({ ...prev, [msg.id]: !prev[msg.id] }))}
+                                    className="flex items-center gap-1 text-[13px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors cursor-pointer list-none font-medium h-8 outline-none"
+                                  >
+                                    <span>
+                                      {msg.isLoading && !msg.content
+                                        ? (msg.toolCall
+                                          ? (msg.toolCall === 'start_flashcards' ? 'Opening flashcards...' : msg.toolCall === 'start_quiz' ? 'Starting quiz...' : 'Checking schedule...')
+                                          : 'Thinking...')
+                                        : 'Show thinking'}
+                                    </span>
+                                    <svg
+                                      className={cn(
+                                        "w-3.5 h-3.5 transition-transform duration-200 text-zinc-500 dark:text-zinc-400",
+                                        expandedThoughts[msg.id] ? "rotate-180" : "rotate-0"
+                                      )}
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth={1.5}
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </button>
+                                  <AnimatePresence initial={false}>
+                                    {expandedThoughts[msg.id] && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                                        className="overflow-hidden"
+                                      >
+                                        <div className="mt-1 text-xs font-light text-zinc-500 dark:text-zinc-400 py-1.5 whitespace-pre-wrap max-w-prose leading-relaxed flex flex-col gap-2.5">
+                                          {(() => {
+                                            const toolCalls: Array<{ name: string; args?: any; status?: 'loading' | 'success' | 'error'; error?: string }> = msg.toolCalls && msg.toolCalls.length > 0
+                                              ? msg.toolCalls
+                                              : msg.toolCall
+                                                ? [{ name: msg.toolCall, args: msg.toolArgs, status: msg.isLoading ? 'loading' as const : 'success' as const }]
+                                                : [];
+
+                                            if (toolCalls.length === 0) return null;
+
+                                            const grouped = toolCalls.reduce((acc, tc) => {
+                                              const name = tc.name;
+                                              if (!acc[name]) {
+                                                acc[name] = [];
+                                              }
+                                              acc[name].push(tc);
+                                              return acc;
+                                            }, {} as Record<string, typeof toolCalls>);
+
+                                            return (
+                                              <div className="flex flex-col gap-2 w-full">
+                                                {Object.entries(grouped).map(([toolName, calls]) => {
+                                                  const isExpanded = !!expandedToolDetails[`${msg.id}-${toolName}`];
+                                                  
+                                                  let displayLabel = toolName;
+                                                  if (toolName === 'get_school_data') displayLabel = 'Check Schedule';
+                                                  else if (toolName === 'start_flashcards') displayLabel = 'Open Flashcards';
+                                                  else if (toolName === 'start_quiz') displayLabel = 'Start Quiz';
+                                                  else if (toolName === 'calculate_expression') displayLabel = 'Calculate Expression';
+                                                  else if (toolName === 'add_homework') displayLabel = 'Add Homework';
+                                                  else if (toolName === 'add_test') displayLabel = 'Add Test';
+                                                  else if (toolName === 'show_homeworks') displayLabel = 'Show Homework';
+                                                  else if (toolName === 'delete_homework') displayLabel = 'Delete Homework';
+                                                  else if (toolName === 'delete_test') displayLabel = 'Delete Test';
+                                                  else {
+                                                    displayLabel = toolName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                                  }
+
+                                                  const count = calls.length;
+                                                  const hasLoading = calls.some(c => c.status === 'loading');
+                                                  const hasError = calls.some(c => c.status === 'error');
+                                                  const isAddCommand = toolName === 'add_homework' || toolName === 'add_multiple_homeworks' || toolName === 'add_test';
+
+                                                  return (
+                                                    <div key={toolName} className="flex flex-col gap-2 w-full max-w-full">
+                                                      <button
+                                                        onClick={() => {
+                                                          setExpandedToolDetails(prev => ({
+                                                            ...prev,
+                                                            [`${msg.id}-${toolName}`]: !prev[`${msg.id}-${toolName}`]
+                                                          }));
+                                                        }}
+                                                        className={cn(
+                                                          "flex items-center justify-between gap-3 text-[12px] font-medium transition-all duration-200 border rounded-[14px] px-3.5 py-1.5 backdrop-blur-sm w-full outline-none",
+                                                          hasError
+                                                            ? "text-rose-700 dark:text-rose-300 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/15"
+                                                            : hasLoading
+                                                              ? "text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/15"
+                                                              : isAddCommand
+                                                                ? "text-blue-700 dark:text-blue-300 bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/15"
+                                                                : "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/15"
+                                                        )}
+                                                      >
+                                                        <div className="flex items-center gap-2">
+                                                          {isAddCommand ? (
+                                                            <HugeIcon name="PlusSign" className={cn(
+                                                              "w-3.5 h-3.5",
+                                                              hasError ? "text-rose-600 dark:text-rose-400" : hasLoading ? "text-amber-600 dark:text-amber-400 animate-pulse" : "text-blue-600 dark:text-blue-400"
+                                                            )} size={14} />
+                                                          ) : (
+                                                            <HugeIcon name="Search01" className={cn(
+                                                              "w-3.5 h-3.5",
+                                                              hasError ? "text-rose-600 dark:text-rose-400" : hasLoading ? "text-amber-600 dark:text-amber-400 animate-pulse" : "text-emerald-600 dark:text-emerald-400"
+                                                            )} size={14} />
+                                                          )}
+                                                          <span>
+                                                            {displayLabel}
+                                                          </span>
+                                                          <span className={cn(
+                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                                                            hasError
+                                                              ? "bg-rose-500/20 text-rose-800 dark:text-rose-200"
+                                                              : hasLoading
+                                                                ? "bg-amber-500/20 text-amber-800 dark:text-amber-200"
+                                                                : isAddCommand
+                                                                  ? "bg-blue-500/20 text-blue-800 dark:text-blue-200"
+                                                                  : "bg-emerald-500/20 text-emerald-800 dark:text-emerald-200"
+                                                          )}>
+                                                            {count}
+                                                          </span>
+                                                        </div>
+                                                        <svg
+                                                          className={cn(
+                                                            "w-3.5 h-3.5 transition-transform duration-200",
+                                                            isExpanded ? "rotate-180" : "rotate-0",
+                                                            hasError
+                                                              ? "text-rose-600/80 dark:text-rose-400/80"
+                                                              : hasLoading
+                                                                ? "text-amber-600/80 dark:text-amber-400/80"
+                                                                : isAddCommand
+                                                                  ? "text-blue-600/80 dark:text-blue-400/80"
+                                                                  : "text-emerald-600/80 dark:text-emerald-400/80"
+                                                          )}
+                                                          fill="none"
+                                                          viewBox="0 0 24 24"
+                                                          stroke="currentColor"
+                                                          strokeWidth={1.5}
+                                                        >
+                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                      </button>
+
+                                                      <AnimatePresence>
+                                                        {isExpanded && (
+                                                          <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                                                            className="overflow-hidden pl-1"
+                                                          >
+                                                            <div className="flex flex-col gap-2 mt-1 py-1 w-full">
+                                                              {calls.map((tc, idx) => {
+                                                                const status = tc.status || 'success';
+                                                                const hasArgs = tc.args && Object.keys(tc.args).length > 0;
+                                                                
+                                                                return (
+                                                                  <div
+                                                                    key={idx}
+                                                                    className={cn(
+                                                                      "flex flex-col gap-2 p-2.5 rounded-[12px] border text-[11px] transition-colors w-full",
+                                                                      status === 'error'
+                                                                        ? "bg-rose-50 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-900/30"
+                                                                        : status === 'loading'
+                                                                          ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-900/30 animate-pulse"
+                                                                          : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200/60 dark:border-zinc-800/60"
+                                                                    )}
+                                                                  >
+                                                                    <div className="flex items-center justify-between">
+                                                                      <span className="font-semibold text-zinc-500 dark:text-zinc-400">
+                                                                        Execution #{idx + 1}
+                                                                      </span>
+                                                                      <span className={cn(
+                                                                        "font-semibold px-2 py-0.5 rounded-full text-[10px] tracking-wide inline-flex items-center gap-1",
+                                                                        status === 'success'
+                                                                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
+                                                                          : status === 'error'
+                                                                            ? "bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300"
+                                                                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                                                                      )}>
+                                                                        {status === 'success' && (
+                                                                          <>
+                                                                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                                                                            Succeeded
+                                                                          </>
+                                                                        )}
+                                                                        {status === 'error' && (
+                                                                          <>
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                                                            Failed
+                                                                          </>
+                                                                        )}
+                                                                        {status === 'loading' && (
+                                                                          <>
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                                                                            Executing...
+                                                                          </>
+                                                                        )}
+                                                                      </span>
+                                                                    </div>
+
+                                                                    {status === 'error' && tc.error && (
+                                                                      <div className="text-rose-600 dark:text-rose-400 bg-rose-500/5 p-2 rounded-lg border border-rose-500/10 font-normal leading-relaxed whitespace-pre-wrap">
+                                                                        {tc.error}
+                                                                      </div>
+                                                                    )}
+
+                                                                    {hasArgs ? (
+                                                                      <div className="grid grid-cols-2 gap-2 mt-1 pt-1.5 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                                                                        {Object.entries(tc.args).map(([key, val]) => {
+                                                                          const displayKey = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                                                          
+                                                                          if (val && Array.isArray(val)) {
+                                                                            return (
+                                                                              <div key={key} className="col-span-2 flex flex-col gap-1.5 mt-1 pt-1.5 border-t border-zinc-200/50 dark:border-zinc-800/40">
+                                                                                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-semibold tracking-wide">
+                                                                                  {displayKey} ({val.length})
+                                                                                </span>
+                                                                                <div className="flex flex-col gap-1.5">
+                                                                                  {val.map((item: any, itemIdx: number) => {
+                                                                                    if (typeof item === 'object' && item !== null) {
+                                                                                      return (
+                                                                                        <div
+                                                                                          key={itemIdx}
+                                                                                          className="bg-white/60 dark:bg-zinc-800/55 border border-zinc-200/40 dark:border-zinc-700/40 rounded-[10px] p-2 flex flex-col gap-1.5 w-full"
+                                                                                        >
+                                                                                          <div className="flex items-center justify-between border-b border-zinc-200/30 dark:border-zinc-700/30 pb-1 mb-0.5">
+                                                                                            <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-[11px]">
+                                                                                              {item.title || item.question || `Item #${itemIdx + 1}`}
+                                                                                            </span>
+                                                                                            {item.className && (
+                                                                                              <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-bold text-[9px] px-1.5 py-0.5 rounded-md">
+                                                                                                {item.className}
+                                                                                              </span>
+                                                                                            )}
+                                                                                          </div>
+                                                                                          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                                                                                            {item.dueDate && (
+                                                                                              <div className="flex flex-col">
+                                                                                                <span className="text-zinc-400 dark:text-zinc-500 font-medium">Due Date</span>
+                                                                                                <span className="text-zinc-600 dark:text-zinc-400">{item.dueDate}</span>
+                                                                                              </div>
+                                                                                            )}
+                                                                                            {item.priority && (
+                                                                                              <div className="flex flex-col">
+                                                                                                <span className="text-zinc-400 dark:text-zinc-500 font-medium">Priority</span>
+                                                                                                <span className="text-zinc-600 dark:text-zinc-400 capitalize">{item.priority}</span>
+                                                                                              </div>
+                                                                                            )}
+                                                                                            {item.description && (
+                                                                                              <div className="col-span-2 flex flex-col">
+                                                                                                <span className="text-zinc-400 dark:text-zinc-500 font-medium">Description</span>
+                                                                                                <span className="text-zinc-600 dark:text-zinc-400 break-words font-light leading-snug">{item.description}</span>
+                                                                                              </div>
+                                                                                            )}
+                                                                                          </div>
+                                                                                        </div>
+                                                                                      );
+                                                                                    }
+                                                                                    return (
+                                                                                      <div key={itemIdx} className="text-zinc-600 dark:text-zinc-400 pl-2 border-l border-zinc-200 dark:border-zinc-700 font-light text-[10px]">
+                                                                                        {String(item)}
+                                                                                      </div>
+                                                                                    );
+                                                                                  })}
+                                                                                </div>
+                                                                              </div>
+                                                                            );
+                                                                          }
+
+                                                                          let displayVal = '';
+                                                                          if (val === null || val === undefined) {
+                                                                            displayVal = 'None';
+                                                                          } else if (typeof val === 'object') {
+                                                                            displayVal = JSON.stringify(val);
+                                                                          } else {
+                                                                            displayVal = String(val);
+                                                                          }
+
+                                                                          return (
+                                                                            <div key={key} className="flex flex-col gap-0.5 min-w-0">
+                                                                              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide">
+                                                                                {displayKey}
+                                                                              </span>
+                                                                              <span className="text-[11px] text-zinc-700 dark:text-zinc-300 font-normal truncate hover:text-clip hover:whitespace-normal break-words" title={displayVal}>
+                                                                                {displayVal}
+                                                                              </span>
+                                                                            </div>
+                                                                          );
+                                                                        })}
+                                                                      </div>
+                                                                    ) : (
+                                                                      <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal italic mt-0.5">
+                                                                        No parameters passed
+                                                                      </div>
+                                                                    )}
+                                                                  </div>
+                                                                );
+                                                              })}
+                                                            </div>
+                                                          </motion.div>
+                                                        )}
+                                                      </AnimatePresence>
+                                                    </div>
+                                                  );
+                                                })}
+                                              </div>
+                                            );
+                                          })()}
+
+                                          {msg.groundingMetadata?.webSearchQueries && msg.groundingMetadata.webSearchQueries.length > 0 && (
+                                            <div className="flex flex-col gap-2">
+                                              <div className="flex items-center gap-2 text-[12px] font-medium text-sky-700 dark:text-sky-300 bg-sky-500/10 dark:bg-sky-500/20 border border-sky-500/20 dark:border-sky-500/10 rounded-[14px] w-fit px-3 py-1.5 backdrop-blur-sm">
+                                                <HugeIcon name="Search01" className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" size={14} />
+                                                <span>
+                                                  Used Google Search: "{msg.groundingMetadata.webSearchQueries.join(', ')}"
+                                                </span>
+                                              </div>
+                                              {msg.groundingMetadata.groundingChunks && msg.groundingMetadata.groundingChunks.length > 0 && (
+                                                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 pl-3">
+                                                  <span className="font-semibold text-sky-600/90 dark:text-sky-400/90">Sources:</span>
+                                                  {msg.groundingMetadata.groundingChunks.map((chunk: any, i: number) => {
+                                                    if (!chunk.web) return null;
+                                                    return (
+                                                      <a
+                                                        key={i}
+                                                        href={chunk.web.uri}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 bg-[#f5f9fc] dark:bg-zinc-800/80 border border-sky-100/50 dark:border-zinc-700/50 rounded-full px-2.5 py-0.5 hover:bg-sky-50 dark:hover:bg-zinc-700 text-sky-700 dark:text-sky-300 font-medium transition-colors"
+                                                      >
+                                                        <span>{chunk.web.title || new URL(chunk.web.uri).hostname}</span>
+                                                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                                        </svg>
+                                                      </a>
+                                                    );
+                                                  })}
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                          {msg.thought && (
+                                            <div className="flex flex-col gap-3 mt-1">
+                                              {msg.thought.split('\n\n').filter(p => p.trim() !== '').map((para, pIdx) => (
+                                                <div
+                                                  key={pIdx}
+                                                  className="border-l border-zinc-200 dark:border-zinc-800 pl-3 text-zinc-600 dark:text-zinc-400 font-light"
+                                                >
+                                                  {para}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         )}
                         <div
+                          onClick={() => {
+                            if (msg.role === 'user' && msg.content.length > 120) {
+                              setExpandedUserMessages(prev => ({ ...prev, [msg.id]: !prev[msg.id] }));
+                            }
+                          }}
                           className={cn(
                             'transition-all duration-300',
                             msg.role === 'user'
-                              ? 'max-w-[85%] rounded-[24px] px-4 py-2.5 text-sm bg-[#264f84] dark:bg-blue-600 text-white shadow-md shadow-[#264f84]/10 font-medium leading-relaxed'
-                              : 'max-w-[90%] bg-transparent text-sky-900 dark:text-sky-100 text-[14.5px] leading-[1.6] px-1',
+                              ? 'max-w-[85%] rounded-[24px] px-4 py-2.5 text-sm text-white shadow-lg shadow-[#8A9AFF]/15 font-medium leading-relaxed'
+                              : cn('bg-transparent text-sky-900 dark:text-sky-100 text-[14.5px] leading-[1.6] px-1', (msg.bulkAddDisplay || msg.checklist) ? 'w-full max-w-full' : 'max-w-[90%]'),
+                            msg.role === 'user' && msg.content.length > 120 && 'cursor-pointer hover:brightness-105 active:scale-[0.99] transition-transform select-none',
                             msg.isError &&
                             'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-[24px] px-4 py-2.5'
                           )}
+                          style={msg.role === 'user' && !msg.isError ? {
+                            background: 'linear-gradient(135deg, #CFCAF8 0%, #8A9AFF 33%, #c2aefeff 66%, #4C85FF 100%)'
+                          } : {}}
                         >
                           <div className="flex-1 min-w-0">
                             {msg.images && msg.images.length > 0 && (
@@ -2572,10 +2446,16 @@ Examples of correct button prompts:
                               </div>
                             )}
 
+
+
+
+
                             {/* Always render the content, even if it's just "Thinking..." */}
                             {msg.isLoading ? (
                               msg.content === "Thinking..." ? (
-                                <span className="animate-pulse opacity-70">Thinking...</span>
+                                <span className={cn("opacity-70", !msg.thought && "animate-pulse")}>
+                                  {msg.thought ? "Generating response..." : "Thinking..."}
+                                </span>
                               ) : (
                                 <div className="whitespace-pre-wrap">
                                   {msg.chunks ? (
@@ -2599,8 +2479,13 @@ Examples of correct button prompts:
                                 </div>
                               )
                             ) : (
-                              <Markdown>{msg.content}</Markdown>
+                              <Markdown>
+                                {msg.role === 'user' && msg.content.length > 120 && !expandedUserMessages[msg.id]
+                                  ? msg.content.slice(0, 120) + '...'
+                                  : msg.content}
+                              </Markdown>
                             )}
+
 
                             {/* Inline Checklist */}
                             {msg.role === 'assistant' && msg.checklist && (
@@ -2614,7 +2499,7 @@ Examples of correct button prompts:
 
                             {/* Bulk Add Display */}
                             {msg.role === 'assistant' && msg.bulkAddDisplay && (
-                              <div className="mt-4 max-w-[95%]">
+                              <div className="mt-4 w-full max-w-full">
                                 <BulkAddHomeworkDisplay
                                   homeworks={msg.bulkAddDisplay.homeworks}
                                   classes={msg.bulkAddDisplay.classes}
@@ -2633,17 +2518,20 @@ Examples of correct button prompts:
                                       e.preventDefault();
                                       handleInteractiveButtonClick(button);
                                     }}
-                                    variant={
-                                      button.style === 'primary' ? 'default' :
-                                        button.style === 'outline' ? 'outline' : 'secondary'
-                                    }
                                     size="sm"
-                                    className="text-xs h-7 px-3"
+                                    className={cn(
+                                      "text-xs h-8 px-3.5 rounded-full transition-all duration-200 font-medium shadow-xs select-none flex items-center justify-center gap-1.5 border",
+                                      button.style === 'primary'
+                                        ? "bg-sky-500 hover:bg-sky-600 text-white border-transparent shadow-sm shadow-sky-500/10 active:scale-95"
+                                        : button.style === 'outline'
+                                          ? "bg-transparent hover:bg-sky-50/50 dark:hover:bg-sky-500/5 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800/80 active:scale-95"
+                                          : "bg-sky-50 dark:bg-sky-950/20 hover:bg-sky-100/80 dark:hover:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-transparent active:scale-95"
+                                    )}
                                   >
                                     {button.text}
                                     {button.shortcut && (
-                                      <span className="ml-1 text-xs opacity-70">
-                                        ({button.shortcut})
+                                      <span className="ml-1 text-[10px] font-bold opacity-60 px-1 py-0.5 rounded-md bg-black/5 dark:bg-white/10">
+                                        {button.shortcut}
                                       </span>
                                     )}
                                   </Button>
@@ -2664,7 +2552,7 @@ Examples of correct button prompts:
             <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-linear-to-t from-[#f8fbfd] via-[#f8fbfd]/40 to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a]/40 dark:to-transparent pt-12">
               {/* Context Chips */}
               <AnimatePresence>
-                {isInputFocused && !input.trim() && !showCommandMenu && (
+                {isInputFocused && !input.trim() && (
                   <motion.div
                     initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: -32, scale: 1 }}
@@ -2695,20 +2583,13 @@ Examples of correct button prompts:
               <form
                 onSubmit={handleSubmit}
                 className={cn(
-                  "pointer-events-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-md shadow-xl rounded-[28px] relative z-20 transition-all duration-500",
-                  activeCommand
-                    ? "border-2"
-                    : "border border-sky-100 dark:border-white/5",
-                  activeCommand === 'data' ? 'border-yellow-400 ring-2 ring-yellow-400/30' :
-                    activeCommand === 'resources' ? 'border-purple-400 ring-2 ring-purple-400/30' :
-                      activeCommand === 'flashcards' ? 'border-pink-400 ring-2 ring-pink-400/30' :
-                        activeCommand === 'quiz' ? 'border-orange-400 ring-2 ring-orange-400/30' :
-                          activeCommand === 'therapist' ? 'border-cyan-400 ring-2 ring-cyan-400/30' :
-                            activeCommand === 'grade' ? 'border-green-400 ring-2 ring-green-400/30' : ''
+                  "pointer-events-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-md shadow-xl relative z-20 transition-all duration-300",
+                  (input.length > 80 || input.split('\n').length > 1) ? "rounded-[20px]" : "rounded-[28px]",
+                  "border border-sky-100 dark:border-white/5"
                 )}
               >
 
-                {!activeCommand && !hasWiped && (
+                {!hasWiped && (
                   <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[28px] overflow-visible z-10">
                     <defs>
                       <linearGradient id="border-glow-wipe" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -2764,54 +2645,15 @@ Examples of correct button prompts:
                               }}
                               className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <XIcon className="h-3 w-3" />
+                              <HugeIcon name="Cancel01" className="h-3 w-3" size={12} />
                             </button>
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {/* Tooltip for detected command */}
+                    {/* Textarea container */}
                     <div className="relative">
-                      {activeCommand === 'data' && (
-                        <div className="absolute -top-8 left-0 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>All school data will be included</span>
-                        </div>
-                      )}
-
-                      {activeCommand === 'resources' && (
-                        <div className="absolute -top-8 left-0 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>Resources command detected</span>
-                        </div>
-                      )}
-                      {activeCommand === 'flashcards' && (
-                        <div className="absolute -top-8 left-0 bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>Flashcards command detected</span>
-                        </div>
-                      )}
-                      {activeCommand === 'quiz' && (
-                        <div className="absolute -top-8 left-0 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>Quiz command detected</span>
-                        </div>
-                      )}
-                      {activeCommand === 'therapist' && (
-                        <div className="absolute -top-8 left-0 bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>Therapist mode enabled</span>
-                        </div>
-                      )}
-                      {activeCommand === 'grade' && (
-                        <div className="absolute -top-8 left-0 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-md flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          <span>AI will evaluate and grade your assignment (essays, math, grammar, etc.)</span>
-                        </div>
-                      )}
-
-                      {/* Textarea container */}
                       <div className="relative">
                         <Textarea
                           ref={inputRef}
@@ -2819,77 +2661,28 @@ Examples of correct button prompts:
                           onChange={(e) => {
                             const value = e.target.value;
                             setInput(value);
-
-                            // Check if @ was just typed
-                            const cursorPosition = e.target.selectionStart || 0;
-                            const textBeforeCursor = value.slice(0, cursorPosition);
-                            const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-
-                            console.log('Input changed:', { value, cursorPosition, lastAtIndex, textBeforeCursor });
-
-                            // Show menu if @ is the last character or if we're right after @
-                            // Also check if there's text after @ to filter commands
-                            const charAfterAt = textBeforeCursor.charAt(lastAtIndex + 1);
-                            const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
-                            const shouldShowMenu = lastAtIndex !== -1 && (
-                              cursorPosition === lastAtIndex + 1 || // Right after @
-                              (cursorPosition >= lastAtIndex + 1 && !textAfterAt.includes(' ')) // Typing after @ but no space yet
-                            );
-
-                            if (shouldShowMenu) {
-                              const rect = e.target.getBoundingClientRect();
-
-                              // Extract filter text after @
-                              const filterText = textAfterAt.trim();
-                              setCommandFilter(filterText);
-
-                              // Simplified positioning - place it above the input
-                              const menuPosition = {
-                                top: rect.top - 10, // Position above the input
-                                left: rect.left,
-                              };
-
-                              setCommandMenuPosition(menuPosition);
-                              setShowCommandMenu(true);
-                            } else if (!value.includes('@') || lastAtIndex === -1 || (lastAtIndex !== -1 && textBeforeCursor.slice(lastAtIndex + 1).includes(' '))) {
-                              setShowCommandMenu(false);
-                              setCommandFilter('');
-                            }
                           }}
                           placeholder={
-                            (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            (selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                               (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
                               (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
-                              ? `Daily limit reached for ${selectedModel === 'gemma-3n-e4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} mode - try again tomorrow`
+                              ? `Daily limit reached for ${selectedModel === 'gemma-4-26b-a4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} mode - try again tomorrow`
                               : "Ask away..."
                           }
                           disabled={
-                            (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            (selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
                             (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                           }
                           className={cn(
-                            `min-h-[44px] w-full resize-none border-0 bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0`,
-                            ((selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            `min-h-[44px] max-h-[160px] w-full resize-none border-0 bg-transparent dark:bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0 overflow-y-auto`,
+                            ((selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                               (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
                               (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
                             'opacity-50 cursor-not-allowed',
-                            activeCommand === 'data'
-                              ? 'text-yellow-700 dark:text-yellow-200'
-
-                              : activeCommand === 'resources'
-                                ? 'text-purple-700 dark:text-purple-200'
-                                : activeCommand === 'flashcards'
-                                  ? 'text-pink-700 dark:text-pink-200'
-                                  : activeCommand === 'quiz'
-                                    ? 'text-orange-700 dark:text-orange-200'
-                                    : activeCommand === 'therapist'
-                                      ? 'text-cyan-700 dark:text-cyan-200'
-                                      : activeCommand === 'grade'
-                                        ? 'text-green-700 dark:text-green-200'
-                                        : 'text-foreground'
+                            'text-foreground'
                           )}
-                          rows={1}
+                          rows={(input.length > 80 || input.split('\n').length > 1) ? Math.min(6, Math.max(3, input.split('\n').length)) : 1}
                           onKeyDown={handleKeyDown}
                           onFocus={() => {
                             setIsInputFocused(true);
@@ -2902,87 +2695,6 @@ Examples of correct button prompts:
                         />
                       </div>
 
-                      {/* Command Menu */}
-                      {showCommandMenu && (
-                        <div
-                          className="absolute bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl rounded-[24px] shadow-2xl border border-gray-200/50 dark:border-zinc-800/50 p-2 z-50 command-menu-container animate-in fade-in zoom-in-95 duration-200"
-                          style={{
-                            bottom: '100%',
-                            left: '0',
-                            marginBottom: '12px',
-                            minWidth: '280px',
-                          }}
-                        >
-                          <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 border-b border-gray-100 dark:border-zinc-800/50">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500">
-                              Assistant Commands
-                            </div>
-                            {commandFilter && (
-                              <div className="text-[10px] font-medium text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-full">
-                                "{commandFilter}"
-                              </div>
-                            )}
-                          </div>
-                          <div className="space-y-0.5">
-                            {commands
-                              .filter(cmd => commandFilter === '' || cmd.id.toLowerCase().includes(commandFilter.toLowerCase()))
-                              .map((cmd) => {
-                                const Icon = cmd.icon;
-
-                                // Minimalistic color mapping - only text colors
-                                const textColors = {
-                                  yellow: 'text-amber-500',
-                                  blue: 'text-blue-500',
-                                  purple: 'text-purple-500',
-                                  pink: 'text-pink-500',
-                                  orange: 'text-orange-500',
-                                  cyan: 'text-cyan-500',
-                                  green: 'text-emerald-500',
-                                };
-
-                                return (
-                                  <div
-                                    key={cmd.id}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setInput(`@${cmd.id} `);
-                                      setShowCommandMenu(false);
-                                      setCommandFilter('');
-                                      inputRef.current?.focus();
-                                    }}
-                                    className="group w-full flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-zinc-800"
-                                  >
-                                    <div className={cn(
-                                      'flex items-center justify-center transition-transform group-hover:scale-110 duration-200',
-                                      textColors[cmd.color as keyof typeof textColors]
-                                    )}>
-                                      <Icon className="h-4 w-4" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-[13px] font-semibold text-gray-900 dark:text-zinc-100 group-hover:text-blue-500 transition-colors">
-                                          @{cmd.id}
-                                        </span>
-                                      </div>
-                                      <div className="text-[11px] text-gray-500 dark:text-zinc-500 truncate leading-tight">
-                                        {cmd.description}
-                                      </div>
-                                    </div>
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                          {commands.filter(cmd => commandFilter === '' || cmd.id.toLowerCase().includes(commandFilter.toLowerCase())).length === 0 && (
-                            <div className="text-center text-sky-400 dark:text-sky-600 py-4 text-xs italic">
-                              No commands match your search...
-                            </div>
-                          )}
-                        </div>
-                      )}
-
                       {/* Action buttons */}
                       <div className="absolute right-2 inset-y-0 flex items-center gap-0">
                         <input
@@ -2993,9 +2705,10 @@ Examples of correct button prompts:
                           multiple
                           className="hidden"
                         />
+                        {/* 
                         <Select
                           value={selectedModel}
-                          onValueChange={(value) => setSelectedModel(value as 'gemma-3n-e4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud')}
+                          onValueChange={(value) => setSelectedModel(value as 'gemma-4-26b-a4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud')}
                         >
                           <motion.div
                             whileHover={{ scale: 1.05 }}
@@ -3005,12 +2718,12 @@ Examples of correct button prompts:
                               size="sm"
                               className="h-8 w-8 !bg-transparent dark:!bg-transparent flex-shrink-0 aspect-square border border-transparent hover:border-sky-200 dark:hover:border-gray-700 p-0 flex items-center justify-center hover:bg-sky-50 dark:hover:bg-gray-800 rounded-3xl transition-colors focus:ring-0 shadow-none [&_svg:last-child]:hidden group/model relative"
                             >
-                              {selectedModel === 'gemma-3n-e4b-it' ? (
-                                <Zap className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" />
+                              {selectedModel === 'gemma-4-26b-a4b-it' ? (
+                                <HugeIcon name="Zap" className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" size={16} />
                               ) : selectedModel === 'gemini-2.5-flash-lite' ? (
-                                <Brain className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" />
+                                <HugeIcon name="Brain" className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" size={16} />
                               ) : (
-                                <Cloud className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" />
+                                <HugeIcon name="Cloud" className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" size={16} />
                               )}
                               <div className="sr-only">
                                 <SelectValue />
@@ -3018,28 +2731,29 @@ Examples of correct button prompts:
                             </SelectTrigger>
                           </motion.div>
                           <SelectContent>
-                            <SelectItem value="gemma-3n-e4b-it">
-                              <div className="flex items-center gap-2">
-                                <Zap className="h-3.5 w-3.5" />
-                                <span>Quick</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="gemini-2.5-flash-lite">
-                              <div className="flex items-center gap-2">
-                                <Brain className="h-3.5 w-3.5" />
-                                <span>Deep</span>
-                                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border border-emerald-300/40 dark:border-emerald-500/20"><span className="bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">PRO</span></span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="gpt-oss:20b-cloud">
-                              <div className="flex items-center gap-2">
-                                <Cloud className="h-3.5 w-3.5" />
-                                <span>Max</span>
-                                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-300/40 dark:border-amber-500/20"><span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">Family</span></span>
-                              </div>
-                            </SelectItem>
+                             <SelectItem value="gemma-4-26b-a4b-it">
+                               <div className="flex items-center gap-2">
+                                 <HugeIcon name="Zap" className="h-3.5 w-3.5" size={14} />
+                                 <span>Quick</span>
+                               </div>
+                             </SelectItem>
+                             <SelectItem value="gemini-2.5-flash-lite">
+                               <div className="flex items-center gap-2">
+                                 <HugeIcon name="Brain" className="h-3.5 w-3.5" size={14} />
+                                 <span>Deep</span>
+                                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border border-emerald-300/40 dark:border-emerald-500/20"><span className="bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">PRO</span></span>
+                               </div>
+                             </SelectItem>
+                             <SelectItem value="gpt-oss:20b-cloud">
+                               <div className="flex items-center gap-2">
+                                 <HugeIcon name="Cloud" className="h-3.5 w-3.5" size={14} />
+                                 <span>Max</span>
+                                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-300/40 dark:border-amber-500/20"><span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">Family</span></span>
+                               </div>
+                             </SelectItem>
                           </SelectContent>
                         </Select>
+                        */}
                         {/* 
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -3057,67 +2771,23 @@ Examples of correct button prompts:
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           type="submit"
-                          style={{
-                            backgroundImage: !activeCommand && !hasWiped
-                              ? 'linear-gradient(to right, rgb(37, 99, 235), rgb(99, 102, 241), rgb(6, 182, 212))'
-                              : undefined,
-                            backgroundSize: !activeCommand && !hasWiped ? '200% 200%' : undefined,
-                          }}
                           onClick={(e) => {
-                            if (isAILoading) { // Changed from isLoading to isAILoading
+                            if (isAILoading) {
                               handleStopResponse(e);
                             }
                           }}
-                          animate={
-                            !activeCommand && !hasWiped
-                              ? {
-                                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                                opacity: [1, 1, 1, 0],
-                              }
-                              : { opacity: 1 }
-                          }
-                          transition={
-                            !activeCommand && !hasWiped
-                              ? {
-                                backgroundPosition: {
-                                  duration: 3,
-                                  ease: 'linear',
-                                  repeat: 0,
-                                },
-                                opacity: {
-                                  duration: 3.5,
-                                  times: [0, 0.85, 0.95, 1],
-                                  ease: 'easeInOut',
-                                }
-                              }
-                              : { duration: 0.3 }
-                          }
                           disabled={
                             (!isAILoading && (!input.trim() && selectedImages.length === 0)) ||
-                            (selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            (selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                             (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
                             (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
                           }
                           className={cn(
-                            `p-2 rounded-3xl transition-all duration-300 shadow-sm relative`,
-                            !activeCommand && !hasWiped && 'text-white shadow-blue-500/20',
-                            activeCommand === 'data'
-                              ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-500/20'
-
-                              : activeCommand === 'resources'
-                                ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-purple-500/20'
-                                : activeCommand === 'flashcards'
-                                  ? 'bg-pink-500 hover:bg-pink-600 text-white shadow-pink-500/20'
-                                  : activeCommand === 'quiz'
-                                    ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
-                                    : activeCommand === 'therapist'
-                                      ? 'bg-cyan-500 hover:bg-cyan-600 text-white shadow-cyan-500/20'
-                                      : activeCommand === 'grade'
-                                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-500/20'
-                                        : (!input.trim() && selectedImages.length === 0)
-                                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none'
-                                          : 'bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-700 shadow-sm shadow-[#ebf6b5]/20',
-                            ((selectedModel === 'gemma-3n-e4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
+                            `p-2 rounded-3xl transition-all duration-300 shadow-sm relative text-white`,
+                            (!input.trim() && selectedImages.length === 0)
+                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none'
+                              : 'bg-sky-500 hover:bg-sky-600 shadow-sky-500/20',
+                            ((selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
                               (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
                               (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
                             'opacity-30 grayscale pointer-events-none'
@@ -3125,13 +2795,13 @@ Examples of correct button prompts:
                         >
                           {isAILoading ? (
                             <div className="h-4 w-4 relative flex items-center justify-center">
-                              <div className={cn("h-3 w-3 bg-red-500 transition-colors", !activeCommand && !hasWiped ? "bg-white" : "")} />
+                              <div className="h-3 w-3 bg-white transition-colors" />
                             </div>
                           ) : (
-                            <ArrowUp className={cn(
-                              "h-4 w-4 stroke-[2.5]",
-                              !activeCommand && !hasWiped ? "text-white" : ""
-                            )} />
+                            <HugeIcon name="ArrowUp02" className={cn(
+                              "h-4 w-4",
+                              (input.trim() || selectedImages.length > 0) ? "text-white" : "text-zinc-400 dark:text-zinc-500"
+                            )} size={16} />
                           )}
                         </motion.button>
                       </div>

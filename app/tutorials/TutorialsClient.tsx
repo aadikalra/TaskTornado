@@ -123,7 +123,7 @@ export default function TutorialsPage() {
         body: JSON.stringify({
           prompt: `Based on the user's search query "${query}", identify the top 3 most relevant tutorial IDs from this list: ${JSON.stringify(tutorialsContext)}. Return ONLY a JSON array of strings (the IDs). If none are relevant, return an empty array []. No explanation.`,
           action: 'generate',
-          model: 'gemma-3n-e4b-it'
+          model: 'gemma-4-26b-a4b-it'
         })
       });
       const reader = response.body?.getReader();

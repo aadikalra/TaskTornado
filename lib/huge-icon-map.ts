@@ -281,6 +281,7 @@ import {
   TennisBallIcon,
   VolleyballIcon,
   YogaBallIcon,
+  CloudIcon,
 } from '@hugeicons/core-free-icons';
 import React from 'react';
 
@@ -441,6 +442,7 @@ export const hugeIconMap = {
   'Chat': ChatIcon,
   'HelpCircle': HelpCircleIcon,
   'GoogleDoc': GoogleDocIcon,
+  'FileText': GoogleDocIcon,
   'Video01': Video01Icon,
   'Timer01': Timer01Icon,
   'Clock01': Clock01Icon,
@@ -603,6 +605,8 @@ export const hugeIconMap = {
   'Link01': Link01Icon,
   'Link02': Link02Icon,
   'Link': Link01Icon,
+  'Cloud': CloudIcon,
+  'MessageSquare': Message01Icon,
 } as const;
 
 export type HugeIconName = keyof typeof hugeIconMap;

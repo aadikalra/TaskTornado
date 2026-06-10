@@ -28,7 +28,7 @@ const AuraVideoIcon = ({ isLoading, isDark }: { isLoading?: boolean; isDark: boo
         <div className="relative h-8 w-8 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
             <video
                 ref={videoRef}
-                src={isDark ? "/AI SphereDark.mp4" : "/AI Sphere.mp4"}
+                src={isDark ? "/AI SphereDark2.mp4" : "/AI Sphere.mp4"}
                 muted
                 playsInline
                 loop

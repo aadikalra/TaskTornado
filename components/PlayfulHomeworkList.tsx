@@ -161,11 +161,24 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
       if (item?.completed && item.classColor) {
         // Generate color variations for more interesting confetti
         const generateColorVariations = (baseColor: string) => {
-          // Convert hex to RGB
-          const hex = baseColor.replace('#', '');
-          const r = parseInt(hex.substr(0, 2), 16);
-          const g = parseInt(hex.substr(2, 2), 16);
-          const b = parseInt(hex.substr(4, 2), 16);
+          const fallbackColors = [baseColor || '#818cf8', '#a5b4fc', '#6366f1', '#4f46e5'];
+          if (!baseColor || typeof baseColor !== 'string') return fallbackColors;
+
+          // Convert hex to RGB safely
+          let hex = baseColor.replace('#', '').trim();
+          if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+          } else if (hex.length < 6) {
+            hex = hex.padEnd(6, '0');
+          }
+
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const b = parseInt(hex.substring(4, 6), 16);
+
+          if (isNaN(r) || isNaN(g) || isNaN(b)) {
+            return fallbackColors;
+          }
 
           // Generate variations
           const variations = [baseColor]; // Original color

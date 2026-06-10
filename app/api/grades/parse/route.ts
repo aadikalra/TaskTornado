@@ -1,18 +1,24 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
 
-const GOOGLE_AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
-const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+    const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
+    if (!GOOGLE_AI_API_KEY) {
+        return new Response(
+            JSON.stringify({ error: 'API key not configured' }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
+
     try {
-        if (!GOOGLE_AI_API_KEY) {
-            return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
-        }
-
         const { rawText } = await req.json();
-
         if (!rawText?.trim()) {
-            return NextResponse.json({ error: 'No grade data provided' }, { status: 400 });
+            return new Response(
+                JSON.stringify({ error: 'No grade data provided' }),
+                { status: 400, headers: { 'Content-Type': 'application/json' } }
+            );
         }
 
         const systemPrompt = `You are a grade data parser. The user will paste raw text copied from PowerSchool or a similar gradebook. Your job is to extract each assignment and return structured JSON.
@@ -36,52 +42,63 @@ Return format:
   ]
 }`;
 
-        const requestBody = {
+        const ai = new GoogleGenAI({ apiKey: GOOGLE_AI_API_KEY });
+
+        const stream = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash-lite',
             contents: [
                 { role: 'user', parts: [{ text: systemPrompt }] },
                 { role: 'model', parts: [{ text: 'Understood. I will parse grade data and return only valid JSON.' }] },
                 { role: 'user', parts: [{ text: `Parse this grade data:\n\n${rawText}` }] }
             ],
-            generationConfig: {
+            config: {
                 temperature: 0.1,
                 maxOutputTokens: 4096,
-            },
-        };
-
-        const response = await fetch(
-            `${GOOGLE_AI_API_URL}/models/gemma-3n-e4b-it:generateContent?key=${GOOGLE_AI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody),
             }
-        );
+        });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('AI API error:', errorText);
-            return NextResponse.json({ error: 'AI service error' }, { status: 502 });
-        }
+        // Set up streaming response
+        const encoder = new TextEncoder();
+        const customReadable = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of stream) {
+                        if (chunk.text) {
+                            try {
+                                controller.enqueue(encoder.encode(chunk.text));
+                            } catch (e) {
+                                // Stream might be closed by client abort
+                                break;
+                            }
+                        }
+                    }
+                    try {
+                        controller.close();
+                    } catch (e) {
+                        // Controller already closed or cancelled
+                    }
+                } catch (error) {
+                    console.error('Error in grades parsing stream:', error);
+                    try {
+                        controller.error(error);
+                    } catch (e) {}
+                }
+            }
+        });
 
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return new Response(customReadable, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+            },
+        });
 
-        // Extract JSON from the response (handle markdown code blocks)
-        let jsonStr = text;
-        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (jsonMatch) {
-            jsonStr = jsonMatch[1].trim();
-        }
-
-        // Try to parse
-        const parsed = JSON.parse(jsonStr);
-
-        return NextResponse.json(parsed);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Grade parser error:', error);
-        return NextResponse.json(
-            { error: 'Failed to parse grades', details: error instanceof Error ? error.message : 'Unknown error' },
-            { status: 500 }
+        return new Response(
+            JSON.stringify({ error: 'Failed to initiate parsing', details: error.message }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }
 }

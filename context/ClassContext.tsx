@@ -170,7 +170,8 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       '/snake',
       '/games',
       '/flashcards',
-      '/study-assistant'
+      '/study-assistant',
+      '/grade-calculator'
     ];
 
     return routesThatNeedClassData.some(route => pathname.startsWith(route));

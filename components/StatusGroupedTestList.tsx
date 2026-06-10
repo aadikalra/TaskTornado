@@ -153,7 +153,7 @@ const StatusGroupedTestList = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.3, delay: index * 0.04, ease: [0.23, 1, 0.32, 1] }}
         onClick={() => handleTestClick(test)}
-        className={`group relative flex flex-col justify-between p-4 w-[160px] h-[160px] rounded-[24px] cursor-pointer transition-all duration-300 overflow-hidden shrink-0 border ${
+        className={`group relative flex flex-col justify-between p-3.5 pb-3 w-[160px] h-[160px] rounded-[24px] cursor-pointer transition-all duration-300 overflow-hidden shrink-0 border ${
           isPast 
             ? 'bg-[#f8fafc]/50 dark:bg-gray-900/40 border-slate-100 dark:border-slate-800 grayscale-[0.6] opacity-60 hover:grayscale-0 hover:opacity-100 hover:bg-white dark:hover:bg-gray-900' 
             : 'bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 hover:shadow-2xl hover:shadow-sky-500/10 hover:border-[#d4e88e]'
@@ -189,7 +189,7 @@ const StatusGroupedTestList = ({
         </div>
 
         {/* Middle Section: Title & Class */}
-        <div className="mt-4 mb-3">
+        <div className="my-1.5 flex-1 flex flex-col justify-center min-h-0">
           <h3 className="text-[13px] font-bold text-sky-900 dark:text-sky-100 leading-tight line-clamp-2 group-hover:text-sky-700 dark:group-hover:text-white transition-colors">
             {test.title}
           </h3>

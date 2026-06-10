@@ -43,7 +43,7 @@ Deny if they seem to be procrastinating, avoiding work, or being dishonest. Keep
       },
       body: JSON.stringify({
         prompt,
-        model: 'gemma-3n-e4b-it',
+        model: 'gemma-4-26b-a4b-it',
         action: 'generate',
       }),
     });

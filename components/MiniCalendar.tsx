@@ -136,7 +136,7 @@ export const MiniCalendar = () => {
             </div>
 
             <TooltipProvider>
-                <div className="grid grid-cols-7 gap-y-0.5 text-center" style={{ gridTemplateRows: `auto repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }}>
+                <div className="grid grid-cols-7 gap-y-0.5 text-center flex-1" style={{ gridTemplateRows: `auto repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }}>
                     {/* Day headers */}
                     <div className="col-span-7 grid grid-cols-7 mb-1">
                         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
@@ -162,7 +162,7 @@ export const MiniCalendar = () => {
                                 <TooltipTrigger asChild>
                                     <div
                                         className={cn(
-                                            "relative flex flex-col items-center justify-center aspect-square md:aspect-auto md:h-9 text-[13px] transition-all rounded-xl cursor-default font-bold",
+                                            "relative flex flex-col items-center justify-center aspect-square md:aspect-auto md:h-full text-[13px] transition-all rounded-xl cursor-default font-bold",
                                             calDay.isCurrentMonth
                                                 ? "text-blue-900 dark:text-blue-100"
                                                 : "text-blue-900/20 dark:text-blue-400/20 font-medium",

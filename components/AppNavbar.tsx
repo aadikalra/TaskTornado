@@ -53,7 +53,18 @@ export default function AppNavbar() {
     const pathname = usePathname();
     const { user, signOut, full_name } = useAuth() || {};
     const { openSearch } = useSearch();
-    const { isAIAssistantOpen, setAIAssistantOpen } = useAI();
+    const { isAIAssistantOpen, setAIAssistantOpen, isAISidebarMode } = useAI();
+
+    // Track if we're on desktop (md+) for sidebar margin
+    const [isDesktop, setIsDesktop] = useState(false);
+    useEffect(() => {
+        const check = () => setIsDesktop(window.innerWidth >= 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+
+    const showSidebarMargin = isDesktop && isAIAssistantOpen && isAISidebarMode;
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [toolsOpen, setToolsOpen] = useState(false);
@@ -162,8 +173,20 @@ export default function AppNavbar() {
     return (
         <>
             {/* Gradient fade behind navbar */}
-            <div className="fixed top-0 left-0 right-0 h-24 z-40 pointer-events-none bg-gradient-to-b from-[#fffaf4] via-[#fffaf4]/80 to-transparent dark:from-gray-950 dark:via-gray-950/80" />
-            <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 pointer-events-none">
+            <div 
+                className="fixed top-0 left-0 right-0 h-24 z-40 pointer-events-none bg-gradient-to-b from-[#fffaf4] via-[#fffaf4]/80 to-transparent dark:from-gray-950 dark:via-gray-950/80" 
+                style={{
+                    marginRight: showSidebarMargin ? 420 : 0,
+                    transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+            />
+            <nav 
+                className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 pointer-events-none"
+                style={{
+                    marginRight: showSidebarMargin ? 420 : 0,
+                    transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+            >
                 <div className="pointer-events-auto flex items-center justify-between w-full max-w-7xl mx-auto">
                     {/* Logo */}
                     <button onClick={() => handleNavClick('/dashboard')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">

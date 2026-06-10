@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Inter, Nunito_Sans } from 'next/font/google';
+import { Geist, Geist_Mono, Inter, Nunito_Sans, Edu_NSW_ACT_Cursive } from 'next/font/google';
 
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
@@ -40,6 +40,13 @@ const nunitoSans = Nunito_Sans({
   weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
+const eduNswActCursive = Edu_NSW_ACT_Cursive({
+  variable: '--font-edu-nsw-act-cursive',
+  subsets: ['latin'],
+  display: 'swap',
+  adjustFontFallback: false,
+});
+
 export const metadata = {
   title: 'TaskTornado',
   description: 'A comprehensive task management tool for students to organize homework, classes, schedules, and group chats.',
@@ -73,7 +80,7 @@ export default function RootLayout({
       <head>
 
       </head>
-      <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${nunitoSans.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${nunitoSans.variable} ${eduNswActCursive.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
         <AuthProvider>
           <DarkModeProvider>
             <ClassProvider>

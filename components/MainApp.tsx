@@ -2476,17 +2476,17 @@ Return ONLY valid JSON, no explanation, no markdown.`,
         </motion.div>
 
         {/* Calendar + Coming Up + Email */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8 h-auto lg:h-[300px]">
-          <div className="hidden md:block h-[300px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8 h-auto lg:h-[320px]">
+          <div className="hidden md:block h-[320px]">
             <MiniCalendar />
           </div>
           <div className="block md:hidden">
             <MobileWeekCalendar />
           </div>
-          <div className="h-[300px]">
+          <div className="h-[320px]">
             <ComingUp />
           </div>
-          <div className="hidden lg:block h-[300px]">
+          <div className="hidden lg:block h-[320px]">
             <EmailWidget />
           </div>
         </div>

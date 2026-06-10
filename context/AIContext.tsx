@@ -127,7 +127,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const generateText = useCallback(async (prompt: string, model: string = 'gemma-3n-e4b-it') => {
+  const generateText = useCallback(async (prompt: string, model: string = 'gemma-4-26b-a4b-it') => {
     try {
       const data = await makeRequest('generate', { prompt, model });
       return data.response || '';
@@ -136,7 +136,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [makeRequest]);
 
-  const chat = useCallback(async (messages: AIMessage[], model = 'gemma-3n-e4b-it'): Promise<AIResponse> => {
+  const chat = useCallback(async (messages: AIMessage[], model = 'gemma-4-26b-a4b-it'): Promise<AIResponse> => {
     const defaultResponse: AIResponse = {
       response: 'I encountered an error. Please try again.',
       done: true,
@@ -257,7 +257,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const streamChat = useCallback(async (messages: AIMessage[], model = 'gemma-3n-e4b-it', onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  const streamChat = useCallback(async (messages: AIMessage[], model = 'gemma-4-26b-a4b-it', onChunk?: (chunk: string) => void): Promise<AIResponse> => {
     const defaultResponse: AIResponse = {
       response: 'I encountered an error. Please try again.',
       done: true,

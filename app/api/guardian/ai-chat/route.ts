@@ -159,7 +159,7 @@ Guidelines:
 
         // Stream from Gemini
         const response = await fetch(
-            `${GOOGLE_AI_API_URL}/models/gemma-3n-e4b-it:streamGenerateContent?key=${GOOGLE_AI_API_KEY}&alt=sse`,
+            `${GOOGLE_AI_API_URL}/models/gemma-4-26b-a4b-it:streamGenerateContent?key=${GOOGLE_AI_API_KEY}&alt=sse`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

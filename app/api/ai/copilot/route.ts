@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: NextRequest) {
   const {
     apiKey: key,
-    model = 'gemma-3n-e4b-it',
+    model = 'gemma-4-26b-a4b-it',
     prompt,
     system,
   } = await req.json();

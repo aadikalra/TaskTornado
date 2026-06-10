@@ -20,6 +20,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emoji-mart/data": "^1.2.1",
     "@faker-js/faker": "^10.1.0",
+    "@google/genai": "^2.6.0",
     "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
     "@hugeicons/core-free-icons": "^4.1.1",
