@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, RefreshCw, Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { HugeIcon } from '@/lib/huge-icon-map';
@@ -43,10 +43,6 @@ export const EmailWidget = () => {
   const [fetchingDetail, setFetchingDetail] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
-  
-  // Inline Summary State
-  const [inboxSummary, setInboxSummary] = React.useState<string | null>(null);
-  const [isSummarizingInbox, setIsSummarizingInbox] = React.useState(false);
 
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
@@ -78,73 +74,6 @@ export const EmailWidget = () => {
       setError(true);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const summarizeInbox = async () => {
-    if (isSummarizingInbox) return;
-    
-    setIsSummarizingInbox(true);
-    setInboxSummary('');
-    
-    // Skip the first one as requested, take the next 15
-    const emailsToSummarize = messages.slice(1, 16);
-    
-    if (emailsToSummarize.length === 0) {
-      setInboxSummary("No emails found to summarize.");
-      setIsSummarizingInbox(false);
-      return;
-    }
-
-    const emailListStr = emailsToSummarize.map((m, i) => 
-      `${i + 1}. From: ${m.from} | Subject: ${m.subject} | Snippet: ${m.snippet?.slice(0, 100)}`
-    ).join('\n');
-
-    const prompt = `Summarize these latest emails in 1-2 very short sentences max. Respond ONLY with the summary. Focus on the most important task or update.
-
-Emails:
-${emailListStr}`;
-
-    try {
-      const response = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          action: 'generate'
-        })
-      });
-
-      if (!response.body) throw new Error('No response body');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.response) {
-                fullText += data.response;
-                setInboxSummary(fullText);
-              }
-            } catch (e) {}
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Inbox Summarization failed:', err);
-      setInboxSummary('Failed to generate inbox summary.');
-    } finally {
-      setIsSummarizingInbox(false);
     }
   };
 
@@ -190,8 +119,8 @@ ${emailListStr}`;
   }, [isModalOpen, selectedEmail]);
 
   const unreadCount = messages.filter(m => m.isUnread).length;
-  // Display only 4 emails in the list, skipping the first one
-  const displayMessages = messages.slice(1, 5);
+  // Display the first 5 emails in the list
+  const displayMessages = messages.slice(0, 5);
 
   const ModalContainer = () => {
     if (!mounted) return null;
@@ -292,66 +221,8 @@ ${emailListStr}`;
   return (
     <>
       <div className="w-full h-full bg-[#f5f9fc] dark:bg-gray-900 rounded-2xl border border-sky-100 dark:border-gray-800 shadow-sm overflow-hidden group relative flex flex-col">
-        {/* Header */}
-        <div className="p-5 pb-3 flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest">Inbox</h2>
-          </div>
-          <div className="flex items-center gap-2">
-              <button 
-                  onClick={fetchEmails} 
-                  disabled={loading}
-                  className="p-1.5 hover:bg-blue-700/10 dark:hover:bg-blue-400/10 rounded-full transition-colors disabled:opacity-40"
-              >
-                  <RefreshCw className={`w-3.5 h-3.5 text-blue-700 dark:text-blue-400 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-          </div>
-        </div>
-
         {/* List */}
-        <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5 relative z-10 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-gray-700">
-          {/* Smart Summary Top Slot (Replaces First Row) */}
-          <div className="px-1 mb-1">
-             <div className="bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 rounded-xl overflow-hidden min-h-[64px] transition-all">
-                {inboxSummary ? (
-                   <div className="p-3">
-                      <div className="flex items-center justify-between mb-1">
-                         <div className="flex items-center gap-1.5">
-                            <HugeIcon name="Security01" size={14} className="text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Smart Briefing</span>
-                         </div>
-                         <button 
-                           onClick={() => setInboxSummary(null)}
-                           className="text-[10px] font-bold text-emerald-600/40 hover:text-emerald-600 transition-colors uppercase"
-                         >
-                           Reset
-                         </button>
-                      </div>
-                      <p className="text-[11px] text-emerald-900/70 dark:text-emerald-100/60 leading-tight italic line-clamp-3">
-                         {inboxSummary}
-                      </p>
-                   </div>
-                ) : (
-                   <button 
-                      onClick={summarizeInbox}
-                      disabled={isSummarizingInbox || loading}
-                      className="w-full h-16 flex flex-col items-center justify-center gap-1 hover:bg-emerald-100/50 dark:hover:bg-emerald-500/10 transition-colors group/summary"
-                   >
-                      {isSummarizingInbox ? (
-                         <>
-                            <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Summarizing 15 Emails...</span>
-                         </>
-                      ) : (
-                         <>
-                            <HugeIcon name="Security01" size={18} className="text-emerald-500 group-hover/summary:scale-110 transition-transform" />
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Generate Smart Summary</span>
-                         </>
-                      )}
-                   </button>
-                )}
-             </div>
-          </div>
+        <div className="flex-1 overflow-y-auto pt-4 px-2 pb-2 space-y-0.5 relative z-10 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-gray-700">
 
           {loading && displayMessages.length === 0 ? (
             <div className="flex items-center justify-center py-20">

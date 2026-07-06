@@ -17,7 +17,7 @@ import { useClassContext, type Homework, type Test, type Class } from '@/context
 import { useAuth } from '@/context/AuthContext';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { schoolYear2025_2026, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
+import { schoolYear2026_2027, getEventsForDate, type SchoolEvent } from '@/data/schoolEvents';
 import { getFullVersionString } from '@/config/version';
 import { getClassIcon } from '@/lib/icon-map';
 import { useWideLayout } from '@/hooks/use-wide-layout';
@@ -208,7 +208,7 @@ export default function CalendarClient() {
         result.push({
           day: prevDate.getDate(), date: prevDate,
           homeworks: homeworkByDate[dateStr] || [], tests: testsByDate[dateStr] || [],
-          events: getEventsForDate(prevDate, schoolYear2025_2026),
+          events: getEventsForDate(prevDate, schoolYear2026_2027),
           isCurrentMonth: false, isToday: isDateToday(prevDate),
         });
       }
@@ -220,7 +220,7 @@ export default function CalendarClient() {
       result.push({
         day: day.getDate(), date: day,
         homeworks: homeworkByDate[dateStr] || [], tests: testsByDate[dateStr] || [],
-        events: getEventsForDate(day, schoolYear2025_2026),
+        events: getEventsForDate(day, schoolYear2026_2027),
         isCurrentMonth: true, isToday: isDateToday(day),
       });
     });
@@ -236,7 +236,7 @@ export default function CalendarClient() {
       result.push({
         day: nextDate.getDate(), date: nextDate,
         homeworks: homeworkByDate[dateStr] || [], tests: testsByDate[dateStr] || [],
-        events: getEventsForDate(nextDate, schoolYear2025_2026),
+        events: getEventsForDate(nextDate, schoolYear2026_2027),
         isCurrentMonth: false, isToday: isDateToday(nextDate),
       });
     }

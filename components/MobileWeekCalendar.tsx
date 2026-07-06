@@ -12,7 +12,7 @@ import {
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
 import { cn } from '@/lib/utils';
-import { getEventsForDate, schoolYear2025_2026 } from '@/data/schoolEvents';
+import { getEventsForDate, schoolYear2026_2027 } from '@/data/schoolEvents';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const MobileWeekCalendar = () => {
@@ -103,7 +103,7 @@ export const MobileWeekCalendar = () => {
                         const dateStr = format(date, 'yyyy-MM-dd');
                         const dayHomeworks = homeworkByDate[dateStr] || [];
                         const dayTests = testsByDate[dateStr] || [];
-                        const dayEvents = getEventsForDate(date, schoolYear2025_2026);
+                        const dayEvents = getEventsForDate(date, schoolYear2026_2027);
                         const isToday = isDateToday(date);
                         const hasItems = dayHomeworks.length > 0 || dayTests.length > 0 || dayEvents.length > 0;
 

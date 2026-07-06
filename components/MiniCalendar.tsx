@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { schoolYear2025_2026, getEventsForDate } from '@/data/schoolEvents';
+import { schoolYear2026_2027, getEventsForDate } from '@/data/schoolEvents';
 
 export const MiniCalendar = () => {
     const [currentMonth, setCurrentMonth] = React.useState(new Date());
@@ -112,28 +112,6 @@ export const MiniCalendar = () => {
 
     return (
         <div className="w-full h-full bg-[#f5f9fc] dark:bg-gray-900 p-5 rounded-2xl border border-sky-100 dark:border-gray-800 shadow-sm flex flex-col relative overflow-hidden group transition-all">
-            {/* Header row — month title + nav */}
-            <div className="flex items-center justify-between mb-3">
-                <Link href="/calendar" className="flex items-center gap-2 group/link">
-                    <h2 className="text-sm font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest">
-                        {format(currentMonth, 'MMMM yyyy')}
-                    </h2>
-                </Link>
-                <div className="flex items-center gap-0.5">
-                    <button
-                        onClick={prevMonth}
-                        className="p-1.5 hover:bg-blue-700/10 dark:hover:bg-blue-400/10 rounded-full transition-colors"
-                    >
-                        <HugeIcon name="ArrowLeft01" size={14} className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                    </button>
-                    <button
-                        onClick={nextMonth}
-                        className="p-1.5 hover:bg-blue-700/10 dark:hover:bg-blue-400/10 rounded-full transition-colors"
-                    >
-                        <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                    </button>
-                </div>
-            </div>
 
             <TooltipProvider>
                 <div className="grid grid-cols-7 gap-y-0.5 text-center flex-1" style={{ gridTemplateRows: `auto repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }}>
@@ -152,7 +130,7 @@ export const MiniCalendar = () => {
                         const dateStr = format(calDay.date, 'yyyy-MM-dd');
                         const dayHomeworks = homeworkByDate[dateStr] || [];
                         const dayTests = testsByDate[dateStr] || [];
-                        const dayEvents = getEventsForDate(calDay.date, schoolYear2025_2026);
+                        const dayEvents = getEventsForDate(calDay.date, schoolYear2026_2027);
                         const isToday = isDateToday(calDay.date);
 
                         const hasItems = dayHomeworks.length > 0 || dayTests.length > 0 || dayEvents.length > 0;
@@ -279,6 +257,30 @@ export const MiniCalendar = () => {
                     })}
                 </div>
             </TooltipProvider>
+
+            {/* Footer Row */}
+            <div className="-mx-5 -mb-5 px-5 py-3 mt-auto border-t border-sky-100 dark:border-gray-800/80 flex items-center justify-between">
+                <Link href="/calendar" className="text-[10px] font-bold text-blue-500 hover:text-blue-600 flex items-center gap-1 transition-colors uppercase tracking-widest">
+                    Open Calendar
+                </Link>
+                <div className="flex items-center gap-1 bg-blue-500/[0.04] dark:bg-blue-400/5 px-2 py-0.5 rounded-full border border-sky-100/50 dark:border-gray-800/40">
+                    <button
+                        onClick={prevMonth}
+                        className="p-1 hover:bg-blue-700/10 dark:hover:bg-blue-400/10 rounded-full transition-colors"
+                    >
+                        <HugeIcon name="ArrowLeft01" size={12} className="w-3 h-3 text-blue-700 dark:text-blue-400" />
+                    </button>
+                    <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider px-1">
+                        {format(currentMonth, 'MMM yyyy')}
+                    </span>
+                    <button
+                        onClick={nextMonth}
+                        className="p-1 hover:bg-blue-700/10 dark:hover:bg-blue-400/10 rounded-full transition-colors"
+                    >
+                        <HugeIcon name="ArrowRight01" size={12} className="w-3 h-3 text-blue-700 dark:text-blue-400" />
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

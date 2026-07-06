@@ -1,4 +1,4 @@
-import { addDays, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 export interface SchoolEvent {
   id: string;
@@ -16,327 +16,322 @@ const date = (dateString: string): Date => {
   return parseISO(dateString);
 };
 
-export const schoolYear2025_2026: SchoolEvent[] = [
-  // August 2025
+export const schoolYear2026_2027: SchoolEvent[] = [
+  // August 2026
   {
-    id: 'new-teacher-orientation-2025',
+    id: 'new-teacher-orientation-2026',
     title: 'New Teacher Orientation',
-    startDate: date('2025-08-04'),
-    endDate: date('2025-08-05'),
+    startDate: date('2026-08-03'),
+    endDate: date('2026-08-04'),
     type: 'event',
     color: '#4f46e5',
-    description: 'Orientation for new teachers',
   },
   {
-    id: 'professional-learning-aug-2025',
-    title: 'Professional Learning',
-    startDate: date('2025-08-06'),
-    endDate: date('2025-08-12'),
+    id: 'professional-learning-aug-2026',
+    title: 'No School: Professional Learning',
+    startDate: date('2026-08-05'),
+    endDate: date('2026-08-11'),
     type: 'event',
     color: '#8b5cf6',
-    description: 'Staff professional development days',
   },
   {
-    id: 'schedules-released-2025',
+    id: 'schedules-released-2026',
     title: 'Returning Student Schedules Released',
-    startDate: date('2025-08-07'),
+    startDate: date('2026-08-06'),
     type: 'event',
     color: '#3b82f6',
-    description: 'Schedules available for returning students',
   },
   {
-    id: 'new-student-orientation-2025',
-    title: 'New Student Orientation (7th & 9th grades)',
-    startDate: date('2025-08-11'),
+    id: 'new-student-orientation-2026',
+    title: 'New Student Orientation (7th, 8th & 9th grades)',
+    startDate: date('2026-08-10'),
     type: 'event',
     color: '#4f46e5',
-    description: 'Orientation for new 7th and 9th grade students',
   },
   {
-    id: 'first-day-2025',
+    id: 'first-day-2026',
     title: 'First Day of School',
-    startDate: date('2025-08-13'),
+    startDate: date('2026-08-12'),
     type: 'event',
     color: '#4f46e5',
-    description: 'First day of the 2025-2026 school year!',
   },
   {
-    id: 'back-to-school-night-2025',
+    id: 'back-to-school-night-2026',
     title: 'Back To School Night - WSCA 7th-12th',
-    startDate: date('2025-08-21'),
+    startDate: date('2026-08-20'),
     type: 'event',
     color: '#8b5cf6',
-    description: 'Evening event for parents to meet teachers',
   },
-  
-  // September 2025
+
+  // September 2026
   {
-    id: 'labor-day-2025',
+    id: 'labor-day-2026',
     title: 'No School: Labor Day',
-    startDate: date('2025-09-01'),
+    startDate: date('2026-09-07'),
     type: 'holiday',
     color: '#ef4444',
   },
-  // REMOVED: Professional Learning on Sep 2 was not in the PDF.
-  // REMOVED: Progress Report 1 (P1) was moved to the correct date in November.
-  
-  // October 2025
   {
-    id: 'end-q1-2025',
-    title: 'End of 1st Quarter (Q1)',
-    // UPDATED: Date changed from Oct 9 to Oct 10 per the PDF.
-    startDate: date('2025-10-10'),
-    type: 'deadline',
-    color: '#ec4899',
-  },
-  {
-    id: 'psat-2025',
-    title: 'PSAT Test',
-    startDate: date('2025-10-11'),
-    type: 'event',
-    color: '#3b82f6',
-    description: 'Tentative PSAT test date',
-  },
-  {
-    id: 'professional-learning-oct-2025',
+    id: 'professional-learning-sep-2026',
     title: 'No School: Professional Learning',
-    startDate: date('2025-10-13'),
-    type: 'event',
-    color: '#8b5cf6',
-  },
-  
-  // November 2025
-  {
-    // ADDED: This event was missing from the original code.
-    id: 'professional-learning-nov-2025',
-    title: 'No School: Professional Learning',
-    startDate: date('2025-11-02'),
+    startDate: date('2026-09-08'),
     type: 'event',
     color: '#8b5cf6',
   },
   {
-    id: 'school-recess-nov-2025',
-    title: 'No School: School Recess',
-    startDate: date('2025-11-10'),
-    type: 'holiday',
-    color: '#ef4444',
-  },
-  {
-    id: 'veterans-day-2025',
-    title: "No School: Veteran's Day",
-    startDate: date('2025-11-11'),
-    type: 'holiday',
-    color: '#ef4444',
-  },
-  {
-    // MOVED: Progress Report 1 was moved here from September.
-    id: 'progress-report-1-2025',
+    id: 'progress-report-1-2026',
     title: 'Progress Report 1 (P1)',
-    startDate: date('2025-11-12'),
+    startDate: date('2026-09-11'),
+    type: 'deadline',
+    color: '#ec4899',
+  },
+
+  // October 2026
+  {
+    id: 'end-q1-2026',
+    title: 'End of 1st Quarter (Q1)',
+    startDate: date('2026-10-09'),
     type: 'deadline',
     color: '#ec4899',
   },
   {
-    id: 'progress-report-2-2025',
-    title: 'Progress Report 2 (P2)',
-    startDate: date('2025-11-14'),
-    type: 'deadline',
-    color: '#ec4899',
-  },
-  {
-    id: 'thanksgiving-break-2025',
-    title: 'No School: Thanksgiving Break',
-    startDate: date('2025-11-24'),
-    endDate: date('2025-11-28'),
-    type: 'break',
-    color: '#f59e0b',
-  },
-  
-  // December 2025
-  {
-    id: 'professional-learning-dec-2025',
+    id: 'professional-learning-oct-2026',
     title: 'No School: Professional Learning',
-    startDate: date('2025-12-01'),
+    startDate: date('2026-10-12'),
     type: 'event',
     color: '#8b5cf6',
   },
   {
-    id: 'end-semester-1-2025',
-    title: 'End of 1st Semester (2nd Quarter) (S1)',
-    startDate: date('2025-12-19'),
-    type: 'deadline',
-    color: '#ec4899',
-  },
-  {
-    id: 'min-day-dec-2025',
-    title: 'Minimum Day',
-    startDate: date('2025-12-19'),
+    id: 'psat-2026',
+    title: 'PSAT Test',
+    startDate: date('2026-10-17'),
     type: 'event',
     color: '#3b82f6',
+    description: 'Saturday PSAT test',
   },
+
+  // November 2026
   {
-    id: 'winter-break-2025',
-    title: 'No School: Winter Break',
-    startDate: date('2025-12-22'),
-    endDate: date('2025-12-31'),
-    type: 'break',
-    color: '#3b82f6',
-  },
-  
-  // January 2026
-  {
-    id: 'winter-break-jan-2026',
-    title: 'No School: Winter Break',
-    startDate: date('2026-01-01'),
-    endDate: date('2026-01-02'),
-    type: 'break',
-    color: '#3b82f6',
-  },
-  {
-    id: 'professional-learning-jan-2026',
-    title: 'No School: Professional Learning',
-    startDate: date('2026-01-05'),
-    type: 'event',
-    color: '#8b5cf6',
-  },
-  {
-    id: 'mlk-day-2026',
-    title: 'No School: Martin Luther King, Jr. Day',
-    startDate: date('2026-01-19'),
+    id: 'veterans-day-2026',
+    title: "No School: Veteran's Day",
+    startDate: date('2026-11-11'),
     type: 'holiday',
     color: '#ef4444',
   },
-  
-  // February 2026
   {
-    id: 'progress-report-3-2026',
-    title: 'Progress Report 3 (P3)',
-    startDate: date('2026-02-06'),
+    id: 'progress-report-2-2026',
+    title: 'Progress Report 2 (P2)',
+    startDate: date('2026-11-13'),
     type: 'deadline',
     color: '#ec4899',
   },
   {
-    id: 'presidents-week-2026',
-    title: "No School: President's Week",
-    startDate: date('2026-02-16'),
-    endDate: date('2026-02-20'),
+    id: 'thanksgiving-break-2026',
+    title: 'No School: Thanksgiving Break',
+    startDate: date('2026-11-23'),
+    endDate: date('2026-11-27'),
     type: 'break',
     color: '#f59e0b',
   },
   {
-    id: 'professional-learning-feb-2026',
+    id: 'professional-learning-nov-2026',
     title: 'No School: Professional Learning',
-    startDate: date('2026-02-23'),
+    startDate: date('2026-11-30'),
     type: 'event',
     color: '#8b5cf6',
   },
-  
-  // March 2026
+
+  // December 2026
   {
-    id: 'min-day-mar-2026',
-    title: 'Minimum Day (Grades 7-12)',
-    startDate: date('2026-03-23'),
+    id: 'min-day-dec-2026',
+    title: 'Minimum Day',
+    startDate: date('2026-12-17'),
     type: 'event',
     color: '#3b82f6',
   },
   {
-    id: 'end-q3-2026',
-    title: 'End of 3rd Quarter (Q3)',
-    startDate: date('2026-03-27'),
+    id: 'end-semester-1-2026',
+    title: 'End of 1st Semester (2nd Quarter) (S1)',
+    startDate: date('2026-12-17'),
     type: 'deadline',
     color: '#ec4899',
   },
   {
-    id: 'spring-break-2026',
+    id: 'winter-break-2026',
+    title: 'No School: Winter Break',
+    startDate: date('2026-12-18'),
+    endDate: date('2026-12-31'),
+    type: 'break',
+    color: '#3b82f6',
+  },
+
+  // January 2027
+  {
+    id: 'winter-break-jan-2027',
+    title: 'No School: Winter Break',
+    startDate: date('2027-01-01'),
+    type: 'break',
+    color: '#3b82f6',
+  },
+  {
+    id: 'professional-learning-jan-2027',
+    title: 'No School: Professional Learning',
+    startDate: date('2027-01-04'),
+    type: 'event',
+    color: '#8b5cf6',
+  },
+  {
+    id: 'mlk-day-2027',
+    title: 'No School: Martin Luther King, Jr. Day',
+    startDate: date('2027-01-18'),
+    type: 'holiday',
+    color: '#ef4444',
+  },
+
+  // February 2027
+  {
+    id: 'progress-report-3-2027',
+    title: 'Progress Report 3 (P3)',
+    startDate: date('2027-02-05'),
+    type: 'deadline',
+    color: '#ec4899',
+  },
+  {
+    id: 'presidents-week-2027',
+    title: "No School: President's Week",
+    startDate: date('2027-02-15'),
+    endDate: date('2027-02-19'),
+    type: 'break',
+    color: '#f59e0b',
+  },
+  {
+    id: 'professional-learning-feb-2027',
+    title: 'No School: Professional Learning',
+    startDate: date('2027-02-22'),
+    type: 'event',
+    color: '#8b5cf6',
+  },
+
+  // March 2027
+  {
+    id: 'end-q3-2027',
+    title: 'End of 3rd Quarter (Q3)',
+    startDate: date('2027-03-19'),
+    type: 'deadline',
+    color: '#ec4899',
+  },
+  {
+    id: 'spring-break-2027',
     title: 'No School: Spring Break',
-    startDate: date('2026-03-30'),
-    endDate: date('2026-04-03'),
+    startDate: date('2027-03-22'),
+    endDate: date('2027-03-26'),
     type: 'break',
     color: '#10b981',
   },
-  
-  // April 2026
   {
-    id: 'professional-learning-apr-2026',
+    id: 'professional-learning-mar-2027',
     title: 'No School: Professional Learning',
-    startDate: date('2026-04-06'),
+    startDate: date('2027-03-29'),
+    type: 'event',
+    color: '#8b5cf6',
+  },
+
+  // April 2027
+  {
+    id: 'caaspp-1-2027',
+    title: 'CAASPP Testing',
+    startDate: date('2027-04-07'),
+    endDate: date('2027-04-08'),
+    type: 'event',
+    color: '#3b82f6',
+  },
+  {
+    id: 'caaspp-2-2027',
+    title: 'CAASPP Testing',
+    startDate: date('2027-04-14'),
+    endDate: date('2027-04-15'),
+    type: 'event',
+    color: '#3b82f6',
+  },
+  {
+    id: 'progress-report-4-2027',
+    title: 'Progress Report 4 (P4)',
+    startDate: date('2027-04-30'),
+    type: 'deadline',
+    color: '#ec4899',
+  },
+
+  // May 2027
+  {
+    id: 'ap-testing-2027',
+    title: 'AP Testing',
+    startDate: date('2027-05-03'),
+    endDate: date('2027-05-14'),
+    type: 'event',
+    color: '#3b82f6',
+  },
+  {
+    id: 'professional-learning-may-2027',
+    title: 'No School: Professional Learning',
+    startDate: date('2027-05-10'),
     type: 'event',
     color: '#8b5cf6',
   },
   {
-    id: 'caaspp-1-2026',
-    title: 'CAASPP Testing',
-    startDate: date('2026-04-15'),
-    endDate: date('2026-04-16'),
+    id: 'memorial-day-2027',
+    title: 'No School: Memorial Day',
+    startDate: date('2027-05-31'),
+    type: 'holiday',
+    color: '#ef4444',
+  },
+
+  // June 2027
+  {
+    id: '8th-grade-promotion-2027',
+    title: '8th Grade Promotion - WSCA',
+    startDate: date('2027-06-02'),
     type: 'event',
-    color: '#3b82f6',
-    description: 'Tentative CAASPP testing dates',
+    color: '#4f46e5',
   },
   {
-    id: 'caaspp-2-2026',
-    title: 'CAASPP Testing',
-    startDate: date('2026-04-22'),
-    endDate: date('2026-04-23'),
-    type: 'event',
-    color: '#3b82f6',
-    description: 'Tentative CAASPP testing dates',
-  },
-  
-  // May 2026
-  {
-    id: 'progress-report-4-2026',
-    title: 'Progress Report (P4)',
-    startDate: date('2026-05-01'),
+    id: 'end-semester-2-2027',
+    title: 'End of 2nd Semester (4th Quarter) (S2)',
+    startDate: date('2027-06-03'),
     type: 'deadline',
     color: '#ec4899',
   },
   {
-    id: 'professional-learning-may-2026',
-    title: 'No School: Professional Learning',
-    startDate: date('2026-05-11'),
-    type: 'event',
-    color: '#8b5cf6',
-  },
-  {
-    id: 'memorial-day-2026',
-    title: 'No School: Memorial Day',
-    startDate: date('2026-05-25'),
-    type: 'holiday',
-    color: '#ef4444',
-  },
-  
-  // June 2026
-  {
-    id: '8th-grade-promotion-2026',
-    title: '8th Grade Promotion - WSCA',
-    startDate: date('2026-06-03'),
-    type: 'event',
-    color: '#4f46e5',
-  },
-  {
-    id: 'last-day-2026',
+    id: 'min-day-jun-2027',
     title: 'Minimum Day, Last Day of School',
-    startDate: date('2026-06-04'),
+    startDate: date('2027-06-03'),
     type: 'event',
     color: '#4f46e5',
-    description: 'End of 2nd Semester (4th Quarter) (S2)',
   },
   {
-    id: 'graduation-2026',
+    id: 'graduation-2027',
     title: 'WSCA High School Graduation',
-    startDate: date('2026-06-05'),
+    startDate: date('2027-06-04'),
     type: 'event',
     color: '#8b5cf6',
-    description: 'Professional Learning Day for staff',
   },
   {
-    id: 'juneteenth-2026',
+    id: 'professional-learning-jun-2027',
+    title: 'No School: Professional Learning',
+    startDate: date('2027-06-04'),
+    type: 'event',
+    color: '#8b5cf6',
+  },
+  {
+    id: 'juneteenth-2027',
     title: 'No Summer Session: Juneteenth',
-    startDate: date('2026-06-19'),
+    startDate: date('2027-06-18'),
     type: 'holiday',
     color: '#ef4444',
   },
 ];
+
+// Deprecated constant alias for backward compatibility
+export const schoolYear2025_2026 = schoolYear2026_2027;
 
 // Helper function to get events for a specific date
 export const getEventsForDate = (date: Date, events: SchoolEvent[]): SchoolEvent[] => {

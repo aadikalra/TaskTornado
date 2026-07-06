@@ -57,7 +57,7 @@ import { Input } from '@/components/ui/input';
 
 import { MiniCalendar } from './MiniCalendar';
 import { MobileWeekCalendar } from './MobileWeekCalendar';
-import { ComingUp } from './ComingUp';
+import { ComingUp, useUpcomingItems } from './ComingUp';
 import { EmailWidget } from './EmailWidget';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -135,6 +135,9 @@ const MainApp = () => {
     updateTestDueDate,
     markTestComplete
   } = useClassContext();
+
+  const upcomingItems = useUpcomingItems();
+  const hasUpcoming = upcomingItems.length > 0;
 
   const [showAddClass, setShowAddClass] = useState(false);
   const [showAddHomework, setShowAddHomework] = useState(false);
@@ -2476,16 +2479,18 @@ Return ONLY valid JSON, no explanation, no markdown.`,
         </motion.div>
 
         {/* Calendar + Coming Up + Email */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8 h-auto lg:h-[320px]">
+        <div className={`grid grid-cols-1 ${hasUpcoming ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4 mb-8 h-auto lg:h-[320px]`}>
           <div className="hidden md:block h-[320px]">
             <MiniCalendar />
           </div>
           <div className="block md:hidden">
             <MobileWeekCalendar />
           </div>
-          <div className="h-[320px]">
-            <ComingUp />
-          </div>
+          {hasUpcoming && (
+            <div className="h-[320px]">
+              <ComingUp />
+            </div>
+          )}
           <div className="hidden lg:block h-[320px]">
             <EmailWidget />
           </div>

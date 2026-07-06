@@ -180,18 +180,22 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
             return fallbackColors;
           }
 
-          // Generate variations
-          const variations = [baseColor]; // Original color
+          const rgbToHex = (red: number, green: number, blue: number) => {
+            const clamp = (val: number) => Math.max(0, Math.min(255, Math.round(val)));
+            const rHex = clamp(red).toString(16).padStart(2, '0');
+            const gHex = clamp(green).toString(16).padStart(2, '0');
+            const bHex = clamp(blue).toString(16).padStart(2, '0');
+            return `#${rHex}${gHex}${bHex}`;
+          };
 
-          // Lighter variations
-          variations.push(`rgba(${Math.min(r + 40, 255)}, ${Math.min(g + 40, 255)}, ${Math.min(b + 40, 255)}, 0.8)`);
-          variations.push(`rgba(${Math.min(r + 80, 255)}, ${Math.min(g + 80, 255)}, ${Math.min(b + 80, 255)}, 0.6)`);
-
-          // Darker variations
-          variations.push(`rgba(${Math.max(r - 40, 0)}, ${Math.max(g - 40, 0)}, ${Math.max(b - 40, 0)}, 0.9)`);
-          variations.push(`rgba(${Math.max(r - 80, 0)}, ${Math.max(g - 80, 0)}, ${Math.max(b - 80, 0)}, 0.7)`);
-
-          return variations;
+          // Generate variations (shades of the class color) as hex strings
+          return [
+            baseColor,
+            rgbToHex(r + 30, g + 30, b + 30), // Lighter shade
+            rgbToHex(r + 50, g + 50, b + 50), // Even lighter shade
+            rgbToHex(r - 35, g - 35, b - 35), // Darker shade
+            rgbToHex(r - 60, g - 60, b - 60), // Even darker shade
+          ];
         };
 
         const colorVariations = generateColorVariations(item.classColor);

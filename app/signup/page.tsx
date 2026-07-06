@@ -1,349 +1,694 @@
 'use client';
 
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useState } from 'react';
 import Link from 'next/link';
-import { Lock, Mail, Loader2, ArrowRight, User, ShieldCheck, GraduationCap, Users, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
-import { Button } from '@/components/animate-ui/primitives/buttons/button';
-import { useDarkMode } from '@/context/DarkModeContext';
-import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { getBlockedError } from '@/lib/blockedNames';
+import confetti from 'canvas-confetti';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
+
+// Typing effect component using the signature sans font
+const TypewriterText = ({ text, onComplete, delay = 30 }: { text: string; onComplete?: () => void; delay?: number }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      index++;
+      setDisplayedText(text.slice(0, index));
+      if (index >= text.length) {
+        clearInterval(interval);
+        if (onCompleteRef.current) onCompleteRef.current();
+      }
+    }, delay);
+    return () => clearInterval(interval);
+  }, [text, delay]);
+
+  return <span className="font-sans text-[15px] tracking-tight">{displayedText}</span>;
+};
+
+const getWebmailLink = (emailAddress: string) => {
+  const domain = emailAddress.toLowerCase().split('@')[1];
+  if (!domain) return null;
+
+  if (domain.includes('gmail.com')) {
+    return { name: 'Gmail', url: 'https://mail.google.com' };
+  }
+  if (domain.includes('yahoo.com')) {
+    return { name: 'Yahoo Mail', url: 'https://mail.yahoo.com' };
+  }
+  if (domain.includes('outlook.com') || domain.includes('hotmail.com') || domain.includes('live.com') || domain.includes('msn.com')) {
+    return { name: 'Outlook', url: 'https://outlook.live.com' };
+  }
+  if (domain.includes('icloud.com')) {
+    return { name: 'iCloud Mail', url: 'https://www.icloud.com/mail' };
+  }
+  return null;
+};
 
 export default function SignUpPage() {
-  const [name, setName] = useState('');
+  const router = useRouter();
+  const { signUp } = useAuth();
+
+  // Form states
+  const [accountType, setAccountType] = useState<'student' | 'guardian' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  // Flow control states
+  const [typingProgress, setTypingProgress] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTypingProgress((prev) => {
+        if (prev >= 28) {
+          clearInterval(interval);
+          return 28;
+        }
+        return prev + 1;
+      });
+    }, 35);
+    return () => clearInterval(interval);
+  }, []);
+
+  const [currentStep, setCurrentStep] = useState(1); // 1: Type, 2: Email, 3: Password, 4: ConfirmPassword, 5: Name, 6: Terms/Submit
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [typingStep, setTypingStep] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [accountType, setAccountType] = useState<'student' | 'guardian'>('student');
-  const [guardianHover, setGuardianHover] = useState(false);
-  const { signUp } = useAuth();
-  const { isDark } = useDarkMode();
-  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom of conversational flow
+  useEffect(() => {
+    if (containerRef.current) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [currentStep, typingStep, error]);
+
+  const handleSelectAccountType = (type: 'student' | 'guardian') => {
+    if (loading) return;
+    setAccountType(type);
+    if (!completedSteps.includes(1)) {
+      setCompletedSteps([...completedSteps, 1]);
+    }
+    setCurrentStep(2);
+    setTypingStep(2);
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     setError('');
+    if (!completedSteps.includes(2)) {
+      setCompletedSteps([...completedSteps, 2]);
+    }
+    setCurrentStep(3);
+    setTypingStep(3);
+  };
 
-    // Block restricted names and emails
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    setError('');
+    if (!completedSteps.includes(3)) {
+      setCompletedSteps([...completedSteps, 3]);
+    }
+    setCurrentStep(4);
+    setTypingStep(4);
+  };
+
+  const handleConfirmPasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setError('');
+    if (!completedSteps.includes(4)) {
+      setCompletedSteps([...completedSteps, 4]);
+    }
+    setCurrentStep(5);
+    setTypingStep(5);
+  };
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+    
+    // Check restricted names and emails
     const blockedError = getBlockedError(name, email);
     if (blockedError) {
       setError(blockedError);
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+    setError('');
+    if (!completedSteps.includes(5)) {
+      setCompletedSteps([...completedSteps, 5]);
     }
+    setCurrentStep(6);
+    setTypingStep(6);
+  };
 
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!termsAccepted) {
-      setError('Please accept the terms');
+      setError('You must accept the terms & privacy policy.');
       return;
     }
-
+    setError('');
     setLoading(true);
 
     try {
-      await signUp(email, password, name, accountType);
-      // After signup, Supabase requires email confirmation.
-      // Redirect to login — the login page will route guardians correctly after they log in.
-      router.push('/login');
+      await signUp(email, password, name, accountType || 'student');
+      
+      setIsCompleted(true);
+      
+      // Trigger brand-colored confetti
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#275085', '#165df9', '#fabc32', '#a5b4fc']
+      });
     } catch (err: any) {
-      console.error('Signup error:', err);
-      if (err.message?.includes('already exists')) {
-        setError('An account with this email already exists.');
-      } else {
-        setError(err.message || 'Failed to create an account.');
-      }
+      setError(err.message || 'An error occurred during sign up.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-gray-950 dark:via-gray-950 dark:to-gray-900 flex flex-col md:flex-row overflow-hidden font-sans relative">
+  // Jump back to edit a step
+  const handleEditStep = (stepNumber: number) => {
+    if (loading) return;
+    setCurrentStep(stepNumber);
+    setError('');
+    // Remove completed steps subsequent to the edited step
+    setCompletedSteps(completedSteps.filter(s => s < stepNumber));
+    if (stepNumber === 1) {
+      setTypingProgress(28); // skip typing animation when editing
+    }
+  };
 
-      {/* ── Ambient glows (matching hero) ─────────────────────── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
-        <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const handleContinueToLogin = () => {
+    setIsRedirecting(true);
+    setTimeout(() => {
+      router.push(`/login?email=${encodeURIComponent(email)}`);
+    }, 450);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-[#0a0f1d] dark:via-[#090d1a] dark:to-[#03050c] text-[#275085] dark:text-[#a0c3ff] flex flex-col justify-between items-center selection:bg-[#275085] dark:selection:bg-[#a0c3ff] selection:text-white dark:selection:text-[#0a0f1d] font-sans pb-12 pt-20 px-4 md:px-8">
+      {/* Main Conversation Container */}
+      <div ref={containerRef} className="max-w-[600px] w-full flex-1 flex flex-col justify-center py-12">
+        <AnimatePresence mode="wait">
+          {!isCompleted ? (
+            <motion.div
+              key="signup-steps"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              className="space-y-12 w-full"
+            >
+              {/* STEP 1: Account Type Selection */}
+              <div className="relative pl-6">
+                {/* Vertical Connecting Line */}
+                {completedSteps.includes(1) && (
+                  <motion.div 
+                    initial={{ height: 0 }}
+                    animate={{ height: '100%' }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute left-[3px] top-6 w-[2px] bg-[#275085]/20 dark:bg-[#a0c3ff]/20"
+                  />
+                )}
+                
+                <div className="flex items-center gap-3">
+                  <span className={`w-2 h-2 rounded-full ${completedSteps.includes(1) ? 'bg-[#275085]/40 dark:bg-[#a0c3ff]/40' : 'bg-[#275085] dark:bg-[#a0c3ff] animate-pulse'} absolute left-0 top-2`} />
+                  <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Question 01</span>
+                </div>
+
+                <div className="mt-2 font-sans text-[15px] tracking-tight leading-relaxed text-[#275085] dark:text-[#a0c3ff]">
+                  <span>{"Are you a ".slice(0, typingProgress)}</span>
+                  {typingProgress >= 10 && (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAccountType('student')}
+                      className={`font-sans text-[15px] transition-all hover:text-[#275085] dark:hover:text-white ${
+                        accountType === 'student'
+                          ? 'text-[#275085] dark:text-white font-bold underline underline-offset-4 decoration-2'
+                          : 'text-[#275085]/50 dark:text-[#a0c3ff]/50 hover:underline hover:underline-offset-4'
+                      }`}
+                    >
+                      {"student".slice(0, typingProgress - 10)}
+                    </button>
+                  )}
+                  <span>{" or ".slice(0, Math.max(0, typingProgress - 17))}</span>
+                  {typingProgress >= 21 && (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAccountType('guardian')}
+                      className={`font-sans text-[15px] transition-all hover:text-[#275085] dark:hover:text-white ${
+                        accountType === 'guardian'
+                          ? 'text-[#275085] dark:text-white font-bold underline underline-offset-4 decoration-2'
+                          : 'text-[#275085]/50 dark:text-[#a0c3ff]/50 hover:underline hover:underline-offset-4'
+                      }`}
+                    >
+                      {"parent".slice(0, typingProgress - 21)}
+                    </button>
+                  )}
+                  <span>{"?".slice(0, Math.max(0, typingProgress - 27))}</span>
+
+                  {completedSteps.includes(1) && currentStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleEditStep(1)}
+                      className="text-xs font-sans text-[#275085]/55 dark:text-[#a0c3ff]/55 hover:text-[#275085] dark:hover:text-white underline ml-4"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 2: Email Address */}
+              {currentStep >= 2 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative pl-6"
+                >
+                  {completedSteps.includes(2) && (
+                    <motion.div 
+                      initial={{ height: 0 }}
+                      animate={{ height: '100%' }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute left-[3px] top-6 w-[2px] bg-[#275085]/20 dark:bg-[#a0c3ff]/20"
+                    />
+                  )}
+                  
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full ${completedSteps.includes(2) ? 'bg-[#275085]/40 dark:bg-[#a0c3ff]/40' : 'bg-[#275085] dark:bg-[#a0c3ff] animate-pulse'} absolute left-0 top-2`} />
+                    <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Question 02</span>
+                  </div>
+
+                  <div className="mt-2 space-y-4">
+                    <div className="text-[#275085] dark:text-[#a0c3ff]">
+                      {typingStep >= 2 ? (
+                        <TypewriterText text="What is your email address?" />
+                      ) : (
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">What is your email address?</span>
+                      )}
+                    </div>
+
+                    {currentStep === 2 ? (
+                      <form onSubmit={handleEmailSubmit} className="flex max-w-[400px] border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus-within:border-[#275085] dark:focus-within:border-[#a0c3ff] transition-all items-center py-1">
+                        <input
+                          type="email"
+                          required
+                          placeholder="you@domain.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
+                          autoFocus
+                        />
+                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                          <HugeIcon name="ArrowRight01" size={18} />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center gap-3 font-sans text-[14px]">
+                        <span className="text-[#275085] dark:text-[#a0c3ff] font-bold">{email}</span>
+                        {completedSteps.includes(2) && (
+                          <button
+                            type="button"
+                            onClick={() => handleEditStep(2)}
+                            className="text-xs text-[#275085]/55 dark:text-[#a0c3ff]/55 hover:text-[#275085] dark:hover:text-white underline"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 3: Password */}
+              {currentStep >= 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative pl-6"
+                >
+                  {completedSteps.includes(3) && (
+                    <motion.div 
+                      initial={{ height: 0 }}
+                      animate={{ height: '100%' }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute left-[3px] top-6 w-[2px] bg-[#275085]/20 dark:bg-[#a0c3ff]/20"
+                    />
+                  )}
+                  
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full ${completedSteps.includes(3) ? 'bg-[#275085]/40 dark:bg-[#a0c3ff]/40' : 'bg-[#275085] dark:bg-[#a0c3ff] animate-pulse'} absolute left-0 top-2`} />
+                    <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Question 03</span>
+                  </div>
+
+                  <div className="mt-2 space-y-4">
+                    <div className="text-[#275085] dark:text-[#a0c3ff]">
+                      {typingStep >= 3 ? (
+                        <TypewriterText text="Choose a secure password (min 6 characters)." />
+                      ) : (
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Choose a secure password (min 6 characters).</span>
+                      )}
+                    </div>
+
+                    {currentStep === 3 ? (
+                      <form onSubmit={handlePasswordSubmit} className="flex max-w-[400px] border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus-within:border-[#275085] dark:focus-within:border-[#a0c3ff] transition-all items-center py-1">
+                        <input
+                          type="password"
+                          required
+                          minLength={6}
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
+                          autoFocus
+                        />
+                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                          <HugeIcon name="ArrowRight01" size={18} />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center gap-3 font-sans text-[14px]">
+                        <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50">••••••••</span>
+                        {completedSteps.includes(3) && (
+                          <button
+                            type="button"
+                            onClick={() => handleEditStep(3)}
+                            className="text-xs text-[#275085]/55 dark:text-[#a0c3ff]/55 hover:text-[#275085] dark:hover:text-white underline"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 4: Confirm Password */}
+              {currentStep >= 4 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative pl-6"
+                >
+                  {completedSteps.includes(4) && (
+                    <motion.div 
+                      initial={{ height: 0 }}
+                      animate={{ height: '100%' }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute left-[3px] top-6 w-[2px] bg-[#275085]/20 dark:bg-[#a0c3ff]/20"
+                    />
+                  )}
+                  
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full ${completedSteps.includes(4) ? 'bg-[#275085]/40 dark:bg-[#a0c3ff]/40' : 'bg-[#275085] dark:bg-[#a0c3ff] animate-pulse'} absolute left-0 top-2`} />
+                    <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Question 04</span>
+                  </div>
+
+                  <div className="mt-2 space-y-4">
+                    <div className="text-[#275085] dark:text-[#a0c3ff]">
+                      {typingStep >= 4 ? (
+                        <TypewriterText text="Confirm your password." />
+                      ) : (
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Confirm your password.</span>
+                      )}
+                    </div>
+
+                    {currentStep === 4 ? (
+                      <form onSubmit={handleConfirmPasswordSubmit} className="flex max-w-[400px] border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus-within:border-[#275085] dark:focus-within:border-[#a0c3ff] transition-all items-center py-1">
+                        <input
+                          type="password"
+                          required
+                          placeholder="••••••••"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
+                          autoFocus
+                        />
+                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                          <HugeIcon name="ArrowRight01" size={18} />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center gap-3 font-sans text-[14px]">
+                        <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50">••••••••</span>
+                        {completedSteps.includes(4) && (
+                          <button
+                            type="button"
+                            onClick={() => handleEditStep(4)}
+                            className="text-xs text-[#275085]/55 dark:text-[#a0c3ff]/55 hover:text-[#275085] dark:hover:text-white underline"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 5: Full Name */}
+              {currentStep >= 5 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative pl-6"
+                >
+                  {completedSteps.includes(5) && (
+                    <motion.div 
+                      initial={{ height: 0 }}
+                      animate={{ height: '100%' }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute left-[3px] top-6 w-[2px] bg-[#275085]/20 dark:bg-[#a0c3ff]/20"
+                    />
+                  )}
+                  
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full ${completedSteps.includes(5) ? 'bg-[#275085]/40 dark:bg-[#a0c3ff]/40' : 'bg-[#275085] dark:bg-[#a0c3ff] animate-pulse'} absolute left-0 top-2`} />
+                    <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Question 05</span>
+                  </div>
+
+                  <div className="mt-2 space-y-4">
+                    <div className="text-[#275085] dark:text-[#a0c3ff]">
+                      {typingStep >= 5 ? (
+                        <TypewriterText text="Finally, what is your full name?" />
+                      ) : (
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Finally, what is your full name?</span>
+                      )}
+                    </div>
+
+                    {currentStep === 5 ? (
+                      <form onSubmit={handleNameSubmit} className="flex max-w-[400px] border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus-within:border-[#275085] dark:focus-within:border-[#a0c3ff] transition-all items-center py-1">
+                        <input
+                          type="text"
+                          required
+                          placeholder="Alex Johnson"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
+                          autoFocus
+                        />
+                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                          <HugeIcon name="ArrowRight01" size={18} />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center gap-3 font-sans text-[14px]">
+                        <span className="text-[#275085] dark:text-[#a0c3ff] font-bold">{name}</span>
+                        {completedSteps.includes(5) && (
+                          <button
+                            type="button"
+                            onClick={() => handleEditStep(5)}
+                            className="text-xs text-[#275085]/55 dark:text-[#a0c3ff]/55 hover:text-[#275085] dark:hover:text-white underline"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 6: Terms and Complete */}
+              {currentStep >= 6 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative pl-6"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-2 rounded-full bg-[#275085] dark:bg-[#a0c3ff] absolute left-0 top-2" />
+                    <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Question 06</span>
+                  </div>
+
+                  <div className="mt-2 space-y-4">
+                    <div className="text-[#275085] dark:text-[#a0c3ff]">
+                      {typingStep >= 6 ? (
+                        <TypewriterText text="Do you agree to our Terms of Service & Privacy Policy?" />
+                      ) : (
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Do you agree to our Terms of Service & Privacy Policy?</span>
+                      )}
+                    </div>
+
+                    <form onSubmit={handleFinalSubmit} className="space-y-6 max-w-[450px]">
+                      <label className="flex items-center gap-3 cursor-pointer py-1 select-none">
+                        <Checkbox
+                          checked={termsAccepted}
+                          onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                          className="border-[#275085]/40 dark:border-[#a0c3ff]/40 data-[state=checked]:bg-[#275085] dark:data-[state=checked]:bg-[#4f8df0] data-[state=checked]:border-[#275085] dark:data-[state=checked]:border-[#4f8df0] rounded-md transition-colors cursor-pointer"
+                        />
+                        <span className="text-xs font-sans text-[#275085]/50 dark:text-[#a0c3ff]/50">
+                          I agree to the{' '}
+                          <Link href="/terms" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
+                            Terms
+                          </Link>{' '}
+                          &{' '}
+                          <Link href="/privacy" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
+                            Privacy
+                          </Link>
+                        </span>
+                      </label>
+
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-start gap-2.5 text-xs font-sans text-red-700 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 border border-red-200/40 dark:border-red-900/30 p-3.5 rounded-2xl backdrop-blur-sm"
+                        >
+                          <div className="w-5 h-5 rounded-full bg-red-100/60 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+                            <HugeIcon name="AlertCircle" size={12} className="text-red-600 dark:text-red-400" />
+                          </div>
+                          <span className="leading-relaxed font-medium">{error}</span>
+                        </motion.div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-[#275085] dark:bg-[#4f8df0] text-white font-sans font-bold text-[14px] hover:bg-[#1e3f6a] dark:hover:bg-[#3b82f6] transition-all rounded-xl active:scale-[0.98] disabled:opacity-50 shadow-md shadow-[#275085]/10 dark:shadow-none"
+                      >
+                        {loading ? (
+                          <Loader2 className="animate-spin w-4 h-4" />
+                        ) : (
+                          <>
+                            <span>Complete Registration</span>
+                            <HugeIcon name="CheckmarkCircle02" size={16} />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          ) : !isRedirecting ? (
+            <motion.div
+              key="success-message"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col items-center justify-center text-center space-y-6 py-12 w-full"
+            >
+              <div className="w-16 h-16 bg-[#275085]/10 dark:bg-[#a0c3ff]/10 rounded-full flex items-center justify-center text-[#275085] dark:text-[#a0c3ff]">
+                <HugeIcon name="CheckmarkCircle02" size={32} />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight text-[#275085] dark:text-[#a0c3ff]">Check your inbox</h2>
+                <p className="text-sm text-[#275085]/70 dark:text-[#a0c3ff]/70 max-w-[400px] leading-relaxed">
+                  We sent a confirmation link to <span className="font-bold text-[#275085] dark:text-white">{email}</span>. Click the link to complete your registration.
+                </p>
+              </div>
+              {(() => {
+                const webmailLink = getWebmailLink(email);
+                return (
+                  <div className="flex flex-col sm:flex-row gap-3 w-full justify-center max-w-[340px]">
+                    {webmailLink && (
+                      <a
+                        href={webmailLink.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-[#275085] dark:bg-[#4f8df0] text-white font-sans font-bold text-[14px] hover:bg-[#1e3f6a] dark:hover:bg-[#3b82f6] transition-all rounded-xl active:scale-[0.98] shadow-md shadow-[#275085]/10 dark:shadow-none"
+                      >
+                        <span>Open {webmailLink.name}</span>
+                        <HugeIcon name="ArrowRight01" size={16} />
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleContinueToLogin}
+                      className={`flex-1 flex items-center justify-center gap-2 px-5 py-3 font-sans font-bold text-[14px] transition-all rounded-xl active:scale-[0.98] ${
+                        webmailLink
+                          ? 'bg-transparent border border-[#275085]/10 dark:border-[#a0c3ff]/10 text-[#275085] dark:text-[#a0c3ff] hover:bg-[#275085]/5 dark:hover:bg-[#a0c3ff]/5'
+                          : 'bg-[#275085] dark:bg-[#4f8df0] text-white hover:bg-[#1e3f6a] dark:hover:bg-[#3b82f6] shadow-md shadow-[#275085]/10 dark:shadow-none'
+                      }`}
+                    >
+                      <span>Continue to Log In</span>
+                      {!webmailLink && <HugeIcon name="ArrowRight01" size={16} />}
+                    </button>
+                  </div>
+                );
+              })()}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
 
-      {/* ── Main Layout Wrapper ─────────────────── */}
-      <div className="flex-1 w-full max-w-[1400px] mx-auto flex flex-col md:flex-row relative z-10 min-h-screen px-4 sm:px-6 md:px-12 lg:px-16">
-
-        {/* ── Left Section: Branding & Features ─────────────────── */}
-        <div className="hidden md:flex flex-1 relative flex-col justify-center pt-8 pr-8 lg:pr-12">
-          <div className="relative z-10 flex flex-col gap-6 w-full">
-            {/* Headline */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-            >
-              <h2 className="text-4xl lg:text-[52px] font-bold text-[#275085] dark:text-[#4a9cdb] leading-[1.08] tracking-tight">
-                Welcome <span className="text-emerald-500">aboard.</span>
-              </h2>
-            </motion.div>
-
-            {/* Hero illustration */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="w-full"
-            >
-              <Image
-                src="/signup-hero.png"
-                alt="Student using TaskTornado"
-                width={800}
-                height={800}
-                className="w-full h-auto max-h-[55vh] max-w-[480px] object-contain object-left drop-shadow-sm"
-                priority
-              />
-            </motion.div>
-          </div>
-
-
-        </div>
-
-        {/* ── Right Section: Sign Up Form ──────────────────────── */}
-        <div className="flex-1 flex items-center justify-center md:justify-end py-20 relative">
-          {/* Form card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.5 }}
-            className="w-full max-w-[460px] bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-[#275085]/8 dark:border-[#4a9cdb]/10 rounded-3xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-[0_20px_60px_rgba(39,80,133,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
-          >
-
-            {/* Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold text-[#275085] dark:text-[#4a9cdb] tracking-tight">
-                Signup
-              </h1>
-            </div>
-
-            {/* Account Type Selector */}
-            <div className="relative mb-6">
-              <div className="flex items-center gap-1.5 ml-1 mb-2">
-                <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em]">
-                  I am a
-                </label>
-                <div
-                  className="relative"
-                  onMouseEnter={() => setGuardianHover(true)}
-                  onMouseLeave={() => setGuardianHover(false)}
-                >
-                  <HelpCircle size={13} className="text-[#275085]/30 dark:text-[#4a9cdb]/30 hover:text-[#275085]/60 dark:hover:text-[#4a9cdb]/60 transition-colors cursor-help" />
-
-                  {/* Floating info card */}
-                  <AnimatePresence>
-                    {guardianHover && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 4, scale: 0.96 }}
-                        transition={{ duration: 0.18 }}
-                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[260px] z-50 p-3 rounded-xl bg-white dark:bg-zinc-900 border border-[#275085]/10 dark:border-[#4a9cdb]/10 shadow-xl shadow-[#275085]/8 dark:shadow-black/30"
-                      >
-                        {/* Arrow */}
-                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-white dark:bg-zinc-900 border-l border-t border-[#275085]/10 dark:border-[#4a9cdb]/10" />
-
-                        <p className="text-[11px] font-bold text-[#275085] dark:text-[#4a9cdb] mb-2 leading-snug">
-                          What&apos;s the difference?
-                        </p>
-                        <div className="flex flex-col gap-1.5">
-                          <p className="text-[10.5px] text-[#275085]/60 dark:text-[#4a9cdb]/60 leading-relaxed">
-                            <span className="font-bold text-[#275085]/80 dark:text-[#4a9cdb]/80">Student</span> — Full access: add homework, use tools, track your own progress.
-                          </p>
-                          <p className="text-[10.5px] text-[#275085]/60 dark:text-[#4a9cdb]/60 leading-relaxed">
-                            <span className="font-bold text-[#275085]/80 dark:text-[#4a9cdb]/80">Guardian</span> — Monitor only: view grades, progress, and activity of a linked student.
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-              <div className="relative flex p-1 bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.04] border border-[#275085]/8 dark:border-[#4a9cdb]/8 rounded-2xl">
-                <button
-                  type="button"
-                  onClick={() => setAccountType('student')}
-                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold transition-colors duration-300 ${accountType === 'student'
-                    ? 'text-[#275085] dark:text-[#4a9cdb]'
-                    : 'text-[#275085]/40 dark:text-[#4a9cdb]/40 hover:text-[#275085]/60 dark:hover:text-[#4a9cdb]/60'
-                    }`}
-                >
-                  <GraduationCap size={16} />
-                  Student
-                  {accountType === 'student' && (
-                    <motion.div
-                      layoutId="account-type-pill"
-                      className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-[#275085]/8 dark:border-[#4a9cdb]/10"
-                      style={{ zIndex: -1 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountType('guardian')}
-                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold transition-colors duration-300 ${accountType === 'guardian'
-                    ? 'text-[#275085] dark:text-[#4a9cdb]'
-                    : 'text-[#275085]/40 dark:text-[#4a9cdb]/40 hover:text-[#275085]/60 dark:hover:text-[#4a9cdb]/60'
-                    }`}
-                >
-                  <Users size={16} />
-                  Guardian
-                  {accountType === 'guardian' && (
-                    <motion.div
-                      layoutId="account-type-pill"
-                      className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-[#275085]/8 dark:border-[#4a9cdb]/10"
-                      style={{ zIndex: -1 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
-                  Full Name
-                </label>
-                <div className="group relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
-                    <User size={16} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Alex Johnson"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
-                  Email Address
-                </label>
-                <div className="group relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
-                    <Mail size={16} />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@school.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
-                  />
-                </div>
-              </div>
-
-              {/* Password row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
-                    Password
-                  </label>
-                  <div className="group relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
-                      <Lock size={16} />
-                    </div>
-                    <input
-                      type="password"
-                      required
-                      minLength={6}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-[0.1em] ml-1">
-                    Confirm
-                  </label>
-                  <div className="group relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#275085]/30 dark:text-[#4a9cdb]/30 group-focus-within:text-[#275085] dark:group-focus-within:text-[#4a9cdb] transition-colors">
-                      <ShieldCheck size={16} />
-                    </div>
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3.5 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] border border-[#275085]/8 dark:border-[#4a9cdb]/8 focus:bg-white dark:focus:bg-zinc-900 focus:border-[#275085]/30 dark:focus:border-[#4a9cdb]/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#275085]/5 dark:focus:ring-[#4a9cdb]/5 transition-all text-[#275085] dark:text-[#4a9cdb] placeholder:text-[#275085]/25 dark:placeholder:text-[#4a9cdb]/25"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Terms */}
-              <label className="flex items-center justify-start gap-3 cursor-pointer py-1 group">
-                <Checkbox
-                  checked={termsAccepted}
-                  onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                  className="data-[state=checked]:bg-emerald-500 dark:data-[state=checked]:bg-emerald-400 data-[state=checked]:border-emerald-500 dark:data-[state=checked]:border-emerald-400 bg-[#275085]/[0.03] dark:bg-[#4a9cdb]/[0.03] rounded-md border border-[#275085]/8 dark:border-[#4a9cdb]/8 transition-colors"
-                />
-                <span className="text-[12px] text-[#275085]/50 dark:text-[#4a9cdb]/50 leading-relaxed font-medium mt-0.5">
-                  I agree to the <Link href="/terms" className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline">Terms</Link> and <Link href="/privacy" className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline">Privacy Policy</Link>.
-                </span>
-              </label>
-
-              {/* Error */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200/50 dark:border-red-900/20 text-xs text-red-600 dark:text-red-400 text-center font-medium"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Submit */}
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-[#275085] hover:bg-[#1f3f6b] dark:bg-[#4a9cdb] dark:hover:bg-[#3d8bc4] text-white rounded-2xl text-sm font-bold shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-              >
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <>Signup <ArrowRight size={16} /></>}
-              </Button>
-            </form>
-
-            {/* Sign in link */}
-            <div className="mt-8 text-center">
-              <p className="text-[12px] text-[#275085]/40 dark:text-[#4a9cdb]/40 font-medium">
-                Already have an account?{' '}
-                <Link href="/login" className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline underline-offset-4 decoration-2">
-                  Sign in instead
-                </Link>
-              </p>
-            </div>
-          </motion.div>
-        </div>
+      {/* Footer Info */}
+      <div className="max-w-[600px] w-full mt-12 text-center">
+        <p className="font-sans text-xs text-[#275085]/50 dark:text-[#a0c3ff]/50">
+          Already have an account?{' '}
+          <Link href="/login" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );

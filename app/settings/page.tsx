@@ -209,13 +209,22 @@ export default function SettingsPage() {
     if (!confirmed) return;
     setIsDeleting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch('/api/auth/delete-account', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to delete account');
+      }
+
       clearAllClasses();
       clearAllHomeworks();
-      if (signOut) signOut();
+      if (signOut) await signOut();
       router.push('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting account:', error);
+      alert(error.message || 'Failed to delete account. Please try again.');
       setIsDeleting(false);
     }
   };

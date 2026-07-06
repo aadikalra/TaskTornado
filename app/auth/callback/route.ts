@@ -3,8 +3,8 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  const cookieStore = await cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore as any });
 
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');
@@ -13,6 +13,6 @@ export async function GET(req: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(new URL('/dashboard', req.url));
+  const next = searchParams.get('next') || '/dashboard';
+  return NextResponse.redirect(new URL(next, req.url));
 }

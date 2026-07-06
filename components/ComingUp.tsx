@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { format, isToday, isTomorrow, differenceInCalendarDays } from 'date-fns';
 import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
-import { schoolYear2025_2026 } from '@/data/schoolEvents';
+import { schoolYear2026_2027 } from '@/data/schoolEvents';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
 type UpcomingItem = {
@@ -16,10 +16,10 @@ type UpcomingItem = {
     classAccent: string;      // header/text color
 };
 
-export const ComingUp = () => {
+export const useUpcomingItems = () => {
     const { homeworks, tests, classes } = useClassContext();
 
-    const upcomingItems = React.useMemo(() => {
+    return React.useMemo(() => {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const items: UpcomingItem[] = [];
@@ -65,7 +65,7 @@ export const ComingUp = () => {
         });
 
         // Add school events (no class, use emerald)
-        schoolYear2025_2026.forEach(event => {
+        schoolYear2026_2027.forEach(event => {
             const date = new Date(event.startDate);
             if (date >= today) {
                 items.push({
@@ -84,6 +84,12 @@ export const ComingUp = () => {
         items.sort((a, b) => a.date.getTime() - b.date.getTime());
         return items.slice(0, 8);
     }, [homeworks, tests, classes]);
+};
+
+export const ComingUp = () => {
+    const upcomingItems = useUpcomingItems();
+
+    if (upcomingItems.length === 0) return null;
 
     const getDateLabel = (date: Date) => {
         if (isToday(date)) return 'Today';
@@ -173,45 +179,35 @@ export const ComingUp = () => {
 
             {/* Items list */}
             <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 -mr-1 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-gray-700">
-                {upcomingItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center space-y-2 opacity-40">
-                        <div className="w-10 h-10 rounded-full bg-blue-500/5 flex items-center justify-center border border-blue-500/10">
-                            <HugeIcon name="CheckList" size={20} className="text-blue-500" />
-                        </div>
-                        <p className="text-xs font-bold text-blue-700 dark:text-blue-400 tracking-tight uppercase">Nothing coming up</p>
-                        <p className="text-[10px] text-blue-600/60 dark:text-blue-400/50 max-w-[120px] mx-auto leading-tight">All caught up! Time to relax or get ahead.</p>
-                    </div>
-                ) : (
-                    upcomingItems.map(item => (
+                {upcomingItems.map(item => (
+                    <div
+                        key={item.id}
+                        className="flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-blue-700/5 dark:hover:bg-blue-400/5 transition-colors group"
+                    >
+                        {/* Icon — colored by class */}
                         <div
-                            key={item.id}
-                            className="flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-blue-700/5 dark:hover:bg-blue-400/5 transition-colors group"
+                            className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
+                            style={{ backgroundColor: `${item.classColor}40`, color: item.classAccent }}
                         >
-                            {/* Icon — colored by class */}
-                            <div
-                                className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
-                                style={{ backgroundColor: `${item.classColor}40`, color: item.classAccent }}
-                            >
-                                {getIcon(item.type)}
-                            </div>
-
-                            {/* Title + Class */}
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 truncate leading-tight">
-                                    {item.title}
-                                </p>
-                                <p className="text-[11px] truncate" style={{ color: item.classAccent }}>
-                                    {item.className}
-                                </p>
-                            </div>
-
-                            {/* Date */}
-                            <span className={`text-[11px] shrink-0 ${getDateColor(item.date)}`}>
-                                {getDateLabel(item.date)}
-                            </span>
+                            {getIcon(item.type)}
                         </div>
-                    ))
-                )}
+
+                        {/* Title + Class */}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 truncate leading-tight">
+                                {item.title}
+                            </p>
+                            <p className="text-[11px] truncate" style={{ color: item.classAccent }}>
+                                {item.className}
+                            </p>
+                        </div>
+
+                        {/* Date */}
+                        <span className={`text-[11px] shrink-0 ${getDateColor(item.date)}`}>
+                            {getDateLabel(item.date)}
+                        </span>
+                    </div>
+                ))}
             </div>
         </div>
     );
