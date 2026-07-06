@@ -10,6 +10,7 @@ import { HugeIcon } from '@/lib/huge-icon-map';
 import { getBlockedError } from '@/lib/blockedNames';
 import confetti from 'canvas-confetti';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
+import Image from 'next/image';
 
 // Typing effect component using the signature sans font
 const TypewriterText = ({ text, onComplete, delay = 30 }: { text: string; onComplete?: () => void; delay?: number }) => {
@@ -226,9 +227,32 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-[#0a0f1d] dark:via-[#090d1a] dark:to-[#03050c] text-[#275085] dark:text-[#a0c3ff] flex flex-col justify-between items-center selection:bg-[#275085] dark:selection:bg-[#a0c3ff] selection:text-white dark:selection:text-[#0a0f1d] font-sans pb-12 pt-20 px-4 md:px-8">
-      {/* Main Conversation Container */}
-      <div ref={containerRef} className="max-w-[600px] w-full flex-1 flex flex-col justify-center py-12">
+    <div className="min-h-screen bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-[#0a0f1d] dark:via-[#090d1a] dark:to-[#03050c] text-[#275085] dark:text-[#a0c3ff] flex flex-col justify-center selection:bg-[#275085] dark:selection:bg-[#a0c3ff] selection:text-white dark:selection:text-[#0a0f1d] font-sans pb-12 pt-20 px-4 md:px-8">
+      <div className="flex-1 w-full max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
+        
+        {/* Left Section: Hero illustration */}
+        <div className="hidden md:flex flex-1 flex-col items-start justify-center pr-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="w-full max-w-[480px]"
+          >
+            <Image
+              src="/signup-hero.png"
+              alt="Student using TaskTornado"
+              width={800}
+              height={800}
+              className="w-full h-auto max-h-[55vh] object-contain object-left drop-shadow-sm"
+              priority
+            />
+          </motion.div>
+        </div>
+
+        {/* Right Section: Form Container */}
+        <div className="flex-1 max-w-[500px] w-full flex flex-col justify-center space-y-8">
+          {/* Main Conversation Container */}
+          <div ref={containerRef} className="w-full flex-1 flex flex-col justify-center py-12">
         <AnimatePresence mode="wait">
           {!isCompleted ? (
             <motion.div
@@ -679,16 +703,19 @@ export default function SignUpPage() {
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </div>
+          </div>
 
-      {/* Footer Info */}
-      <div className="max-w-[600px] w-full mt-12 text-center">
-        <p className="font-sans text-xs text-[#275085]/50 dark:text-[#a0c3ff]/50">
-          Already have an account?{' '}
-          <Link href="/login" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
-            Sign in
-          </Link>
-        </p>
+          {/* Footer Info */}
+          <div className="w-full text-center">
+            <p className="font-sans text-xs text-[#275085]/50 dark:text-[#a0c3ff]/50">
+              Already have an account?{' '}
+              <Link href="/login" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
   );

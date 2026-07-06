@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 // Google AI Studio API configuration
 const GOOGLE_AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
@@ -7,13 +8,6 @@ const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
 // Rate limiting: 30 requests per minute for translation
 const RATE_LIMIT_PER_MINUTE = 30;
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
-
-// Enable CORS
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
 
 // Rate limiting function
 function checkRateLimit(clientIP: string): boolean {
@@ -43,21 +37,22 @@ function getClientIP(request: NextRequest): string {
     return forwarded?.split(',')[0] || realIP || 'unknown';
 }
 
-// Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
-    return new NextResponse(null, {
-        status: 204,
-        headers: {
-            ...corsHeaders,
-        },
-    });
-}
-
 // Supported languages with their codes
 import { SUPPORTED_LANGUAGES } from '../../../config/languages';
 
 export async function POST(req: NextRequest) {
     try {
+        // ── Auth gate: verify the user has a valid Supabase session ──
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Unauthorized', details: 'You must be signed in to use translation features.' },
+                { status: 401 }
+            );
+        }
+
         const body = await req.json();
         const { text, sourceLanguage, targetLanguage } = body;
 
@@ -70,7 +65,6 @@ export async function POST(req: NextRequest) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    ...corsHeaders,
                 },
             });
         }
@@ -87,7 +81,7 @@ export async function POST(req: NextRequest) {
                 status: 429,
                 headers: {
                     'Content-Type': 'application/json',
-                    ...corsHeaders,
+
                 },
             });
         }
@@ -100,7 +94,7 @@ export async function POST(req: NextRequest) {
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json',
-                    ...corsHeaders,
+
                 },
             });
         }
@@ -117,7 +111,7 @@ export async function POST(req: NextRequest) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    ...corsHeaders,
+
                 },
             });
         }
@@ -186,7 +180,7 @@ Structure your response exactly as follows:
                 status: 502,
                 headers: {
                     'Content-Type': 'application/json',
-                    ...corsHeaders,
+
                 },
             });
         }
@@ -207,7 +201,7 @@ Structure your response exactly as follows:
                 status: response.status,
                 headers: {
                     'Content-Type': 'application/json',
-                    ...corsHeaders,
+
                 },
             });
         }
@@ -266,7 +260,7 @@ Structure your response exactly as follows:
                     'Content-Type': 'text/plain; charset=utf-8',
                     'Cache-Control': 'no-cache',
                     'Connection': 'keep-alive',
-                    ...corsHeaders,
+
                 },
             }
         );
@@ -279,7 +273,6 @@ Structure your response exactly as follows:
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
-                ...corsHeaders,
             },
         });
     }

@@ -5,6 +5,7 @@ import { GamificationProvider } from '@/context/GamificationContext';
 import { ClassProvider, useClassContext } from '@/context/ClassContext';
 import { Class, Homework, Test } from '@/context/ClassContext';
 import MainApp from '@/components/MainApp';
+import { MainAppProvider } from '@/context/MainAppContext';
 
 interface DashboardClientProps {
   initialClasses: Class[];
@@ -16,7 +17,9 @@ function GamificationProviderWrapper() {
   const { classes, homeworks } = useClassContext();
   return (
     <GamificationProvider homeworks={homeworks} classes={classes}>
-      <MainApp />
+      <MainAppProvider>
+        <MainApp />
+      </MainAppProvider>
     </GamificationProvider>
   )
 }

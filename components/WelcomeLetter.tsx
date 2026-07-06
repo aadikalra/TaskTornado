@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
 interface WelcomeLetterProps {
@@ -164,9 +165,11 @@ export default function WelcomeLetter({ isOpen, onClose }: WelcomeLetterProps) {
                   textShadow: '0 1px 2px rgba(0,0,0,0.25)',
                 }}
               >
-                <img
+                <Image
                   src="/TaskTornadoDark.svg"
                   alt="TaskTornado"
+                  width={28}
+                  height={28}
                   style={{
                     width: '28px',
                     height: '28px',

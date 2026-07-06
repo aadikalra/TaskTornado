@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Settings, Link2, Users, Home, Menu, X } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -66,8 +67,8 @@ export default function GuardianNavbar() {
                     {/* Logo */}
                     <button onClick={() => handleNavClick('/guardian/dashboard')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
                         <div className="relative w-7 h-7 sm:w-8 sm:h-8">
-                            <img src="/TaskTornado.svg" alt="TaskTornado Logo" className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden" />
-                            <img src="/TaskTornadoDark.svg" alt="TaskTornado Logo" className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block" />
+                            <Image src="/TaskTornado.svg" alt="TaskTornado Logo" width={32} height={32} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden" />
+                            <Image src="/TaskTornadoDark.svg" alt="TaskTornado Logo" width={32} height={32} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block" />
                         </div>
                         <span className="text-[#275085] dark:text-blue-200 font-bold text-base sm:text-lg tracking-tight">TaskTornado</span>
                     </button>

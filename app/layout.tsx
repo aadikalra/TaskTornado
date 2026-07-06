@@ -2,17 +2,8 @@ import { Geist, Geist_Mono, Inter, Nunito_Sans, Edu_NSW_ACT_Cursive } from 'next
 
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { ClassProvider } from '@/context/ClassContext';
-import { DataProvider } from '@/context/DataContext';
-import { SearchProvider } from '@/context/SearchContext';
-import { AIProvider } from '@/context/AIContext';
-import { WebSavesProvider } from '@/context/WebSavesContext';
-import { StudyGroupsProvider } from '@/context/StudyGroupsContext';
 import { DarkModeProvider } from '@/context/DarkModeContext';
 import { ToastProvider } from '@/context/ToastContext';
-import { UpgradeProvider } from '@/context/UpgradeContext';
-import AuthWrapper from '@/components/AuthWrapper';
-import { ClientLayout } from './ClientLayout';
 import React from 'react';
 
 const inter = Inter({
@@ -83,25 +74,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${nunitoSans.variable} ${eduNswActCursive.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
         <AuthProvider>
           <DarkModeProvider>
-            <ClassProvider>
-              <DataProvider>
-                <SearchProvider>
-                  <AIProvider>
-                    <WebSavesProvider>
-                      <StudyGroupsProvider>
-                        <ToastProvider>
-                          <UpgradeProvider>
-                            <AuthWrapper>
-                              <ClientLayout>{children}</ClientLayout>
-                            </AuthWrapper>
-                          </UpgradeProvider>
-                        </ToastProvider>
-                      </StudyGroupsProvider>
-                    </WebSavesProvider>
-                  </AIProvider>
-                </SearchProvider>
-              </DataProvider>
-            </ClassProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </DarkModeProvider>
         </AuthProvider>
       </body>

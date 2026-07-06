@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { useClassContext } from '@/context/ClassContext';
 import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
@@ -419,9 +420,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                       transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
                       className="w-20 h-20 bg-[#ebf6b5]/60 dark:bg-sky-500/15 rounded-3xl flex items-center justify-center mb-6 border border-[#d4e88e]/40 dark:border-sky-500/20"
                     >
-                      <img
+                      <Image
                         src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
                         alt="TaskTornado"
+                        width={40}
+                        height={40}
                         className="w-10 h-10"
                       />
                     </motion.div>
@@ -931,9 +934,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         {currentStep !== 'welcome' && (
           <div className="flex items-center justify-between px-5 py-4 border-b border-sky-100/60 dark:border-gray-800">
             <div className="flex items-center gap-2.5">
-              <img
+              <Image
                 src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
                 alt="TaskTornado"
+                width={20}
+                height={20}
                 className="w-5 h-5"
               />
               <h1 className="text-lg font-bold text-sky-900 dark:text-white">

@@ -1,0 +1,131 @@
+▲ Next.js 16.2.2 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  ✓ optimizeCss
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 27.2s
+  Running TypeScript ...
+  Finished TypeScript in 33.1s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/98) ...
+  Generating static pages using 11 workers (24/98) 
+  Generating static pages using 11 workers (48/98) 
+  Generating static pages using 11 workers (73/98) 
+✓ Generating static pages using 11 workers (98/98) in 582ms
+  Finalizing page optimization ...
+
+Route (app)                               Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ○ /ai-guidelines
+├ ƒ /api/ai
+├ ƒ /api/ai/check-worthiness
+├ ƒ /api/ai/command
+├ ƒ /api/ai/copilot
+├ ƒ /api/auth/classroom-session
+├ ƒ /api/auth/delete-account
+├ ƒ /api/auth/gmail-session
+├ ƒ /api/auth/google-classroom
+├ ƒ /api/auth/google-classroom-init
+├ ƒ /api/auth/google-gmail
+├ ƒ /api/auth/google-gmail-init
+├ ƒ /api/auth/google-signin
+├ ƒ /api/auth/link-google-account
+├ ƒ /api/auth/send-email
+├ ƒ /api/classroom/assignments
+├ ƒ /api/classroom/courses
+├ ƒ /api/classroom/coursework
+├ ƒ /api/classroom/debug-log
+├ ƒ /api/classroom/sync
+├ ƒ /api/gmail/messages
+├ ƒ /api/gmail/messages/[id]
+├ ƒ /api/grades/parse
+├ ƒ /api/guardian/ai-chat
+├ ƒ /api/guardian/child/[studentId]/data
+├ ƒ /api/guardian/children
+├ ƒ /api/guardian/generate-code
+├ ƒ /api/guardian/redeem-code
+├ ƒ /api/guardian/unlink
+├ ƒ /api/translate
+├ ƒ /api/uploadthing
+├ ƒ /auth/callback
+├ ƒ /auth/confirm
+├ ○ /blog
+├ ○ /blog/adaptive-quizzes
+├ ○ /blog/facehash
+├ ○ /blog/flashcards-reimagined
+├ ○ /blog/focus-timer
+├ ○ /blog/global-translation
+├ ○ /blog/grade-calculator
+├ ○ /blog/learning-center
+├ ○ /blog/learning-through-play
+├ ○ /blog/making-of-aurora
+├ ○ /blog/meet-aurora
+├ ○ /blog/peer-discussions
+├ ○ /blog/research-hub
+├ ○ /blog/smart-calendar
+├ ○ /blog/study-groups
+├ ○ /blog/the-command-center
+├ ○ /blog/writing-companion
+├ ƒ /calendar
+├ ○ /changelog                                    5m      1y
+├ ƒ /classes/edit/[id]
+├ ○ /color-match
+├ ○ /complete-signup
+├ ƒ /dashboard
+├ ○ /discussions
+├ ○ /features
+├ ○ /flashcards
+├ ○ /forgot-password
+├ ○ /games
+├ ○ /grade-calculator
+├ ○ /groups
+├ ƒ /groups/[groupId]
+├ ƒ /groups/join/[inviteId]
+├ ○ /guardian/dashboard
+├ ○ /guardian/link
+├ ○ /guardians
+├ ○ /hash
+├ ○ /hash/eyes
+├ ○ /home2
+├ ƒ /homework/[id]
+├ ƒ /homework/edit/[id]
+├ ○ /legal/privacy
+├ ○ /legal/terms
+├ ○ /letter
+├ ○ /login
+├ ○ /mail
+├ ○ /math-sprint
+├ ○ /memory-match
+├ ○ /pricing
+├ ○ /quiz
+├ ○ /reaction-time
+├ ○ /reset-password
+├ ○ /settings
+├ ○ /signup
+├ ○ /signup-old
+├ ○ /snake
+├ ○ /task-tower
+├ ○ /teachers
+├ ○ /test-bulkadd
+├ ○ /tests
+├ ƒ /tests/[id]
+├ ƒ /tests/edit/[id]
+├ ○ /translate
+├ ○ /tutorials
+├ ○ /tutorials/csv-import
+├ ○ /tutorials/onboarding
+├ ○ /tutorials/recurring-homeworks
+├ ○ /tutorials/starring-homeworks
+├ ○ /tutorials/test-details
+├ ○ /typing-speed
+├ ○ /web-saves
+├ ○ /word-scramble
+└ ○ /writing-assist
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

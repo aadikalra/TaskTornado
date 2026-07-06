@@ -66,10 +66,7 @@ async function testGoogleUserDetection() {
     console.log(`👤 User ${index + 1}: ${user.email}`);
     
     // Test the same logic used in AuthContext
-    const isGoogleUser = user.app_metadata?.provider === 'google' || 
-                       user.user_metadata?.provider === 'google' ||
-                       user.email?.endsWith('@gmail.com') || 
-                       user.user_metadata?.email_verified;
+    const isGoogleUser = user.app_metadata?.provider === 'google';
     
     console.log(`   Google User: ${isGoogleUser ? '✅ Yes' : '❌ No'}`);
     console.log(`   Provider (app_metadata): ${user.app_metadata?.provider || 'None'}`);

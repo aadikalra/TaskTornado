@@ -276,35 +276,39 @@ export const db = {
     if (error) throw error;
   },
 
-  // User profile operations using Supabase Auth
+  // User profile operations — uses the profiles table (RLS-safe) and
+  // supabase.auth.getUser() instead of admin endpoints that require the
+  // service-role key.
   getUserProfile: async (userId: string) => {
-    // Get user from Supabase Auth
-    const { data: { users }, error } = await supabase.auth.admin.listUsers();
+    // 1. Read the profile row (respects RLS — users can only read their own)
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-    if (error) throw error;
+    if (profileError) throw profileError;
 
-    const user = users?.find(u => u.id === userId);
-    if (!user) throw new Error('User not found');
+    // 2. Get auth metadata for the currently logged-in user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
 
     return {
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || user.user_metadata?.name,
-      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
-      created_at: user.created_at,
-      last_sign_in_at: user.last_sign_in_at,
-      email_confirmed_at: user.email_confirmed_at,
-      is_google_user: user.app_metadata?.provider === 'google' ||
-        user.user_metadata?.provider === 'google' ||
-        user.email?.endsWith('@gmail.com') ||
-        user.user_metadata?.email_verified
+      id: profile.id,
+      email: profile.email ?? user?.email,
+      full_name: profile.full_name ?? user?.user_metadata?.full_name ?? user?.user_metadata?.name,
+      avatar_url: user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture ?? null,
+      created_at: user?.created_at ?? null,
+      last_sign_in_at: user?.last_sign_in_at ?? null,
+      email_confirmed_at: user?.email_confirmed_at ?? null,
+      is_google_user: user?.app_metadata?.provider === 'google',
     };
   },
 
-  updateUserProfile: async (userId: string, updates: { full_name?: string; avatar_url?: string }) => {
-    // Update user metadata in Supabase Auth
-    const { data, error } = await supabase.auth.admin.updateUserById(userId, {
-      user_metadata: updates
+  updateUserProfile: async (_userId: string, updates: { full_name?: string; avatar_url?: string }) => {
+    // Update the current user's auth metadata (works with the anon key)
+    const { data, error } = await supabase.auth.updateUser({
+      data: updates,
     });
 
     if (error) throw error;

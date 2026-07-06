@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Menu, X, MoreHorizontal } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -183,14 +184,18 @@ export default function ReboundNavbar() {
                     {/* Logo */}
                     <button onClick={() => handleNavClick('/')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
                         <div className="relative w-7 h-7 sm:w-8 sm:h-8">
-                            <img
+                            <Image
                                 src="/TaskTornado.svg"
                                 alt="TaskTornado Logo"
+                                width={32}
+                                height={32}
                                 className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden"
                             />
-                            <img
+                            <Image
                                 src="/TaskTornadoDark.svg"
                                 alt="TaskTornado Logo"
+                                width={32}
+                                height={32}
                                 className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block"
                             />
                         </div>

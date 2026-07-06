@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { createClient } from '@/lib/supabase/server';
 // Google AI Studio API configuration
 const GOOGLE_AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
@@ -11,13 +12,6 @@ const OLLAMA_API_KEY = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_AP
 // Rate limiting: 60 requests per minute
 const RATE_LIMIT_PER_MINUTE = 60;
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
-
-// Enable CORS
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
 
 // Google AI Studio request/response types
 interface GeminiMessage {
@@ -241,18 +235,19 @@ function evaluateExpression(expr: string): string {
   }
 }
 
-// Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      ...corsHeaders,
-    },
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate: verify the user has a valid Supabase session ──
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', details: 'You must be signed in to use AI features.' },
+        { status: 401 }
+      );
+    }
+
     // Parse the incoming request body
     const body = await req.json();
     const { prompt, messages, model = 'gemma-4-26b-a4b-it', action = 'chat' } = body;
@@ -262,15 +257,11 @@ export async function POST(req: NextRequest) {
 
     // Check rate limit
     if (!checkRateLimit(clientIP)) {
-      return new NextResponse(JSON.stringify({
+      return NextResponse.json({
         error: 'Rate limit exceeded',
         details: `Maximum ${RATE_LIMIT_PER_MINUTE} requests per minute allowed`
-      }), {
+      }, {
         status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
       });
     }
 
@@ -289,7 +280,7 @@ export async function POST(req: NextRequest) {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            ...corsHeaders,
+  
           },
         });
       }
@@ -302,28 +293,13 @@ export async function POST(req: NextRequest) {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            ...corsHeaders,
+  
           },
         });
       }
     }
 
-    // Log parameters for debugging
-    console.log('API Request:', {
-      model,
-      isOllamaModel,
-      action,
-      hasKey: !!OLLAMA_API_KEY,
-      keyPrefix: OLLAMA_API_KEY ? OLLAMA_API_KEY.substring(0, 4) + '...' : 'none'
-    });
 
-    // Check if API key is configured for the appropriate service
-    console.log('Incoming request:', {
-      action,
-      model,
-      hasPrompt: !!prompt,
-      messageCount: messages?.length || 0,
-    });
 
     // Convert messages to Gemini format
     const convertToGeminiMessages = (messages: any[]): GeminiMessage[] => {
@@ -331,8 +307,6 @@ export async function POST(req: NextRequest) {
 
       for (const msg of messages) {
         const { role, content, images } = msg;
-
-        console.log('Converting message:', { role, hasContent: !!content, hasImages: !!images });
 
         // Convert role from 'assistant'/'system' to 'model'/'user' for Gemini
         let geminiRole: 'user' | 'model';
@@ -344,8 +318,6 @@ export async function POST(req: NextRequest) {
         } else {
           geminiRole = role as 'user' | 'model';
         }
-
-        console.log('Converted role:', role, '->', geminiRole);
 
         const parts: any[] = [];
 
@@ -374,7 +346,6 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      console.log('Final Gemini messages:', geminiMessages.length, 'messages');
       return geminiMessages;
     };
 
@@ -420,7 +391,7 @@ export async function POST(req: NextRequest) {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
-            ...corsHeaders,
+
           },
         });
       }
@@ -432,14 +403,12 @@ export async function POST(req: NextRequest) {
         status: 400,
         headers: {
           'Content-Type': 'application/json',
-          ...corsHeaders,
         },
       });
     }
 
     if (!isOllamaModel) {
       // Handle Google AI Studio models with streaming using @google/genai
-      console.log('Sending streaming request to Google AI Studio via @google/genai:', { model });
 
       const ai = new GoogleGenAI({ apiKey: GOOGLE_AI_API_KEY });
       const encoder = new TextEncoder();
@@ -778,7 +747,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'text/plain; charset=utf-8',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            ...corsHeaders,
+
           },
         }
       );
@@ -850,7 +819,7 @@ export async function POST(req: NextRequest) {
           status: 502,
           headers: {
             'Content-Type': 'application/json',
-            ...corsHeaders,
+
           },
         });
       }
@@ -873,7 +842,7 @@ export async function POST(req: NextRequest) {
             status: 429,
             headers: {
               'Content-Type': 'application/json',
-              ...corsHeaders,
+  
             },
           });
         }
@@ -885,7 +854,7 @@ export async function POST(req: NextRequest) {
           status: response.status,
           headers: {
             'Content-Type': 'application/json',
-            ...corsHeaders,
+
           },
         });
       }
@@ -988,7 +957,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'text/plain; charset=utf-8',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            ...corsHeaders,
+
           },
         }
       );
@@ -1002,7 +971,6 @@ export async function POST(req: NextRequest) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        ...corsHeaders,
       },
     });
   }

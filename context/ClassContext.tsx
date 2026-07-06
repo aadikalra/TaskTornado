@@ -185,7 +185,6 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
       return;
     }
 
-    console.log('Fetching data for user:', user.id, 'isGoogleUser:', isGoogleUser);
     setLoading(true);
     setError(null);
 
@@ -360,7 +359,6 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
             },
             (payload: any) => {
               if (!isMounted) return;
-              console.log('Class change:', payload);
               if (payload.eventType === 'INSERT') {
                 setClasses(prev => [...prev, payload.new as Class]);
               } else if (payload.eventType === 'UPDATE') {
@@ -372,9 +370,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
               }
             }
           )
-          .subscribe(status => {
-            console.log('Class subscription status:', status);
-          });
+          .subscribe();
 
         // Subscribe to homework changes
         homeworkSubscription = supabase
@@ -388,12 +384,10 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
             },
             (payload: any) => {
               if (!isMounted) return;
-              console.log('Homework change:', payload);
               const eventType = payload.eventType.toLowerCase();
 
               if (eventType === 'insert') {
                 const newHomework = payload.new as any;
-                console.log('New homework received:', newHomework);
 
                 // Parse links if it's a string
                 let links: HomeworkLink[] = [];
@@ -462,9 +456,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
               }
             }
           )
-          .subscribe(status => {
-            console.log('Homework subscription status:', status);
-          });
+          .subscribe();
 
         // Subscribe to tests changes
         testsSubscription = supabase
@@ -572,9 +564,7 @@ export const ClassProvider = ({ children, initialClasses, initialHomeworks, init
               }
             }
           )
-          .subscribe(status => {
-            console.log('Tests subscription status:', status);
-          });
+          .subscribe();
 
       } catch (err) {
         console.error('Error setting up subscriptions:', err);

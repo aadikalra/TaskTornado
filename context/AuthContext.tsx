@@ -63,7 +63,6 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
         const savedCourse = await db.createClass(courseData);
         classId = savedCourse.id;
         savedCoursesCount++;
-        console.log(`✅ Saved Google Classroom course "${course.name}" to main classes database`);
       } else {
         // Find the existing course ID
         const existingCourse = existingCourses.find(c => c.name === course.name);
@@ -75,7 +74,6 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
         for (const assignment of item.assignments) {
           // Skip if homework with same title already exists
           if (existingHomeworkTitles.has(assignment.title)) {
-            console.log(`⏭️  Skipping assignment "${assignment.title}" - already exists in database`);
             continue;
           }
 
@@ -112,22 +110,11 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
 
           await db.createHomework(homeworkData);
           savedHomeworkCount++;
-          console.log(`✅ Saved Google Classroom assignment "${assignment.title}" to homework database`);
         }
       }
     }
 
-    if (savedCoursesCount > 0) {
-      console.log(`Successfully saved ${savedCoursesCount} new Google Classroom courses to main database`);
-    } else {
-      console.log('ℹ️  No new courses to save - all courses already exist');
-    }
 
-    if (savedHomeworkCount > 0) {
-      console.log(`Successfully saved ${savedHomeworkCount} new Google Classroom assignments to homework database`);
-    } else {
-      console.log('ℹ️  No new assignments to save - all assignments already exist');
-    }
   } catch (error) {
     console.error('Error saving courses and assignments to database:', error);
   }
@@ -136,13 +123,13 @@ async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
 async function checkGoogleUserAndLogClassroom(user: User) {
   try {
     // Check if user is from Google using auth metadata instead of profiles table
-    const isGoogleUser = user.app_metadata?.provider === 'google' ||
-      user.user_metadata?.provider === 'google' ||
-      user.email?.endsWith('@gmail.com') ||
-      user.user_metadata?.email_verified;
+    // Only check app_metadata.provider — this is the authoritative field
+    // Supabase sets during OAuth. Checking email domain or email_verified
+    // would false-positive for email/password users with @gmail.com addresses
+    // or any verified email.
+    const isGoogleUser = user.app_metadata?.provider === 'google';
 
     if (isGoogleUser) {
-      console.log('🎓 Google user detected - Checking Classroom API authorization...');
 
       // Check if Classroom API is authorized by looking for the classroom-auth cookie
       try {
@@ -156,17 +143,12 @@ async function checkGoogleUserAndLogClassroom(user: User) {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('📚 Google Classroom Data:');
-          console.table(data.formattedData);
-          console.log('✅ Successfully fetched Google Classroom data');
 
           // Also save courses to database if they don't already exist
           await saveCoursesToDatabase(user.id, data.formattedData);
         } else {
           const errorData = await response.json();
           if (response.status === 401 && errorData.message?.includes('No Google Classroom authentication found')) {
-            console.log('ℹ️  Google user detected, but Classroom API not authorized');
-            console.log('💡 User can authorize Classroom API access when needed');
             // Don't show an error - this is expected for many Google users
           } else {
             console.warn('⚠️  Unexpected error checking Classroom access:', errorData.message);
@@ -456,10 +438,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     full_name,
-    isGoogleUser: user?.app_metadata?.provider === 'google' ||
-      user?.user_metadata?.provider === 'google' ||
-      user?.email?.endsWith('@gmail.com') ||
-      user?.user_metadata?.email_verified || false,
+    isGoogleUser: user?.app_metadata?.provider === 'google' || false,
     accountType,
     isGuardian,
     linkedStudents,

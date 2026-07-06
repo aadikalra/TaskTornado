@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 // Supabase Send Email Auth Hook
 // Docs: https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook
@@ -36,14 +37,27 @@ export async function POST(req: NextRequest) {
     const hookSecret = process.env.SUPABASE_HOOK_SECRET;
     const signatureHeader = req.headers.get('x-supabase-signature');
 
-    if (hookSecret) {
+    // We must read the raw body for signature verification
+    const rawBody = await req.text();
+
     if (hookSecret) {
       if (!signatureHeader) {
-        console.warn('[send-email hook] Missing signature header, but bypassing for now');
-      } else {
-        console.log('[send-email hook] Signature header received, skipping cryptographic verification for now');
+        return NextResponse.json({ error: 'Missing signature header' }, { status: 401 });
       }
-    }
+
+      // Supabase signature can sometimes include 'v1=' prefix
+      const signature = signatureHeader.startsWith('v1=') 
+        ? signatureHeader.split('v1=')[1] 
+        : signatureHeader;
+
+      // Verify HMAC-SHA256 signature
+      const hmac = createHmac('sha256', hookSecret);
+      const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+      const checksum = Buffer.from(signature, 'utf8');
+
+      if (digest.length !== checksum.length || !timingSafeEqual(digest, checksum)) {
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
     }
 
     const resendApiKey = process.env.RESEND_API_KEY;
@@ -51,7 +65,7 @@ export async function POST(req: NextRequest) {
       throw new Error('Missing RESEND_API_KEY environment variable');
     }
 
-    const payload: SupabaseEmailHookPayload = await req.json();
+    const payload: SupabaseEmailHookPayload = JSON.parse(rawBody);
     const { user, email_data } = payload;
     const { email_action_type, token_hash, redirect_to, site_url } = email_data;
 
