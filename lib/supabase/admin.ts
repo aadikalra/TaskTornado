@@ -8,30 +8,36 @@ if (!supabaseUrl) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
 }
 
-if (!supabaseServiceKey) {
-  console.error('❌ Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
-  console.log('📋 To get user profiles from auth, you need the service role key.');
-  console.log('🔧 Add it to your .env.local file:');
-  console.log('   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key');
-  console.log('');
-  console.log('📍 Where to find it:');
-  console.log('   1. Go to your Supabase dashboard');
-  console.log('   2. Navigate to Project Settings → API');
-  console.log('   3. Copy the service_role (secret) key');
-  console.log('   4. Add it to your .env.local file');
-  process.exit(1);
+// Lazily create the admin client so that a missing key only throws at
+// runtime (when the client is actually used), not at build time when
+// Next.js imports this module during static page generation.
+let _adminClient: ReturnType<typeof createClient<Database>> | null = null;
+
+function getAdminClient() {
+  if (!supabaseServiceKey) {
+    throw new Error(
+      '❌ Missing SUPABASE_SERVICE_ROLE_KEY environment variable.\n' +
+      '📋 Add it to your deployment environment variables (e.g. Vercel dashboard)\n' +
+      '   or to your local .env.local file.\n' +
+      '📍 Find it in: Supabase Dashboard → Project Settings → API → service_role key'
+    );
+  }
+  if (!_adminClient) {
+    _adminClient = createClient<Database>(supabaseUrl!, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  }
+  return _adminClient;
 }
 
-export const supabaseAdmin = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient<Database>>, {
+  get(_target, prop) {
+    return (getAdminClient() as Record<string | symbol, unknown>)[prop];
+  },
+});
 
 // Function to get all auth users
 export async function getAllAuthUsers() {
