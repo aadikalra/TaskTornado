@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Map Supabase email action types to Resend template IDs
 const TEMPLATE_MAP: Record<string, string> = {
-  signup: '913e6ad3-6d96-4c49-a44f-a22312c58f80', // "Confirm Signup" template
+  signup: 'confirm-signup', // Using the template alias
   // Add more as you create them in Resend:
   // recovery: 'YOUR_RESET_PASSWORD_TEMPLATE_ID',
   // invite: 'YOUR_INVITE_TEMPLATE_ID',
@@ -32,14 +32,10 @@ interface SupabaseEmailHookPayload {
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Log signature for debugging
+    // 1. Verify the hook signature so only Supabase can call this endpoint
     const hookSecret = process.env.SUPABASE_HOOK_SECRET;
     const signatureHeader = req.headers.get('x-supabase-signature');
-    console.log('[send-email hook] Received x-supabase-signature:', signatureHeader);
-    console.log('[send-email hook] Configured SUPABASE_HOOK_SECRET:', hookSecret ? 'Present' : 'Missing');
 
-    // TEMPORARILY BYPASSED TO TEST CONNECTION
-    /*
     if (hookSecret) {
       if (!signatureHeader) {
         return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
@@ -54,7 +50,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized signature' }, { status: 401 });
       }
     }
-    */
 
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
@@ -91,10 +86,13 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL ?? 'noreply@voer.org',
         to: [user.email],
-        template_id: templateId,
-        variables: {
-          // Must match the variable names defined in your Resend template
-          ConfirmationURL: confirmationURL.toString(),
+        subject: 'Confirm your signup',
+        template: {
+          id: templateId,
+          variables: {
+            // Must match the variable names defined in your Resend template
+            ConfirmationURL: confirmationURL.toString(),
+          },
         },
       }),
     });
