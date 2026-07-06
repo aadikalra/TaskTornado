@@ -55,8 +55,16 @@ export async function POST(req: NextRequest) {
     const { user, email_data } = payload;
     const { email_action_type, token_hash, redirect_to, site_url } = email_data;
 
-    // 2. Build the confirmation URL (mirrors what Supabase would put in the template)
-    const confirmationURL = new URL(`${site_url}/auth/confirm`);
+    // 2. Build the confirmation URL 
+    // Supabase sometimes sets `site_url` in the payload to its own API domain.
+    // We enforce using the Vercel app URL in production or localhost in development.
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://task-tornado-aadi.vercel.app');
+    
+    // In dev, you might want this to be localhost
+    const finalBaseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : baseUrl;
+
+    const confirmationURL = new URL(`${finalBaseUrl}/auth/confirm`);
     confirmationURL.searchParams.set('token_hash', token_hash);
     confirmationURL.searchParams.set('type', 'email');
     if (redirect_to) {
