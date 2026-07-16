@@ -52,8 +52,8 @@ export default function LandingFooter() {
                     {/* Brand Column */}
                     <div className="lg:col-span-5 flex flex-col items-start px-0 lg:pr-12">
                         <Link href="/" className="inline-flex items-center gap-3 mb-6 group">
-                            <img src="/TaskTornado.svg" alt="Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 dark:hidden" />
-                            <img src="/TaskTornadoDark.svg" alt="Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 hidden dark:block" />
+                            <img src="/2.svg" alt="Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 dark:hidden" />
+                            <img src="/3.svg" alt="Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 hidden dark:block" />
                             <span className="text-xl font-bold tracking-tight text-[#275085] dark:text-[#4a9cdb]">
                                 Task Tornado
                             </span>

@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useClassContext, HomeworkLink } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Save, Loader2, Calendar as CalendarIcon, BookOpen, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -19,7 +20,8 @@ import { HomeworkLinkInput } from '@/components/HomeworkLinkInput';
 export default function EditHomeworkPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  const { homeworks, classes, updateHomework } = useClassContext();
+  const { classes } = useClassContext();
+  const { homeworks, updateHomework } = useHomeworkContext();
 
   const [formData, setFormData] = useState({
     title: '',

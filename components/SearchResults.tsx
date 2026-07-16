@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSearch } from '@/context/SearchContext';
 import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
+import { useTestContext } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { HugeIcon } from '@/lib/huge-icon-map';
@@ -105,7 +107,9 @@ interface SavedQuizSearchItem {
 
 export function SearchResults() {
   const { query, setQuery, closeSearch, isOpen } = useSearch();
-  const { classes, homeworks, tests } = useClassContext();
+  const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
+  const { tests } = useTestContext();
   const { user } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();

@@ -1,7 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useClassContext, type Homework, type Class } from '@/context/ClassContext';
+import { useClassContext, type Class } from '@/context/ClassContext';
+import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Edit, BookOpen, Link as LinkIcon, Repeat, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
@@ -12,7 +13,8 @@ const CLASS_COLORS = ['#DC2626', '#2563EB', '#D97706', '#16A34A', '#7C3AED', '#D
 
 export default function HomeworkDetailPage() {
   const { id } = useParams() as { id: string };
-  const { homeworks, classes } = useClassContext();
+  const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
   const [homework, setHomework] = useState<Homework | null>(null);
   const [classItem, setClassItem] = useState<Class | null>(null);
   const [loading, setLoading] = useState(true);

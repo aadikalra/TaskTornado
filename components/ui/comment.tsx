@@ -44,6 +44,7 @@ import {
   type TDiscussion,
   discussionPlugin,
 } from '@/components/editor/plugins/discussion-kit';
+import { AuraVideoIcon } from '@/components/ai-assistant/AuraVideoIcon';
 
 import { Editor, EditorContainer } from './editor';
 
@@ -54,6 +55,7 @@ export type TComment = {
   discussionId: string;
   isEdited: boolean;
   userId: string;
+  suggestedReplacement?: string;
 };
 
 export function Comment(props: {
@@ -166,6 +168,26 @@ export function Comment(props: {
     tf.comment.unsetMark({ id: comment.discussionId });
   };
 
+  const handleFixIt = () => {
+    if (!comment.suggestedReplacement) return;
+    
+    // Find the nodes with this comment mark
+    const nodes = editor.api.comment.nodes({ id: comment.discussionId });
+    if (nodes && nodes.length > 0) {
+      // Create a range covering all these nodes
+      const firstPath = nodes[0][1];
+      const lastPath = nodes[nodes.length - 1][1];
+      const range = {
+        anchor: { path: firstPath, offset: 0 },
+        focus: { path: lastPath, offset: nodes[nodes.length - 1][0].text.length },
+      };
+      
+      editor.tf.select(range);
+      editor.tf.insertText(comment.suggestedReplacement);
+      onResolveComment();
+    }
+  };
+
   const isFirst = index === 0;
   const isLast = index === discussionLength - 1;
   const isEditing = editingId && editingId === comment.id;
@@ -179,10 +201,16 @@ export function Comment(props: {
       onMouseLeave={() => setHovering(false)}
     >
       <div className="relative flex items-center">
-        <Avatar className="size-5">
-          <AvatarImage alt={userInfo?.name} src={userInfo?.avatarUrl} />
-          <AvatarFallback>{userInfo?.name?.[0]}</AvatarFallback>
-        </Avatar>
+        {userInfo?.id === 'aurora' ? (
+          <div className="scale-[0.6] -ml-2 -mr-1">
+            <AuraVideoIcon selectedModel="gemini-2.5-flash" />
+          </div>
+        ) : (
+          <Avatar className="size-5">
+            <AvatarImage alt={userInfo?.name} src={userInfo?.avatarUrl} />
+            <AvatarFallback>{userInfo?.name?.[0]}</AvatarFallback>
+          </Avatar>
+        )}
         <h4 className="mx-2 font-semibold text-sm leading-none">
           {/* Replace to your own backend or refer to potion */}
           {userInfo?.name}
@@ -283,6 +311,22 @@ export function Comment(props: {
             )}
           </EditorContainer>
         </Plate>
+
+        {comment.suggestedReplacement && (
+          <div className="mt-3 bg-sky-50 dark:bg-sky-950 p-2 rounded-md border border-sky-100 dark:border-sky-900 shadow-sm relative z-10 w-full mb-2 ml-1">
+            <p className="text-[10px] uppercase font-bold text-sky-600 mb-1">AI Suggestion</p>
+            <div className="text-sm text-green-700 dark:text-green-400 mb-3 font-medium">
+              {comment.suggestedReplacement}
+            </div>
+            <Button 
+              size="sm" 
+              className="w-full h-7 text-xs bg-sky-500 hover:bg-sky-600 text-white"
+              onClick={handleFixIt}
+            >
+              Apply Fix
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

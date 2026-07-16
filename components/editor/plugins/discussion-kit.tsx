@@ -116,6 +116,11 @@ const usersData: Record<
     avatarUrl: avatarUrl('alice6'),
     name: 'Alice',
   },
+  aurora: {
+    id: 'aurora',
+    avatarUrl: '', // Uses AuraVideoIcon instead
+    name: 'Aurora',
+  },
   bob: {
     id: 'bob',
     avatarUrl: avatarUrl('bob4'),

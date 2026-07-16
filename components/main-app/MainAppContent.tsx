@@ -91,6 +91,8 @@ import { useToast } from '@/context/ToastContext';
 import { useUpgrade } from '@/context/UpgradeContext';
 import { useGamification } from '@/context/GamificationContext';
 import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
+import { useTestContext } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
 import EnhancedTestCard from '@/components/EnhancedTestCard';
@@ -105,27 +107,9 @@ export const MainAppContent = () => {
   const { handlePlanLimitError } = useUpgrade();
   const { data: gamificationData, addXP } = useGamification();
   const { getContainerClass } = useWideLayout();
-  const {
-    classes,
-    homeworks,
-    tests,
-    loading,
-    error,
-    addClass,
-    addHomework,
-    addTest,
-    addRecurringHomework,
-    toggleHomework,
-    togglePinHomework,
-    deleteClass,
-    deleteHomework,
-    deleteRecurringSeries,
-    deleteTest,
-    updateHomeworkDueDate,
-    updateHomework,
-    updateTestDueDate,
-    markTestComplete
-  } = useClassContext();
+  const { classes, addClass, deleteClass, loading, error } = useClassContext();
+  const { homeworks, addHomework, addRecurringHomework, toggleHomework, togglePinHomework, deleteHomework, deleteRecurringSeries, updateHomeworkDueDate, updateHomework } = useHomeworkContext();
+  const { tests, addTest, deleteTest, updateTestDueDate, markTestComplete } = useTestContext();
 
 
   const {
@@ -693,7 +677,7 @@ export const MainAppContent = () => {
                 className={`mb-3 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
                 onClick={!showTestsInClassCards ? () => handleToggleClasses(!showClasses) : undefined}
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
                       <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
@@ -717,7 +701,7 @@ export const MainAppContent = () => {
                       {homeworks.length > 0 && (
                         <>
                           <div
-                            className="relative flex items-center h-8"
+                            className="relative flex items-center h-10 sm:h-8"
                             onClick={(e) => {
                               if (!isHomeworkSearchExpanded) {
                                 setIsHomeworkSearchExpanded(true);
@@ -732,7 +716,7 @@ export const MainAppContent = () => {
                             <motion.div
                               initial={false}
                               animate={{
-                                width: isHomeworkSearchExpanded || homeworkSearch ? (window.innerWidth < 640 ? 128 : 160) : 32
+                                width: isHomeworkSearchExpanded || homeworkSearch ? (window.innerWidth < 400 ? 110 : (window.innerWidth < 640 ? 128 : 160)) : (window.innerWidth < 640 ? 40 : 32)
                               }}
                               className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-l-full border-r border-sky-500/20 dark:border-sky-400/20 transition-all overflow-hidden"
                               style={{ minWidth: isHomeworkSearchExpanded || homeworkSearch ? undefined : '32px' }}
@@ -758,7 +742,7 @@ export const MainAppContent = () => {
                           </div>
 
                           <Select value={homeworkFilter} onValueChange={(value: string) => setHomeworkFilter(value)}>
-                            <SelectTrigger size="sm" hideIcon className="w-8 h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
+                            <SelectTrigger size="sm" hideIcon className="w-10 h-10 sm:w-8 sm:h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
                               <HugeIcon name="Filter" size={14} className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
                             </SelectTrigger>
                             <SelectContent className="w-56 bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl p-1.5" position="popper" sideOffset={4}>
@@ -790,12 +774,12 @@ export const MainAppContent = () => {
                             }}
                             whileHover="hover"
                             initial="initial"
-                            className={`group relative flex items-center h-8 rounded-full transition-all active:scale-95 overflow-hidden border-0 ${isSelectionMode
+                            className={`group relative flex items-center h-10 sm:h-8 rounded-full transition-all active:scale-95 overflow-hidden border-0 ${isSelectionMode
                                 ? 'text-white bg-sky-500 dark:bg-sky-600'
                                 : 'text-sky-700 dark:text-sky-300 bg-sky-500/25 dark:bg-sky-400/20'
                               }`}
                           >
-                            <div className="flex items-center justify-center w-8 h-8 shrink-0">
+                            <div className="flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 shrink-0">
                               {isSelectionMode ? (
                                 <HugeIcon name="CheckmarkCircle02" size={14} className="h-3.5 w-3.5" />
                               ) : (
@@ -1267,7 +1251,7 @@ export const MainAppContent = () => {
                 className={`mb-3 group cursor-pointer`}
                 onClick={() => handleToggleTests(!showTests)}
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
                       <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
@@ -1287,7 +1271,7 @@ export const MainAppContent = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div 
-                        className="relative flex items-center h-8"
+                        className="relative flex items-center h-10 sm:h-8"
                         onClick={(e) => {
                           if (!isTestSearchExpanded) {
                             setIsTestSearchExpanded(true);
@@ -1302,7 +1286,7 @@ export const MainAppContent = () => {
                         <motion.div
                           initial={false}
                           animate={{
-                            width: isTestSearchExpanded || testSearch ? (window.innerWidth < 640 ? 128 : 160) : 32
+                            width: isTestSearchExpanded || testSearch ? (window.innerWidth < 400 ? 110 : (window.innerWidth < 640 ? 128 : 160)) : (window.innerWidth < 640 ? 40 : 32)
                           }}
                           className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-l-full border-r border-sky-500/20 dark:border-sky-400/20 transition-all overflow-hidden"
                           style={{ minWidth: isTestSearchExpanded || testSearch ? undefined : '32px' }}
@@ -1328,7 +1312,7 @@ export const MainAppContent = () => {
                       </div>
 
                       <Select value={testFilter} onValueChange={(value: string) => handleTestFilterChange(value)}>
-                        <SelectTrigger size="sm" hideIcon className="w-8 h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
+                        <SelectTrigger size="sm" hideIcon className="w-10 h-10 sm:w-8 sm:h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
                           <HugeIcon name="Filter" size={14} className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
                         </SelectTrigger>
                         <SelectContent className="w-56 bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl p-1.5" position="popper" sideOffset={4}>
@@ -1353,9 +1337,9 @@ export const MainAppContent = () => {
                       <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1.5 mr-1.5" />
                       <motion.div
                         initial={false}
-                        animate={{ width: isAddTestExpanded ? 72 : 32 }}
+                        animate={{ width: isAddTestExpanded ? (window.innerWidth < 640 ? 80 : 72) : (window.innerWidth < 640 ? 40 : 32) }}
                         transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                        className="relative h-8 flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full overflow-hidden cursor-pointer shrink-0"
+                        className="relative h-10 sm:h-8 flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full overflow-hidden cursor-pointer shrink-0"
                         onMouseEnter={() => setIsAddTestExpanded(true)}
                         onMouseLeave={() => setIsAddTestExpanded(false)}
                         onClick={(e) => {

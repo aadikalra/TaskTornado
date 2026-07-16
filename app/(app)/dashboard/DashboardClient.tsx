@@ -3,6 +3,8 @@
 import { ToastProvider } from '@/context/ToastContext';
 import { GamificationProvider } from '@/context/GamificationContext';
 import { ClassProvider, useClassContext } from '@/context/ClassContext';
+import { HomeworkProvider, useHomeworkContext } from '@/context/HomeworkContext';
+import { TestProvider } from '@/context/TestContext';
 import { Class, Homework, Test } from '@/context/ClassContext';
 import MainApp from '@/components/MainApp';
 import { MainAppProvider } from '@/context/MainAppContext';
@@ -14,7 +16,8 @@ interface DashboardClientProps {
 }
 
 function GamificationProviderWrapper() {
-  const { classes, homeworks } = useClassContext();
+  const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
   return (
     <GamificationProvider homeworks={homeworks} classes={classes}>
       <MainAppProvider>
@@ -31,12 +34,12 @@ export default function DashboardClient({
 }: DashboardClientProps) {
   return (
     <ToastProvider>
-      <ClassProvider
-        initialClasses={initialClasses}
-        initialHomeworks={initialHomeworks}
-        initialTests={initialTests}
-      >
-        <GamificationProviderWrapper />
+      <ClassProvider initialClasses={initialClasses}>
+        <HomeworkProvider initialHomeworks={initialHomeworks}>
+          <TestProvider initialTests={initialTests}>
+            <GamificationProviderWrapper />
+          </TestProvider>
+        </HomeworkProvider>
       </ClassProvider>
     </ToastProvider>
   );

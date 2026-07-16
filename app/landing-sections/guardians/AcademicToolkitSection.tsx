@@ -206,7 +206,7 @@ export default function AcademicToolkitSection() {
                         <div className="bg-white dark:bg-zinc-800/50 border border-amber-500/10 dark:border-zinc-700/50 rounded-[24px] overflow-hidden shadow-sm">
                             {/* App header */}
                             <div className="bg-amber-500/5 dark:bg-amber-500/10 px-5 py-2.5 flex items-center gap-2 border-b border-gray-100 dark:border-zinc-700/50">
-                                <img src="/TaskTornado.svg" alt="" className="w-4 h-4" />
+                                <img src="/2.svg" alt="" className="w-4 h-4" />
                                 <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">TaskTornado</span>
                                 <span className="ml-auto text-[8px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Unified Platform</span>
                             </div>

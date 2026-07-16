@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useUpgrade } from '@/context/UpgradeContext';
 import confetti from 'canvas-confetti';
 
@@ -23,7 +24,8 @@ interface AIChecklistProps {
 }
 
 export function AIChecklist({ initialTitle, initialItems, onComplete }: AIChecklistProps) {
-    const { addClass, addHomework } = useClassContext();
+    const { addClass } = useClassContext();
+  const { addHomework } = useHomeworkContext();
     const { handlePlanLimitError } = useUpgrade();
     const [title, setTitle] = useState(initialTitle);
     const [items, setItems] = useState<ChecklistItem[]>(

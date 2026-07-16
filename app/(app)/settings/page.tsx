@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import {
   PreferencesSection,
   AccessibilitySection,
@@ -45,7 +46,8 @@ type SettingTab = 'preferences' | 'guardian' | 'classroom' | 'accessibility' | '
 export default function SettingsPage() {
   const { authenticated } = useRequireAuth();
   if (!authenticated) return null;
-  const { classes, homeworks, clearAllClasses, clearAllHomeworks } = useClassContext();
+  const { classes, clearAllClasses } = useClassContext();
+  const { homeworks, clearAllHomeworks } = useHomeworkContext();
   const { signOut, full_name, isGoogleUser, isGuardian } = useAuth() || {};
   const [activeTab, setActiveTab] = useState<SettingTab>(isGuardian ? 'accessibility' : 'preferences');
   const [showClassConfirm, setShowClassConfirm] = useState(false);

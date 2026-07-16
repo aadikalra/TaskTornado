@@ -300,7 +300,9 @@ function BlockComment({
             showDocumentContent
           />
         ))}
-        <CommentCreateForm discussionId={discussion.id} />
+        {discussion.userId !== 'aurora' && (
+          <CommentCreateForm discussionId={discussion.id} />
+        )}
       </div>
 
       {!isLast && <div className="h-px w-full bg-muted" />}

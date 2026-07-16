@@ -12,7 +12,7 @@ export const metadata: Metadata = {
         url: 'https://tasktornado.com',
         images: [
             {
-                url: 'https://tasktornado.com/TaskTornado.svg',
+                url: 'https://tasktornado.com/2.svg',
                 width: 800,
                 height: 600,
                 alt: 'TaskTornado Logo',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'TaskTornado | AI-Powered Student Organizer',
         description: 'The all-in-one hub for your academic life. Free forever.',
-        images: ['https://tasktornado.com/TaskTornado.svg'],
+        images: ['https://tasktornado.com/2.svg'],
     },
     alternates: {
         canonical: 'https://tasktornado.com',

@@ -141,7 +141,7 @@ export default function LetterComponent() {
               }}
             >
               <img
-                src="/TaskTornadoDark.svg"
+                src="/3.svg"
                 alt="TaskTornado"
                 style={{
                   width: '28px',

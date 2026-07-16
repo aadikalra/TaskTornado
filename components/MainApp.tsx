@@ -16,7 +16,8 @@ const TestDetailModal = dynamic(() => import('./TestDetailModal').then(mod => mo
 const TaskBracket = dynamic(() => import('./TaskBracket').then(mod => mod.TaskBracket), { ssr: false });
 
 import { useMainApp, setCookie, getCookie } from '@/context/MainAppContext';
-import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
+import { useTestContext } from '@/context/TestContext';
 
 export const MainApp = () => {
   const {
@@ -27,7 +28,8 @@ export const MainApp = () => {
     showBracket, setShowBracket,
   } = useMainApp();
 
-  const { homeworks, deleteTest } = useClassContext();
+  const { homeworks } = useHomeworkContext();
+  const { deleteTest } = useTestContext();
 
   const [showOnboarding, setShowOnboarding] = React.useState(false);
   const [showWelcomeLetter, setShowWelcomeLetter] = React.useState(false);
@@ -48,7 +50,7 @@ export const MainApp = () => {
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
-      <main className="w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-8">
+      <main className="w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-20 sm:pt-28 pb-24 sm:pb-8">
         <MainAppHeader />
         <MainAppDashboard />
         <MainAppContent />

@@ -1,6 +1,6 @@
 # TaskTornado - AI-Powered School Organizer
 
-![TaskTornado Logo](public/TaskTornado.svg)
+![TaskTornado Logo](public/2.svg)
 
 A modern, AI-powered school organizer designed to help students manage homework, deadlines, and study planning with intelligent features and beautiful animations.
 

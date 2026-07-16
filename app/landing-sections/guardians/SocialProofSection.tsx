@@ -79,7 +79,8 @@ export default function SocialProofSection() {
                                 </p>
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center">
-                                        <img src="/TaskTornado.svg" alt="" className="w-6 h-6" />
+                                         <img src="/2.svg" alt="" className="w-6 h-6 dark:hidden" />
+                                         <img src="/3.svg" alt="" className="w-6 h-6 hidden dark:block" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-blue-500 dark:text-blue-400">Aadi Kalra</p>
@@ -102,12 +103,12 @@ export default function SocialProofSection() {
                         <div className="relative z-20 flex items-center justify-center w-28 h-28 md:w-36 md:h-36">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] bg-blue-500/[0.08] dark:bg-blue-400/[0.08] rounded-full blur-[60px] pointer-events-none" />
                             <img
-                                src="/TaskTornado.svg"
+                                src="/2.svg"
                                 alt="TaskTornado"
                                 className="w-20 h-20 md:w-28 md:h-28 relative z-20 drop-shadow-[0_15px_30px_rgba(59,130,246,0.3)] dark:hidden transition-transform duration-500 hover:scale-110"
                             />
                             <img
-                                src="/TaskTornadoDark.svg"
+                                src="/3.svg"
                                 alt="TaskTornado"
                                 className="w-20 h-20 md:w-28 md:h-28 relative z-20 drop-shadow-[0_15px_30px_rgba(96,165,250,0.3)] hidden dark:block transition-transform duration-500 hover:scale-110"
                             />

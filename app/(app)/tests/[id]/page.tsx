@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useClassContext } from '@/context/ClassContext';
+import { useTestContext } from '@/context/TestContext';
 import type { Test as TestType } from '@/context/ClassContext';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Clock, Edit, BookOpen, GraduationCap, ExternalLink, Link as LinkIcon } from 'lucide-react';
@@ -15,7 +16,8 @@ type Test = TestType;
 
 export default function TestDetailPage() {
   const { id } = useParams() as { id: string };
-  const { tests, classes } = useClassContext();
+  const { classes } = useClassContext();
+  const { tests } = useTestContext();
   const [test, setTest] = useState<Test | null>(null);
   const [classItem, setClassItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);

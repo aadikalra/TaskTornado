@@ -157,8 +157,8 @@ export default function ComparisonSection({ comparisonSet, onComparisonSetChange
                         </div>
                         <div className="px-4 py-4 md:px-5">
                             <div className="flex items-center gap-1.5">
-                                <img src="/TaskTornado.svg" alt="TaskTornado" className="w-4 h-4 dark:hidden" />
-                                <img src="/TaskTornadoDark.svg" alt="TaskTornado" className="w-4 h-4 hidden dark:block" />
+                                <img src="/2.svg" alt="TaskTornado" className="w-4 h-4 dark:hidden" />
+                                <img src="/3.svg" alt="TaskTornado" className="w-4 h-4 hidden dark:block" />
                                 <span className="text-xs font-bold text-[#275085] dark:text-[#4a9cdb]">TaskTornado</span>
                             </div>
                         </div>

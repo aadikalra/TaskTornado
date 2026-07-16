@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
+import { useTestContext } from '@/context/TestContext';
 import { GraduationCap, Calendar, Target, Zap, Brain, CheckCircle2, Loader2 } from 'lucide-react';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
@@ -14,7 +15,8 @@ import { motion } from 'framer-motion';
 
 export default function TestsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { tests, classes, loading: classLoading, deleteTest } = useClassContext();
+  const { classes, loading: classLoading } = useClassContext();
+  const { tests, deleteTest } = useTestContext();
   const router = useRouter();
   const { getContainerClass } = useWideLayout();
   const { showIntro, dismissIntro } = useRouteIntro('tests');

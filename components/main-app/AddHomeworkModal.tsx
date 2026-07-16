@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
-import { useClassContext, RecurringHomework } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext, RecurringHomework } from '@/context/HomeworkContext';
 import { useToast } from '@/context/ToastContext';
 import { useMainApp } from '@/context/MainAppContext';
 import { HomeworkLinkInput } from '@/components/HomeworkLinkInput';
@@ -27,7 +28,8 @@ type HomeworkLink = {
 
 export const AddHomeworkModal = () => {
   const { showAddHomework, setShowAddHomework } = useMainApp();
-  const { classes, addHomework, addRecurringHomework } = useClassContext();
+  const { classes } = useClassContext();
+  const { addHomework, addRecurringHomework } = useHomeworkContext();
   const { success } = useToast();
 
   const [newHomework, setNewHomework] = useState({

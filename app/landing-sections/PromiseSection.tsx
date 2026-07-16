@@ -116,7 +116,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                             <div className="bg-green-600 dark:bg-green-700 rounded-[28px] p-2 shadow-lg flex flex-col md:-translate-y-2">
                                 <div className="bg-white/10 dark:bg-black/20 px-5 py-3 rounded-[20px] flex justify-between items-center">
                                     <div className="flex items-center gap-2">
-                                        <img src="/TaskTornadoDark.svg" alt="Logo" className="w-5 h-5 block" />
+                                        <img src="/3.svg" alt="Logo" className="w-5 h-5 block" />
                                         <h4 className="font-semibold text-white">TaskTornado</h4>
                                     </div>
                                     <div className="bg-[#ebf6b5] dark:bg-green-500 rounded-full p-0.5">

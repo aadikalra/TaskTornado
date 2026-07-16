@@ -3,14 +3,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useMainApp } from '@/context/MainAppContext';
 import { Facehash } from 'facehash';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
 export const MainAppHeader = () => {
   const { user, full_name } = useAuth();
-  const { homeworks } = useClassContext();
+  const { homeworks } = useHomeworkContext();
   const { setShowBracket, showBracket } = useMainApp();
 
   const timeGreeting = useMemo(() => {
@@ -406,12 +406,12 @@ export const MainAppHeader = () => {
         </div>
 
         <div className="flex-1 min-w-0 flex items-center gap-2 sm:gap-3">
-          <h1 className="text-3xl sm:text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight">
             {timeGreeting.text}, {full_name?.split(' ')[0] || 'Student'}!
           </h1>
           <button
             onClick={() => setShowBracket(true)}
-            className="shrink-0 group relative p-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-200 dark:hover:border-sky-500/30 transition-all duration-300 active:scale-90 self-center"
+            className="shrink-0 group relative p-3 sm:p-2.5 md:p-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-200 dark:hover:border-sky-500/30 transition-all duration-300 active:scale-90 self-center"
             title="Task Bracket"
           >
             <HugeIcon name="Sword03" size={16} className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 dark:text-sky-400 group-hover:text-sky-500 transition-colors" />

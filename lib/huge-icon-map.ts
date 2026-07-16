@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   CalculateIcon,
+  SchoolReportCardIcon,
   Book01Icon,
   Book02Icon,
   Book03Icon,
@@ -112,6 +113,7 @@ import {
   Cancel01Icon,
   ClipboardPasteIcon,
   CircleLock01Icon,
+  AiLockIcon,
   AiSecurity01Icon,
   WorkHistoryIcon,
   CreditCardIcon,
@@ -479,6 +481,8 @@ export const hugeIconMap = {
   'Cancel01': Cancel01Icon,
   'ClipboardPaste': ClipboardPasteIcon,
   'CircleLock01': CircleLock01Icon,
+  'AiLock': AiLockIcon,
+  'Lock': AiLockIcon,
   'Security01': AiSecurity01Icon,
   'WorkHistory': WorkHistoryIcon,
   'CreditCard01': CreditCardIcon,
@@ -607,6 +611,7 @@ export const hugeIconMap = {
   'Link': Link01Icon,
   'Cloud': CloudIcon,
   'MessageSquare': Message01Icon,
+  'SchoolReportCard': SchoolReportCardIcon,
 } as const;
 
 export type HugeIconName = keyof typeof hugeIconMap;

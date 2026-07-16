@@ -378,6 +378,12 @@ export default function LoginPage() {
                     placeholder="Enter your full name"
                     value={verifyName}
                     onChange={(e) => setVerifyName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (verifyName) document.getElementById('verify-email')?.focus();
+                      }
+                    }}
                     className="w-full bg-transparent border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus:border-[#275085] dark:focus:border-[#a0c3ff] text-[15px] font-sans focus:outline-none py-1.5 text-[#275085] dark:text-[#a0c3ff] placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30"
                     autoFocus
                   />
@@ -389,10 +395,17 @@ export default function LoginPage() {
                   </label>
                   <input
                     type="email"
+                    id="verify-email"
                     required
                     placeholder="you@domain.com"
                     value={verifyEmail}
                     onChange={(e) => setVerifyEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (verifyEmail) handleVerifySubmit(e as any);
+                      }
+                    }}
                     className="w-full bg-transparent border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus:border-[#275085] dark:focus:border-[#a0c3ff] text-[15px] font-sans focus:outline-none py-1.5 text-[#275085] dark:text-[#a0c3ff] placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30"
                   />
                 </div>
@@ -524,6 +537,12 @@ export default function LoginPage() {
                       placeholder="you@domain.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (email) handleEmailSubmit(e as any);
+                        }
+                      }}
                       className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                       autoFocus
                     />
@@ -605,6 +624,15 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (password) {
+                          setCompletedSteps([...completedSteps, 2]);
+                          setCurrentStep(3);
+                        }
+                      }
+                    }}
                     className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                     autoFocus
                   />

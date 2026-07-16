@@ -12,7 +12,7 @@ import React, {
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { useAI } from '@/context/AIContext';
-import { useClassContext } from '@/context/ClassContext';
+
 import { useRateLimitReset } from '@/hooks/useRateLimitReset';
 import { useDarkMode } from '@/context/DarkModeContext';
 
@@ -32,6 +32,9 @@ import { Markdown } from './markdown';
 import { FlashcardDeck } from './Flashcard';
 import { QuizQuestion } from './Quiz';
 import { Class, Homework, Test } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
+import { useTestContext } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import { rateLimitService } from '@/lib/services/rateLimitService';
 import { Toast, ToastContainer } from './Toast';
@@ -39,209 +42,13 @@ import { AIChecklist } from '@/components/ai-checklist';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { useUpgrade } from '@/context/UpgradeContext';
 import BulkAddHomeworkDisplay from '@/components/BulkAddHomeworkDisplay';
-interface Message {
-  id: number;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isLoading?: boolean;
-  isError?: boolean;
-  images?: string[];
-  interactiveButtons?: InteractiveButton[];
-  checklist?: AIChecklistData;
-  bulkAddDisplay?: {
-    homeworks: Homework[];
-    classes: Class[];
-  };
-  chunks?: string[];
-  toolCall?: string;
-  toolArgs?: any;
-  toolCalls?: Array<{ name: string; args?: any; status?: 'loading' | 'success' | 'error'; error?: string }>;
-  thought?: string;
-  groundingMetadata?: {
-    searchEntryPoint?: {
-      renderedContent?: string;
-    };
-    groundingChunks?: Array<{
-      web?: {
-        uri: string;
-        title?: string;
-      };
-    }>;
-    groundingSupports?: any[];
-    webSearchQueries?: string[];
-  };
-}
-
-interface AIChecklistData {
-  title: string;
-  items: string[];
-}
-
-interface InteractiveButton {
-  id: string;
-  text: string;
-  shortcut?: string;
-  prompt: string;
-  style?: 'primary' | 'secondary' | 'outline';
-  action?: 'send_prompt' | 'copy';
-  payload?: string;
-}
-
-function parseInteractiveButtons(content: string): { content: string; buttons: InteractiveButton[] } {
-  const buttonRegex = /```interactive_buttons\n([\s\S]*?)\n```/g;
-  const match = buttonRegex.exec(content);
-
-  if (!match) {
-    return { content, buttons: [] };
-  }
-
-  try {
-    const buttonsData = JSON.parse(match[1]);
-    const cleanContent = content.replace(buttonRegex, '').trim();
-
-    return {
-      content: cleanContent,
-      buttons: buttonsData.map((btn: any, index: number) => ({
-        // Always generate a unique ID to avoid duplicates from AI copy-pasting examples
-        id: `btn_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
-        text: btn.text,
-        shortcut: btn.shortcut,
-        prompt: btn.prompt || '',
-        style: btn.style || 'secondary',
-        action: btn.action || 'send_prompt',
-        payload: btn.payload
-      }))
-    };
-  } catch (error) {
-    console.error('Failed to parse interactive buttons:', error);
-    return { content, buttons: [] };
-  }
-}
-
-function parseChecklist(content: string): { content: string; checklist?: AIChecklistData } {
-  const checklistRegex = /```checklist\n([\s\S]*?)\n```/g;
-  const match = checklistRegex.exec(content);
-
-  if (!match) {
-    return { content };
-  }
-
-  try {
-    const checklistData = JSON.parse(match[1]);
-    const cleanContent = content.replace(checklistRegex, '').trim();
-
-    return {
-      content: cleanContent,
-      checklist: checklistData
-    };
-  } catch (error) {
-    console.error('Error parsing checklist:', error);
-    return { content };
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/* Generation Progress Bar (quiz / flashcards)                                 */
-/* -------------------------------------------------------------------------- */
-const GenerationProgressBar = () => {
-  const [progress, setProgress] = useState(0);
-  const [label, setLabel] = useState('Preparing...');
-
-  useEffect(() => {
-    const stages = [
-      { at: 5, label: 'Analyzing topic...' },
-      { at: 20, label: 'Crafting questions...' },
-      { at: 45, label: 'Building answer options...' },
-      { at: 65, label: 'Adding explanations...' },
-      { at: 80, label: 'Finalizing...' },
-    ];
-
-    // Fast initial ramp, then slow crawl
-    let frame: number;
-    let start: number | null = null;
-
-    const tick = (ts: number) => {
-      if (!start) start = ts;
-      const elapsed = (ts - start) / 1000; // seconds
-
-      // ease-out curve: fast start → slow finish, caps at 88%
-      const p = Math.min(88, 88 * (1 - Math.exp(-elapsed / 5)));
-      setProgress(p);
-
-      // Update label based on progress
-      for (let i = stages.length - 1; i >= 0; i--) {
-        if (p >= stages[i].at) { setLabel(stages[i].label); break; }
-      }
-
-      frame = requestAnimationFrame(tick);
-    };
-
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  return (
-    <div className="mt-3 w-full max-w-[260px]">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">{label}</span>
-        <span className="text-[10px] font-bold text-white/30 tabular-nums">{Math.round(progress)}%</span>
-      </div>
-      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-sky-400 rounded-full"
-          style={{ width: `${progress}%` }}
-          transition={{ duration: 0.3 }}
-        />
-      </div>
-    </div>
-  );
-};
-
-/* -------------------------------------------------------------------------- */
-/* Aura Video Icon Component                                                  */
-/* -------------------------------------------------------------------------- */
-const AuraVideoIcon = ({ isLoading, selectedModel, layoutId }: { isLoading?: boolean; selectedModel: string; layoutId?: string }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const { isDark } = useDarkMode();
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isLoading) {
-      video.playbackRate = 3.0; // Speed up during output
-      video.play().catch(() => { });
-    } else {
-      video.pause(); // Pause where it is when finished
-    }
-  }, [isLoading]);
-
-  return (
-    <motion.div
-      layoutId={layoutId}
-      initial={!layoutId ? { scale: 0.8, opacity: 0 } : undefined}
-      animate={!layoutId ? { scale: 1, opacity: 1 } : undefined}
-      className="relative h-8 w-8 rounded-full flex items-center justify-center overflow-hidden"
-    >
-      <video
-        ref={videoRef}
-        src={isDark ? "/AI SphereDark2.mp4" : "/AI SphereNew.mp4"}
-        muted
-        playsInline
-        loop
-        className="w-full h-full object-cover scale-110 opacity-90"
-      />
-      <div className={cn(
-        "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-white dark:border-zinc-900 z-10 shadow-sm",
-        selectedModel === 'gemma-4-26b-a4b-it' ? "bg-teal-500" :
-          selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" :
-            "bg-blue-500"
-      )} />
-    </motion.div>
-  );
-};
+import { Message, InteractiveButton, AIChecklistData } from './ai-assistant/types';
+import { parseInteractiveButtons, parseChecklist, getCookie, setCookie, deleteCookie, generateDataContext, getMessageGroups } from './ai-assistant/utils';
+import { GenerationProgressBar } from './ai-assistant/GenerationProgressBar';
+import { AuraVideoIcon } from './ai-assistant/AuraVideoIcon';
+import { ChatInput } from './ai-assistant/ChatInput';
+import { ContextChips } from './ai-assistant/ContextChips';
+import { MessageItem } from './ai-assistant/MessageItem';
 
 /* -------------------------------------------------------------------------- */
 /* Animation variants                          */
@@ -287,28 +94,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   /* Cookie Helper Functions                 */
   /* ---------------------------------------------------------------------- */
 
-  const getCookie = (name: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      return parts.pop()?.split(';').shift() || null;
-    }
-    return null;
-  };
-
-  const setCookie = (name: string, value: string, days: number = 30) => {
-    if (typeof window === 'undefined') return;
-    const expires = new Date();
-    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-    const cookieValue = `${name}=${value};expires=${expires.toUTCString()};path=/;max-age=${days * 24 * 60 * 60}`;
-    document.cookie = cookieValue;
-  };
-
-  const deleteCookie = (name: string) => {
-    if (typeof window === 'undefined') return;
-    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;max-age=0`;
-  };
+  // Cookie functions moved to utils
 
   /* -------------------------------------------------------------------------- */
   /* State                               */
@@ -396,6 +182,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   // Context hooks – must be called unconditionally
   const aiContext = useAI();
   const classContext = useClassContext();
+  const homeworkContext = useHomeworkContext();
+  const testContext = useTestContext();
 
   // Refs
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -406,77 +194,14 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
   // Safeguard destructuring
   const { chat, error: aiError, setError: setAIError = () => { }, setAIInput, isAISidebarMode, setAISidebarMode } = aiContext || {};
 
-  const {
-    homeworks = [],
-    tests = [],
-    classes = [],
-    addHomework = async () => { },
-    addTest = async () => { },
-  } = classContext || {};
+  const { classes = [] } = classContext || {};
+  const { homeworks = [], addHomework = async () => { } } = homeworkContext || {};
+  const { tests = [], addTest = async () => { } } = testContext || {};
 
   // State to trigger chip rotation
   const [chipRotation, setChipRotation] = useState(0);
 
-  // Dynamic Context Chips based on actual user data and utility pool
-  const contextChips = React.useMemo(() => {
-    const priorityChips = [];
-
-    // 1. High Priority: Data-Driven Actions
-    if (homeworks.length > 0 || tests.length > 0) {
-      priorityChips.push({
-        label: 'Workload Overview',
-        prompt: 'Give me a quick summary of my current workload and tell me what I should prioritize today.'
-      });
-    }
-
-    const nextHw = homeworks
-      .filter(hw => !hw.completed && new Date(hw.dueDate) >= new Date(new Date().setHours(0, 0, 0, 0)))
-      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0];
-
-    if (nextHw) {
-      priorityChips.push({
-        label: `Plan: ${nextHw.title}`,
-        prompt: `I need to work on "${nextHw.title}". Can you help me break this assignment into small, manageable steps?`
-      });
-    }
-
-    const nextTest = tests
-      .filter(t => t.status !== 'taken' && new Date(t.testDate) >= new Date(new Date().setHours(0, 0, 0, 0)))
-      .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0];
-
-    if (nextTest) {
-      priorityChips.push({
-        label: `Quiz me: ${nextTest.title}`,
-        prompt: `I have a test on "${nextTest.title}" coming up. Can you generate a quick 5-question practice quiz for me?`
-      });
-    }
-
-    // 2. Utility Pool: Varied actions
-    const utilityPool = [
-      { label: 'Study Resources', prompt: 'Help me find study materials and helpful links for my classes.' },
-      { label: 'Generate Flashcards', prompt: 'Help me create a set of flashcards for my upcoming topics.' },
-      { label: 'Grade my draft', prompt: 'Can you evaluate my current assignment draft and give me feedback?' },
-      { label: 'Mental Support', prompt: 'I am feeling a bit stressed with school lately. Can we talk?' },
-      { label: 'Study Tip', prompt: 'Tell me a scientifically proven study technique to improve memory.' },
-      { label: 'Focus Boost', prompt: 'I am struggling to focus. What are some quick tips to get back into deep work?' },
-      { label: 'Practice Quiz', prompt: 'Generate a surprise interactive quiz to test my general knowledge.' },
-      { label: 'Review Progress', prompt: 'Show me my recent academic progress and subject mastery.' },
-      { label: 'Explain Concept', prompt: 'I found a difficult concept today. Can you explain it to me in simple terms.' }
-    ];
-
-    // Shuffle utility pool using rotation seed
-    const shuffledUtility = [...utilityPool].sort(() => 0.5 - (chipRotation % 1 || 0.5));
-
-    // Mix priority and utility
-    const combined = [...priorityChips];
-    shuffledUtility.forEach(u => {
-      if (!combined.find(p => p.label === u.label)) {
-        combined.push(u);
-      }
-    });
-
-    return combined.slice(0, 4); // Show 4 chips now for more choice
-  }, [homeworks, tests, chipRotation]);
+  // ContextChips data generation moved to components/ai-assistant/ContextChips.tsx
 
   // Toast state
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -754,135 +479,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
 
 
   /* ---------------------------------------------------------------------- */
-  /* Data context for AI prompts                                            */
-  /* ---------------------------------------------------------------------- */
-  const getDataContext = (): string => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Normalize to start of today for comparison
-
-    // --- Process Homework ---
-    const upcomingIncomplete = homeworks
-      .filter((hw) => !hw.completed && new Date(hw.dueDate) >= now)
-      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-    const overdueIncomplete = homeworks
-      .filter((hw) => !hw.completed && new Date(hw.dueDate) < now)
-      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-    const completed = homeworks
-      .filter((hw) => hw.completed)
-      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()) // Show most recent completed
-      .slice(0, 10); // Limit to 10 most recent completed
-
-    // --- Process Tests ---
-    const upcomingTests = tests
-      .filter((test) => new Date(test.testDate) >= now)
-      .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
-
-    const pastTests = tests
-      .filter((test) => new Date(test.testDate) < now)
-      .sort((a, b) => new Date(b.testDate).getTime() - new Date(a.testDate).getTime()) // Show most recent past tests
-      .slice(0, 10); // Limit to 10 most recent past
-
-    if (
-      upcomingIncomplete.length === 0 &&
-      overdueIncomplete.length === 0 &&
-      completed.length === 0 &&
-      upcomingTests.length === 0 &&
-      pastTests.length === 0
-    ) {
-      console.log('No school data found.');
-      return 'No school data (homework, tests, exams) found. Add some data to get personalized help!';
-    }
-
-    let context = 'SCHOOL DATA CONTEXT:\n\n';
-
-    // --- Available Classes ---
-    if (classes && classes.length > 0) {
-      context += `AVAILABLE CLASSES / SUBJECTS (${classes.length} classes):\n`;
-      context += classes.map((c) => `- ${c.name}`).join('\n');
-      context += '\n\n';
-    }
-
-    // --- Format Helper ---
-    const formatHw = (hw: Homework) => {
-      const cls = getClassById(hw.classId);
-      const due = new Date(hw.dueDate);
-      const dueString = due.toLocaleDateString();
-      let when = '';
-
-      if (!hw.completed) {
-        const diffTime = due.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) when = '(Due Today)';
-        else if (diffDays === 1) when = '(Due Tomorrow)';
-        else if (diffDays > 1) when = `(in ${diffDays} days)`;
-        else when = `(Overdue by ${Math.abs(diffDays)} days)`;
-      }
-
-      return `- ${hw.title}
-  - Class: ${cls?.name ?? 'Unknown'}
-  - Due: ${dueString} ${when}
-  - Status: ${hw.completed ? 'Completed' : 'Incomplete'}`;
-    };
-
-    const formatTest = (test: Test) => {
-      const cls = getClassById(test.classId);
-      const testDate = new Date(test.testDate);
-      const dateString = testDate.toLocaleDateString();
-      let when = '';
-
-      const diffTime = testDate.getTime() - now.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0) when = '(Today)';
-      else if (diffDays === 1) when = '(Tomorrow)';
-      else if (diffDays > 1) when = `(in ${diffDays} days)`;
-      else if (diffDays < 0) when = `(${Math.abs(diffDays)} days ago)`;
-
-      return `- ${test.title}
-  - Class: ${cls?.name ?? 'Unknown'}
-  - Date: ${dateString} ${when}`;
-    };
-
-    // --- Build Context String (Tests first) ---
-    if (upcomingTests.length > 0) {
-      context += `UPCOMING TESTS/EXAMS (${upcomingTests.length} items):\n`;
-      context += upcomingTests.map(formatTest).join('\n');
-      context += '\n\n';
-    }
-
-    if (upcomingIncomplete.length > 0) {
-      context += `UPCOMING INCOMPLETE HOMEWORK (${upcomingIncomplete.length} items):\n`;
-      context += upcomingIncomplete.map(formatHw).join('\n');
-      context += '\n\n';
-    }
-
-    if (overdueIncomplete.length > 0) {
-      context += `OVERDUE INCOMPLETE HOMEWORK (${overdueIncomplete.length} items):\n`;
-      context += overdueIncomplete.map(formatHw).join('\n');
-      context += '\n\n';
-    }
-
-    if (completed.length > 0) {
-      context += `RECENTLY COMPLETED HOMEWORK (${completed.length} most recent items):\n`;
-      context += completed.map(formatHw).join('\n');
-      context += '\n\n';
-    }
-
-    if (pastTests.length > 0) {
-      context += `RECENT PAST TESTS/EXAMS (${pastTests.length} most recent items):\n`;
-      context += pastTests.map(formatTest).join('\n');
-      context += '\n\n';
-    }
-
-    context += 'Use this data context to provide relevant help, reminders, and analysis.';
-    console.log('Generated data context:', context);
-    return context;
-  };
-
-
   /* ---------------------------------------------------------------------- */
   /* Image upload helpers                          */
   /* ---------------------------------------------------------------------- */
@@ -1177,7 +773,7 @@ Examples of correct button prompts:
 - Before calling the 'add_homework' or 'add_test' tools to create new tasks, you MUST call 'get_school_data' first in order to load the user's available class list. This ensures you schedule tasks only for their actual, existing classes and use the exact correct class names.
 `;
 
-      const dataContext = getDataContext();
+      const dataContext = generateDataContext(classes, homeworks, tests, getClassById);
 
       // Call AI API
       const response = await fetch('/api/ai', {
@@ -1618,7 +1214,7 @@ Examples of correct button prompts:
     }
   };
 
-  const handleStopResponse = (e: React.MouseEvent) => {
+  const handleStopResponse = (e: any) => {
     e.preventDefault();
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -1697,35 +1293,7 @@ Examples of correct button prompts:
     }
   };
 
-  const getMessageGroups = () => {
-    const groups: Array<{
-      role: 'user' | 'assistant';
-      messages: Message[];
-    }> = [];
-
-    if (messages.length === 0) return groups;
-
-    let current = {
-      role: messages[0].role,
-      messages: [messages[0]] as Message[],
-    };
-
-    for (let i = 1; i < messages.length; i++) {
-      if (messages[i].role === current.role) {
-        current.messages.push(messages[i]);
-      } else {
-        groups.push(current);
-        current = {
-          role: messages[i].role,
-          messages: [messages[i]],
-        };
-      }
-    }
-    groups.push(current);
-    return groups;
-  };
-
-  const messageGroups = getMessageGroups();
+  const messageGroups = getMessageGroups(messages);
 
   useHotkeys(
     'esc',
@@ -2027,520 +1595,20 @@ Examples of correct button prompts:
                     className="space-y-4"
                   >
                     {messages.map((msg, idx) => (
-                      <div
+                      <MessageItem 
                         key={`${msg.id}-${idx}`}
-                        className={cn(
-                          'group flex flex-col gap-1.5 animate-in fade-in duration-300 slide-in-from-bottom-2',
-                          msg.role === 'user' ? 'items-end' : 'items-start'
-                        )}
-                      >
-
-                        {msg.role === 'assistant' && (
-                          <div className="flex flex-col gap-1 w-full">
-                            <div className="flex items-start gap-2">
-                              <div className="flex-shrink-0">
-                                <AuraVideoIcon
-                                  isLoading={msg.isLoading}
-                                  selectedModel={selectedModel}
-                                  layoutId={messages.findIndex(m => m.role === 'assistant') === idx ? "aurora-sphere" : undefined}
-                                />
-                              </div>
-                              {(msg.thought || msg.toolCall || (msg.groundingMetadata?.webSearchQueries && msg.groundingMetadata.webSearchQueries.length > 0)) && (
-                                <div className="select-none">
-                                  <button
-                                    onClick={() => setExpandedThoughts(prev => ({ ...prev, [msg.id]: !prev[msg.id] }))}
-                                    className="flex items-center gap-1 text-[13px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors cursor-pointer list-none font-medium h-8 outline-none"
-                                  >
-                                    <span>
-                                      {msg.isLoading && !msg.content
-                                        ? (msg.toolCall
-                                          ? (msg.toolCall === 'start_flashcards' ? 'Opening flashcards...' : msg.toolCall === 'start_quiz' ? 'Starting quiz...' : 'Checking schedule...')
-                                          : 'Thinking...')
-                                        : 'Show thinking'}
-                                    </span>
-                                    <svg
-                                      className={cn(
-                                        "w-3.5 h-3.5 transition-transform duration-200 text-zinc-500 dark:text-zinc-400",
-                                        expandedThoughts[msg.id] ? "rotate-180" : "rotate-0"
-                                      )}
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={1.5}
-                                    >
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </button>
-                                  <AnimatePresence initial={false}>
-                                    {expandedThoughts[msg.id] && (
-                                      <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.25, ease: 'easeInOut' }}
-                                        className="overflow-hidden"
-                                      >
-                                        <div className="mt-1 text-xs font-light text-zinc-500 dark:text-zinc-400 py-1.5 whitespace-pre-wrap max-w-prose leading-relaxed flex flex-col gap-2.5">
-                                          {(() => {
-                                            const toolCalls: Array<{ name: string; args?: any; status?: 'loading' | 'success' | 'error'; error?: string }> = msg.toolCalls && msg.toolCalls.length > 0
-                                              ? msg.toolCalls
-                                              : msg.toolCall
-                                                ? [{ name: msg.toolCall, args: msg.toolArgs, status: msg.isLoading ? 'loading' as const : 'success' as const }]
-                                                : [];
-
-                                            if (toolCalls.length === 0) return null;
-
-                                            const grouped = toolCalls.reduce((acc, tc) => {
-                                              const name = tc.name;
-                                              if (!acc[name]) {
-                                                acc[name] = [];
-                                              }
-                                              acc[name].push(tc);
-                                              return acc;
-                                            }, {} as Record<string, typeof toolCalls>);
-
-                                            return (
-                                              <div className="flex flex-col gap-2 w-full">
-                                                {Object.entries(grouped).map(([toolName, calls]) => {
-                                                  const isExpanded = !!expandedToolDetails[`${msg.id}-${toolName}`];
-                                                  
-                                                  let displayLabel = toolName;
-                                                  if (toolName === 'get_school_data') displayLabel = 'Check Schedule';
-                                                  else if (toolName === 'start_flashcards') displayLabel = 'Open Flashcards';
-                                                  else if (toolName === 'start_quiz') displayLabel = 'Start Quiz';
-                                                  else if (toolName === 'calculate_expression') displayLabel = 'Calculate Expression';
-                                                  else if (toolName === 'add_homework') displayLabel = 'Add Homework';
-                                                  else if (toolName === 'add_test') displayLabel = 'Add Test';
-                                                  else if (toolName === 'show_homeworks') displayLabel = 'Show Homework';
-                                                  else if (toolName === 'delete_homework') displayLabel = 'Delete Homework';
-                                                  else if (toolName === 'delete_test') displayLabel = 'Delete Test';
-                                                  else {
-                                                    displayLabel = toolName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                                                  }
-
-                                                  const count = calls.length;
-                                                  const hasLoading = calls.some(c => c.status === 'loading');
-                                                  const hasError = calls.some(c => c.status === 'error');
-                                                  const isAddCommand = toolName === 'add_homework' || toolName === 'add_multiple_homeworks' || toolName === 'add_test';
-
-                                                  return (
-                                                    <div key={toolName} className="flex flex-col gap-2 w-full max-w-full">
-                                                      <button
-                                                        onClick={() => {
-                                                          setExpandedToolDetails(prev => ({
-                                                            ...prev,
-                                                            [`${msg.id}-${toolName}`]: !prev[`${msg.id}-${toolName}`]
-                                                          }));
-                                                        }}
-                                                        className={cn(
-                                                          "flex items-center justify-between gap-3 text-[12px] font-medium transition-all duration-200 border rounded-[14px] px-3.5 py-1.5 backdrop-blur-sm w-full outline-none",
-                                                          hasError
-                                                            ? "text-rose-700 dark:text-rose-300 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/15"
-                                                            : hasLoading
-                                                              ? "text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/15"
-                                                              : isAddCommand
-                                                                ? "text-blue-700 dark:text-blue-300 bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/15"
-                                                                : "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/15"
-                                                        )}
-                                                      >
-                                                        <div className="flex items-center gap-2">
-                                                          {isAddCommand ? (
-                                                            <HugeIcon name="PlusSign" className={cn(
-                                                              "w-3.5 h-3.5",
-                                                              hasError ? "text-rose-600 dark:text-rose-400" : hasLoading ? "text-amber-600 dark:text-amber-400 animate-pulse" : "text-blue-600 dark:text-blue-400"
-                                                            )} size={14} />
-                                                          ) : (
-                                                            <HugeIcon name="Search01" className={cn(
-                                                              "w-3.5 h-3.5",
-                                                              hasError ? "text-rose-600 dark:text-rose-400" : hasLoading ? "text-amber-600 dark:text-amber-400 animate-pulse" : "text-emerald-600 dark:text-emerald-400"
-                                                            )} size={14} />
-                                                          )}
-                                                          <span>
-                                                            {displayLabel}
-                                                          </span>
-                                                          <span className={cn(
-                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
-                                                            hasError
-                                                              ? "bg-rose-500/20 text-rose-800 dark:text-rose-200"
-                                                              : hasLoading
-                                                                ? "bg-amber-500/20 text-amber-800 dark:text-amber-200"
-                                                                : isAddCommand
-                                                                  ? "bg-blue-500/20 text-blue-800 dark:text-blue-200"
-                                                                  : "bg-emerald-500/20 text-emerald-800 dark:text-emerald-200"
-                                                          )}>
-                                                            {count}
-                                                          </span>
-                                                        </div>
-                                                        <svg
-                                                          className={cn(
-                                                            "w-3.5 h-3.5 transition-transform duration-200",
-                                                            isExpanded ? "rotate-180" : "rotate-0",
-                                                            hasError
-                                                              ? "text-rose-600/80 dark:text-rose-400/80"
-                                                              : hasLoading
-                                                                ? "text-amber-600/80 dark:text-amber-400/80"
-                                                                : isAddCommand
-                                                                  ? "text-blue-600/80 dark:text-blue-400/80"
-                                                                  : "text-emerald-600/80 dark:text-emerald-400/80"
-                                                          )}
-                                                          fill="none"
-                                                          viewBox="0 0 24 24"
-                                                          stroke="currentColor"
-                                                          strokeWidth={1.5}
-                                                        >
-                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                                        </svg>
-                                                      </button>
-
-                                                      <AnimatePresence>
-                                                        {isExpanded && (
-                                                          <motion.div
-                                                            initial={{ height: 0, opacity: 0 }}
-                                                            animate={{ height: 'auto', opacity: 1 }}
-                                                            exit={{ height: 0, opacity: 0 }}
-                                                            transition={{ duration: 0.2, ease: 'easeOut' }}
-                                                            className="overflow-hidden pl-1"
-                                                          >
-                                                            <div className="flex flex-col gap-2 mt-1 py-1 w-full">
-                                                              {calls.map((tc, idx) => {
-                                                                const status = tc.status || 'success';
-                                                                const hasArgs = tc.args && Object.keys(tc.args).length > 0;
-                                                                
-                                                                return (
-                                                                  <div
-                                                                    key={idx}
-                                                                    className={cn(
-                                                                      "flex flex-col gap-2 p-2.5 rounded-[12px] border text-[11px] transition-colors w-full",
-                                                                      status === 'error'
-                                                                        ? "bg-rose-50 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-900/30"
-                                                                        : status === 'loading'
-                                                                          ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-900/30 animate-pulse"
-                                                                          : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200/60 dark:border-zinc-800/60"
-                                                                    )}
-                                                                  >
-                                                                    <div className="flex items-center justify-between">
-                                                                      <span className="font-semibold text-zinc-500 dark:text-zinc-400">
-                                                                        Execution #{idx + 1}
-                                                                      </span>
-                                                                      <span className={cn(
-                                                                        "font-semibold px-2 py-0.5 rounded-full text-[10px] tracking-wide inline-flex items-center gap-1",
-                                                                        status === 'success'
-                                                                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
-                                                                          : status === 'error'
-                                                                            ? "bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300"
-                                                                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                                                                      )}>
-                                                                        {status === 'success' && (
-                                                                          <>
-                                                                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                                                                            Succeeded
-                                                                          </>
-                                                                        )}
-                                                                        {status === 'error' && (
-                                                                          <>
-                                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                                                            Failed
-                                                                          </>
-                                                                        )}
-                                                                        {status === 'loading' && (
-                                                                          <>
-                                                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                                                                            Executing...
-                                                                          </>
-                                                                        )}
-                                                                      </span>
-                                                                    </div>
-
-                                                                    {status === 'error' && tc.error && (
-                                                                      <div className="text-rose-600 dark:text-rose-400 bg-rose-500/5 p-2 rounded-lg border border-rose-500/10 font-normal leading-relaxed whitespace-pre-wrap">
-                                                                        {tc.error}
-                                                                      </div>
-                                                                    )}
-
-                                                                    {hasArgs ? (
-                                                                      <div className="grid grid-cols-2 gap-2 mt-1 pt-1.5 border-t border-zinc-200/50 dark:border-zinc-800/50">
-                                                                        {Object.entries(tc.args).map(([key, val]) => {
-                                                                          const displayKey = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                                                                          
-                                                                          if (val && Array.isArray(val)) {
-                                                                            return (
-                                                                              <div key={key} className="col-span-2 flex flex-col gap-1.5 mt-1 pt-1.5 border-t border-zinc-200/50 dark:border-zinc-800/40">
-                                                                                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-semibold tracking-wide">
-                                                                                  {displayKey} ({val.length})
-                                                                                </span>
-                                                                                <div className="flex flex-col gap-1.5">
-                                                                                  {val.map((item: any, itemIdx: number) => {
-                                                                                    if (typeof item === 'object' && item !== null) {
-                                                                                      return (
-                                                                                        <div
-                                                                                          key={itemIdx}
-                                                                                          className="bg-white/60 dark:bg-zinc-800/55 border border-zinc-200/40 dark:border-zinc-700/40 rounded-[10px] p-2 flex flex-col gap-1.5 w-full"
-                                                                                        >
-                                                                                          <div className="flex items-center justify-between border-b border-zinc-200/30 dark:border-zinc-700/30 pb-1 mb-0.5">
-                                                                                            <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-[11px]">
-                                                                                              {item.title || item.question || `Item #${itemIdx + 1}`}
-                                                                                            </span>
-                                                                                            {item.className && (
-                                                                                              <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-bold text-[9px] px-1.5 py-0.5 rounded-md">
-                                                                                                {item.className}
-                                                                                              </span>
-                                                                                            )}
-                                                                                          </div>
-                                                                                          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                                                                                            {item.dueDate && (
-                                                                                              <div className="flex flex-col">
-                                                                                                <span className="text-zinc-400 dark:text-zinc-500 font-medium">Due Date</span>
-                                                                                                <span className="text-zinc-600 dark:text-zinc-400">{item.dueDate}</span>
-                                                                                              </div>
-                                                                                            )}
-                                                                                            {item.priority && (
-                                                                                              <div className="flex flex-col">
-                                                                                                <span className="text-zinc-400 dark:text-zinc-500 font-medium">Priority</span>
-                                                                                                <span className="text-zinc-600 dark:text-zinc-400 capitalize">{item.priority}</span>
-                                                                                              </div>
-                                                                                            )}
-                                                                                            {item.description && (
-                                                                                              <div className="col-span-2 flex flex-col">
-                                                                                                <span className="text-zinc-400 dark:text-zinc-500 font-medium">Description</span>
-                                                                                                <span className="text-zinc-600 dark:text-zinc-400 break-words font-light leading-snug">{item.description}</span>
-                                                                                              </div>
-                                                                                            )}
-                                                                                          </div>
-                                                                                        </div>
-                                                                                      );
-                                                                                    }
-                                                                                    return (
-                                                                                      <div key={itemIdx} className="text-zinc-600 dark:text-zinc-400 pl-2 border-l border-zinc-200 dark:border-zinc-700 font-light text-[10px]">
-                                                                                        {String(item)}
-                                                                                      </div>
-                                                                                    );
-                                                                                  })}
-                                                                                </div>
-                                                                              </div>
-                                                                            );
-                                                                          }
-
-                                                                          let displayVal = '';
-                                                                          if (val === null || val === undefined) {
-                                                                            displayVal = 'None';
-                                                                          } else if (typeof val === 'object') {
-                                                                            displayVal = JSON.stringify(val);
-                                                                          } else {
-                                                                            displayVal = String(val);
-                                                                          }
-
-                                                                          return (
-                                                                            <div key={key} className="flex flex-col gap-0.5 min-w-0">
-                                                                              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide">
-                                                                                {displayKey}
-                                                                              </span>
-                                                                              <span className="text-[11px] text-zinc-700 dark:text-zinc-300 font-normal truncate hover:text-clip hover:whitespace-normal break-words" title={displayVal}>
-                                                                                {displayVal}
-                                                                              </span>
-                                                                            </div>
-                                                                          );
-                                                                        })}
-                                                                      </div>
-                                                                    ) : (
-                                                                      <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal italic mt-0.5">
-                                                                        No parameters passed
-                                                                      </div>
-                                                                    )}
-                                                                  </div>
-                                                                );
-                                                              })}
-                                                            </div>
-                                                          </motion.div>
-                                                        )}
-                                                      </AnimatePresence>
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            );
-                                          })()}
-
-                                          {msg.groundingMetadata?.webSearchQueries && msg.groundingMetadata.webSearchQueries.length > 0 && (
-                                            <div className="flex flex-col gap-2">
-                                              <div className="flex items-center gap-2 text-[12px] font-medium text-sky-700 dark:text-sky-300 bg-sky-500/10 dark:bg-sky-500/20 border border-sky-500/20 dark:border-sky-500/10 rounded-[14px] w-fit px-3 py-1.5 backdrop-blur-sm">
-                                                <HugeIcon name="Search01" className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" size={14} />
-                                                <span>
-                                                  Used Google Search: "{msg.groundingMetadata.webSearchQueries.join(', ')}"
-                                                </span>
-                                              </div>
-                                              {msg.groundingMetadata.groundingChunks && msg.groundingMetadata.groundingChunks.length > 0 && (
-                                                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 pl-3">
-                                                  <span className="font-semibold text-sky-600/90 dark:text-sky-400/90">Sources:</span>
-                                                  {msg.groundingMetadata.groundingChunks.map((chunk: any, i: number) => {
-                                                    if (!chunk.web) return null;
-                                                    return (
-                                                      <a
-                                                        key={i}
-                                                        href={chunk.web.uri}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1 bg-[#f5f9fc] dark:bg-zinc-800/80 border border-sky-100/50 dark:border-zinc-700/50 rounded-full px-2.5 py-0.5 hover:bg-sky-50 dark:hover:bg-zinc-700 text-sky-700 dark:text-sky-300 font-medium transition-colors"
-                                                      >
-                                                        <span>{chunk.web.title || new URL(chunk.web.uri).hostname}</span>
-                                                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                                                        </svg>
-                                                      </a>
-                                                    );
-                                                  })}
-                                                </div>
-                                              )}
-                                            </div>
-                                          )}
-                                          {msg.thought && (
-                                            <div className="flex flex-col gap-3 mt-1">
-                                              {msg.thought.split('\n\n').filter(p => p.trim() !== '').map((para, pIdx) => (
-                                                <div
-                                                  key={pIdx}
-                                                  className="border-l border-zinc-200 dark:border-zinc-800 pl-3 text-zinc-600 dark:text-zinc-400 font-light"
-                                                >
-                                                  {para}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </motion.div>
-                                    )}
-                                  </AnimatePresence>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                        <div
-                          onClick={() => {
-                            if (msg.role === 'user' && msg.content.length > 120) {
-                              setExpandedUserMessages(prev => ({ ...prev, [msg.id]: !prev[msg.id] }));
-                            }
-                          }}
-                          className={cn(
-                            'transition-all duration-300',
-                            msg.role === 'user'
-                              ? 'max-w-[85%] rounded-[24px] px-4 py-2.5 text-sm text-white shadow-lg shadow-[#8A9AFF]/15 font-medium leading-relaxed'
-                              : cn('bg-transparent text-sky-900 dark:text-sky-100 text-[14.5px] leading-[1.6] px-1', (msg.bulkAddDisplay || msg.checklist) ? 'w-full max-w-full' : 'max-w-[90%]'),
-                            msg.role === 'user' && msg.content.length > 120 && 'cursor-pointer hover:brightness-105 active:scale-[0.99] transition-transform select-none',
-                            msg.isError &&
-                            'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-[24px] px-4 py-2.5'
-                          )}
-                          style={msg.role === 'user' && !msg.isError ? {
-                            background: 'linear-gradient(135deg, #CFCAF8 0%, #8A9AFF 33%, #c2aefeff 66%, #4C85FF 100%)'
-                          } : {}}
-                        >
-                          <div className="flex-1 min-w-0">
-                            {msg.images && msg.images.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-2">
-                                {msg.images.map((img, i) => (
-                                  <img
-                                    key={i}
-                                    src={img}
-                                    alt={`Uploaded ${i}`}
-                                    className="max-w-full max-h-48 rounded-md border"
-                                  />
-                                ))}
-                              </div>
-                            )}
-
-
-
-
-
-                            {/* Always render the content, even if it's just "Thinking..." */}
-                            {msg.isLoading ? (
-                              msg.content === "Thinking..." ? (
-                                <span className={cn("opacity-70", !msg.thought && "animate-pulse")}>
-                                  {msg.thought ? "Generating response..." : "Thinking..."}
-                                </span>
-                              ) : (
-                                <div className="whitespace-pre-wrap">
-                                  {msg.chunks ? (
-                                    msg.chunks.map((chunk, i) => (
-                                      <motion.span
-                                        key={i}
-                                        initial={{ opacity: 0, y: 1 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="inline"
-                                      >
-                                        {chunk}
-                                      </motion.span>
-                                    ))
-                                  ) : (
-                                    <Markdown>{msg.content}</Markdown>
-                                  )}
-                                  {(msg.content.startsWith('Generating quiz') || msg.content.startsWith('Generating flashcards') || msg.content.startsWith('Generating checklist')) && (
-                                    <GenerationProgressBar />
-                                  )}
-                                </div>
-                              )
-                            ) : (
-                              <Markdown>
-                                {msg.role === 'user' && msg.content.length > 120 && !expandedUserMessages[msg.id]
-                                  ? msg.content.slice(0, 120) + '...'
-                                  : msg.content}
-                              </Markdown>
-                            )}
-
-
-                            {/* Inline Checklist */}
-                            {msg.role === 'assistant' && msg.checklist && (
-                              <div className="mt-4 max-w-[90%]">
-                                <AIChecklist
-                                  initialTitle={msg.checklist.title}
-                                  initialItems={msg.checklist.items}
-                                />
-                              </div>
-                            )}
-
-                            {/* Bulk Add Display */}
-                            {msg.role === 'assistant' && msg.bulkAddDisplay && (
-                              <div className="mt-4 w-full max-w-full">
-                                <BulkAddHomeworkDisplay
-                                  homeworks={msg.bulkAddDisplay.homeworks}
-                                  classes={msg.bulkAddDisplay.classes}
-                                />
-                              </div>
-                            )}
-
-                            {/* Interactive Buttons */}
-                            {msg.role === 'assistant' && msg.interactiveButtons && msg.interactiveButtons.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mt-4">
-                                {msg.interactiveButtons.map((button) => (
-                                  <Button
-                                    key={button.id}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      handleInteractiveButtonClick(button);
-                                    }}
-                                    size="sm"
-                                    className={cn(
-                                      "text-xs h-8 px-3.5 rounded-full transition-all duration-200 font-medium shadow-xs select-none flex items-center justify-center gap-1.5 border",
-                                      button.style === 'primary'
-                                        ? "bg-sky-500 hover:bg-sky-600 text-white border-transparent shadow-sm shadow-sky-500/10 active:scale-95"
-                                        : button.style === 'outline'
-                                          ? "bg-transparent hover:bg-sky-50/50 dark:hover:bg-sky-500/5 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800/80 active:scale-95"
-                                          : "bg-sky-50 dark:bg-sky-950/20 hover:bg-sky-100/80 dark:hover:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-transparent active:scale-95"
-                                    )}
-                                  >
-                                    {button.text}
-                                    {button.shortcut && (
-                                      <span className="ml-1 text-[10px] font-bold opacity-60 px-1 py-0.5 rounded-md bg-black/5 dark:bg-white/10">
-                                        {button.shortcut}
-                                      </span>
-                                    )}
-                                  </Button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                        msg={msg}
+                        idx={idx}
+                        isLastAssistantMessage={messages.findIndex(m => m.role === 'assistant') === idx}
+                        selectedModel={selectedModel}
+                        expandedThoughts={expandedThoughts}
+                        setExpandedThoughts={setExpandedThoughts}
+                        expandedToolDetails={expandedToolDetails}
+                        setExpandedToolDetails={setExpandedToolDetails}
+                        expandedUserMessages={expandedUserMessages}
+                        setExpandedUserMessages={setExpandedUserMessages}
+                        handleInteractiveButtonClick={handleInteractiveButtonClick}
+                      />
                     ))}
                     <div ref={messagesEndRef} className="h-4" />
                   </motion.div>
@@ -2560,255 +1628,40 @@ Examples of correct button prompts:
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     className="absolute left-0 right-0 flex justify-start gap-2 px-4 pointer-events-auto z-10 overflow-x-auto scrollbar-none pb-1"
                   >
-                    {contextChips.map((chip, i) => (
-                      <motion.button
-                        key={chip.label}
-                        type="button"
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        onClick={() => {
-                          setInput(chip.prompt);
-                          inputRef.current?.focus();
-                        }}
-                        className="flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-full bg-sky-50/90 dark:bg-gray-800/90 backdrop-blur-md border border-sky-200/50 dark:border-gray-700/50 text-[10px] font-medium text-sky-500 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-gray-700 hover:text-sky-900 dark:hover:text-sky-100 transition-all shadow-sm"
-                      >
-                        {chip.label}
-                      </motion.button>
-                    ))}
+                    <ContextChips 
+                      onChipClick={(prompt) => {
+                        setInput(prompt);
+                        inputRef.current?.focus();
+                      }}
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <form
-                onSubmit={handleSubmit}
-                className={cn(
-                  "pointer-events-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-md shadow-xl relative z-20 transition-all duration-300",
-                  (input.length > 80 || input.split('\n').length > 1) ? "rounded-[20px]" : "rounded-[28px]",
-                  "border border-sky-100 dark:border-white/5"
-                )}
-              >
-
-                {!hasWiped && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[28px] overflow-visible z-10">
-                    <defs>
-                      <linearGradient id="border-glow-wipe" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#165df9" stopOpacity="0" />
-                        <stop offset="50%" stopColor="#165df9" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#165df9" stopOpacity="0" />
-                      </linearGradient>
-                      <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                    </defs>
-                    <motion.rect
-                      x="0" y="0"
-                      width="100%" height="100%"
-                      rx="28" ry="28"
-                      fill="none"
-                      stroke="url(#border-glow-wipe)"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeDasharray="1 1"
-                      filter="url(#glow-filter)"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{
-                        pathLength: 1,
-                        opacity: [0, 1, 1, 0]
-                      }}
-                      transition={{
-                        pathLength: { duration: 3.5, ease: [0.65, 0, 0.35, 1] },
-                        opacity: { times: [0, 0.1, 0.85, 1], duration: 3.5 }
-                      }}
-                      onAnimationComplete={() => setHasWiped(true)}
-                    />
-                  </svg>
-                )}
-                <div className="flex items-end gap-2 p-1 relative z-20">
-                  <div className="flex-1">
-                    {/* Image preview */}
-                    {selectedImages.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {selectedImages.map((img, i) => (
-                          <div key={i} className="relative group">
-                            <img
-                              src={img}
-                              alt={`Uploaded ${i}`}
-                              className="h-16 w-16 object-cover rounded-md border"
-                            />
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeImage(i);
-                              }}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <HugeIcon name="Cancel01" className="h-3 w-3" size={12} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Textarea container */}
-                    <div className="relative">
-                      <div className="relative">
-                        <Textarea
-                          ref={inputRef}
-                          value={input}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setInput(value);
-                          }}
-                          placeholder={
-                            (selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
-                              (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                              (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
-                              ? `Daily limit reached for ${selectedModel === 'gemma-4-26b-a4b-it' ? 'Quick' : selectedModel === 'gemini-2.5-flash-lite' ? 'Deep' : 'Max'} mode - try again tomorrow`
-                              : "Ask away..."
-                          }
-                          disabled={
-                            (selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
-                            (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                            (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
-                          }
-                          className={cn(
-                            `min-h-[44px] max-h-[160px] w-full resize-none border-0 bg-transparent dark:bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0 overflow-y-auto`,
-                            ((selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
-                              (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                              (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
-                            'opacity-50 cursor-not-allowed',
-                            'text-foreground'
-                          )}
-                          rows={(input.length > 80 || input.split('\n').length > 1) ? Math.min(6, Math.max(3, input.split('\n').length)) : 1}
-                          onKeyDown={handleKeyDown}
-                          onFocus={() => {
-                            setIsInputFocused(true);
-                            setChipRotation(Math.random()); // Rotate chips on focus
-                          }}
-                          onBlur={() => {
-                            // Delay slightly so clicking a chip works before blur hides it
-                            setTimeout(() => setIsInputFocused(false), 200);
-                          }}
-                        />
-                      </div>
-
-                      {/* Action buttons */}
-                      <div className="absolute right-2 inset-y-0 flex items-center gap-0">
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleImageUpload}
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                        />
-                        {/* 
-                        <Select
-                          value={selectedModel}
-                          onValueChange={(value) => setSelectedModel(value as 'gemma-4-26b-a4b-it' | 'gemini-2.5-flash-lite' | 'gpt-oss:20b-cloud')}
-                        >
-                          <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <SelectTrigger
-                              size="sm"
-                              className="h-8 w-8 !bg-transparent dark:!bg-transparent flex-shrink-0 aspect-square border border-transparent hover:border-sky-200 dark:hover:border-gray-700 p-0 flex items-center justify-center hover:bg-sky-50 dark:hover:bg-gray-800 rounded-3xl transition-colors focus:ring-0 shadow-none [&_svg:last-child]:hidden group/model relative"
-                            >
-                              {selectedModel === 'gemma-4-26b-a4b-it' ? (
-                                <HugeIcon name="Zap" className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" size={16} />
-                              ) : selectedModel === 'gemini-2.5-flash-lite' ? (
-                                <HugeIcon name="Brain" className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" size={16} />
-                              ) : (
-                                <HugeIcon name="Cloud" className="h-4 w-4 text-sky-400 dark:text-sky-500 group-hover/model:text-sky-900 dark:group-hover/model:text-white transition-colors" size={16} />
-                              )}
-                              <div className="sr-only">
-                                <SelectValue />
-                              </div>
-                            </SelectTrigger>
-                          </motion.div>
-                          <SelectContent>
-                             <SelectItem value="gemma-4-26b-a4b-it">
-                               <div className="flex items-center gap-2">
-                                 <HugeIcon name="Zap" className="h-3.5 w-3.5" size={14} />
-                                 <span>Quick</span>
-                               </div>
-                             </SelectItem>
-                             <SelectItem value="gemini-2.5-flash-lite">
-                               <div className="flex items-center gap-2">
-                                 <HugeIcon name="Brain" className="h-3.5 w-3.5" size={14} />
-                                 <span>Deep</span>
-                                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border border-emerald-300/40 dark:border-emerald-500/20"><span className="bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">PRO</span></span>
-                               </div>
-                             </SelectItem>
-                             <SelectItem value="gpt-oss:20b-cloud">
-                               <div className="flex items-center gap-2">
-                                 <HugeIcon name="Cloud" className="h-3.5 w-3.5" size={14} />
-                                 <span>Max</span>
-                                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-300/40 dark:border-amber-500/20"><span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">Family</span></span>
-                               </div>
-                             </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        */}
-                        {/* 
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="h-8 w-8 flex items-center justify-center rounded-3xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700 bg-transparent group/file"
-                          title="Attach image"
-                        >
-                          <Paperclip className="h-4 w-4" />
-                        </motion.button>
-                        */}
-
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          type="submit"
-                          onClick={(e) => {
-                            if (isAILoading) {
-                              handleStopResponse(e);
-                            }
-                          }}
-                          disabled={
-                            (!isAILoading && (!input.trim() && selectedImages.length === 0)) ||
-                            (selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
-                            (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                            (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))
-                          }
-                          className={cn(
-                            `p-2 rounded-3xl transition-all duration-300 shadow-sm relative text-white`,
-                            (!input.trim() && selectedImages.length === 0)
-                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none'
-                              : 'bg-sky-500 hover:bg-sky-600 shadow-sky-500/20',
-                            ((selectedModel === 'gemma-4-26b-a4b-it' && quickLimit !== Infinity && quickMessageCounter >= quickLimit) ||
-                              (selectedModel === 'gemini-2.5-flash-lite' && (deepLimit === 0 || (deepLimit !== Infinity && deeperMessageCounter >= deepLimit))) ||
-                              (selectedModel === 'gpt-oss:20b-cloud' && (cloudLimit === 0 || (cloudLimit !== Infinity && cloudMessageCounter >= cloudLimit)))) &&
-                            'opacity-30 grayscale pointer-events-none'
-                          )}
-                        >
-                          {isAILoading ? (
-                            <div className="h-4 w-4 relative flex items-center justify-center">
-                              <div className="h-3 w-3 bg-white transition-colors" />
-                            </div>
-                          ) : (
-                            <HugeIcon name="ArrowUp02" className={cn(
-                              "h-4 w-4",
-                              (input.trim() || selectedImages.length > 0) ? "text-white" : "text-zinc-400 dark:text-zinc-500"
-                            )} size={16} />
-                          )}
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </form>
+              <ChatInput 
+                input={input}
+                setInput={setInput}
+                handleSubmit={handleSubmit}
+                handleKeyDown={handleKeyDown}
+                inputRef={inputRef}
+                fileInputRef={fileInputRef}
+                hasWiped={hasWiped}
+                setHasWiped={setHasWiped}
+                selectedImages={selectedImages}
+                removeImage={removeImage}
+                handleImageUpload={handleImageUpload}
+                isAILoading={isAILoading}
+                handleStopResponse={handleStopResponse}
+                selectedModel={selectedModel}
+                quickLimit={quickLimit}
+                quickMessageCounter={quickMessageCounter}
+                deepLimit={deepLimit}
+                deeperMessageCounter={deeperMessageCounter}
+                cloudLimit={cloudLimit}
+                cloudMessageCounter={cloudMessageCounter}
+                setIsInputFocused={setIsInputFocused}
+                setChipRotation={setChipRotation}
+              />
             </div>
           </motion.div>
         )}

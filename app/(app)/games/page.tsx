@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useRouteIntro } from '@/hooks/use-route-intro';
@@ -49,7 +49,7 @@ export default function GamesPage() {
     const { authenticated } = useRequireAuth();
     if (!authenticated) return null;
     const router = useRouter();
-    const { homeworks } = useClassContext();
+    const { homeworks } = useHomeworkContext();
     const { getContainerClass } = useWideLayout();
     const [showUnlockedModal, setShowUnlockedModal] = useState(false);
     const [selectedGame, setSelectedGame] = useState<{ title: string; href: string } | null>(null);

@@ -166,7 +166,7 @@ export default function WelcomeLetter({ isOpen, onClose }: WelcomeLetterProps) {
                 }}
               >
                 <Image
-                  src="/TaskTornadoDark.svg"
+                  src="/3.svg"
                   alt="TaskTornado"
                   width={28}
                   height={28}

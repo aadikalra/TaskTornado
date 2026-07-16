@@ -13,7 +13,9 @@ import {
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useClassContext, type Homework, type Test, type Class } from '@/context/ClassContext';
+import { useClassContext, type Class } from '@/context/ClassContext';
+import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
+import { useTestContext, type Test } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -114,7 +116,9 @@ const useSwipe = (onSwipeLeft: () => void, onSwipeRight: () => void) => {
 };
 
 export default function CalendarClient() {
-  const { homeworks, classes, tests, updateHomeworkDueDate, updateTestDueDate, deleteTest, loading } = useClassContext();
+  const { classes, loading } = useClassContext();
+  const { homeworks, updateHomeworkDueDate } = useHomeworkContext();
+  const { tests, updateTestDueDate, deleteTest } = useTestContext();
   const { user } = useAuth();
   const { getContainerClass } = useWideLayout();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());

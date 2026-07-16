@@ -44,6 +44,7 @@ const STUDENT_ONLY_ROUTES = [
   '/writing-assist',
   '/translate',
   '/grade-calculator',
+  '/grader',
   '/games',
   '/complete-signup',
 ];
@@ -122,6 +123,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     '/discussions',
     '/settings',
     '/groups',
+    '/grader',
     '/complete-signup',
     '/guardian/dashboard',
     '/guardian/link',

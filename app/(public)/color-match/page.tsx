@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -263,7 +263,7 @@ function ColorMatchGame({ optionCount }: { optionCount: number }) {
 export default function ColorMatchPage() {
     const { authenticated } = useRequireAuth();
     if (!authenticated) return null;
-    const { homeworks } = useClassContext();
+    const { homeworks } = useHomeworkContext();
     const totalHomeworks = homeworks ? homeworks.length : 0;
     const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;
     const remainingCount = totalHomeworks - completedHomeworks;

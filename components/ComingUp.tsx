@@ -2,7 +2,9 @@
 
 import * as React from 'react';
 import { format, isToday, isTomorrow, differenceInCalendarDays } from 'date-fns';
-import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
+import { useTestContext, type Test } from '@/context/TestContext';
 import { schoolYear2026_2027 } from '@/data/schoolEvents';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
@@ -17,7 +19,9 @@ type UpcomingItem = {
 };
 
 export const useUpcomingItems = () => {
-    const { homeworks, tests, classes } = useClassContext();
+    const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
+  const { tests } = useTestContext();
 
     return React.useMemo(() => {
         const now = new Date();

@@ -45,13 +45,16 @@ export const metadata = {
   authors: [{ name: 'TaskTornado Team' }],
   icons: {
     icon: [
-      { url: '/TaskTornado.svg', type: 'image/svg+xml' },
+      { url: '/2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
+      { url: '/3.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
     ],
     apple: [
-      { url: '/TaskTornado.svg', type: 'image/svg+xml' },
+      { url: '/2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
+      { url: '/3.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
     ],
     shortcut: [
-      { url: '/TaskTornado.svg', type: 'image/svg+xml' },
+      { url: '/2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
+      { url: '/3.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
     ],
   },
 };

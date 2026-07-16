@@ -10,14 +10,18 @@ import {
     isToday as isDateToday,
 } from 'date-fns';
 import { HugeIcon } from '@/lib/huge-icon-map';
-import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
+import { useTestContext, type Test } from '@/context/TestContext';
 import { cn } from '@/lib/utils';
 import { getEventsForDate, schoolYear2026_2027 } from '@/data/schoolEvents';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const MobileWeekCalendar = () => {
     const [viewDate, setViewDate] = React.useState(new Date());
-    const { homeworks, tests, classes } = useClassContext();
+    const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
+  const { tests } = useTestContext();
 
     const weekStart = startOfWeek(viewDate);
     const weekDays = React.useMemo(() => {

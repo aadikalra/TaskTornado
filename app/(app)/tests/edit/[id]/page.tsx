@@ -2,7 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useClassContext, TestType, TestStatus, StudyMaterial } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useTestContext, TestType, TestStatus, StudyMaterial } from '@/context/TestContext';
 import { useToast } from '@/context/ToastContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +32,8 @@ import Link from 'next/link';
 export default function EditTestPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  const { tests, classes, updateTest } = useClassContext();
+  const { classes } = useClassContext();
+  const { tests, updateTest } = useTestContext();
   const { success, error: toastError } = useToast();
 
   const [title, setTitle] = useState('');

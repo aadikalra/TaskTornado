@@ -14,11 +14,13 @@ import {
 } from '@/components/ui/alert-dialog';
 
 import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useMainApp } from '@/context/MainAppContext';
 
 export const DeleteConfirmModal = () => {
   const { deleteConfirm, setDeleteConfirm, classToDelete, setClassToDelete } = useMainApp();
-  const { deleteRecurringSeries, deleteHomework, deleteClass } = useClassContext();
+  const { deleteClass } = useClassContext();
+  const { deleteRecurringSeries, deleteHomework } = useHomeworkContext();
 
   const handleDeleteConfirm = async (deleteSeries: boolean) => {
     if (!deleteConfirm) return;

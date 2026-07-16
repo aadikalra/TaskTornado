@@ -203,7 +203,7 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 max-w-[1200px] mx-auto">
+      <div className="relative z-10 max-w-7xl mx-auto">
         
         {/* Header Section */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-sky-200/60 dark:border-sky-800/30">

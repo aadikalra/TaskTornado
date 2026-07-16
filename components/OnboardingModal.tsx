@@ -421,7 +421,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                       className="w-20 h-20 bg-[#ebf6b5]/60 dark:bg-sky-500/15 rounded-3xl flex items-center justify-center mb-6 border border-[#d4e88e]/40 dark:border-sky-500/20"
                     >
                       <Image
-                        src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
+                        src={isDarkMode ? "/3.svg" : "/2.svg"}
                         alt="TaskTornado"
                         width={40}
                         height={40}
@@ -935,7 +935,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           <div className="flex items-center justify-between px-5 py-4 border-b border-sky-100/60 dark:border-gray-800">
             <div className="flex items-center gap-2.5">
               <Image
-                src={isDarkMode ? "/TaskTornadoDark.svg" : "/TaskTornado.svg"}
+                src={isDarkMode ? "/3.svg" : "/2.svg"}
                 alt="TaskTornado"
                 width={20}
                 height={20}

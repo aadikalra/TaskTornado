@@ -3,6 +3,8 @@ import { getDashboardData } from '@/lib/data-loader';
 import { createClient } from '@/lib/supabase/server';
 import { Class, Homework, Test } from '@/context/ClassContext';
 import { ClassProvider } from '@/context/ClassContext';
+import { HomeworkProvider } from '@/context/HomeworkContext';
+import { TestProvider } from '@/context/TestContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { redirect } from 'next/navigation';
 import CalendarClient from './CalendarClient';
@@ -39,12 +41,12 @@ export default async function CalendarPage() {
 
     return (
         <ToastProvider>
-            <ClassProvider
-                initialClasses={initialClasses}
-                initialHomeworks={initialHomeworks}
-                initialTests={initialTests}
-            >
-                <CalendarClient />
+            <ClassProvider initialClasses={initialClasses}>
+                <HomeworkProvider initialHomeworks={initialHomeworks}>
+                    <TestProvider initialTests={initialTests}>
+                        <CalendarClient />
+                    </TestProvider>
+                </HomeworkProvider>
             </ClassProvider>
         </ToastProvider>
     );

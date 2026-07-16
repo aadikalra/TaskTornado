@@ -8,17 +8,18 @@ import { useRouter, usePathname } from 'next/navigation';
 import { setGlobalActiveView, emitViewChange } from '@/components/RoleSwitcher';
 
 const NAV_ITEMS = [
-    { label: 'Translate', href: '/translate' },
-    { label: 'Grades', href: '/grade-calculator' },
+    { label: 'Grades', href: '/grades' },
+    { label: 'Word Counter', href: '/wordcount' },
+    { label: 'Calendar', href: '/publiccalendar' },
     { label: 'Tutorials', href: '/tutorials' },
     { label: 'Blog', href: '/blog' },
     { label: 'Changelog', href: '/changelog' },
 ];
 
-/** Content items shown directly in the tablet pill */
-const TABLET_PRIMARY_ITEMS = NAV_ITEMS.filter(i => ['Tutorials', 'Blog', 'Changelog'].includes(i.label));
-/** Tool items hidden behind the "More" dropdown on tablet */
-const TABLET_OVERFLOW_ITEMS = NAV_ITEMS.filter(i => ['Translate', 'Grades'].includes(i.label));
+/** Content items shown directly in the pill */
+const PRIMARY_ITEMS = NAV_ITEMS.filter(i => ['Tutorials', 'Blog', 'Changelog'].includes(i.label));
+/** Tool items hidden behind the Tools/"More" dropdown */
+const TOOL_ITEMS = NAV_ITEMS.filter(i => ['Grades', 'Word Counter', 'Calendar'].includes(i.label));
 
 const ROLES = [
     { key: 'students', label: 'Students', path: '/' },
@@ -32,6 +33,8 @@ export default function ReboundNavbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [tabletMoreOpen, setTabletMoreOpen] = useState(false);
     const tabletMoreRef = useRef<HTMLDivElement>(null);
+    const [desktopToolsOpen, setDesktopToolsOpen] = useState(false);
+    const desktopToolsRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     const [activeRole, setActiveRole] = useState(() => {
@@ -50,6 +53,7 @@ export default function ReboundNavbar() {
     useEffect(() => {
         setMobileOpen(false);
         setTabletMoreOpen(false);
+        setDesktopToolsOpen(false);
         setRoleOpen(false);
     }, [pathname]);
 
@@ -86,11 +90,23 @@ export default function ReboundNavbar() {
         return () => document.removeEventListener('mousedown', handleClick);
     }, [tabletMoreOpen]);
 
+    // Close desktop "Tools" dropdown on outside click
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (desktopToolsRef.current && !desktopToolsRef.current.contains(e.target as Node)) {
+                setDesktopToolsOpen(false);
+            }
+        };
+        if (desktopToolsOpen) document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [desktopToolsOpen]);
+
     const handleRoleSelect = (key: string, path: string) => {
         setActiveRole(key);
         setRoleOpen(false);
         setMobileOpen(false);
         setTabletMoreOpen(false);
+        setDesktopToolsOpen(false);
         setGlobalActiveView(key);
         emitViewChange(key);
         window.history.pushState({}, '', path);
@@ -99,6 +115,7 @@ export default function ReboundNavbar() {
     const handleNavClick = (href: string) => {
         setMobileOpen(false);
         setTabletMoreOpen(false);
+        setDesktopToolsOpen(false);
         router.push(href);
     };
 
@@ -185,14 +202,14 @@ export default function ReboundNavbar() {
                     <button onClick={() => handleNavClick('/')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
                         <div className="relative w-7 h-7 sm:w-8 sm:h-8">
                             <Image
-                                src="/TaskTornado.svg"
+                                src="/2.svg"
                                 alt="TaskTornado Logo"
                                 width={32}
                                 height={32}
                                 className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden"
                             />
                             <Image
-                                src="/TaskTornadoDark.svg"
+                                src="/3.svg"
                                 alt="TaskTornado Logo"
                                 width={32}
                                 height={32}
@@ -208,8 +225,8 @@ export default function ReboundNavbar() {
                     <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
                         {renderRoleSwitcher()}
 
-                        {/* All nav links */}
-                        {NAV_ITEMS.map((item) => {
+                        {/* Primary nav links */}
+                        {PRIMARY_ITEMS.map((item) => {
                             const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
                             return (
                                 <button
@@ -222,6 +239,47 @@ export default function ReboundNavbar() {
                                 </button>
                             );
                         })}
+
+                        {/* Tools dropdown for desktop */}
+                        <div ref={desktopToolsRef} className="relative ml-1">
+                            <button
+                                onClick={() => setDesktopToolsOpen(prev => !prev)}
+                                className={`relative px-4 py-2 text-[13px] font-semibold flex items-center gap-1.5 transition-all duration-300 rounded-full ${desktopToolsOpen ? 'bg-white/15 text-white' : 'text-white hover:text-white/80'}`}
+                            >
+                                Tools 
+                                <ChevronDown className="w-3.5 h-3.5 opacity-70" style={{ transform: `rotate(${desktopToolsOpen ? 180 : 0}deg)`, transition: 'transform 0.3s' }} />
+                            </button>
+
+                            <AnimatePresence>
+                                {desktopToolsOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100]"
+                                    >
+                                        <div className="flex flex-col min-w-[140px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
+                                            {TOOL_ITEMS.map((item) => {
+                                                const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
+                                                return (
+                                                    <button
+                                                        key={item.label}
+                                                        onClick={() => handleNavClick(item.href)}
+                                                        className={`w-full text-left px-3.5 py-2 text-[13px] font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] ${isActive
+                                                            ? 'bg-white/15 text-white'
+                                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                            }`}
+                                                    >
+                                                        {item.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
 
                     {/* ════════════════════════════════════════════
@@ -231,7 +289,7 @@ export default function ReboundNavbar() {
                         {renderRoleSwitcher(true)}
 
                         {/* Primary nav links (visible on tablet) */}
-                        {TABLET_PRIMARY_ITEMS.map((item) => {
+                        {PRIMARY_ITEMS.map((item) => {
                             const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
                             return (
                                 <button
@@ -265,7 +323,7 @@ export default function ReboundNavbar() {
                                         className="absolute top-full right-0 mt-2 z-[100]"
                                     >
                                         <div className="flex flex-col min-w-[140px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
-                                            {TABLET_OVERFLOW_ITEMS.map((item) => {
+                                            {TOOL_ITEMS.map((item) => {
                                                 const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
                                                 return (
                                                     <button

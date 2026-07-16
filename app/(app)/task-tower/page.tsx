@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { motion } from 'framer-motion';
@@ -531,7 +531,7 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
 export default function TaskTowerPage() {
     const { authenticated } = useRequireAuth();
     if (!authenticated) return null;
-    const { homeworks } = useClassContext();
+    const { homeworks } = useHomeworkContext();
     const totalHomeworks = homeworks ? homeworks.length : 0;
     const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;
     const pendingHomeworkCount = totalHomeworks - completedHomeworks;

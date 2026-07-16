@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useClassContext, StudyMaterial } from '../context/ClassContext';
+import { useTestContext } from '../context/TestContext';
 import { useToast } from '@/context/ToastContext';
 import { useUpgrade } from '@/context/UpgradeContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
@@ -45,7 +46,8 @@ type AddTestModalProps = {
 };
 
 export const AddTestModal = ({ isOpen, onClose, defaultClassId }: AddTestModalProps) => {
-  const { classes, addTest } = useClassContext();
+  const { classes } = useClassContext();
+  const { addTest } = useTestContext();
   const { success, error: toastError } = useToast();
   const { handlePlanLimitError } = useUpgrade();
 

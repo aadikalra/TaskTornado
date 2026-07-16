@@ -11,7 +11,9 @@ import {
     isToday as isDateToday,
 } from 'date-fns';
 import { HugeIcon } from '@/lib/huge-icon-map';
-import { useClassContext, type Homework, type Test } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
+import { useTestContext, type Test } from '@/context/TestContext';
 import { cn } from '@/lib/utils';
 
 import Link from 'next/link';
@@ -20,7 +22,9 @@ import { schoolYear2026_2027, getEventsForDate } from '@/data/schoolEvents';
 
 export const MiniCalendar = () => {
     const [currentMonth, setCurrentMonth] = React.useState(new Date());
-    const { homeworks, tests, classes } = useClassContext();
+    const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
+  const { tests } = useTestContext();
 
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);

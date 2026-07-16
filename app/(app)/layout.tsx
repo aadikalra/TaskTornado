@@ -1,4 +1,6 @@
 import { ClassProvider } from '@/context/ClassContext';
+import { HomeworkProvider } from '@/context/HomeworkContext';
+import { TestProvider } from '@/context/TestContext';
 import { DataProvider } from '@/context/DataContext';
 import { SearchProvider } from '@/context/SearchContext';
 import { AIProvider } from '@/context/AIContext';
@@ -16,21 +18,25 @@ export default function AppLayout({
 }) {
   return (
     <ClassProvider>
-      <DataProvider>
-        <SearchProvider>
-          <AIProvider>
-            <WebSavesProvider>
-              <StudyGroupsProvider>
-                <UpgradeProvider>
-                  <AuthWrapper>
-                    <ClientLayout>{children}</ClientLayout>
-                  </AuthWrapper>
-                </UpgradeProvider>
-              </StudyGroupsProvider>
-            </WebSavesProvider>
-          </AIProvider>
-        </SearchProvider>
-      </DataProvider>
+      <HomeworkProvider>
+        <TestProvider>
+          <DataProvider>
+            <SearchProvider>
+              <AIProvider>
+                <WebSavesProvider>
+                  <StudyGroupsProvider>
+                    <UpgradeProvider>
+                      <AuthWrapper>
+                        <ClientLayout>{children}</ClientLayout>
+                      </AuthWrapper>
+                    </UpgradeProvider>
+                  </StudyGroupsProvider>
+                </WebSavesProvider>
+              </AIProvider>
+            </SearchProvider>
+          </DataProvider>
+        </TestProvider>
+      </HomeworkProvider>
     </ClassProvider>
   );
 }

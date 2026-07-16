@@ -12,7 +12,7 @@ export const MainAppDashboard = () => {
   const hasUpcoming = upcomingItems.length > 0;
 
   return (
-    <div className={`grid grid-cols-1 ${hasUpcoming ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4 mb-8 h-auto lg:h-[320px]`}>
+    <div className={`grid grid-cols-1 ${hasUpcoming ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-6 lg:gap-4 mb-8 h-auto lg:h-[320px]`}>
       <div className="hidden md:block h-[320px]">
         <MiniCalendar />
       </div>
@@ -20,7 +20,7 @@ export const MainAppDashboard = () => {
         <MobileWeekCalendar />
       </div>
       {hasUpcoming && (
-        <div className="h-[320px]">
+        <div className="min-h-[320px] lg:min-h-0 lg:h-[320px]">
           <ComingUp />
         </div>
       )}

@@ -220,12 +220,12 @@ export default function GuardiansHero() {
 
                             <div className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
                                 <img
-                                    src="/TaskTornado.svg"
+                                    src="/2.svg"
                                     alt="TaskTornado"
                                     className="w-32 h-32 md:w-48 md:h-48 relative z-20 drop-shadow-[0_25px_60px_rgba(39,80,133,0.35)] transition-transform duration-500 hover:scale-110 dark:hidden"
                                 />
                                 <img
-                                    src="/TaskTornadoDark.svg"
+                                    src="/3.svg"
                                     alt="TaskTornado"
                                     className="w-32 h-32 md:w-48 md:h-48 relative z-20 drop-shadow-[0_25px_60px_rgba(74,156,219,0.35)] transition-transform duration-500 hover:scale-110 hidden dark:block"
                                 />

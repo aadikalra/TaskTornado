@@ -51,12 +51,12 @@ export default function GoogleClassroomSection() {
                     <div className="relative z-20 flex items-center justify-center w-28 h-28 md:w-36 md:h-36">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] bg-yellow-500/[0.08] dark:bg-yellow-400/[0.08] rounded-full blur-[60px] pointer-events-none" />
                         <img
-                            src="/TaskTornado.svg"
+                            src="/2.svg"
                             alt="TaskTornado"
                             className="w-20 h-20 md:w-28 md:h-28 relative z-20 drop-shadow-[0_15px_30px_rgba(39,80,133,0.25)] dark:hidden transition-transform duration-500 hover:scale-110"
                         />
                         <img
-                            src="/TaskTornadoDark.svg"
+                            src="/3.svg"
                             alt="TaskTornado"
                             className="w-20 h-20 md:w-28 md:h-28 relative z-20 drop-shadow-[0_15px_30px_rgba(74,156,219,0.3)] hidden dark:block transition-transform duration-500 hover:scale-110"
                         />

@@ -59,16 +59,15 @@ export default function GuardianNavbar() {
 
     return (
         <>
-            {/* Gradient fade behind navbar */}
-            <div className="fixed top-0 left-0 right-0 h-24 z-40 pointer-events-none bg-gradient-to-b from-[#fffaf4] via-[#fffaf4]/80 to-transparent dark:from-gray-950 dark:via-gray-950/80" />
+
 
             <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 pointer-events-none">
                 <div className="pointer-events-auto flex items-center justify-between w-full max-w-7xl mx-auto">
                     {/* Logo */}
                     <button onClick={() => handleNavClick('/guardian/dashboard')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
                         <div className="relative w-7 h-7 sm:w-8 sm:h-8">
-                            <Image src="/TaskTornado.svg" alt="TaskTornado Logo" width={32} height={32} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden" />
-                            <Image src="/TaskTornadoDark.svg" alt="TaskTornado Logo" width={32} height={32} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block" />
+                            <Image src="/2.svg" alt="TaskTornado Logo" width={32} height={32} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden" />
+                            <Image src="/3.svg" alt="TaskTornado Logo" width={32} height={32} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block" />
                         </div>
                         <span className="text-[#275085] dark:text-blue-200 font-bold text-base sm:text-lg tracking-tight">TaskTornado</span>
                     </button>

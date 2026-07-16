@@ -2,7 +2,9 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useClassContext, } from '@/context/ClassContext';
+import { useClassContext } from '@/context/ClassContext';
+import { useHomeworkContext } from '@/context/HomeworkContext';
+import { useTestContext } from '@/context/TestContext';
 import { useAI } from '@/context/AIContext';
 import {
     Bell,
@@ -34,7 +36,9 @@ export interface AppNotification {
 
 // ─── Hook: generate smart notifications from data ──────────────────────────────
 export function useNotifications() {
-    const { homeworks, tests, classes } = useClassContext();
+    const { classes } = useClassContext();
+  const { homeworks } = useHomeworkContext();
+  const { tests } = useTestContext();
     const { setAIAssistantOpen, setAIInput } = useAI();
     const [dismissed, setDismissed] = useState<Set<string>>(() => {
         if (typeof window !== 'undefined') {

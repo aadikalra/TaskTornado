@@ -21,11 +21,6 @@ const CORE_ITEMS = [
 
 /* ── All customizable items (can be pinned to nav OR live in Tools dropdown) */
 const ALL_EXTRA_ITEMS = [
-    { label: 'Flashcards', href: '/flashcards', iconName: 'Cards01' },
-    { label: 'Quizzes', href: '/quiz', iconName: 'Quiz04' },
-    { label: 'Writing', href: '/writing-assist', iconName: 'AiContentGenerator02' },
-    { label: 'Mail', href: '/mail', iconName: 'MailSend01' },
-    { label: 'Translate', href: '/translate', iconName: 'Translate' },
     { label: 'Grades', href: '/grade-calculator', iconName: 'ChartAnalysis' },
     { label: 'Web Saves', href: '/web-saves', iconName: 'Bookmark03' },
     { label: 'Groups', href: '/groups', iconName: 'UserGroup03' },
@@ -36,7 +31,17 @@ const ALL_EXTRA_ITEMS = [
     { label: 'Changelog', href: '/changelog', iconName: 'GoogleDoc' },
 ];
 
-const DEFAULT_PINNED = ['Flashcards', 'Quizzes', 'Writing'];
+/* ── Locked suite items (always stay together in the Tools menu) ─────────── */
+const AI_SUITE_ITEMS = [
+    { label: 'Quizzes', href: '/quiz', iconName: 'Quiz04' },
+    { label: 'Writing', href: '/writing-assist', iconName: 'AiContentGenerator02' },
+    { label: 'Flashcards', href: '/flashcards', iconName: 'Cards01' },
+    { label: 'Mail', href: '/mail', iconName: 'MailSend01' },
+    { label: 'Translate', href: '/translate', iconName: 'Translate' },
+    { label: 'AI Grader', href: '/grader', iconName: 'SchoolReportCard' },
+];
+
+const DEFAULT_PINNED = ['Grades'];
 const MAX_PINNED = 5;
 
 const getCookie = (name: string): string | null => {
@@ -77,6 +82,51 @@ export default function AppNavbar() {
     const [tabletMoreOpen, setTabletMoreOpen] = useState(false);
     const [editNavOpen, setEditNavOpen] = useState(false);
     const [pinnedLabels, setPinnedLabels] = useState<string[]>(DEFAULT_PINNED);
+    
+    // AI Suite Password Gate States
+    const [isAIUnlocked, setIsAIUnlocked] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [passwordInput, setPasswordInput] = useState('');
+    const [validationError, setValidationError] = useState('');
+    const [isUnlocking, setIsUnlocking] = useState(false);
+
+    // Check if AI Suite is unlocked on mount
+    useEffect(() => {
+        fetch('/api/ai-suite/status')
+            .then(res => res.json())
+            .then(data => {
+                if (data.unlocked) {
+                    setIsAIUnlocked(true);
+                }
+            })
+            .catch(err => console.error('Error checking AI unlock status:', err));
+    }, []);
+
+    const handleUnlockSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setValidationError('');
+        setIsUnlocking(true);
+        try {
+            const res = await fetch('/api/ai-suite/unlock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: passwordInput })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setIsAIUnlocked(true);
+                setIsPasswordModalOpen(false);
+                setPasswordInput('');
+            } else {
+                setValidationError(data.error || 'Incorrect password. Please try again.');
+            }
+        } catch (err) {
+            setValidationError('Network error. Please try again.');
+            console.error('Error unlocking AI Suite:', err);
+        } finally {
+            setIsUnlocking(false);
+        }
+    };
 
     const toolsRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
@@ -403,6 +453,59 @@ export default function AppNavbar() {
                                                     <span className="text-[9px] font-semibold leading-tight">Timer</span>
                                                 </motion.button>
                                             </div>
+                                            <div className="h-px bg-white/10 my-2" />
+                                            {isAIUnlocked ? (
+                                                <div className="grid grid-cols-4 gap-1">
+                                                    {AI_SUITE_ITEMS.map((tool) => (
+                                                        <button 
+                                                            key={tool.label} 
+                                                            onClick={() => handleNavClick(tool.href)} 
+                                                            className={`flex flex-col items-center gap-1.5 py-2.5 px-1.5 rounded-xl transition-all active:scale-95 ${isActive(tool.href) ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                                                        >
+                                                            {tool.label === 'Flashcards' ? (
+                                                                <Image 
+                                                                    src="/AIFlashcards.png" 
+                                                                    alt="AI Flashcards" 
+                                                                    width={16} 
+                                                                    height={16} 
+                                                                    className="w-4 h-4 object-contain"
+                                                                    unoptimized
+                                                                />
+                                                            ) : (
+                                                                <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
+                                                            )}
+                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="px-1 py-0.5">
+                                                    <button 
+                                                        onClick={() => setIsPasswordModalOpen(true)}
+                                                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/5 text-white/60 cursor-pointer transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
+                                                        title="Click to unlock AI Suite"
+                                                        type="button"
+                                                    >
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="relative w-7 h-7 flex-shrink-0 flex items-center justify-center">
+                                                                <Image 
+                                                                    src="/ai-sparkle.png?v=2" 
+                                                                    alt="AI Sparkle Logo" 
+                                                                    width={26} 
+                                                                    height={26} 
+                                                                    className="object-contain"
+                                                                    unoptimized
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col text-left">
+                                                                <span className="text-[10px] font-bold tracking-wider uppercase text-white/90">AI Suite</span>
+                                                                <span className="text-[8px] text-white/40 font-semibold tracking-wide">Locked</span>
+                                                            </div>
+                                                        </div>
+                                                        <HugeIcon name="Lock" size={16} className="text-white/40 mr-1" />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
@@ -639,6 +742,59 @@ export default function AppNavbar() {
                                                     <span className="text-[9px] font-semibold leading-tight">Timer</span>
                                                 </motion.button>
                                             </div>
+                                            <div className="h-px bg-white/10 my-2" />
+                                            {isAIUnlocked ? (
+                                                <div className="grid grid-cols-4 gap-1">
+                                                    {AI_SUITE_ITEMS.map(tool => (
+                                                        <button 
+                                                            key={tool.label} 
+                                                            onClick={() => handleNavClick(tool.href)} 
+                                                            className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl transition-all active:scale-95 ${isActive(tool.href) ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                                                        >
+                                                            {tool.label === 'Flashcards' ? (
+                                                                <Image 
+                                                                    src="/AIFlashcards.png" 
+                                                                    alt="AI Flashcards" 
+                                                                    width={16} 
+                                                                    height={16} 
+                                                                    className="w-4 h-4 object-contain"
+                                                                    unoptimized
+                                                                />
+                                                            ) : (
+                                                                <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
+                                                            )}
+                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="px-1 py-0.5">
+                                                    <button 
+                                                        onClick={() => setIsPasswordModalOpen(true)}
+                                                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/5 text-white/60 cursor-pointer transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
+                                                        title="Click to unlock AI Suite"
+                                                        type="button"
+                                                    >
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="relative w-7 h-7 flex-shrink-0 flex items-center justify-center">
+                                                                <Image 
+                                                                    src="/ai-sparkle.png?v=2" 
+                                                                    alt="AI Sparkle Logo" 
+                                                                    width={26} 
+                                                                    height={26} 
+                                                                    className="object-contain"
+                                                                    unoptimized
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col text-left">
+                                                                <span className="text-[10px] font-bold tracking-wider uppercase text-white/90">AI Suite</span>
+                                                                <span className="text-[8px] text-white/40 font-semibold tracking-wide">Locked</span>
+                                                            </div>
+                                                        </div>
+                                                        <HugeIcon name="Lock" size={16} className="text-white/40 mr-1" />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
@@ -848,6 +1004,59 @@ export default function AppNavbar() {
                                         <span className="text-[9px] font-semibold leading-tight">Timer</span>
                                     </motion.button>
                                 </div>
+                                <div className="h-px bg-white/10 my-3" />
+                                {isAIUnlocked ? (
+                                    <div className="grid grid-cols-4 gap-1">
+                                        {AI_SUITE_ITEMS.map(tool => (
+                                            <button 
+                                                key={tool.label} 
+                                                onClick={() => handleNavClick(tool.href)} 
+                                                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-2xl transition-all active:scale-95 ${isActive(tool.href) ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                                            >
+                                                {tool.label === 'Flashcards' ? (
+                                                    <Image 
+                                                        src="/AIFlashcards.png" 
+                                                        alt="AI Flashcards" 
+                                                        width={18} 
+                                                        height={18} 
+                                                        className="w-4.5 h-4.5 object-contain"
+                                                        unoptimized
+                                                    />
+                                                ) : (
+                                                    <HugeIcon name={tool.iconName} size={18} className="w-4.5 h-4.5" />
+                                                )}
+                                                <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="px-1 py-0.5">
+                                        <button 
+                                            onClick={() => setIsPasswordModalOpen(true)}
+                                            className="w-full flex items-center justify-between p-3 rounded-2xl border border-white/5 bg-white/5 text-white/60 cursor-pointer transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
+                                            title="Click to unlock AI Suite"
+                                            type="button"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative w-8 h-8 flex-shrink-0 flex items-center justify-center">
+                                                    <Image 
+                                                        src="/ai-sparkle.png?v=2" 
+                                                        alt="AI Sparkle Logo" 
+                                                        width={30} 
+                                                        height={30} 
+                                                        className="object-contain"
+                                                        unoptimized
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col text-left">
+                                                    <span className="text-[11px] font-bold tracking-wider uppercase text-white/90">AI Suite</span>
+                                                    <span className="text-[9px] text-white/40 font-semibold tracking-wide">Locked</span>
+                                                </div>
+                                            </div>
+                                            <HugeIcon name="Lock" size={18} className="text-white/40 mr-1.5" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="h-px bg-white/10 mx-3" />
@@ -877,6 +1086,100 @@ export default function AppNavbar() {
             {/* Floating components */}
             <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setAIAssistantOpen(false)} />
             <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} onMinimizedInfo={setTimerInfo} restoreSignal={timerRestoreSignal} />
+
+            {/* Password Gate Modal */}
+            <AnimatePresence>
+                {isPasswordModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 pointer-events-auto"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            className="relative w-full max-w-sm p-6 bg-[#275085]/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] text-white"
+                        >
+                            {/* Close Button */}
+                            <button
+                                onClick={() => {
+                                    setIsPasswordModalOpen(false);
+                                    setValidationError('');
+                                    setPasswordInput('');
+                                }}
+                                className="absolute top-4 right-4 text-white/50 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all active:scale-95"
+                                type="button"
+                            >
+                                <XIcon className="w-4 h-4" />
+                            </button>
+
+                            <div className="flex flex-col items-center text-center mt-2">
+                                {/* Sparkle Image */}
+                                <div className="relative w-12 h-12 flex items-center justify-center mb-3">
+                                    <Image 
+                                        src="/ai-sparkle.png?v=2" 
+                                        alt="AI Sparkle Logo" 
+                                        width={44} 
+                                        height={44} 
+                                        className="object-contain"
+                                        unoptimized
+                                    />
+                                </div>
+
+                                <h3 className="text-[18px] font-bold tracking-tight mb-1 text-white">Unlock AI Suite</h3>
+                                <p className="text-[12px] text-white/60 mb-5 leading-normal max-w-[240px]">
+                                    Enter the developer preview password to enable all AI tools.
+                                </p>
+
+                                <form onSubmit={handleUnlockSubmit} className="w-full">
+                                    <input
+                                        type="password"
+                                        value={passwordInput}
+                                        onChange={(e) => setPasswordInput(e.target.value)}
+                                        placeholder="Developer Password"
+                                        required
+                                        autoFocus
+                                        disabled={isUnlocking}
+                                        className="w-full px-4 py-3 bg-white/10 rounded-2xl border border-white/10 focus:outline-none focus:border-white/20 focus:bg-white/15 text-white placeholder-white/30 text-[13px] font-semibold transition-all mb-3 text-center"
+                                    />
+
+                                    {validationError && (
+                                        <motion.div
+                                            animate={{ x: [-10, 10, -10, 10, 0] }}
+                                            transition={{ duration: 0.4 }}
+                                            className="text-red-300 text-[11px] font-bold mb-3 flex items-center justify-center gap-1.5"
+                                        >
+                                            <HugeIcon name="AlertCircle" size={12} className="text-red-300" />
+                                            <span>{validationError}</span>
+                                        </motion.div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={isUnlocking}
+                                        className="w-full py-3 bg-white text-[#275085] hover:bg-white/90 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all font-bold text-[13px] rounded-2xl shadow-lg flex items-center justify-center gap-2"
+                                    >
+                                        {isUnlocking ? (
+                                            <>
+                                                <span className="w-3.5 h-3.5 border-2 border-[#275085] border-t-transparent rounded-full animate-spin" />
+                                                <span>Unlocking...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <HugeIcon name="Lock" size={13} className="text-[#275085]" />
+                                                <span>Verify Password</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
         </>
     );
