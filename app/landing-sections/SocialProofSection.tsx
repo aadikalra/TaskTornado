@@ -74,7 +74,7 @@ const row2 = [
 ];
 
 const TestimonialCard = ({ item }: { item: { quote: string; author: string; role: string; avatar: string } }) => (
-    <div className="flex-shrink-0 w-[340px] md:w-[420px] min-h-[260px] md:min-h-[280px] mx-3 md:mx-4 bg-[#f5f6f8] dark:bg-zinc-900 rounded-[28px] p-8 md:p-10 flex flex-col justify-between border border-[#275085]/5 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow">
+    <div className="flex-shrink-0 w-[340px] md:w-[420px] min-h-[260px] md:min-h-[280px] mx-3 md:mx-4 bg-[#f5f6f8] dark:bg-zinc-900 rounded-[28px] p-8 md:p-10 flex flex-col justify-between border border-[#275085]/5 dark:border-zinc-800">
         <div>
             {/* Quote Icon */}
             <div className="mb-6 text-[#275085] dark:text-[#4a9cdb]">

@@ -455,28 +455,34 @@ export default function AppNavbar() {
                                             </div>
                                             <div className="h-px bg-white/10 my-2" />
                                             {isAIUnlocked ? (
-                                                <div className="grid grid-cols-4 gap-1">
-                                                    {AI_SUITE_ITEMS.map((tool) => (
-                                                        <button 
-                                                            key={tool.label} 
-                                                            onClick={() => handleNavClick(tool.href)} 
-                                                            className={`flex flex-col items-center gap-1.5 py-2.5 px-1.5 rounded-xl transition-all active:scale-95 ${isActive(tool.href) ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
-                                                        >
-                                                            {tool.label === 'Flashcards' ? (
-                                                                <Image 
-                                                                    src="/AIFlashcards.png" 
-                                                                    alt="AI Flashcards" 
-                                                                    width={16} 
-                                                                    height={16} 
-                                                                    className="w-4 h-4 object-contain"
-                                                                    unoptimized
-                                                                />
-                                                            ) : (
-                                                                <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
-                                                            )}
-                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
-                                                        </button>
-                                                    ))}
+                                                <div className="p-1">
+                                                    <div className="grid grid-cols-3 gap-1.5">
+                                                        {AI_SUITE_ITEMS.map((tool) => (
+                                                            <button 
+                                                                key={tool.label} 
+                                                                onClick={() => handleNavClick(tool.href)} 
+                                                                title={tool.label}
+                                                                className={`flex items-center justify-center py-3 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
+                                                                    isActive(tool.href) 
+                                                                        ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
+                                                                        : 'bg-white/[0.03] border-white/5 text-white/80 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
+                                                                }`}
+                                                            >
+                                                                {tool.label === 'Flashcards' ? (
+                                                                    <Image 
+                                                                        src="/AIFlashcards.png" 
+                                                                        alt="AI Flashcards" 
+                                                                        width={22} 
+                                                                        height={22} 
+                                                                        className="w-5.5 h-5.5 object-contain"
+                                                                        unoptimized
+                                                                    />
+                                                                ) : (
+                                                                    <HugeIcon name={tool.iconName} size={22} className="w-5.5 h-5.5" />
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="px-1 py-0.5">
@@ -744,28 +750,34 @@ export default function AppNavbar() {
                                             </div>
                                             <div className="h-px bg-white/10 my-2" />
                                             {isAIUnlocked ? (
-                                                <div className="grid grid-cols-4 gap-1">
-                                                    {AI_SUITE_ITEMS.map(tool => (
-                                                        <button 
-                                                            key={tool.label} 
-                                                            onClick={() => handleNavClick(tool.href)} 
-                                                            className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl transition-all active:scale-95 ${isActive(tool.href) ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
-                                                        >
-                                                            {tool.label === 'Flashcards' ? (
-                                                                <Image 
-                                                                    src="/AIFlashcards.png" 
-                                                                    alt="AI Flashcards" 
-                                                                    width={16} 
-                                                                    height={16} 
-                                                                    className="w-4 h-4 object-contain"
-                                                                    unoptimized
-                                                                />
-                                                            ) : (
-                                                                <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
-                                                            )}
-                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
-                                                        </button>
-                                                    ))}
+                                                <div className="p-1">
+                                                    <div className="grid grid-cols-3 gap-1.5">
+                                                        {AI_SUITE_ITEMS.map(tool => (
+                                                            <button 
+                                                                key={tool.label} 
+                                                                onClick={() => handleNavClick(tool.href)} 
+                                                                title={tool.label}
+                                                                className={`flex items-center justify-center py-3 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
+                                                                    isActive(tool.href) 
+                                                                        ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
+                                                                        : 'bg-white/[0.03] border-white/5 text-white/80 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
+                                                                }`}
+                                                            >
+                                                                {tool.label === 'Flashcards' ? (
+                                                                    <Image 
+                                                                        src="/AIFlashcards.png" 
+                                                                        alt="AI Flashcards" 
+                                                                        width={22} 
+                                                                        height={22} 
+                                                                        className="w-5.5 h-5.5 object-contain"
+                                                                        unoptimized
+                                                                    />
+                                                                ) : (
+                                                                    <HugeIcon name={tool.iconName} size={22} className="w-5.5 h-5.5" />
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="px-1 py-0.5">
@@ -1006,28 +1018,34 @@ export default function AppNavbar() {
                                 </div>
                                 <div className="h-px bg-white/10 my-3" />
                                 {isAIUnlocked ? (
-                                    <div className="grid grid-cols-4 gap-1">
-                                        {AI_SUITE_ITEMS.map(tool => (
-                                            <button 
-                                                key={tool.label} 
-                                                onClick={() => handleNavClick(tool.href)} 
-                                                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-2xl transition-all active:scale-95 ${isActive(tool.href) ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
-                                            >
-                                                {tool.label === 'Flashcards' ? (
-                                                    <Image 
-                                                        src="/AIFlashcards.png" 
-                                                        alt="AI Flashcards" 
-                                                        width={18} 
-                                                        height={18} 
-                                                        className="w-4.5 h-4.5 object-contain"
-                                                        unoptimized
-                                                    />
-                                                ) : (
-                                                    <HugeIcon name={tool.iconName} size={18} className="w-4.5 h-4.5" />
-                                                )}
-                                                <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
-                                            </button>
-                                        ))}
+                                    <div className="p-1">
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {AI_SUITE_ITEMS.map(tool => (
+                                                <button 
+                                                    key={tool.label} 
+                                                    onClick={() => handleNavClick(tool.href)} 
+                                                    title={tool.label}
+                                                    className={`flex items-center justify-center py-3.5 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
+                                                        isActive(tool.href) 
+                                                            ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
+                                                            : 'bg-white/[0.03] border-white/5 text-white/70 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
+                                                    }`}
+                                                >
+                                                    {tool.label === 'Flashcards' ? (
+                                                        <Image 
+                                                            src="/AIFlashcards.png" 
+                                                            alt="AI Flashcards" 
+                                                            width={24} 
+                                                            height={24} 
+                                                            className="w-6 h-6 object-contain"
+                                                            unoptimized
+                                                        />
+                                                    ) : (
+                                                        <HugeIcon name={tool.iconName} size={24} className="w-6 h-6" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="px-1 py-0.5">
