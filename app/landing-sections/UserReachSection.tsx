@@ -18,9 +18,9 @@ const itemVariants = {
 };
 
 const stats = [
-    { value: '2+', num: 2, label: 'States' },
-    { value: '50+', num: 50, label: 'Students' },
-    { value: '1,000+', num: 1000, label: 'Hours' },
+    { num: 0, suffix: '', label: 'Current Users' },
+    { num: 1, suffix: '', label: 'Launch Country' },
+    { num: 13, suffix: '+', label: 'Minimum Age' },
 ];
 
 export default function UserReachSection() {
@@ -36,13 +36,13 @@ export default function UserReachSection() {
                 {/* ── Header ──────────────────────────────── */}
                 <motion.div variants={itemVariants} className="text-center mb-12 md:mb-16">
                     <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-fuchsia-600 dark:text-fuchsia-400 bg-fuchsia-600/5 dark:bg-fuchsia-400/5 border border-fuchsia-600/10 dark:border-fuchsia-400/10 rounded-full mb-4">
-                        Growing Fast
+                        Pre-launch
                     </span>
                     <h2 className="text-3xl md:text-5xl font-semibold text-fuchsia-600 dark:text-fuchsia-400 tracking-tight leading-[1.15] mb-4">
-                        Students everywhere.
+                        Preparing for a U.S. launch.
                     </h2>
                     <p className="text-base md:text-lg text-fuchsia-900/60 dark:text-fuchsia-400/60 font-medium max-w-lg mx-auto leading-relaxed">
-                        From California to Texas, TaskTornado helps students across the country stay on top of their education.
+                        TaskTornado does not currently have production users. We are building the privacy and safety foundation before inviting students.
                     </p>
                 </motion.div>
 
@@ -53,7 +53,7 @@ export default function UserReachSection() {
                 >
                     <Image
                         src="/userMap.png"
-                        alt="World map showing TaskTornado user distribution"
+                        alt="Map illustrating TaskTornado's planned United States launch"
                         width={1200}
                         height={600}
                         className="w-full h-auto object-contain rounded-2xl"
@@ -73,7 +73,7 @@ export default function UserReachSection() {
                             className="text-center"
                         >
                             <p className="text-3xl md:text-5xl font-bold text-fuchsia-600 dark:text-fuchsia-400 tracking-tight mb-1">
-                                <CountingNumber number={stat.num} delay={300 + i * 100} />+
+                                <CountingNumber number={stat.num} delay={300 + i * 100} />{stat.suffix}
                             </p>
                             <p className="text-xs md:text-sm font-semibold text-fuchsia-900/40 dark:text-fuchsia-400/40 uppercase tracking-widest">
                                 {stat.label}

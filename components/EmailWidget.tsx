@@ -37,6 +37,7 @@ export const EmailWidget = () => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
   const [authenticated, setAuthenticated] = React.useState(false);
+  const [integrationEnabled, setIntegrationEnabled] = React.useState(true);
 
   // Modal State
   const [selectedEmail, setSelectedEmail] = React.useState<EmailDetails | null>(null);
@@ -57,6 +58,13 @@ export const EmailWidget = () => {
       const sessionRes = await fetch('/api/auth/gmail-session');
       const sessionData = await sessionRes.json();
       
+      if (sessionData.enabled === false) {
+        setIntegrationEnabled(false);
+        setAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
       if (!sessionData.authenticated) {
         setAuthenticated(false);
         setLoading(false);
@@ -209,10 +217,14 @@ export const EmailWidget = () => {
               </div>
               <div>
                   <h3 className="text-sm font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-1">Gmail Inbox</h3>
-                  <p className="text-[10px] text-blue-600/50 dark:text-blue-400/40 font-medium max-w-[150px] mx-auto uppercase tracking-wider">Connect your email to see a summary</p>
+                  <p className="text-[10px] text-blue-600/50 dark:text-blue-400/40 font-medium max-w-[170px] mx-auto uppercase tracking-wider">
+                    {integrationEnabled
+                      ? 'Connect your email to see a summary'
+                      : 'Unavailable until Google OAuth review is complete'}
+                  </p>
               </div>
               <Link href="/mail" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-full shadow-lg shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider">
-                  Connect Gmail
+                  {integrationEnabled ? 'Connect Gmail' : 'Learn more'}
               </Link>
           </div>
       );

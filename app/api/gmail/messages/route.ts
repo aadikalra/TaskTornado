@@ -1,36 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { cookies } from 'next/headers';
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
+import { getGoogleClientForUser } from '@/lib/google-oauth';
 
 export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get('gmail-auth');
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!access.ok) return access.response;
 
-    if (!authCookie) {
+  try {
+    const googleAuth = await getGoogleClientForUser(access.user.id, 'gmail');
+    if (!googleAuth) {
       return NextResponse.json({ error: 'Not authenticated with Gmail' }, { status: 401 });
     }
 
-    const authData = JSON.parse(authCookie.value);
-
-    if (!authData.access_token) {
-      return NextResponse.json({ error: 'No access token' }, { status: 401 });
-    }
-
-    // Check if token is expired
-    if (authData.expiry_date && Date.now() > authData.expiry_date) {
-      return NextResponse.json({ error: 'Token expired', needsReauth: true }, { status: 401 });
-    }
-
-    // Create OAuth2 client with the stored access token
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: authData.access_token });
-
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const gmail = google.gmail({ version: 'v1', auth: googleAuth.client });
 
     // Get query params
     const searchParams = request.nextUrl.searchParams;
-    const maxResults = parseInt(searchParams.get('maxResults') || '20');
+    const requestedMax = Number.parseInt(searchParams.get('maxResults') || '20', 10);
+    const maxResults = Number.isFinite(requestedMax)
+      ? Math.min(50, Math.max(1, requestedMax))
+      : 20;
     const pageToken = searchParams.get('pageToken') || undefined;
     const q = searchParams.get('q') || undefined;
 

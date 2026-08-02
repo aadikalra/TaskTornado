@@ -1,31 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { cookies } from 'next/headers';
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
+import { getGoogleClientForUser } from '@/lib/google-oauth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 60,
+    windowMs: 60_000,
+  });
+  if (!access.ok) return access.response;
+
   try {
     const { id } = await params;
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get('gmail-auth');
-
-    if (!authCookie) {
+    const googleAuth = await getGoogleClientForUser(access.user.id, 'gmail');
+    if (!googleAuth) {
       return NextResponse.json({ error: 'Not authenticated with Gmail' }, { status: 401 });
     }
 
-    const authData = JSON.parse(authCookie.value);
-
-    if (!authData.access_token) {
-      return NextResponse.json({ error: 'No access token' }, { status: 401 });
-    }
-
-    // Create OAuth2 client
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: authData.access_token });
-
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const gmail = google.gmail({ version: 'v1', auth: googleAuth.client });
 
     // Get full message
     const response = await gmail.users.messages.get({

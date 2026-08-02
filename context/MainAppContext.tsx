@@ -133,7 +133,7 @@ export const MainAppProvider = ({ children }: { children: ReactNode }) => {
 
   const [showTestsInClassCards, setShowTestsInClassCardsState] = useState(() => {
     const saved = getCookie('showTestsInClassCards');
-    return saved !== null ? saved === 'true' : true;
+    return saved !== null ? saved === 'true' : false;
   });
 
   const [expandedClasses, setExpandedClassesState] = useState<Record<string, boolean>>(() => {

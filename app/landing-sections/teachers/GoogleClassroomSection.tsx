@@ -7,12 +7,12 @@ import {
 } from 'react-icons/si';
 
 const REPLACED_APPS = [
-    { icon: SiGooglegemini, color: "text-[#8E75B2]", name: "Gemini", replacedBy: "AI Tutor (Aurora)", startAngle: 0, radius: 180 },
+    { icon: SiGooglegemini, color: "text-[#8E75B2]", name: "Gemini", replacedBy: "AI tutor (planned)", startAngle: 0, radius: 180 },
     { icon: SiGoogledocs, color: "text-[#4285F4]", name: "Google Docs", replacedBy: "Writing assistant", startAngle: 60, radius: 180 },
-    { icon: SiGoogleclassroom, color: "text-[#00897B]", name: "Google Classroom", replacedBy: "Homework + Class tracking", startAngle: 120, radius: 180, highlight: true },
+    { icon: SiGoogleclassroom, color: "text-[#00897B]", name: "Google Classroom", replacedBy: "Sync (review pending)", startAngle: 120, radius: 180, highlight: true },
     { icon: SiGooglecalendar, color: "text-[#4285F4]", name: "Google Calendar", replacedBy: "Deadline calendar", startAngle: 180, radius: 180 },
     { icon: SiGooglesheets, color: "text-[#0F9D58]", name: "Google Sheets", replacedBy: "Grade calculator", startAngle: 240, radius: 180 },
-    { icon: SiGoogletranslate, color: "text-[#4285F4]", name: "Google Translate", replacedBy: "Translation", startAngle: 300, radius: 180 },
+    { icon: SiGoogletranslate, color: "text-[#4285F4]", name: "Google Translate", replacedBy: "Translation (planned)", startAngle: 300, radius: 180 },
 ];
 
 export default function GoogleClassroomSection() {
@@ -29,13 +29,15 @@ export default function GoogleClassroomSection() {
                     className="text-center mb-8 md:mb-10"
                 >
                     <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-yellow-700 dark:text-yellow-400 bg-yellow-600/5 dark:bg-yellow-400/5 border border-yellow-600/10 dark:border-yellow-400/10 rounded-full mb-6">
-                        Zero Extra Work
+                        Planned Integration
                     </span>
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-semibold text-yellow-500 dark:text-yellow-400 tracking-tight leading-[1.1] mb-4">
-                        Syncs with Google Classroom.
+                        Google Classroom sync is planned.
                     </h2>
                     <p className="text-base md:text-lg text-yellow-900/60 dark:text-yellow-400/60 max-w-xl mx-auto leading-relaxed font-medium">
-                        One connection is all it takes. Classes, assignments, and deadlines flow in from Google Classroom — effortlessly and instantly.
+                        The connection is disabled until Google OAuth review and
+                        production privacy checks are complete. When launched,
+                        it will use read-only, least-privilege access.
                     </p>
                 </motion.div>
 

@@ -9,10 +9,10 @@ const sections = [
     icon: Database,
     title: '1. Information We Collect',
     items: [
-      { label: 'Account Information', desc: 'Name, email address, and account type (student or guardian) for login and profile. Passwords (if applicable) are managed securely by our authentication provider — we never store raw passwords.' },
+      { label: 'Account Information', desc: 'Name, email address, account type, date of birth, country, and—when the user is under 18—a parent or guardian email and approval record. The approval record includes the guardian name, consent version, time, IP address, and browser user agent. Passwords are managed by our authentication provider; TaskTornado does not store raw passwords.' },
       { label: 'Academic Information', desc: 'Classes, assignments, test dates, grades, flashcard decks, quiz data, and web saves you create or import from Google Classroom.' },
-      { label: 'AI Interaction Data', desc: 'Prompts you send to Aurora (our AI assistant), including any homework context or selected text. These are sent to Google Gemini for processing and are not stored by TaskTornado.' },
-      { label: 'Social and Collaborative Data', desc: 'Discussion board posts, group chat messages, and study group membership you choose to participate in.' },
+      { label: 'AI Interaction Data', desc: 'When you use Aurora, TaskTornado sends your prompt, a short recent conversation history, and only the limited school-organizer records needed for the request to Groq for model inference. We do not send passwords, guardian contact details, Google OAuth tokens, Gmail contents, or your entire database. Web search is not enabled.' },
+      { label: 'Social and Collaborative Data', desc: 'Discussion boards, study groups, invitations, and group chat are currently disabled.' },
       { label: 'Guardian-Linked Data', desc: 'If you link a guardian account, your guardian can view your homework, tests, grades, and class information through a read-only dashboard.' },
     ],
   },
@@ -21,7 +21,7 @@ const sections = [
     title: '2. How We Use Your Information',
     list: [
       'Provide and maintain the TaskTornado platform',
-      'Power AI-assisted features like Aurora, flashcard generation, and quiz creation',
+      'Provide age-appropriate AI study help, flashcards, quizzes, and planning',
       'Import assignments from Google Classroom when you connect your account',
       'Enable guardian accounts to view linked student academic progress',
       'Enforce rate limits and protect against abuse',
@@ -45,8 +45,9 @@ const sections = [
         label: 'Application Security',
         items: [
           'Rate limiting on AI requests to prevent abuse and unauthorized access',
-          'Row-Level Security (RLS) policies on all database tables via Supabase',
-          'AI prompts are processed in real-time and not stored by TaskTornado after the response is generated',
+          'Row-Level Security (RLS) and server-only access controls on sensitive database tables',
+          'AI endpoints are authenticated, age-gated, parent-approval-gated for users 13–17, and rate limited',
+          'Aurora has no web-search capability and its school-data tool is read-only',
           'Restricted access controls for beta access management',
         ],
       },
@@ -57,42 +58,44 @@ const sections = [
 const retentionItems = [
   'Academic data (homework, tests, grades): Persists until you manually delete items or delete your account',
   'Account information: Deleted when you use the Delete Account feature in Settings',
-  'AI assistant conversations: Not stored by TaskTornado — subject to Google Gemini\'s data retention policies',
+  'Google OAuth credentials: Retained in encrypted server storage until you disconnect the Google service or delete your account',
+  'Parental approval records: Retained with the student account to document approval and removed when the account is deleted, subject to provider backup and legal-retention periods',
+  'AI assistant conversations: Stored in your TaskTornado account until you delete them or delete your account. Prompts and responses sent to Groq may be kept in temporary abuse-monitoring logs for up to 30 days unless Zero Data Retention is enabled for the Groq account. TaskTornado stores daily usage counts and token totals, but not prompt text, in its quota records',
   'Analytics data: Handled by Vercel Analytics according to their retention schedule',
 ];
 
 const rights = [
-  'Access the personal information we hold about you',
-  'Request correction of inaccurate personal information',
-  'Request deletion of your personal information',
-  'Object to or restrict processing of your personal information',
-  'Request transfer of your personal information',
-  'Withdraw consent where we rely on consent to process your information',
+  'View and correct account and academic information in the app',
+  'Delete individual academic records',
+  'Delete your TaskTornado account in Settings',
+  'Disconnect Gmail or Google Classroom and revoke TaskTornado access',
+  'Ask a privacy question or request help with access, correction, or deletion',
+  'Have a parent or guardian withdraw approval for a minor account by contacting us',
 ];
 
 const cookieItems = [
   'Authentication: Supabase session cookies to keep you logged in',
   'Preferences: Settings such as theme (dark/light mode), dyslexic font, and layout preferences stored in cookies and localStorage',
-  'Rate Limiting: Cookies that track AI usage counts to enforce daily limits',
+  'Rate Limiting: Server-side daily usage counts used to enforce AI allowances',
 ];
 
 const thirdPartyServices = [
   {
     name: 'Supabase',
-    role: 'Database, authentication, and file storage',
-    data: 'All account data, academic records, social features, and guardian links',
+    role: 'Database and authentication',
+    data: 'Account data, academic records, parental approval records, encrypted Google connection records, and guardian links',
     link: 'https://supabase.com/privacy',
   },
   {
-    name: 'Google Gemini (AI Studio)',
-    role: 'AI-powered features (Aurora assistant, flashcard generation, quiz creation, writing assist)',
-    data: 'Prompts containing homework questions, class context, or selected text sent for AI processing',
-    link: 'https://ai.google.dev/terms',
+    name: 'Groq',
+    role: 'AI model inference and safety classification for Aurora',
+    data: 'Your prompt, a short recent conversation history, and limited relevant class, homework, or test information. Groq may also process service metadata such as token counts and IP address. TaskTornado does not enable web search or send Gmail contents, Google OAuth tokens, guardian contact details, or passwords to Groq.',
+    link: 'https://groq.com/privacy-policy/',
   },
   {
     name: 'Google OAuth',
-    role: 'Optional "Continue with Google" sign-in',
-    data: 'Email, name, and profile information during the authentication flow',
+    role: 'Optional connection to Google Classroom or Gmail after TaskTornado registration',
+    data: 'Email and basic Google profile information during authorization; OAuth tokens are encrypted on the server',
     link: 'https://policies.google.com/privacy',
   },
   {
@@ -100,6 +103,12 @@ const thirdPartyServices = [
     role: 'Optional import of courses and assignments',
     data: 'Course names, assignment titles, due dates, and grades — only when you explicitly connect your Classroom account',
     link: 'https://edu.google.com/intl/ALL_us/workspace-for-education/privacy/',
+  },
+  {
+    name: 'Gmail API',
+    role: 'Optional read-only inbox viewer',
+    data: 'Message sender, recipients, subject, date, snippet, message body, labels, and attachment metadata — only when you explicitly connect Gmail. TaskTornado displays this data on request and does not save message contents to its database.',
+    link: 'https://policies.google.com/privacy',
   },
   {
     name: 'Vercel',
@@ -111,6 +120,12 @@ const thirdPartyServices = [
     name: 'Google Fonts',
     role: 'Typography (Geist, Inter, Nunito Sans)',
     data: 'IP address is visible to Google when fonts are loaded by your browser',
+    link: 'https://policies.google.com/privacy',
+  },
+  {
+    name: 'Google Forms',
+    role: 'Support and privacy inquiry form',
+    data: 'Information you voluntarily submit through the externally hosted form, plus information Google collects under its own settings and policy',
     link: 'https://policies.google.com/privacy',
   },
 ];
@@ -142,7 +157,7 @@ export default function PrivacyPolicy() {
             Privacy Policy
           </h1>
           <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
-            Last updated: March 7, 2026
+            Last updated: July 28, 2026
           </p>
         </motion.div>
 
@@ -163,7 +178,7 @@ export default function PrivacyPolicy() {
             <div className="space-y-2.5">
               {[
                 { bold: 'Your data stays yours:', rest: 'Your academic data persists until you manually delete it or delete your account' },
-                { bold: 'AI queries are ephemeral:', rest: 'TaskTornado does not store AI conversations — prompts are processed by Google Gemini and not retained by us' },
+                { bold: 'AI is limited and protected:', rest: 'Aurora uses Groq for study help, has no web search, receives only bounded context, and is protected by age, consent, safety, and usage controls' },
                 { bold: 'Guardian visibility:', rest: 'If you link a guardian, they can view your homework, tests, and grades through a read-only dashboard' },
                 { bold: 'No ads, no data selling:', rest: 'We use Vercel Analytics for basic page-view metrics — no advertising trackers or data brokers' },
               ].map((item, i) => (
@@ -272,7 +287,7 @@ export default function PrivacyPolicy() {
             <div className="mt-4 bg-[#ebf6b5]/30 dark:bg-sky-500/5 border border-[#d4e88e]/40 dark:border-sky-500/10 rounded-2xl px-5 py-4">
               <h3 className="text-sm font-bold text-sky-900 dark:text-white mb-1">Your Control</h3>
               <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
-                You can delete individual assignments, flashcard decks, web saves, and other content at any time. You can also permanently delete your entire account through Settings, which removes all associated data.
+                You can delete individual assignments, flashcard decks, web saves, and other content at any time. You can also delete your account through Settings. Account deletion removes the active account and associated application records; limited copies may remain temporarily in provider backups or security logs.
               </p>
             </div>
           </motion.div>
@@ -357,6 +372,27 @@ export default function PrivacyPolicy() {
                 </div>
               ))}
             </div>
+            <div className="mt-4 rounded-2xl border border-sky-100 bg-white/60 px-5 py-4 dark:border-gray-800 dark:bg-gray-900">
+              <h3 className="text-sm font-bold text-sky-900 dark:text-white">
+                Google Workspace API Limited Use
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-sky-600/50 dark:text-sky-400/40">
+                TaskTornado&apos;s use and transfer of information received from
+                Google APIs will adhere to the{' '}
+                <a
+                  className="font-semibold underline underline-offset-2"
+                  href="https://developers.google.com/terms/api-services-user-data-policy"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Google API Services User Data Policy
+                </a>
+                , including the Limited Use requirements. Google
+                integrations are disabled by default and will not be enabled
+                publicly until the required OAuth review and production
+                configuration are complete.
+              </p>
+            </div>
           </motion.div>
 
           {/* Section 8 — Children's Privacy */}
@@ -366,7 +402,9 @@ export default function PrivacyPolicy() {
               <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
                 Our Service is not intended for children under the age of 13. We do not knowingly collect personal
                 information from children under 13. If we learn that we have collected personal information from a
-                child under 13, we will take steps to delete that information as soon as possible.
+                child under 13, we will take steps to delete that information as soon as possible. Registration asks
+                for date of birth and blocks accounts that report an age under 13. Users age 13–17 must receive
+                approval from a parent or legal guardian before using the service.
               </p>
             </div>
           </motion.div>

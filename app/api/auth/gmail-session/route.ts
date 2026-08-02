@@ -1,43 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
+import {
+  disconnectGoogleService,
+  getGoogleConnection,
+  googleIntegrationsEnabled,
+} from '@/lib/google-oauth';
 
 export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get('gmail-auth');
-
-    if (!authCookie) {
-      return NextResponse.json({ authenticated: false });
-    }
-
-    const authData = JSON.parse(authCookie.value);
-
-    // Check if token is expired
-    if (authData.expiry_date && Date.now() > authData.expiry_date) {
-      // Clear expired cookie
-      cookieStore.set('gmail-auth', '', { maxAge: 0, path: '/' });
-      return NextResponse.json({ authenticated: false, reason: 'token_expired' });
-    }
-
+  const access = await guardAuthenticatedRequest(request);
+  if (!access.ok) return access.response;
+  if (!googleIntegrationsEnabled()) {
     return NextResponse.json({
-      authenticated: true,
-      user: authData.user,
+      authenticated: false,
+      enabled: false,
+      user: null,
     });
+  }
 
+  try {
+    const connection = await getGoogleConnection(access.user.id, 'gmail');
+    return NextResponse.json({
+      authenticated: Boolean(connection),
+      enabled: true,
+      user: connection?.user || null,
+    });
   } catch (error) {
-    console.error('Error reading gmail auth:', error);
+    console.error('Error reading Gmail connection:', error);
     return NextResponse.json({ authenticated: false });
   }
 }
-
 export async function DELETE(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    cookieStore.set('gmail-auth', '', { maxAge: 0, path: '/' });
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!access.ok) return access.response;
 
+  try {
+    await disconnectGoogleService(access.user.id, 'gmail');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error clearing gmail auth:', error);
+    console.error('Error disconnecting Gmail:', error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

@@ -10,24 +10,24 @@ import {
 } from 'react-icons/si';
 
 const STATS = [
-    { value: '12+', label: 'Built-in tools' },
-    { value: '100%', label: 'Free, forever' },
-    { value: '0', label: 'Ads or trackers' },
+    { value: 'Core', label: 'Organization tools' },
+    { value: '$0', label: 'Pre-launch access' },
+    { value: '0', label: 'Third-party ads' },
 ];
 
 const REPLACED_APPS = [
-    { icon: SiOpenai, color: "text-[#10A37F]", name: "ChatGPT", replacedBy: "AI Tutor (Aurora)", startAngle: 0, radius: 180 },
-    { icon: SiDiscord, color: "text-[#5865F2]", name: "Discord", replacedBy: "Study groups / group chats", startAngle: 30, radius: 180 },
+    { icon: SiOpenai, color: "text-[#10A37F]", name: "ChatGPT", replacedBy: "AI tutor (planned)", startAngle: 0, radius: 180 },
+    { icon: SiDiscord, color: "text-[#5865F2]", name: "Discord", replacedBy: "Private organization", startAngle: 30, radius: 180 },
     { icon: SiGoogledocs, color: "text-[#4285F4]", name: "Google Docs", replacedBy: "Writing assistant", startAngle: 60, radius: 180 },
-    { icon: SiGoogleclassroom, color: "text-[#00897B]", name: "Google Classroom", replacedBy: "Homework + Class tracking", startAngle: 90, radius: 180 },
+    { icon: SiGoogleclassroom, color: "text-[#00897B]", name: "Google Classroom", replacedBy: "Sync (review pending)", startAngle: 90, radius: 180 },
     { icon: Star, color: "text-[#F4B400]", name: "Favorites", replacedBy: "Bookmarks / web saves", fill: true, startAngle: 120, radius: 180 },
     { icon: SiGooglecalendar, color: "text-[#4285F4]", name: "Google Calendar", replacedBy: "Deadline calendar", startAngle: 150, radius: 180 },
     { icon: SiGrammarly, color: "text-[#15C39A]", name: "Grammarly", replacedBy: "Writing assistant", startAngle: 180, radius: 180 },
-    { icon: SiReddit, color: "text-[#FF4500]", name: "Reddit", replacedBy: "Discussion boards", startAngle: 210, radius: 180 },
+    { icon: SiReddit, color: "text-[#FF4500]", name: "Reddit", replacedBy: "Social tools disabled", startAngle: 210, radius: 180 },
     { icon: SiQuizlet, color: "text-[#4255FF]", name: "Quizlet", replacedBy: "Flashcards", startAngle: 240, radius: 180 },
     { icon: SiGooglesheets, color: "text-[#0F9D58]", name: "Google Sheets", replacedBy: "Grade calculator", startAngle: 270, radius: 180 },
     { icon: SiKahoot, color: "text-[#4617B4]", name: "Kahoot", replacedBy: "Quizzes / games", startAngle: 300, radius: 180 },
-    { icon: SiGoogletranslate, color: "text-[#4285F4]", name: "Google Translate", replacedBy: "Translation", startAngle: 330, radius: 180 },
+    { icon: SiGoogletranslate, color: "text-[#4285F4]", name: "Google Translate", replacedBy: "Translation (planned)", startAngle: 330, radius: 180 },
 ];
 
 export default function SocialProofSection() {

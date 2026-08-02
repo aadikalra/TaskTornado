@@ -8,7 +8,7 @@ import { IconMail, IconBrandWhatsapp, IconDeviceMobileMessage, IconBrandFacebook
 import Image from 'next/image';
 
 const SHARE_URL = 'https://tasktornado.com';
-const SHARE_TEXT = 'Check out TaskTornado — a free AI-powered student organizer that helps kids stay on top of homework, track grades, and study smarter!';
+const SHARE_TEXT = 'Check out TaskTornado — a pre-launch student organizer for homework, grades, and study schedules. AI tools are planned after a provider and safety review.';
 
 function ShareSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [copied, setCopied] = useState(false);

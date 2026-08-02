@@ -44,9 +44,7 @@ export const AuraVideoIcon = ({ isLoading, selectedModel, layoutId }: AuraVideoI
       />
       <div className={cn(
         "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-white dark:border-zinc-900 z-10 shadow-sm",
-        selectedModel === 'gemma-4-26b-a4b-it' ? "bg-teal-500" :
-          selectedModel === 'gemini-2.5-flash-lite' ? "bg-purple-500" :
-            "bg-blue-500"
+        selectedModel === 'quick' ? "bg-teal-500" : "bg-purple-500"
       )} />
     </motion.div>
   );

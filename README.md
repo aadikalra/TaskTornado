@@ -1,35 +1,34 @@
-# TaskTornado - AI-Powered School Organizer
+# TaskTornado - Pre-Launch School Organizer
 
 ![TaskTornado Logo](public/2.svg)
 
-A modern, AI-powered school organizer designed to help students manage homework, deadlines, and study planning with intelligent features and beautiful animations.
+A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study planning. Aurora uses Groq for bounded educational AI; social features, uploads, web search, and Google integrations remain disabled.
 
 ## 🚀 Features
 
 ### 📚 Homework Management
 - **Visual Homework List**: Clean, animated interface for managing assignments
-- **Priority System**: Automatic priority assignment with visual indicators
+- **Priority System**: Priority assignment with visual indicators
 - **Due Date Tracking**: Smart deadline management with visual cues
-- **Google Classroom Integration**: Sync assignments from Google Classroom
+- **Google Classroom Integration**: Implemented behind a fail-closed flag; do not enable publicly before OAuth review
 - **Recurring Homework**: Support for repeating assignments
 
-### 🤖 AI-Powered Features
-- **Smart Study Planning**: AI analyzes your workload to suggest optimal study schedules
-- **Priority Recommendations**: AI determines which homework to tackle first
-- **Progress Insights**: AI-powered progress tracking and suggestions
-- **Homework Helper**: Instant assistance with difficult assignments
+### 🤖 Aurora AI
+- Groq-only model routing with approved fallbacks; no Google AI and no web search.
+- AI endpoints require an eligible, authenticated account. Users age 13–17 also need the current parent or guardian approval.
+- Server-side daily quotas, short-burst rate limiting, input/output safety checks, bounded context, and read-only school-data retrieval.
+- The database stores usage counts and token totals, not prompt text, in quota records.
 
 ### 📅 Study Tools
 - **Built-in Timer**: Pomodoro-style study sessions with visual feedback
 - **Subject Mastery Tracking**: Monitor progress across different subjects
-- **Group Chats**: Collaborate with classmates on group projects
 - **Flashcards**: Create and study digital flashcards
 
 ### 🎨 User Experience
 - **Beautiful Animations**: Smooth, delightful animations throughout the app
 - **Dark/Light Mode**: Automatic theme switching
 - **Responsive Design**: Works perfectly on desktop and mobile
-- **Accessibility**: Full keyboard navigation and screen reader support
+- **Accessibility**: Accessibility support is under ongoing review
 
 ## 🛠️ Tech Stack
 
@@ -37,9 +36,9 @@ A modern, AI-powered school organizer designed to help students manage homework,
 - **Styling**: Tailwind CSS, Framer Motion
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **AI Integration**: Local AI models (Gemma 3n)
+- **AI Integration**: Groq API with server-controlled model fallback
 - **Icons**: Lucide React
-- **Deployment**: Netlify
+- **Deployment**: Next.js-compatible hosting
 
 ## 📋 Prerequisites
 
@@ -73,12 +72,22 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Google Classroom Integration (Optional)
+# Google integrations (keep disabled until OAuth review is complete)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_TOKEN_ENCRYPTION_KEY=generate_a_dedicated_random_secret
+GOOGLE_INTEGRATIONS_ENABLED=false
 
-# AI Configuration (Optional)
-OLLAMA_BASE_URL=http://localhost:11434
+# Aurora AI
+GROQ_API_KEY=your_server_only_groq_api_key
+AI_FEATURES_ENABLED=true
+
+# Parent or guardian approval emails
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=verified_sender@example.com
+
+# Canonical production URL
+NEXT_PUBLIC_SITE_URL=https://your-domain.example
 ```
 
 ### 4. Set Up Supabase Database
@@ -87,12 +96,15 @@ OLLAMA_BASE_URL=http://localhost:11434
 2. Run the provided migration files in the `supabase/migrations/` directory
 3. Update your `.env.local` with the Supabase credentials
 
-### 5. Set Up Google Classroom (Optional)
+### 5. Prepare Google OAuth (Optional; Disabled by Default)
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project and enable the Google Classroom API
 3. Create OAuth 2.0 credentials
-4. Add your credentials to `.env.local`
+4. Add the exact production privacy policy, terms, homepage, and redirect URLs
+5. Request the narrowest scopes and complete the required Google OAuth review
+6. Add credentials and a dedicated token-encryption key to `.env.local`
+7. Set `GOOGLE_INTEGRATIONS_ENABLED=true` only after review and production validation
 
 ### 6. Run the Development Server
 
@@ -110,11 +122,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 3. Add links to resources if needed
 4. Set up recurring schedules for regular assignments
 
-### Using AI Features
-1. Enable AI features in settings
-2. The app will automatically analyze your homework load
-3. Get personalized study recommendations
-4. Use the homework helper for instant assistance
+### AI Features
+
+Run `supabase/migrations/20260728000000_add_atomic_ai_usage_quotas.sql`,
+enable Zero Data Retention in the Groq console where available, add the
+server-only `GROQ_API_KEY`, and set `AI_FEATURES_ENABLED=true`. Never expose
+the Groq key through a `NEXT_PUBLIC_` variable.
 
 ### Study Sessions
 1. Click the timer icon to start a study session
@@ -125,9 +138,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **MainApp**: Central dashboard with homework overview
 - **PlayfulHomeworkList**: Animated homework list with interactions
-- **PriorityHomeworkCard**: AI-recommended priority assignments
+- **PriorityHomeworkCard**: Priority assignment display
 - **StudyTimer**: Built-in study session timer
-- **GoogleClassroomIntegration**: Seamless Classroom sync
+- **GoogleClassroomIntegration**: OAuth-review-gated Classroom sync
 
 ## 🤝 Contributing
 
@@ -144,7 +157,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - The app uses Next.js 15 with App Router
 - Database migrations are in `supabase/migrations/`
 - UI components follow the design system in `components/ui/`
-- AI features use local Ollama models for privacy
+- AI and Google integrations fail closed unless their explicit server-side feature flags are enabled
+- Aurora has no web-search tool and cannot write to school records
+- Review `docs/LAUNCH_SAFETY.md` before changing launch boundaries or enabling integrations
 
 ## 📄 License
 
@@ -164,4 +179,4 @@ If you have any questions or need help, please open an issue on GitHub.
 
 ---
 
-**Made with ❤️ for students everywhere** 🎓
+**Pre-launch: United States, ages 13+** 🎓

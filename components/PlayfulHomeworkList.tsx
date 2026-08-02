@@ -365,7 +365,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className={cn(
-              "group relative transition-all duration-300 overflow-hidden",
+              "group/hw relative transition-all duration-300 overflow-hidden",
               isSelectionMode 
                 ? "bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl border border-sky-100 dark:border-sky-500/10 shadow-sm hover:shadow-lg hover:shadow-sky-500/5 p-4"
                 : "",
@@ -469,7 +469,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                           </span>
                         )}
                       </label>
-                      <div className="flex items-center mt-1 text-xs font-medium text-sky-400 dark:text-sky-500 gap-1">
+                      <div className="flex items-center flex-wrap mt-0.5 text-xs font-medium text-sky-400 dark:text-sky-500 gap-1.5">
                         {!item.completed && (
                           <>
                             {item.dueDateIcon}
@@ -478,11 +478,25 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                             </span>
                           </>
                         )}
+                        {item.links && item.links.length > 0 && !item.completed && (
+                          <>
+                            {!item.completed && <span className="text-sky-300 dark:text-sky-700/60 font-bold">•</span>}
+                            <div className="flex flex-wrap items-center gap-1">
+                              {item.links.map((link, index) => (
+                                <LinkCard
+                                  key={link.id || `link-${index}`}
+                                  url={link.url}
+                                  title={link.title || item.text}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                   {!item.completed && item.onDelete && !isGoogleClassroomAssignment(item) && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover/hw:opacity-100 transition-opacity duration-200">
                       <Link href={`/homework/edit/${item.id}`}>
                         <button
                           className="h-8 w-8 flex items-center justify-center rounded-lg text-sky-400/40 hover:text-sky-500 hover:bg-sky-500/4 transition-colors"
@@ -559,18 +573,6 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
 
               </div>
             </div>
-            {/* Links are rendered here, below the main homework item */}
-            {item.links && item.links.length > 0 && !item.completed && (
-              <div className="flex flex-wrap gap-1.5 ml-8 mt-1.5 transition-opacity duration-200">
-                {item.links.map((link, index) => (
-                  <LinkCard
-                    key={link.id || `link-${index}`}
-                    url={link.url}
-                    title={link.title || item.text}
-                  />
-                ))}
-              </div>
-            )}
           </motion.div>
         ))}
       </AnimatePresence>

@@ -8,14 +8,11 @@ import {
   Lightbulb,
   MessageSquare,
   HelpCircle,
-  ShieldAlert,
   ArrowLeft,
   CheckCircle2,
   Zap,
   Brain,
-  Cloud,
   BookOpen,
-  AlertTriangle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWideLayout } from '@/hooks/use-wide-layout';
@@ -28,13 +25,13 @@ const guidelines = [
     icon: Bot,
     title: 'AI Aurora',
     description:
-      'Your personal study companion powered by advanced AI models (Gemma for quick responses, Gemini for deeper analysis) that helps you understand concepts through guided questioning.',
+      'Aurora provides age-appropriate educational help through Groq. It can explain concepts, plan study steps, and start flashcards or quizzes.',
   },
   {
     icon: Sparkles,
     title: 'How to Use AI Commands',
     description:
-      'Use special commands like @homework, @flashcards, @resources, @control, and @therapist to access specific features and get targeted help for different study needs.',
+      'Ask for educational help such as homework planning, explanations, flashcards, quizzes, and study support.',
   },
   {
     icon: Lightbulb,
@@ -46,13 +43,13 @@ const guidelines = [
     icon: MessageSquare,
     title: 'Conversation Flow',
     description:
-      'The AI remembers your conversation context and maintains separate modes (Study mode vs Therapist mode) to provide appropriate guidance for different situations.',
+      'Conversations are limited to educational assistance and are not presented as therapy, medical advice, legal advice, or emergency support.',
   },
   {
     icon: HelpCircle,
     title: 'Getting Better Help',
     description:
-      'If you\'re not getting the help you need, try switching between Quick mode (Gemma) and Deep mode (Gemini), or rephrase your question to be more specific.',
+      'Ask specific educational questions and explain what you have already tried.',
   },
   {
     icon: BookOpen,
@@ -65,34 +62,34 @@ const guidelines = [
 const aiModels = [
   {
     name: 'Quick Mode',
-    model: 'Gemma',
+    model: 'Llama 3.1 8B + fallbacks',
     icon: Zap,
     description: 'Fast responses for simple questions and quick help',
-    limit: '100 messages / day',
+    limit: 'Free: 20/day · Pro: 25/day · Family: 50/day',
   },
   {
     name: 'Deep Mode',
-    model: 'Gemini',
+    model: 'GPT-OSS 20B + fallbacks',
     icon: Brain,
     description: 'More thoughtful analysis for complex topics',
-    limit: '10 messages / day',
+    limit: 'Free: 8/day · Pro: 10/day · Family: 20/day',
   },
   {
-    name: 'Max Mode',
-    model: 'Kimi-k2:1t-cloud',
-    icon: Cloud,
-    description: 'Most advanced AI model for comprehensive assistance',
-    limit: '20 messages / day',
+    name: 'Generation Tools',
+    model: 'Approved model rotation',
+    icon: Sparkles,
+    description: 'Create bounded quizzes and flashcard study sessions',
+    limit: 'Free: 3/day · Pro: 5/day · Family: 10/day',
   },
 ];
 
 const importantGuidelines = [
+  'Aurora is powered by Groq and automatically rotates among approved models when needed',
   'The AI is designed to guide learning, not provide direct answers',
   'Rate limits ensure fair access for all users',
-  'Therapist mode provides mental health support, not medical advice',
+  'AI is not therapy, medical advice, or emergency support',
   'All interactions follow strict academic integrity guidelines',
-  'Switch between modes based on your needs for optimal results',
-  'Suspicious conversations will be internally reported and may lead to serious consequences',
+  'Web search is disabled; verify time-sensitive facts with a teacher or trusted source',
 ];
 
 /* -----------------------------------------------------------------
@@ -200,7 +197,7 @@ export default function AIGuidelinesPage() {
               AI Model Options
             </h2>
             <p className="text-sm text-sky-600/40 dark:text-sky-400/40">
-              Choose the right AI model for your needs
+              Aurora routes each request to an approved model automatically
             </p>
           </div>
 
@@ -299,7 +296,9 @@ export default function AIGuidelinesPage() {
               Pro Tip: Maximize Your Learning
             </p>
             <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
-              For best results, start with Quick mode for simple questions, then switch to Deep mode when you need detailed explanations. Use Max mode for comprehensive research and complex problem-solving.
+              For best results, ask one focused question, include the subject and
+              grade level, and explain what you have already tried. Ask Aurora to
+              teach the next step instead of giving only a final answer.
             </p>
           </div>
         </motion.div>

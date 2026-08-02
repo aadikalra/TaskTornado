@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, User, Mail, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
-import { isEmailBlocked, isNameBlocked, BLOCKED_ERROR_MESSAGE } from '@/lib/blockedNames';
+import { isEmailBlocked, BLOCKED_ERROR_MESSAGE } from '@/lib/blockedNames';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import Image from 'next/image';
@@ -41,6 +41,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email');
+  const approvalParam = searchParams.get('approval');
   const { signIn: login } = useAuth();
 
   // Form states
@@ -55,26 +56,24 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    if (approvalParam === 'sent') {
+      setError(
+        'An approval email was sent to your parent or guardian. Sign in again after they approve your account.'
+      );
+    } else if (approvalParam === 'required') {
+      setError(
+        'Your account needs current parent or guardian approval before you can continue.'
+      );
+    }
+  }, [approvalParam]);
 
   // Flow control states
   const [currentStep, setCurrentStep] = useState(1); // 1: Email, 2: Password, 3: Remember & Action
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [typingStep, setTypingStep] = useState(1);
   const [typingProgress, setTypingProgress] = useState(0);
-
-  // Google Verify inline states
-  const [isVerifyingGoogle, setIsVerifyingGoogle] = useState(false);
-  const [verifyName, setVerifyName] = useState('');
-  const [verifyEmail, setVerifyEmail] = useState('');
-  const [verifyError, setVerifyError] = useState('');
-  const [verifyHeaderCompleted, setVerifyHeaderCompleted] = useState(false);
-
-  useEffect(() => {
-    if (isVerifyingGoogle) {
-      setVerifyHeaderCompleted(false);
-    }
-  }, [isVerifyingGoogle]);
 
   // Prior Accounts state
   const [priorAccounts, setPriorAccounts] = useState<any[]>([]);
@@ -122,9 +121,7 @@ export default function LoginPage() {
 
   const handlePriorAccountClick = (account: any) => {
     if (account.provider === 'google') {
-      setVerifyName(account.full_name);
-      setVerifyEmail(account.email);
-      proceedWithGoogleSignIn();
+      setError('Google account sign-in is unavailable. Please use an email and password account.');
     } else {
       setEmail(account.email);
       if (!completedSteps.includes(1)) {
@@ -160,44 +157,6 @@ export default function LoginPage() {
 
 
 
-  const handleGoogleSignIn = () => {
-    setIsVerifyingGoogle(true);
-  };
-
-  const handleVerifySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setVerifyError('');
-
-    if (isNameBlocked(verifyName)) {
-      setVerifyError(BLOCKED_ERROR_MESSAGE);
-      return;
-    }
-    if (isEmailBlocked(verifyEmail)) {
-      setVerifyError(BLOCKED_ERROR_MESSAGE);
-      return;
-    }
-
-    setIsVerifyingGoogle(false);
-    proceedWithGoogleSignIn();
-  };
-
-  const proceedWithGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      setError('Failed to initiate Google sign-in. Please try again.');
-      setIsGoogleLoading(false);
-    }
-  };
-
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -215,6 +174,59 @@ export default function LoginPage() {
       // Check account type for redirect
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        const eligibilityResponse = await fetch('/api/auth/eligibility', {
+          cache: 'no-store',
+        });
+        if (!eligibilityResponse.ok) {
+          const eligibilityBody = await eligibilityResponse
+            .json()
+            .catch(() => ({}));
+
+          if (
+            eligibilityResponse.status === 428 &&
+            eligibilityBody.code === 'eligibility_setup_required'
+          ) {
+            router.replace('/account-eligibility');
+            return;
+          }
+
+          if (
+            eligibilityResponse.status === 403 &&
+            eligibilityBody.code === 'parental_consent_required'
+          ) {
+            const consentResponse = await fetch(
+              '/api/auth/parental-consent/request',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, email: user.email }),
+              }
+            );
+            const consentBody = await consentResponse
+              .json()
+              .catch(() => ({}));
+
+            if (consentResponse.ok && consentBody.alreadyApproved) {
+              await supabase.auth.refreshSession();
+              router.replace('/dashboard');
+              return;
+            }
+
+            await supabase.auth.signOut();
+            setError(
+              consentResponse.ok
+                ? 'A new approval email was sent to your parent or guardian. Sign in again after they approve the updated AI terms.'
+                : consentBody.error ||
+                    'A current parent or guardian approval is required.'
+            );
+            return;
+          }
+
+          throw new Error(
+            eligibilityBody.error || 'This account cannot sign in right now.'
+          );
+        }
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('account_type')
@@ -236,7 +248,11 @@ export default function LoginPage() {
 
       router.push('/dashboard');
     } catch (err) {
-      setError('Invalid email or password.');
+      setError(
+        err instanceof Error && !err.message.includes('Invalid login credentials')
+          ? err.message
+          : 'Invalid email or password.'
+      );
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -278,6 +294,16 @@ export default function LoginPage() {
 
         {/* Right Section: Form Container */}
         <div className="flex-1 max-w-[500px] w-full flex flex-col justify-center space-y-8">
+          {approvalParam && (
+            <div
+              role="status"
+              className="rounded-2xl border border-amber-500/25 bg-amber-50/80 px-4 py-3 text-sm font-semibold leading-6 text-amber-900 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100"
+            >
+              {approvalParam === 'sent'
+                ? 'An approval email was sent to your parent or guardian. Sign in again after they approve your account.'
+                : 'Your account needs current parent or guardian approval before you can continue.'}
+            </div>
+          )}
           {/* Main Conversation Container */}
           <div ref={containerRef} className="w-full flex-1 flex flex-col justify-center space-y-12 py-12">
         
@@ -335,111 +361,7 @@ export default function LoginPage() {
           )}
         </AnimatePresence>
 
-        {isVerifyingGoogle ? (
-          <motion.div
-            key="google-verify-inline"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="relative pl-6 space-y-6"
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-[#275085] dark:bg-[#a0c3ff] absolute left-0 top-2" />
-              <span className="text-[#275085]/50 dark:text-[#a0c3ff]/50 font-sans text-[12px] uppercase tracking-wider select-none">Google verification</span>
-            </div>
-
-            <div className="mt-2 space-y-6 max-w-[450px]">
-              <div className="text-[#275085] dark:text-[#a0c3ff] space-y-2">
-                <h3 className="font-bold text-base">
-                  <TypewriterText 
-                    text="Verify Identity" 
-                    delay={35} 
-                    onComplete={() => setVerifyHeaderCompleted(true)} 
-                  />
-                </h3>
-                <p className="text-sm text-[#275085]/70 dark:text-[#a0c3ff]/70 leading-relaxed min-h-[40px]">
-                  {verifyHeaderCompleted && (
-                    <TypewriterText 
-                      text="Please enter your name and email. These must exactly match your Google credentials to continue." 
-                      delay={35} 
-                    />
-                  )}
-                </p>
-              </div>
-
-              <form onSubmit={handleVerifySubmit} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-[#275085]/60 dark:text-[#a0c3ff]/60 uppercase tracking-normal ml-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your full name"
-                    value={verifyName}
-                    onChange={(e) => setVerifyName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (verifyName) document.getElementById('verify-email')?.focus();
-                      }
-                    }}
-                    className="w-full bg-transparent border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus:border-[#275085] dark:focus:border-[#a0c3ff] text-[15px] font-sans focus:outline-none py-1.5 text-[#275085] dark:text-[#a0c3ff] placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-[#275085]/60 dark:text-[#a0c3ff]/60 uppercase tracking-normal ml-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="verify-email"
-                    required
-                    placeholder="you@domain.com"
-                    value={verifyEmail}
-                    onChange={(e) => setVerifyEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (verifyEmail) handleVerifySubmit(e as any);
-                      }
-                    }}
-                    className="w-full bg-transparent border-b border-[#275085]/20 dark:border-[#a0c3ff]/20 focus:border-[#275085] dark:focus:border-[#a0c3ff] text-[15px] font-sans focus:outline-none py-1.5 text-[#275085] dark:text-[#a0c3ff] placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30"
-                  />
-                </div>
-
-                {verifyError && (
-                  <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-2xl text-[12px] text-red-600 dark:text-red-400">
-                    {verifyError}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 py-3 bg-[#275085] dark:bg-[#4f8df0] hover:bg-[#1e3f6a] dark:hover:bg-[#3b82f6] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#275085]/15 dark:shadow-none transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                  >
-                    <span>Continue with Google</span>
-                    <HugeIcon name="ArrowRight01" size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsVerifyingGoogle(false);
-                      setVerifyError('');
-                    }}
-                    className="py-3 px-4 bg-white dark:bg-[#0e1726] border border-[#275085]/10 dark:border-[#a0c3ff]/10 text-[#275085]/60 dark:text-[#a0c3ff]/60 rounded-xl hover:bg-[#275085]/5 dark:hover:bg-[#a0c3ff]/5 active:scale-[0.98] transition-all text-sm font-semibold"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </motion.div>
-        ) : (
-          <>
+        <>
             {/* STEP 1: Email Input */}
             <div className="relative pl-6">
           {/* Vertical Connecting Line */}
@@ -514,8 +436,8 @@ export default function LoginPage() {
                       <span className="text-[#275085]/40 dark:text-[#a0c3ff]/40 text-sm">or</span>
                       <button
                         type="button"
-                        onClick={handleGoogleSignIn}
-                        className="font-sans text-[15px] text-[#275085] dark:text-[#a0c3ff] font-bold underline underline-offset-4 decoration-2 hover:text-[#1e3f6a] dark:hover:text-blue-300 flex items-center gap-1"
+                        disabled
+                        className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50 font-semibold flex items-center gap-1 cursor-not-allowed"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                           <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -523,7 +445,7 @@ export default function LoginPage() {
                           <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                           <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                         </svg>
-                        sign in with Google
+                        Google sign-in unavailable
                       </button>
                     </motion.div>
                   )}
@@ -723,8 +645,7 @@ export default function LoginPage() {
             </div>
           </motion.div>
         )}
-            </>
-          )}
+        </>
           </div>
 
           {/* Footer Info */}

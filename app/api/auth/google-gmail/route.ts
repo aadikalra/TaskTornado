@@ -1,81 +1,82 @@
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { cookies } from 'next/headers';
 
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/google-gmail`;
+import {
+  createGoogleOAuthClient,
+  googleIntegrationsEnabled,
+  saveGoogleConnection,
+} from '@/lib/google-oauth';
+import { createClient } from '@/lib/supabase/server';
+
+const FLOW_COOKIE = 'google-oauth-gmail';
+
+function redirect(request: NextRequest, result: 'success' | 'error') {
+  const url = new URL('/mail', request.nextUrl.origin);
+  url.searchParams.set(
+    result,
+    result === 'success' ? 'gmail_authorized' : 'gmail_auth_failed'
+  );
+  return NextResponse.redirect(url);
+}
 
 export async function GET(request: NextRequest) {
+  const cookieStore = await cookies();
+
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
-
-    // Handle authorization error
-    if (error) {
-      console.error('Gmail authorization error:', error);
-      return NextResponse.redirect(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/mail?error=gmail_auth_failed&reason=${error}`);
+    if (!googleIntegrationsEnabled()) {
+      cookieStore.delete(FLOW_COOKIE);
+      return redirect(request, 'error');
     }
 
-    if (!code) {
-      console.error('No authorization code received from Google');
-      return NextResponse.redirect(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/mail?error=gmail_auth_failed&reason=no_code`);
+    const code = request.nextUrl.searchParams.get('code');
+    const state = request.nextUrl.searchParams.get('state');
+    const providerError = request.nextUrl.searchParams.get('error');
+    const flowCookie = cookieStore.get(FLOW_COOKIE);
+    cookieStore.delete(FLOW_COOKIE);
+
+    if (providerError || !code || !state || !flowCookie?.value) {
+      return redirect(request, 'error');
     }
 
-    // Exchange authorization code for access token
-    const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-    
-    const { tokens } = await oauth2Client.getToken(code);
-    
-    if (!tokens.access_token) {
-      throw new Error('No access token received from Google');
+    const flow = JSON.parse(flowCookie.value);
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (
+      !user ||
+      user.id !== flow.userId ||
+      state !== flow.state ||
+      typeof flow.verifier !== 'string'
+    ) {
+      return redirect(request, 'error');
     }
 
-    // Get user info from Google
-    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-    oauth2Client.setCredentials(tokens);
-    
-    const { data: userInfo } = await oauth2.userinfo.get();
-    
-    if (!userInfo.email) {
-      throw new Error('No email received from Google');
-    }
-
-    // Store the Gmail authentication data in a cookie
-    const gmailAuth = {
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expiry_date: tokens.expiry_date,
-      token_type: tokens.token_type,
-      scope: tokens.scope,
-      user: {
-        id: userInfo.id,
-        email: userInfo.email,
-        name: userInfo.name,
-        picture: userInfo.picture,
-      },
-      created_at: new Date().toISOString()
-    };
-
-    // Set the gmail-auth cookie
-    const cookieStore = await cookies();
-    cookieStore.set('gmail-auth', JSON.stringify(gmailAuth), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/'
+    const oauth2Client = createGoogleOAuthClient('gmail');
+    const { tokens } = await oauth2Client.getToken({
+      code,
+      codeVerifier: flow.verifier,
     });
+    oauth2Client.setCredentials(tokens);
 
-    console.log('✅ Gmail authorization successful for:', userInfo.email);
+    if (!tokens.access_token) {
+      return redirect(request, 'error');
+    }
 
-    // Redirect to mail page with success
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/mail?success=gmail_authorized`);
+    const { data: account } = await google
+      .oauth2({ version: 'v2', auth: oauth2Client })
+      .userinfo.get();
 
-  } catch (error: any) {
-    console.error('Error in Gmail callback:', error);
-    const errorMessage = error.message || 'unknown_error';
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/mail?error=gmail_auth_failed&reason=${encodeURIComponent(errorMessage)}`);
+    if (!account.email) {
+      return redirect(request, 'error');
+    }
+
+    await saveGoogleConnection(user.id, 'gmail', tokens, account);
+    return redirect(request, 'success');
+  } catch (error) {
+    console.error('Gmail OAuth callback failed:', error);
+    return redirect(request, 'error');
   }
 }

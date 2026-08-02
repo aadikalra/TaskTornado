@@ -4,9 +4,7 @@ import React, { useState } from 'react';
 import { Clock } from 'lucide-react';
 import Hero from '@/app/landing-sections/Hero';
 import OrganizationSection from '@/app/landing-sections/OrganizationSection';
-import BentoGridSection from '@/app/landing-sections/BentoGridSection';
 import ComparisonSection from '@/app/landing-sections/ComparisonSection';
-import WellbeingSection from '@/app/landing-sections/WellbeingSection';
 import PromiseSection from '@/app/landing-sections/PromiseSection';
 import SocialProofSection from '@/app/landing-sections/SocialProofSection';
 import LandingFooter from '@/app/landing-sections/LandingFooter';
@@ -68,12 +66,6 @@ export default function StudentLandingContent() {
 
       {/* 2. ORGANIZATION - The Foundation */}
       <OrganizationSection id="features" homeworkItems={homeworkItems} onItemToggle={handleItemToggle} />
-
-      {/* 3. BENTO GRID - Feature Showcase */}
-      <BentoGridSection id="ai" />
-
-      {/* 4. WELLBEING - The Support */}
-      <WellbeingSection />
 
       {/* 5. COMPARISON */}
       <ComparisonSection comparisonSet={comparisonSet} onComparisonSetChange={setComparisonSet} />

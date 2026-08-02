@@ -6,16 +6,10 @@ import { HugeIcon } from '@/lib/huge-icon-map';
 import { getFullVersionString } from '@/config/version';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext, type Class } from '@/context/ClassContext';
+import { parseSmartGradeText, type ParsedGradeAssignment as Assignment } from '@/lib/grades/smart-grade-parser';
 import Cookies from 'js-cookie';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
-interface Assignment {
-    name: string;
-    category: 'practice' | 'assessment';
-    pointsEarned: number;
-    pointsPossible: number;
-}
-
 type Step = 'weights' | 'paste' | 'results';
 
 interface ClassGradeData {
@@ -105,7 +99,7 @@ const GradeParsingProgressBar = ({ liveText }: { liveText: string }) => {
 // ─── Main Component ─────────────────────────────────────────────────────────────
 export default function GradeCalculatorPage() {
     const { user } = useAuth() || {};
-    const { classes, loading: classesLoading } = useClassContext();
+    const { classes, updateClass, loading: classesLoading } = useClassContext();
 
     // Selected Class Context
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
@@ -129,7 +123,7 @@ export default function GradeCalculatorPage() {
     const [activeErrorTab, setActiveErrorTab] = useState<'overview' | 'output' | 'stack'>('overview');
 
     const [expandedCategory, setExpandedCategory] = useState<'practice' | 'assessment' | null>(null);
-    const [entryMode, setEntryMode] = useState<'paste' | 'manual'>('paste');
+    const [entryMode, setEntryMode] = useState<'paste' | 'smart' | 'manual'>('smart');
     const [manualName, setManualName] = useState('');
     const [manualCategory, setManualCategory] = useState<'practice' | 'assessment'>('assessment');
     const [manualEarned, setManualEarned] = useState('');
@@ -141,22 +135,43 @@ export default function GradeCalculatorPage() {
 
     const assessmentWeight = 100 - practiceWeight;
 
+    // ─── Sync Grades from DB Classes on Load ──────────────────────────────────
+    useEffect(() => {
+        if (!classes || classes.length === 0) return;
+        setClassGrades(prev => {
+            const updated = { ...prev };
+            let changed = false;
+            classes.forEach((cls: any) => {
+                if (cls.grade_data) {
+                    updated[cls.id] = cls.grade_data as ClassGradeData;
+                    changed = true;
+                } else if (cls.grade !== undefined && cls.grade !== null && !updated[cls.id]) {
+                    updated[cls.id] = {
+                        assignments: [],
+                        practiceWeight: 15,
+                        finalGrade: cls.grade,
+                    };
+                    changed = true;
+                }
+            });
+            return changed ? updated : prev;
+        });
+    }, [classes]);
+
     // ─── Load Grades from localStorage on Mount (with legacy cookie migration) ───
     useEffect(() => {
         try {
             const stored = localStorage.getItem('classGrades');
             if (stored) {
-                setClassGrades(JSON.parse(stored) || {});
+                setClassGrades(prev => ({ ...JSON.parse(stored), ...prev }));
             } else {
-                // Fallback / migration path from legacy cookie
                 const legacyVal = Cookies.get('classGrades');
                 if (legacyVal) {
                     const parsed = JSON.parse(legacyVal);
                     if (parsed) {
-                        setClassGrades(parsed);
+                        setClassGrades(prev => ({ ...parsed, ...prev }));
                         localStorage.setItem('classGrades', JSON.stringify(parsed));
                     }
-                    // Clean up cookie to prevent future browser bloat
                     Cookies.remove('classGrades');
                 }
             }
@@ -225,23 +240,37 @@ export default function GradeCalculatorPage() {
         };
     }, [assignments, practiceWeight, assessmentWeight]);
 
-    // ─── Save / Update Class Grades in localStorage ──────────────────────────────
-    const saveGrade = (classId: string, currentAssignments: Assignment[], currentPracticeWeight: number, finalGrade: number) => {
+    // ─── Save / Update Class Grades in localStorage & Supabase DB ─────────────────
+    const saveGrade = async (classId: string, currentAssignments: Assignment[], currentPracticeWeight: number, finalGrade: number) => {
+        const roundedGrade = Math.round(finalGrade * 10) / 10;
+        const gradePayload = {
+            assignments: currentAssignments,
+            practiceWeight: currentPracticeWeight,
+            finalGrade,
+        };
+
         setClassGrades(prev => {
             const updatedGrades = {
                 ...prev,
-                [classId]: {
-                    assignments: currentAssignments,
-                    practiceWeight: currentPracticeWeight,
-                    finalGrade,
-                },
+                [classId]: gradePayload,
             };
             localStorage.setItem('classGrades', JSON.stringify(updatedGrades));
             return updatedGrades;
         });
+
+        if (updateClass) {
+            try {
+                await updateClass(classId, {
+                    grade: roundedGrade,
+                    grade_data: gradePayload as any,
+                });
+            } catch (err) {
+                console.error('Error persisting grade to DB:', err);
+            }
+        }
     };
 
-    const deleteGrade = (classId: string, e?: React.MouseEvent) => {
+    const deleteGrade = async (classId: string, e?: React.MouseEvent) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -253,11 +282,43 @@ export default function GradeCalculatorPage() {
             return updatedGrades;
         });
 
+        if (updateClass) {
+            try {
+                await updateClass(classId, {
+                    grade: null,
+                    grade_data: null,
+                });
+            } catch (err) {
+                console.error('Error clearing grade in DB:', err);
+            }
+        }
+
         if (selectedClass?.id === classId) {
             setAssignments([]);
             setPracticeWeight(15);
             setStep('weights');
         }
+    };
+
+    // ─── Smart Paste Parser (Instant offline regex & LaTeX table parser) ───────────
+    const smartParseGradesFromText = () => {
+        setError('');
+        setErrorInfo(null);
+        const text = rawText.trim();
+        if (!text) {
+            setError('Please paste your gradebook table or score text first.');
+            return;
+        }
+
+        const { assignments: parsed } = parseSmartGradeText(text);
+
+        if (parsed.length === 0) {
+            setError('No grade rows auto-detected. Format score lines like "Assignment Name: 18/20" or use AI Paste.');
+            return;
+        }
+
+        setAssignments(parsed);
+        setStep('results');
     };
 
     // Auto-save whenever assignments or weights change for the selected class
@@ -801,31 +862,96 @@ export default function GradeCalculatorPage() {
                                     className="space-y-4"
                                 >
                                     {/* Mode switcher */}
-                                    <div className="flex items-center gap-1 p-0.5 bg-[#ebf6b5]/40 dark:bg-sky-500/10 rounded-full w-fit">
-                                        {(['paste', 'manual'] as const).map(mode => {
-                                            const isDisabled = mode === 'paste' && !user;
+                                    <div className="flex flex-wrap items-center gap-1 p-0.5 bg-[#ebf6b5]/40 dark:bg-sky-500/10 rounded-full w-fit">
+                                        {[
+                                            { id: 'smart', label: 'Smart Paste', badge: 'Recommended for large inputs' },
+                                            { id: 'paste', label: 'AI Paste' },
+                                            { id: 'manual', label: 'Manual Entry' },
+                                        ].map(item => {
+                                            const isDisabled = item.id === 'paste' && !user;
+                                            const isSelected = entryMode === item.id;
                                             return (
                                                 <button
-                                                    key={mode}
+                                                    key={item.id}
                                                     disabled={isDisabled}
-                                                    onClick={() => !isDisabled && setEntryMode(mode)}
-                                                    className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-all ${entryMode === mode
+                                                    onClick={() => !isDisabled && setEntryMode(item.id as any)}
+                                                    className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-all flex items-center gap-1.5 ${isSelected
                                                         ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 shadow-sm'
                                                         : isDisabled
                                                             ? 'text-sky-600/20 dark:text-sky-400/20 cursor-not-allowed'
                                                             : 'text-sky-600/50 dark:text-sky-400/50 hover:text-sky-600 dark:hover:text-sky-400'
                                                         }`}
                                                 >
-                                                    <div className="flex items-center gap-1.5">
-                                                        {mode === 'paste' ? 'AI Paste' : 'Manual Entry'}
-                                                        {isDisabled && <HugeIcon name="CircleLock01" size={10} className="w-2.5 h-2.5 opacity-50" />}
-                                                    </div>
+                                                    <span>{item.label}</span>
+                                                    {item.badge && (
+                                                        <span className="hidden sm:inline text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 opacity-90">
+                                                            ({item.badge})
+                                                        </span>
+                                                    )}
+                                                    {isDisabled && <HugeIcon name="CircleLock01" size={10} className="w-2.5 h-2.5 opacity-50" />}
                                                 </button>
                                             );
                                         })}
                                     </div>
 
-                                    {/* Paste mode */}
+                                    {/* Smart Paste mode (Instant local regex & LaTeX parser) */}
+                                    {entryMode === 'smart' && (
+                                        <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] overflow-hidden shadow-sm space-y-4">
+                                            <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
+                                                        Smart Portal / LaTeX Paste
+                                                    </span>
+                                                    <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-300/40">
+                                                        Recommended for large inputs
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px] font-medium text-sky-700/60 dark:text-sky-400/60">
+                                                        {rawText.length > 0 ? `${rawText.length.toLocaleString()} chars` : ''}
+                                                    </span>
+                                                    <button
+                                                        onClick={pasteFromClipboard}
+                                                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/40 dark:hover:bg-sky-500/10 rounded-full transition-colors shadow-sm"
+                                                    >
+                                                        <HugeIcon name="ClipboardPaste" size={16} className="w-4 h-4" />
+                                                        Paste
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="relative">
+                                                <textarea
+                                                    value={rawText}
+                                                    onChange={(e) => setRawText(e.target.value)}
+                                                    placeholder={"Paste tabbed portal rows or LaTeX grade lists here...\n\n05/22/2026\tAssessment\tUnit 8 Test\t95/100\tA\n05/20/2026\tPractice\tHomework 4.2\t18/20\tA\n\nOr simple list:\nQuiz 1: 18/20\nMidterm Exam: 88 \\over 100"}
+                                                    className="w-full h-56 sm:h-64 resize-none bg-transparent text-sky-900 dark:text-sky-100 placeholder:text-sky-700/40 dark:placeholder:text-sky-400/40 text-[15px] leading-relaxed outline-none scrollbar-hide px-6 pb-14 font-mono"
+                                                />
+                                            </div>
+
+                                            {error && (
+                                                <div className="mx-5 mb-3 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-xs font-semibold text-red-700 dark:text-red-300">
+                                                    {error}
+                                                </div>
+                                            )}
+
+                                            <div className="px-5 py-4 border-t border-sky-100 dark:border-sky-900/20 flex items-center justify-between bg-white/40 dark:bg-black/20">
+                                                <p className="text-[11px] text-sky-700/60 dark:text-sky-400/60">
+                                                    Auto-detects Canvas, PowerSchool, Aeries, & LaTeX fraction scores.
+                                                </p>
+                                                <button
+                                                    onClick={smartParseGradesFromText}
+                                                    disabled={!rawText.trim()}
+                                                    className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+                                                >
+                                                    Parse & Calculate
+                                                    <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* AI Paste mode */}
                                     {entryMode === 'paste' && (
                                         loading ? (
                                             <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] border border-sky-100 dark:border-gray-800 p-12 flex items-center justify-center min-h-[360px]">

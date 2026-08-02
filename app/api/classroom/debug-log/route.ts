@@ -1,37 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { GoogleClassroomService } from '@/lib/googleClassroom';
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
+import { getGoogleClientForUser } from '@/lib/google-oauth';
 
 export async function POST(request: NextRequest) {
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!access.ok) return access.response;
+
   try {
-    const body = await request.json();
-    const { userId } = body;
-
-    if (!userId) {
-      return NextResponse.json({
-        message: 'User ID is required'
-      }, { status: 400 });
-    }
-
-    // Get Google Classroom access token from cookies
-    const cookieStore = await cookies();
-    const classroomAuthCookie = cookieStore.get('classroom-auth');
-
-    if (!classroomAuthCookie?.value) {
+    const googleAuth = await getGoogleClientForUser(access.user.id, 'classroom');
+    if (!googleAuth) {
       return NextResponse.json({
         message: 'No Google Classroom authentication found'
       }, { status: 401 });
     }
 
-    const authData = JSON.parse(classroomAuthCookie.value);
-
-    if (!authData.access_token) {
+    const accessToken = await googleAuth.client.getAccessToken();
+    if (!accessToken.token) {
       return NextResponse.json({
         message: 'No valid Google Classroom access token'
       }, { status: 401 });
     }
 
-    const classroomService = new GoogleClassroomService(authData.access_token);
+    const classroomService = new GoogleClassroomService(accessToken.token);
 
     // Fetch courses and coursework
     const courses = await classroomService.getCourses();

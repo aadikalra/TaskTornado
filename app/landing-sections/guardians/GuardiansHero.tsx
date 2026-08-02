@@ -16,11 +16,11 @@ const ROTATING_WORDS = [
 
 // ─── Orbiting chips — parent-relevant features ──────────────────────────────────
 const ORBITING_CHIPS = [
-    { icon: Brain, label: 'AI Tutor', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 0, radius: 185 },
+    { icon: Brain, label: 'AI Tutor (planned)', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 0, radius: 185 },
     { icon: CalendarCheck, label: 'Deadlines', accent: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200/60 dark:border-blue-800/30', startAngle: 45, radius: 215 },
     { icon: BarChart3, label: 'Grade Trends', accent: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200/60 dark:border-emerald-800/30', startAngle: 90, radius: 185 },
     { icon: BookOpen, label: 'Study Tools', accent: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200/60 dark:border-amber-800/30', startAngle: 135, radius: 215 },
-    { icon: HeartPulse, label: 'Wellbeing', accent: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/30', border: 'border-rose-200/60 dark:border-rose-800/30', startAngle: 180, radius: 185 },
+    { icon: HeartPulse, label: 'Study Plans', accent: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/30', border: 'border-rose-200/60 dark:border-rose-800/30', startAngle: 180, radius: 185 },
     { icon: Bell, label: 'Smart Alerts', accent: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200/60 dark:border-orange-800/30', startAngle: 225, radius: 215 },
     { icon: GraduationCap, label: 'Progress', accent: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200/60 dark:border-cyan-800/30', startAngle: 270, radius: 185 },
     { icon: TrendingUp, label: 'Streaks', accent: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200/60 dark:border-pink-800/30', startAngle: 315, radius: 215 },
@@ -121,7 +121,7 @@ export default function GuardiansHero() {
                         transition={{ delay: 0.2, duration: 0.5 }}
                         className="text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium mb-10"
                     >
-                        TaskTornado gives your student AI tutoring, smart scheduling, and a homework dashboard — so you can stop worrying and start watching them succeed.
+                        TaskTornado combines smart scheduling and a homework dashboard, with student-appropriate AI tutoring planned after our provider update.
                     </motion.p>
 
                     {/* ── CTAs ─────────────────────────────────────────────── */}
@@ -166,7 +166,7 @@ export default function GuardiansHero() {
                         transition={{ delay: 1.2, duration: 0.5 }}
                         className="text-[10px] font-medium uppercase tracking-widest text-[#275085]/40 dark:text-zinc-600"
                     >
-                        Free forever · No ads · No data selling · Crisis support built-in
+                        Free core access · No ads · No data selling · U.S. users age 13+
                     </motion.p>
                 </div>
 

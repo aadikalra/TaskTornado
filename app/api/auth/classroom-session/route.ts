@@ -1,44 +1,47 @@
-// app/api/auth/classroom-session/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
+import {
+  disconnectGoogleService,
+  getGoogleConnection,
+  googleIntegrationsEnabled,
+} from '@/lib/google-oauth';
 
 export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get('classroom-auth');
-
-    if (!authCookie) {
-      return NextResponse.json({ authenticated: false });
-    }
-
-    const authData = JSON.parse(authCookie.value);
-
-    // Check if token is expired
-    if (authData.expires_at && Date.now() > authData.expires_at) {
-      // Clear expired cookie
-      cookieStore.set('classroom-auth', '', { maxAge: 0, path: '/' });
-      return NextResponse.json({ authenticated: false });
-    }
-
+  const access = await guardAuthenticatedRequest(request);
+  if (!access.ok) return access.response;
+  if (!googleIntegrationsEnabled()) {
     return NextResponse.json({
-      authenticated: true,
-      ...authData
+      authenticated: false,
+      enabled: false,
+      user: null,
     });
+  }
 
+  try {
+    const connection = await getGoogleConnection(access.user.id, 'classroom');
+    return NextResponse.json({
+      authenticated: Boolean(connection),
+      enabled: true,
+      user: connection?.user || null,
+    });
   } catch (error) {
-    console.error('Error reading classroom auth:', error);
+    console.error('Error reading Classroom connection:', error);
     return NextResponse.json({ authenticated: false });
   }
 }
-
 export async function DELETE(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    cookieStore.set('classroom-auth', '', { maxAge: 0, path: '/' });
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!access.ok) return access.response;
 
+  try {
+    await disconnectGoogleService(access.user.id, 'classroom');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error clearing classroom auth:', error);
+    console.error('Error disconnecting Classroom:', error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

@@ -115,11 +115,13 @@ export const generateDataContext = (
 
   const upcomingIncomplete = homeworks
     .filter((hw) => !hw.completed && new Date(hw.dueDate) >= now)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 20);
 
   const overdueIncomplete = homeworks
     .filter((hw) => !hw.completed && new Date(hw.dueDate) < now)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 20);
 
   const completed = homeworks
     .filter((hw) => hw.completed)
@@ -128,7 +130,8 @@ export const generateDataContext = (
 
   const upcomingTests = tests
     .filter((test) => new Date(test.testDate) >= now)
-    .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
+    .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())
+    .slice(0, 10);
 
   const pastTests = tests
     .filter((test) => new Date(test.testDate) < now)
@@ -150,7 +153,6 @@ export const generateDataContext = (
     upcomingTests.length === 0 &&
     pastTests.length === 0
   ) {
-    console.log('No homework or test data found.');
     context += 'No active homework or tests found. The user has a clean slate!\n';
     return context;
   }
@@ -227,6 +229,5 @@ export const generateDataContext = (
   }
 
   context += 'Use this data context to provide relevant help, reminders, and analysis.';
-  console.log('Generated data context:', context);
   return context;
 };

@@ -241,7 +241,8 @@ const BulkAddHomeworkDisplay = ({
                             weekday: 'short',
                             month: 'short',
                             day: 'numeric',
-                            year: dueDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                            year: dueDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+                            timeZone: 'UTC'
                           });
                         })()}
                       </div>

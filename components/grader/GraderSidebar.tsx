@@ -18,14 +18,11 @@ export function GraderSidebar({ editor }: { editor: any }) {
 
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [hasWiped, setHasWiped] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  
   const [expandedThoughts, setExpandedThoughts] = useState<Record<string, boolean>>({});
   const [expandedToolDetails, setExpandedToolDetails] = useState<Record<string, boolean>>({});
   const [expandedUserMessages, setExpandedUserMessages] = useState<Record<string, boolean>>({});
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const findTextRange = (searchText: string): Range | null => {
@@ -73,7 +70,7 @@ export function GraderSidebar({ editor }: { editor: any }) {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!input.trim() && selectedImages.length === 0) return;
+    if (!input.trim()) return;
 
     setHasWiped(true);
     setTimeout(() => setHasWiped(false), 500);
@@ -86,10 +83,10 @@ export function GraderSidebar({ editor }: { editor: any }) {
     console.log("EXTRACTED TEXT:", docText);
 
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: Date.now(),
       role: 'user',
       content: input,
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, newMessage]);
@@ -174,22 +171,22 @@ export function GraderSidebar({ editor }: { editor: any }) {
       }
 
       setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: Date.now() + 1,
         role: 'assistant',
         content: assistantMessageContent || 'Done!',
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-        modelUsed: 'gemini-2.5-flash'
+        modelUsed: 'Groq approved model'
       }]);
 
     } catch (error) {
       console.error(error);
       setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: Date.now() + 1,
         role: 'assistant',
         content: 'Sorry, I encountered an error while processing your request.',
-        timestamp: new Date().toISOString(),
-        modelUsed: 'gemini-2.5-flash'
+        timestamp: new Date(),
+        modelUsed: 'Groq approved model'
       }]);
     } finally {
       setIsLoading(false);
@@ -276,12 +273,8 @@ export function GraderSidebar({ editor }: { editor: any }) {
             handleSubmit={handleSubmit}
             handleKeyDown={handleKeyDown}
             inputRef={inputRef}
-            fileInputRef={fileInputRef}
             hasWiped={hasWiped}
             setHasWiped={setHasWiped}
-            selectedImages={selectedImages}
-            removeImage={() => {}}
-            handleImageUpload={() => {}}
             isAILoading={isLoading}
             handleStopResponse={() => {}}
             selectedModel="gemini-2.5-flash-lite"

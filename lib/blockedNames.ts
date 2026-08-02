@@ -1,52 +1,19 @@
 /**
- * Blocked names list and validation utility.
- * Users with these names (first or last) are not allowed to sign up or log in.
- *
- * Toggle this feature on/off via the NEXT_PUBLIC_RESTRICTED_ACCESS env var.
- * Set to "true" (or leave unset) to enable blocking. Set to "false" to disable.
+ * Do not ship personal names or email addresses in the browser bundle.
+ * Account-level abuse controls belong in authenticated, server-side systems.
  */
-
-function isRestrictionEnabled(): boolean {
-    return process.env.NEXT_PUBLIC_RESTRICTED_ACCESS !== 'false';
+export function isNameBlocked(_name: string): boolean {
+    return false;
 }
 
-const BLOCKED_NAMES = ['zain', 'zane', 'zayn', 'sadiq', 'ritvik', 'vuluvala', 'srinadh', 'yenamandra', 'tanuj', 'gummadi'];
-const BLOCKED_EMAILS = ['sadiqzain154@gmail.com', 'zain.sadiq@rafos.org', 'ritvik.vuluvala@rafos.org', 'tanuj.gummadi@rafos.org', 'srinadh.yenamandra@rafos.org', 'zainsadiqchess@gmail.com', 'zain.sadiq@rocklinusd.org'];
-
-/**
- * Check if a given name contains any blocked name parts.
- * Splits on whitespace and checks each part (case-insensitive).
- */
-export function isNameBlocked(name: string): boolean {
-    if (!isRestrictionEnabled()) return false;
-    const parts = name.trim().toLowerCase().split(/\s+/);
-    return parts.some(part => BLOCKED_NAMES.includes(part));
-}
-
-/**
- * Check if an email address contains any blocked name parts.
- * Extracts the local part (before @), splits on common separators
- * (dots, underscores, hyphens, plus signs, numbers), and checks each segment.
- */
-export function isEmailBlocked(email: string): boolean {
-    if (!isRestrictionEnabled()) return false;
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (BLOCKED_EMAILS.includes(normalizedEmail)) {
-        return true;
-    }
-
-    const localPart = normalizedEmail.split('@')[0] || '';
-    // Split on common email separators and digits to isolate name parts
-    const segments = localPart.split(/[._\-+0-9]+/).filter(Boolean);
-    return segments.some(segment => BLOCKED_NAMES.includes(segment));
+export function isEmailBlocked(_email: string): boolean {
+    return false;
 }
 
 /**
  * Run both name and email checks. Returns an error message if blocked, or null if allowed.
  */
 export function getBlockedError(name: string, email: string): string | null {
-    if (!isRestrictionEnabled()) return null;
     if (isNameBlocked(name)) {
         return 'This name is not allowed for registration.';
     }

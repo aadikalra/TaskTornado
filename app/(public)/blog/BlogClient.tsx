@@ -46,18 +46,6 @@ const blogPosts: BlogPost[] = [
         href: '/blog/grade-calculator'
     },
     {
-        id: 'meet-aurora',
-        title: 'Aurora AI',
-        excerpt: 'Your always-on Socratic tutor for deep concept mastery.',
-        date: 'Feb 9, 2026',
-        author: 'Aadi Kalra',
-        authorRole: 'Founder',
-        readTime: '5 min read',
-        category: 'Product',
-        coverImage: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=2000',
-        href: '/blog/meet-aurora'
-    },
-    {
         id: 'the-command-center',
         title: 'Intelligent Dashboard',
         excerpt: 'A unified view of your assignments, grades, and priorities.',
@@ -118,54 +106,6 @@ const blogPosts: BlogPost[] = [
         href: '/blog/research-hub'
     },
     {
-        id: 'writing-companion',
-        title: 'Writing Assistant',
-        excerpt: 'AI insights to refine your essays and articulate complex ideas.',
-        date: 'Feb 7, 2026',
-        author: 'Aadi Kalra',
-        authorRole: 'Founder',
-        readTime: '6 min read',
-        category: 'Product',
-        coverImage: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=2000',
-        href: '/blog/writing-companion'
-    },
-    {
-        id: 'global-translation',
-        title: 'Global Translation',
-        excerpt: 'Context-preserving translation for academic materials.',
-        date: 'Feb 6, 2026',
-        author: 'Aadi Kalra',
-        authorRole: 'Founder',
-        readTime: '3 min read',
-        category: 'Product',
-        coverImage: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=2000',
-        href: '/blog/global-translation'
-    },
-    {
-        id: 'study-groups',
-        title: 'Study Groups',
-        excerpt: 'Collaborative spaces for peers to share resources and succeed.',
-        date: 'Feb 6, 2026',
-        author: 'Aadi Kalra',
-        authorRole: 'Founder',
-        readTime: '5 min read',
-        category: 'Product',
-        coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=2000',
-        href: '/blog/study-groups'
-    },
-    {
-        id: 'peer-discussions',
-        title: 'Discussion Forums',
-        excerpt: 'Structured peer engagement for deeper critical thinking.',
-        date: 'Feb 5, 2026',
-        author: 'Aadi Kalra',
-        authorRole: 'Founder',
-        readTime: '4 min read',
-        category: 'Product',
-        coverImage: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=2000',
-        href: '/blog/peer-discussions'
-    },
-    {
         id: 'focus-timer',
         title: 'Study Timer',
         excerpt: 'Deep work management with Pomodoro and flow tracking.',
@@ -201,18 +141,6 @@ const blogPosts: BlogPost[] = [
         coverImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2000',
         href: '/blog/learning-center'
     },
-    {
-        id: 'making-of-aurora',
-        title: 'Engineering Aurora',
-        excerpt: 'Deep dive into building a Socratic, data-aware study AI.',
-        date: 'Oct 15, 2025',
-        author: 'Aadi Kalra',
-        authorRole: 'Founder',
-        readTime: '7 min read',
-        category: 'Engineering',
-        coverImage: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=2000',
-        href: '/blog/making-of-aurora'
-    }
 ];
 
 export default function BlogClient() {

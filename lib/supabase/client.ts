@@ -18,9 +18,14 @@ class CustomCookieStore implements Storage {
     if (typeof document === 'undefined') return null;
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
-      let cookie = cookies[i].trim();
+      const cookie = cookies[i].trim();
       if (cookie.startsWith(key + '=')) {
-        return cookie.substring(key.length + 1);
+        const value = cookie.substring(key.length + 1);
+        try {
+          return decodeURIComponent(value);
+        } catch {
+          return value;
+        }
       }
     }
     return null;
@@ -34,7 +39,14 @@ class CustomCookieStore implements Storage {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
     expires = '; expires=' + date.toUTCString();
-    document.cookie = key + '=' + value + expires + '; path=/';
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie =
+      key +
+      '=' +
+      encodeURIComponent(value) +
+      expires +
+      '; path=/; SameSite=Lax' +
+      secure;
   }
 
   removeItem(key: string): void {

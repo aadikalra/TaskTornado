@@ -47,4 +47,10 @@ export interface Message {
     groundingSupports?: any[];
     webSearchQueries?: string[];
   };
+  modelUsed?: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
 }

@@ -1,10 +1,12 @@
 'use client';
 
-import { Brain, Check, Maximize2, BookOpen, Crown, FlaskConical, Sparkles } from 'lucide-react';
+import { Brain, Check, Maximize2, BookOpen, Crown, FlaskConical, Sparkles, Compass, GraduationCap } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { usePlanTier } from '@/hooks/use-plan-tier';
+import { useOnboardingTour } from '@/components/OnboardingTour';
+import { useAuth } from '@/context/AuthContext';
 import type { PlanTier } from '@/lib/planTier';
 
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
@@ -31,6 +33,18 @@ export default function PreferencesSection({
   onToggleAdvancedAIMode
 }: PreferencesSectionProps) {
   const { tier, setTier } = usePlanTier();
+  const { resetTour } = useOnboardingTour();
+  const { user } = useAuth() || {};
+
+  const handleResetClassSetup = () => {
+    if (typeof window !== 'undefined') {
+      if (user?.id) {
+        document.cookie = `hasSeenOnboarding_${user.id}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+      document.cookie = 'hasSeenOnboarding=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      window.location.href = '/dashboard';
+    }
+  };
 
   const TIERS: { value: PlanTier; label: string; color: string }[] = [
     { value: 'free', label: 'Free', color: 'text-sky-600 dark:text-sky-300' },
@@ -126,6 +140,48 @@ export default function PreferencesSection({
           value={aiPersonality}
           onValueChange={onPersonalityChange}
         />
+      </div>
+
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
+        <div className="flex items-center gap-3">
+          <GraduationCap className="h-[18px] w-[18px] text-sky-500/50" />
+          <div className="flex flex-col">
+            <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
+              Grade & Class Setup Wizard
+            </span>
+            <span className="text-[11px] text-sky-600/40 dark:text-sky-400/40">
+              Re-run setup to pick grade level, math track, electives & auto-add classes
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleResetClassSetup}
+          className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors border border-sky-200/60 dark:border-sky-800/40 shadow-2xs"
+        >
+          Run Setup Wizard
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
+        <div className="flex items-center gap-3">
+          <Compass className="h-[18px] w-[18px] text-sky-500/50" />
+          <div className="flex flex-col">
+            <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
+              Feature Tour
+            </span>
+            <span className="text-[11px] text-sky-600/40 dark:text-sky-400/40">
+              Revisit the interactive feature walkthrough
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={resetTour}
+          className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors border border-sky-200/60 dark:border-sky-800/40 shadow-2xs"
+        >
+          Restart Tour
+        </button>
       </div>
 
     </div>

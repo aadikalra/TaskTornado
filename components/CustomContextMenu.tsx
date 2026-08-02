@@ -14,9 +14,10 @@ interface CustomContextMenuProps {
   onDictionaryOpen?: (word: string) => void;
   hasSelection?: boolean;
   selectedText?: string;
+  isAiChat?: boolean;
 }
 
-export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onClose, onDictionaryOpen, hasSelection, selectedText }) => {
+export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onClose, onDictionaryOpen, hasSelection, selectedText, isAiChat }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -24,6 +25,126 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
 
   // Check if selected text is just one word
   const isSingleWord = hasSelection && selectedText ? selectedText.trim().split(/\s+/).length === 1 : false;
+
+  // Dedicated context menu items ONLY for AI Chat
+  const aiChatMenuItems = [
+    // Define word if single word selected
+    ...(isSingleWord && selectedText && onDictionaryOpen ? [{
+      label: `Define "${selectedText.trim()}"`,
+      icon: 'Cards01',
+      action: () => {
+        onClose();
+        onDictionaryOpen(selectedText.trim());
+      },
+      description: `Define "${selectedText.trim()}"`
+    }] : []),
+
+    // Copy action
+    {
+      label: hasSelection ? 'Copy Selected Text' : 'Copy',
+      icon: 'Copy01',
+      action: () => {
+        if (selectedText) {
+          navigator.clipboard.writeText(selectedText);
+          info('Copied', 'Selected text copied to clipboard 📋');
+        } else {
+          info('Copy', 'Highlight text to copy');
+        }
+      },
+      description: 'Copy text to clipboard'
+    },
+
+    // Paste action into AI prompt input
+    {
+      label: 'Paste',
+      icon: 'ClipboardPaste',
+      action: async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            const textarea = document.querySelector<HTMLTextAreaElement>('[data-ai-chat-input]');
+            if (textarea) {
+              const start = textarea.selectionStart || 0;
+              const end = textarea.selectionEnd || 0;
+              const val = textarea.value;
+              const newVal = val.substring(0, start) + text + val.substring(end);
+              const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+              if (setter) {
+                setter.call(textarea, newVal);
+              } else {
+                textarea.value = newVal;
+              }
+              textarea.dispatchEvent(new Event('input', { bubbles: true }));
+              textarea.focus();
+              textarea.setSelectionRange(start + text.length, start + text.length);
+              info('Pasted', 'Clipboard text inserted 📋');
+            }
+          }
+        } catch (err) {
+          console.error('Paste error:', err);
+        }
+      },
+      description: 'Paste clipboard content into prompt'
+    },
+
+    // Cut action (if text selection)
+    ...(hasSelection ? [{
+      label: 'Cut',
+      icon: 'Scissors',
+      action: () => {
+        if (selectedText) {
+          navigator.clipboard.writeText(selectedText);
+          const textarea = document.querySelector<HTMLTextAreaElement>('[data-ai-chat-input]');
+          if (textarea && document.activeElement === textarea) {
+            const start = textarea.selectionStart || 0;
+            const end = textarea.selectionEnd || 0;
+            const val = textarea.value;
+            const newVal = val.substring(0, start) + val.substring(end);
+            const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+            if (setter) setter.call(textarea, newVal);
+            else textarea.value = newVal;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.focus();
+          }
+          info('Cut', 'Selection cut to clipboard ✂️');
+        }
+      },
+      description: 'Cut selection to clipboard'
+    }] : []),
+
+    // Select All action
+    {
+      label: 'Select All',
+      icon: 'SelectMultiple',
+      action: () => {
+        const textarea = document.querySelector<HTMLTextAreaElement>('[data-ai-chat-input]');
+        if (textarea) {
+          textarea.focus();
+          textarea.select();
+        }
+      },
+      description: 'Select prompt text'
+    },
+
+    { isDivider: true },
+
+    // Clear prompt input
+    {
+      label: 'Clear Input',
+      icon: 'Delete02',
+      action: () => {
+        const textarea = document.querySelector<HTMLTextAreaElement>('[data-ai-chat-input]');
+        if (textarea) {
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+          if (setter) setter.call(textarea, '');
+          else textarea.value = '';
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+        }
+      },
+      description: 'Clear prompt input'
+    },
+  ];
 
   // Menu items for logged out users - encouraging signup/login
   const loggedOutMenuItems = [
@@ -112,11 +233,13 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
     description: 'Toggle layout inspection'
   };
 
-  // Choose menu items based on auth state
-  const baseItems = loading ? [] : (user ? loggedInMenuItems : loggedOutMenuItems);
+  // Choose menu items based on auth state and AI Chat context
+  const baseItems = isAiChat
+    ? aiChatMenuItems
+    : (loading ? [] : (user ? loggedInMenuItems : loggedOutMenuItems));
 
-  // Add dev tools with a divider at the bottom
-  const menuItems = baseItems.length > 0 ? [...baseItems, { isDivider: true }, devToolItem] : baseItems;
+  // Add dev tools only if not in AI Chat mode
+  const menuItems = (!isAiChat && baseItems.length > 0) ? [...baseItems, { isDivider: true }, devToolItem] : baseItems;
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

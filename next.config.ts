@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  // This app is nested inside another JavaScript project. Pin Next.js to this
+  // directory so Turbopack does not select the parent package-lock as its root.
+  outputFileTracingRoot: projectRoot,
   allowedDevOrigins: ['192.168.1.105'],
   images: {
     remotePatterns: [
@@ -15,8 +22,9 @@ const nextConfig: NextConfig = {
     ],
   },
   
-  // Add Turbopack config to silence the warning
-  turbopack: {},
+  turbopack: {
+    root: projectRoot,
+  },
   
   // Enable bundle analyzer in development
   ...(process.env.ANALYZE === 'true' && {

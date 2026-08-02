@@ -2,6 +2,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { disconnectGoogleService } from '@/lib/google-oauth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +15,12 @@ export async function POST(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Revoke external Google access before deleting the local account.
+    await Promise.allSettled([
+      disconnectGoogleService(user.id, 'gmail'),
+      disconnectGoogleService(user.id, 'classroom'),
+    ]);
 
     // Delete user profile and data (Supabase DB)
     // Note: Foreign keys referencing auth.users with ON DELETE CASCADE will handle cascading deletes,

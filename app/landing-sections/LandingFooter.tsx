@@ -107,7 +107,7 @@ export default function LandingFooter() {
                 {/* Bottom Bar */}
                 <div className="mt-20 pt-8 border-t border-[#275085]/8 dark:border-[#4a9cdb]/8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="text-sm text-[#275085]/40 dark:text-[#4a9cdb]/40 font-medium">
-                        © {new Date().getFullYear()} Task Tornado Inc. All rights reserved.
+                        © {new Date().getFullYear()} TaskTornado. All rights reserved.
                     </p>
 
                     <div className="flex items-center gap-8">

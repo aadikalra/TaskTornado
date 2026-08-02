@@ -26,17 +26,15 @@ const COMPARISONS: Record<string, ComparisonSet> = {
         tool1: { name: 'ChatGPT', abbr: 'C' },
         tool2: { name: 'Notion', abbr: 'N' },
         features: [
-            { feature: 'Price', us: 'Free. Forever. No catch.', them: '$30+/mo for ChatGPT Plus + Notion', themPartial: false },
+            { feature: 'Price', us: 'Free core access during pre-launch', them: '$30+/mo for ChatGPT Plus + Notion', themPartial: false },
             { feature: 'Setup Time', us: 'Ready in under 2 minutes', them: 'Hours configuring Notion templates', themPartial: true },
-            { feature: 'AI Tutor', us: 'Socratic tutor that teaches, not tells', them: 'Gives you the answer outright', themPartial: true },
-            { feature: 'Assignment Tracking', us: 'Auto-prioritized with smart alerts', them: 'Manual entry, no intelligence', themPartial: true },
-            { feature: 'Flashcards & Quizzes', us: 'AI-generated from any topic instantly', them: null },
-            { feature: '@Commands', us: '7 built-in commands for every workflow', them: null },
-            { feature: 'Calendar Sync', us: 'Classes auto-populate your schedule', them: null },
-            { feature: 'Grade Calculator', us: 'Weighted averages from PowerSchool', them: null },
-            { feature: 'Study Groups', us: 'Built-in group chats per class', them: null },
-            { feature: 'Stress Support', us: 'Private AI therapist for school anxiety', them: null },
-            { feature: 'Discussion Boards', us: 'Ask peers for help in seconds', them: null },
+            { feature: 'AI Tutor', us: 'Planned after provider and safety review', them: 'Gives you the answer outright', themPartial: true },
+            { feature: 'Assignment Tracking', us: 'Deadlines and priorities in one view', them: 'Manual entry, no intelligence', themPartial: true },
+            { feature: 'Flashcards & Quizzes', us: 'AI generation planned; manual tools available', them: null },
+            { feature: '@Commands', us: 'Planned after AI provider review', them: null },
+            { feature: 'Calendar', us: 'Manually entered deadlines in one view', them: null },
+            { feature: 'Grade Calculator', us: 'Manual weighted-grade calculator', them: null },
+            { feature: 'AI Study Tools', us: 'Temporarily paused during provider update', them: null },
             { feature: 'Learning Games', us: 'Gamified study breaks built in', them: null },
         ]
     },
@@ -45,17 +43,15 @@ const COMPARISONS: Record<string, ComparisonSet> = {
         tool1: { name: 'Gemini', abbr: 'G' },
         tool2: { name: 'Google Tasks', abbr: 'GT' },
         features: [
-            { feature: 'Price', us: 'Free. Forever. No catch.', them: '$20/mo for Gemini Advanced', themPartial: false },
+            { feature: 'Price', us: 'Free core access during pre-launch', them: '$20/mo for Gemini Advanced', themPartial: false },
             { feature: 'Built for Students', us: 'Every feature designed for school', them: 'General-purpose productivity', themPartial: true },
-            { feature: 'AI Tutor', us: 'Socratic tutor that teaches, not tells', them: 'General AI — you prompt, you hope', themPartial: true },
-            { feature: 'Assignment Tracking', us: 'Auto-prioritized with smart alerts', them: 'Plain checkbox lists', themPartial: true },
-            { feature: 'Flashcards & Quizzes', us: 'AI-generated from any topic instantly', them: null },
-            { feature: '@Commands', us: '7 built-in commands for every workflow', them: null },
-            { feature: 'Calendar Sync', us: 'Classes auto-populate your schedule', them: 'Only syncs with Google Calendar', themPartial: true },
-            { feature: 'Grade Calculator', us: 'Weighted averages from PowerSchool', them: null },
-            { feature: 'Study Groups', us: 'Built-in group chats per class', them: null },
-            { feature: 'Stress Support', us: 'Private AI therapist for school anxiety', them: null },
-            { feature: 'Discussion Boards', us: 'Ask peers for help in seconds', them: null },
+            { feature: 'AI Tutor', us: 'Planned after provider and safety review', them: 'General AI — you prompt, you hope', themPartial: true },
+            { feature: 'Assignment Tracking', us: 'Deadlines and priorities in one view', them: 'Plain checkbox lists', themPartial: true },
+            { feature: 'Flashcards & Quizzes', us: 'AI generation planned; manual tools available', them: null },
+            { feature: '@Commands', us: 'Planned after AI provider review', them: null },
+            { feature: 'Calendar', us: 'Manually entered deadlines in one view', them: 'Only syncs with Google Calendar', themPartial: true },
+            { feature: 'Grade Calculator', us: 'Manual weighted-grade calculator', them: null },
+            { feature: 'AI Study Tools', us: 'Temporarily paused during provider update', them: null },
             { feature: 'Learning Games', us: 'Gamified study breaks built in', them: null },
         ]
     }
@@ -74,8 +70,6 @@ export default function ComparisonSection({ comparisonSet, onComparisonSetChange
 
     const visibleFeatures = showAll ? data.features : data.features.slice(0, 6);
     const hasMore = data.features.length > 6;
-
-    const usWins = data.features.filter(f => !f.them || !f.themPartial).length;
 
     return (
         <section className="bg-[#f5f9fc] dark:bg-gray-950 py-20 md:py-28">
@@ -251,7 +245,7 @@ export default function ComparisonSection({ comparisonSet, onComparisonSetChange
                         <div className="w-5 h-5 rounded-full bg-[#8bc34a] flex items-center justify-center">
                             <Check className="w-3 h-3 text-white" strokeWidth={3} />
                         </div>
-                        <span>TaskTornado leads in <span className="font-bold text-[#275085] dark:text-[#4a9cdb]">{usWins} of {data.features.length}</span> categories</span>
+                        <span>Feature availability snapshot — planned features are labeled</span>
                     </div>
                 </motion.div>
 
@@ -267,12 +261,15 @@ export default function ComparisonSection({ comparisonSet, onComparisonSetChange
                         The best of both worlds, built for students
                     </h3>
                     <p className="text-sm text-[#275085]/55 dark:text-[#4a9cdb]/55 max-w-2xl mx-auto leading-relaxed mb-8">
-                        We combined {data.tool1.name}&apos;s AI power with {data.tool2.name}&apos;s organization, then added student-specific features like deadline tracking, flashcard systems, and stress support. All in one place, all completely free.
+                        TaskTornado currently focuses on student organization,
+                        deadline tracking, manual flashcards, and grade tools.
+                        AI will be added only after the provider and
+                        student-safety review is complete.
                     </p>
 
                     <div className="flex flex-wrap justify-center gap-3">
                         {[
-                            { icon: <DollarSign className="w-3.5 h-3.5" />, text: 'No subscription fees' },
+                            { icon: <DollarSign className="w-3.5 h-3.5" />, text: 'Free core access' },
                             { icon: <GraduationCap className="w-3.5 h-3.5" />, text: 'Student-focused design' },
                             { icon: <Layers className="w-3.5 h-3.5" />, text: 'Everything in one place' },
                         ].map((item, i) => (

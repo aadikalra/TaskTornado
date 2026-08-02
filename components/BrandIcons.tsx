@@ -1,55 +1,105 @@
 import React from 'react';
 
 export const GoogleDocsIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 4C4 2.89543 4.89543 2 6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#4285F4" />
-        <path d="M14 2L20 8H14V2Z" fill="#A1C2FA" />
-        <path d="M7 13H17M7 17H17M7 9H11" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+  <svg viewBox="0 0 64 88" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#3086F6" d="M58 88H6c-3.3 0-6-2.7-6-6V6c0-3.3 2.7-6 6-6h36l22 22v60c0 3.3-2.7 6-6 6z" />
+    <path fill="#0C67D6" d="M42 0l22 22H42V0z" />
+    <path fill="#FDFFFF" d="M50 39H14v-5h36v5zm0 7H14v5h36v-5zm-10 12H14v5h26v-5z" />
+  </svg>
 );
 
 export const GoogleSheetsIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 4C4 2.89543 4.89543 2 6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#0F9D58" />
-        <path d="M14 2L20 8H14V2Z" fill="#B7E1CD" />
-        <path d="M8 12H16M8 16H16M12 9V19" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+  <svg viewBox="0 0 64 88" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#188038" d="M42 0l22 22-11 2-11-2-2-11z" />
+    <path fill="#34A853" d="M42 22V0H6C2.685 0 0 2.685 0 6v76c0 3.315 2.685 6 6 6h52c3.315 0 6-2.685 6-6V22H42z" />
+    <path fill="#FFFFFF" d="M12 34v29h40V34H12zm17.5 24H17v-7h12.5v7zm0-12H17v-7h12.5v7zm17.5 12H34.5v-7H47v7zm0-12H34.5v-7H47v7z" />
+  </svg>
 );
 
 export const GoogleSlidesIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 4C4 2.89543 4.89543 2 6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#F4B400" />
-        <path d="M14 2L20 8H14V2Z" fill="#FBE9B7" />
-        <rect x="7" y="10" width="10" height="7" rx="1" fill="white" fillOpacity="0.3" />
-        <path d="M9 13L11 15L15 11" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+  <svg viewBox="0 0 64 88" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#F8BF08" d="M58 88H6c-3.3 0-6-2.7-6-6V6c0-3.3 2.7-6 6-6h36l22 22v60c0 3.3-2.7 6-6 6z" />
+    <path fill="#F59307" d="M42 0l22 22H42V0z" />
+    <path fill="#FDFFFF" d="M12 34.5v28h40v-28H12zm35 23H17v-18h30v18z" />
+  </svg>
 );
 
 export const GoogleDriveIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.5 4L2 15L5 20H18L21.5 15L15 4H8.5Z" fill="none" />
-        <path d="M15 4L21.5 15L18 20L11.5 9L15 4Z" fill="#FFC107" />
-        <path d="M8.5 4L15 4L11.5 9L5 20L2 15L8.5 4Z" fill="#2196F3" />
-        <path d="M5 20L11.5 9L18 20H5Z" fill="#4CAF50" />
-    </svg>
+  <svg viewBox="0 0 87.3 78" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#0066DA" d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" />
+    <path fill="#00AC47" d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" />
+    <path fill="#EA4335" d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.5z" />
+    <path fill="#00832D" d="M43.65 25l13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" />
+    <path fill="#2684FC" d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" />
+    <path fill="#FFBA00" d="M73.4 26.5l-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" />
+  </svg>
 );
 
 export const GoogleClassroomIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="4" width="18" height="14" rx="2" fill="#2E7D32" />
-        <rect x="4" y="5" width="16" height="12" rx="1" fill="#FFF" />
-        <rect x="5" y="6" width="14" height="10" rx="0.5" fill="#43A047" />
-        <path d="M12 11C13.1046 11 14 10.1046 14 9C14 7.89543 13.1046 7 12 7C10.8954 7 10 7.89543 10 9C10 10.1046 10.8954 11 12 11Z" fill="white" />
-        <path d="M16 14.5C16 13.1193 14.2091 12 12 12C9.79086 12 8 13.1193 8 14.5V15H16V14.5Z" fill="white" />
-    </svg>
+  <svg viewBox="0 0 578.9 500" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#F4B400" d="M539.5 0h-500C17.7 0 0 17.7 0 39.5v421.1C0 482.3 17.7 500 39.5 500h500c21.8 0 39.5-17.7 39.5-39.5V39.5C578.9 17.7 561.3 0 539.5 0z" />
+    <path fill="#0F9D58" d="M52.6 52.6h473.7v394.7H52.6V52.6z" />
+    <path fill="#57BB8A" d="M394.7 263.2c16.4 0 29.6-13.3 29.6-29.6s-13.3-29.6-29.6-29.6-29.6 13.3-29.6 29.6 13.3 29.6 29.6 29.6zm0 19.7c-31.7 0-65.8 16.8-65.8 37.6v21.6h131.6v-21.6c0-20.8-34.1-37.6-65.8-37.6zM184.2 263.2c16.4 0 29.6-13.3 29.6-29.6s-13.3-29.6-29.6-29.6-29.6 13.3-29.6 29.6 13.3 29.6 29.6 29.6zm0 19.7c-31.7 0-65.8 16.8-65.8 37.6v21.6H250v-21.6c0-20.8-34.1-37.6-65.8-37.6z" />
+    <path fill="#F7F7F7" d="M289.5 236.8c21.8 0 39.5-17.7 39.4-39.5 0-21.8-17.7-39.5-39.5-39.4-21.8 0-39.4 17.7-39.4 39.5 0 21.8 17.7 39.4 39.5 39.4zm0 26.4c-44.4 0-92.1 23.6-92.1 52.6v26.3h184.2v-26.3c0-29-47.7-52.6-92.1-52.6z" />
+    <path fill="#F1F1F1" d="M342.1 421.1h118.4v26.3H342.1v-26.3z" />
+  </svg>
 );
 
 export const GoogleFormsIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 4C4 2.89543 4.89543 2 6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="#673AB7" />
-        <path d="M14 2L20 8H14V2Z" fill="#D1C4E9" />
-        <path d="M9 12H15M9 15H15M9 9H11" stroke="white" strokeWidth="2" strokeLinecap="round" />
-        <rect x="7" y="11.5" width="1" height="1" rx="0.2" fill="white" />
-        <rect x="7" y="14.5" width="1" height="1" rx="0.2" fill="white" />
-    </svg>
+  <svg viewBox="0 0 64 88" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#56368A" d="M42 22l12.065 2.28L64 22 42 0l-3.035 10.43z" />
+    <path fill="#7248B9" d="M42 22V0H6C2.685 0 0 2.685 0 6v76c0 3.315 2.685 6 6 6h52c3.315 0 6-2.685 6-6V22H42z" />
+    <path fill="#FFFFFF" d="M17 63.5c-1.655 0-3-1.345-3-3s1.345-3 3-3 3 1.345 3 3-1.345 3-3 3zm0-12c-1.655 0-3-1.345-3-3s1.345-3 3-3 3 1.345 3 3-1.345 3-3 3zm0-12c-1.655 0-3-1.345-3-3s1.345-3 3-3 3 1.345 3 3-1.345 3-3 3zm33 23.5H25v-5h25v5zm0-12H25v-5h25v5zm0-12H25v-5h25v5z" />
+  </svg>
+);
+
+export const GmailIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="52 42 88 66" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#4285F4" d="M58 108h14V74L52 59v43c0 3.32 2.69 6 6 6z" />
+    <path fill="#34A853" d="M120 108h14c3.32 0 6-2.69 6-6V59l-20 15z" />
+    <path fill="#FBBC04" d="M120 48v26l20-15v-8c0-7.42-8.47-11.65-14.4-7.2z" />
+    <path fill="#EA4335" d="M72 74V48l24 18 24-18v26L96 92z" />
+    <path fill="#C5221F" d="M52 51v8l20 15V48l-5.6-4.2c-5.94-4.45-14.4-.22-14.4 7.2z" />
+  </svg>
+);
+
+export const GoogleTasksIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 527.1 500" className={className} xmlns="http://www.w3.org/2000/svg">
+    <polygon fill="#0066DA" points="410.4,58.3 368.8,81.2 348.2,120.6 368.8,168.8 407.8,211 450,187.5 475.9,142.8 450,87.5" />
+    <path fill="#2684FC" d="M249.3 219.4l98.9-98.9c29.1 22.1 50.5 53.8 59.6 90.4L272.1 346.7c-12.2 12.2-32 12.2-44.2 0l-91.5-91.5c-9.8-9.8-9.8-25.6 0-35.3l39-39c9.8-9.8 25.6-9.8 35.3 0l38.6 38.5zM519.8 63.6l-39.7-39.7c-9.7-9.7-25.6-9.7-35.3 0l-34.4 34.4c27.5 23 49.9 51.8 65.5 84.5l43.9-43.9c9.8-9.7 9.8-25.6 0-35.3zM412.5 250c0 89.8-72.8 162.5-162.5 162.5S87.5 339.8 87.5 250 160.2 87.5 250 87.5c36.9 0 70.9 12.3 98.2 33.1l62.2-62.2C367 21.9 311.1 0 250 0 111.9 0 0 111.9 0 250s111.9 250 250 250 250-111.9 250-250c0-38.3-8.7-74.7-24.1-107.2L407.8 211c3 12.5 4.7 25.6 4.7 39z" />
+  </svg>
+);
+
+export const GoogleMeetIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 87.5 72" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#00832D" d="M49.5 36l8.53 9.75 11.47 7.33 2-17.02-2-16.64-11.69 6.44z" />
+    <path fill="#0066DA" d="M0 51.5V66c0 3.315 2.685 6 6 6h14.5l3-10.96-3-9.54-9.95-3z" />
+    <path fill="#E94235" d="M20.5 0L0 20.5l10.55 3 9.95-3 2.95-9.41z" />
+    <path fill="#2684FC" d="M20.5 20.5H0v31h20.5z" />
+    <path fill="#00AC47" d="M82.6 8.68L69.5 19.42v33.66l13.16 10.79c1.97 1.54 4.85.135 4.85-2.37V11c0-2.535-2.945-3.925-4.91-2.32zM49.5 36v15.5h-29V72h43c3.315 0 6-2.685 6-6V53.08z" />
+    <path fill="#FFBA00" d="M63.5 0h-43v20.5h29V36l20-16.57V6c0-3.315-2.685-6-6-6z" />
+  </svg>
+);
+
+export const GoogleCalendarIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(3.75 3.75)">
+      <path fill="#FFFFFF" d="M148.88 43.62l-47.37-5.26-57.9 5.26L38.36 96.25l5.26 52.63 52.63 6.58 52.63-6.58 5.26-53.95z" />
+      <path fill="#1A73E8" d="M65.21 125.28c-3.93-2.66-6.66-6.54-8.15-11.67l9.13-3.76c.83 3.16 2.28 5.6 4.34 7.34 2.05 1.74 4.55 2.59 7.47 2.59 2.99 0 5.55-.91 7.7-2.72s3.22-4.13 3.22-6.93c0-2.87-1.13-5.21-3.4-7.03s-5.1-2.72-8.5-2.72h-5.28v-9.04h5.28c2.92 0 5.38-.79 7.38-2.37 2-1.58 3-3.74 3-6.49 0-2.45-.9-4.4-2.68-5.86s-4.05-2.2-6.8-2.2c-2.69 0-4.82.71-6.4 2.15s-2.72 3.2-3.45 5.28l-9.04-3.76c1.2-3.4 3.4-6.4 6.62-8.99 3.22-2.59 7.34-3.9 12.34-3.9 3.7 0 7.03.71 9.97 2.15 2.95 1.43 5.26 3.42 6.94 5.95s2.5 5.38 2.5 8.54c0 3.22-.78 5.95-2.33 8.18-1.55 2.24-3.46 3.95-5.72 5.15v.54c2.99 1.25 5.42 3.16 7.34 5.72 1.91 2.57 2.87 5.63 2.87 9.21s-.91 6.78-2.72 9.58c-1.82 2.8-4.33 5.01-7.51 6.62-3.2 1.6-6.79 2.42-10.78 2.42-7.85 0-12.11-1.33-16.05-3.99z" />
+      <path fill="#1A73E8" d="M121.25 79.96l-9.97 7.25-5.01-7.61 17.99-12.97h6.9v61.2h-9.9V79.96z" />
+      <path fill="#EA4335" d="M148.88 196.25l47.37-47.37-23.69-10.53-23.68 10.53-10.53 23.68z" />
+      <path fill="#34A853" d="M33.09 172.57l10.53 23.68h105.26v-47.37H43.62z" />
+      <path fill="#4285F4" d="M12.04-3.75C3.32-3.75-3.75 3.32-3.75 12.04v136.84l23.68 10.53 23.68-10.53V43.62h105.26l10.53-23.68L148.88-3.75H12.04z" />
+      <path fill="#188038" d="M-3.75 148.88v31.58c0 8.72 7.07 15.79 15.79 15.79h31.58v-47.37H-3.75z" />
+      <path fill="#FBBC04" d="M148.88 43.62v105.26h47.37V43.62l-23.68-10.53z" />
+      <path fill="#1967D2" d="M196.25 43.62V12.04c0-8.72-7.07-15.79-15.79-15.79h-31.58v47.37H196.25z" />
+    </g>
+  </svg>
+);
+
+export const YouTubeIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 28.57 20" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fill="#FF0000" d="M27.973 3.123C27.643 1.893 26.677.927 25.447.597 23.22 0 14.285 0 14.285 0S5.35 0 3.123.597C1.893.927.927 1.893.597 3.123 0 5.35 0 10 0 10s0 4.65.597 6.877c.33 1.23 1.296 2.196 2.526 2.525C5.35 20 14.285 20 14.285 20s8.935 0 11.162-.598c1.23-.33 2.196-1.295 2.526-2.525C28.57 14.65 28.57 10 28.57 10s0-4.65-.597-6.877z" />
+    <path fill="#FFFFFF" d="M11.425 14.285L18.848 10l-7.423-4.285v8.57z" />
+  </svg>
 );

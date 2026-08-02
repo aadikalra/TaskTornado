@@ -13,7 +13,6 @@ import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
-  ImageIcon,
   Link2Icon,
   ListIcon,
   ListOrderedIcon,
@@ -140,11 +139,6 @@ const groups: Group[] = [
   {
     group: 'Media',
     items: [
-      {
-        icon: <ImageIcon />,
-        label: 'Image',
-        value: KEYS.img,
-      },
       {
         icon: <FilmIcon />,
         label: 'Embed',

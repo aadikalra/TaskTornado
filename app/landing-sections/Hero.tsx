@@ -16,7 +16,7 @@ const ROTATING_WORDS = [
 
 // ─── Orbiting feature chips — real app features from the DockNav ─────────────────
 const ORBITING_CHIPS = [
-    { icon: Brain, label: 'Aurora AI', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 0, radius: 185 },
+    { icon: Brain, label: 'Aurora AI (planned)', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 0, radius: 185 },
     { icon: CalendarCheck, label: 'Calendar', accent: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200/60 dark:border-blue-800/30', startAngle: 30, radius: 215 },
     { icon: BookOpen, label: 'Flashcards', accent: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200/60 dark:border-amber-800/30', startAngle: 60, radius: 185 },
     { icon: LayoutGrid, label: 'Quizzes', accent: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-200/60 dark:border-indigo-800/30', startAngle: 90, radius: 215 },
@@ -126,7 +126,7 @@ export default function Hero() {
                         transition={{ delay: 0.2, duration: 0.5 }}
                         className="text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium"
                     >
-                        AI tutoring, smart scheduling, and a homework dashboard that actually works — built for students, by a student.
+                        Smart scheduling and a homework dashboard that actually works, with student-appropriate AI tutoring planned after our provider update.
                     </motion.p>
                 </div>
 

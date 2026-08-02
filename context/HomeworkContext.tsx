@@ -9,6 +9,7 @@ import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { HomeworkLink, parseHomeworkLinks } from '@/lib/utils/homework-links';
+import { awardFishTreat } from '@/lib/catTreats';
 
 export type Priority = 'low' | 'medium' | 'high';
 export type RecurringFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
@@ -194,9 +195,13 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
     if (!user) throw new Error('User not authenticated');
     const currentHomework = homeworks.find(hw => hw.id === id);
     if (!currentHomework) return;
+    const isNowCompleted = !currentHomework.completed;
     try {
-      setHomeworks(prev => prev.map(hw => hw.id === id ? { ...hw, completed: !hw.completed } : hw));
-      await db.toggleHomeworkComplete(id, user.id, !currentHomework.completed);
+      setHomeworks(prev => prev.map(hw => hw.id === id ? { ...hw, completed: isNowCompleted } : hw));
+      await db.toggleHomeworkComplete(id, user.id, isNowCompleted);
+      if (isNowCompleted) {
+        awardFishTreat(1);
+      }
     } catch (err) {
       setHomeworks(prev => prev.map(hw => hw.id === id ? { ...hw, completed: currentHomework.completed } : hw));
       throw err;

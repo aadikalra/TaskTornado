@@ -29,7 +29,9 @@ export default function SmartCalendarArticle() {
 
             <h2>Automation at the Core</h2>
             <p>
-                The primary goal of the TaskTornado Calendar is to save you time. When you add an assignment or sync with Google Classroom, it automatically appears on your calendar. No manual entry, no missed deadlines.
+                The primary goal of the TaskTornado Calendar is to save you
+                time. Assignments you add appear on your calendar automatically.
+                Google Classroom sync is planned after OAuth review.
             </p>
 
             <h2>Visualizing Your Workload</h2>

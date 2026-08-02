@@ -34,12 +34,15 @@ export default function AdaptiveQuizzesArticle() {
             <ul>
                 <li><strong>Lecture Notes:</strong> Ensure you picked up the key details from class.</li>
                 <li><strong>Flashcard Decks:</strong> Move beyond simple recall into more complex questions.</li>
-                <li><strong>Class Materials:</strong> Upload a PDF or paste text to create a comprehensive assessment in seconds.</li>
+                <li><strong>Class Materials:</strong> Manually turn important concepts into practice questions. File uploads and AI generation are unavailable.</li>
             </ul>
 
             <h2>Real-Time Feedback</h2>
             <p>
-                Learning doesn&apos;t happen at the end of the quiz; it happens during it. That&apos;s why our quizzes provide instant feedback. If you get a question wrong, we don&apos;t just show you the right answer — we explain the reasoning behind it, often with the help of Aurora, our AI tutor.
+                Learning doesn&apos;t happen only at the end of a quiz. Manual
+                quizzes can provide the answer and explanation entered by the
+                deck creator. Aurora-generated explanations are planned but
+                currently unavailable.
             </p>
 
             <h2>Gamified Mastery</h2>

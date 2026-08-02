@@ -1,34 +1,22 @@
 'use server';
 
 import { google } from 'googleapis';
-import { cookies } from 'next/headers';
 import { classroom_v1 } from 'googleapis';
+import { createClient } from '@/lib/supabase/server';
+import { getGoogleClientForUser } from '@/lib/google-oauth';
 
 type GoogleClassroomCourse = classroom_v1.Schema$Course;
 type GoogleClassroomCourseWork = classroom_v1.Schema$CourseWork;
 
 async function getOAuthClient() {
-  const cookieStore = await cookies();
-  const classroomAuth = cookieStore.get('classroom-auth');
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  if (!classroomAuth) {
-    return null;
-  }
-
-  const authData = JSON.parse(classroomAuth.value);
-
-  if (!authData.access_token) {
-    return null;
-  }
-
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({
-    access_token: authData.access_token,
-    refresh_token: authData.refresh_token,
-    expiry_date: authData.expires_at,
-  });
-
-  return oauth2Client;
+  const googleAuth = await getGoogleClientForUser(user.id, 'classroom');
+  return googleAuth?.client || null;
 }
 
 export async function getGoogleClassroomCourses(): Promise<GoogleClassroomCourse[]> {

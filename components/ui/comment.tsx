@@ -172,7 +172,9 @@ export function Comment(props: {
     if (!comment.suggestedReplacement) return;
     
     // Find the nodes with this comment mark
-    const nodes = editor.api.comment.nodes({ id: comment.discussionId });
+    const nodes = (editor.api as any).comment.nodes({
+      id: comment.discussionId,
+    }) as Array<[{ text: string }, number[]]>;
     if (nodes && nodes.length > 0) {
       // Create a range covering all these nodes
       const firstPath = nodes[0][1];

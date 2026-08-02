@@ -27,12 +27,13 @@ const GoogleIcon = ({ className }: { className?: string }) => (
 interface ClassroomAuthStatus {
   isAuthorized: boolean;
   needsAuthorization: boolean;
+  integrationEnabled?: boolean;
   lastSync?: string;
   coursesCount?: number;
 }
 
 export default function GoogleClassroomSection() {
-  const { user, isGoogleUser } = useAuth();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const { handlePlanLimitError } = useUpgrade();
   const [authStatus, setAuthStatus] = useState<ClassroomAuthStatus | null>(null);
@@ -48,36 +49,35 @@ export default function GoogleClassroomSection() {
   const reason = searchParams.get('reason');
 
   useEffect(() => {
-    if (user && isGoogleUser) {
+    if (user) {
       checkAuthStatus();
     } else {
       setAuthStatus(null);
       setIsLoading(false);
     }
-  }, [user, isGoogleUser]);
+  }, [user]);
 
   const checkAuthStatus = async () => {
     setIsLoading(true);
     try {
-      const getCookie = (name: string) => {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-        }
-        return null;
-      };
+      const sessionResponse = await fetch('/api/auth/classroom-session');
+      const session = await sessionResponse.json();
 
-      const classroomAuthCookie = getCookie('classroom-auth');
+      if (sessionResponse.ok && session.enabled === false) {
+        setAuthStatus({
+          isAuthorized: false,
+          needsAuthorization: false,
+          integrationEnabled: false,
+        });
+        return;
+      }
 
-      if (classroomAuthCookie) {
+      if (sessionResponse.ok && session.authenticated) {
         try {
           const response = await fetch('/api/classroom/debug-log', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user?.id }),
+            body: JSON.stringify({}),
           });
 
           if (response.ok) {
@@ -129,7 +129,7 @@ export default function GoogleClassroomSection() {
     try {
       const response = await fetch('/api/auth/google-classroom-init');
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to get auth URL');
+      if (!response.ok) throw new Error(data.error || 'Failed to get auth URL');
       window.location.href = data.authUrl;
     } catch (error: any) {
       if (!handlePlanLimitError(error)) {
@@ -147,7 +147,12 @@ export default function GoogleClassroomSection() {
   const handleUnsync = async () => {
     setIsUnsyncing(true);
     try {
-      document.cookie = 'classroom-auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      const response = await fetch('/api/auth/classroom-session', {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Google Classroom could not be disconnected.');
+      }
       setAuthStatus({ isAuthorized: false, needsAuthorization: true });
     } catch (error) {
       console.error('Error unsyncing Classroom:', error);
@@ -162,7 +167,7 @@ export default function GoogleClassroomSection() {
       const response = await fetch('/api/classroom/debug-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id }),
+        body: JSON.stringify({}),
       });
       if (response.ok) {
         const data = await response.json();
@@ -180,7 +185,7 @@ export default function GoogleClassroomSection() {
     }
   };
 
-  if (!user || !isGoogleUser) return null;
+  if (!user) return null;
 
   return (
     <div className="space-y-4">
@@ -205,6 +210,14 @@ export default function GoogleClassroomSection() {
               <RefreshCw className="h-4 w-4 animate-spin" />
               <span className="text-sm font-medium">Authenticating...</span>
             </div>
+          </div>
+        ) : authStatus?.integrationEnabled === false ? (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200/60 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="text-sm leading-6 text-amber-800 dark:text-amber-200">
+              Google Classroom is unavailable until the OAuth review and
+              production configuration are complete.
+            </p>
           </div>
         ) : authStatus?.isAuthorized ? (
           <div className="space-y-4">

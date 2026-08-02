@@ -12,7 +12,7 @@ export default function GradeCalculatorArticle() {
     return (
         <BlogArticleTemplate
             title="Grade Calculator"
-            description="Letter grades are a helpful summary, but seeing your exact percentage allows you to plan your goals with confidence. We built an AI-powered grade calculator to help you get that clarity in seconds."
+            description="Letter grades are a helpful summary, but seeing your exact percentage allows you to plan your goals with confidence. TaskTornado includes a manual weighted-grade calculator."
             category="Product"
             author="Aadi Kalra"
             authorRole="Founder"
@@ -49,10 +49,10 @@ export default function GradeCalculatorArticle() {
                 <strong>1. Flexible Weighting:</strong> Every teacher has a different philosophy. Some prioritize daily practice, others focus on final assessments. Our tool lets you pick from common presets or use a simple slider to match your specific syllabus perfectly.
             </p>
             <p>
-                <strong>2. Seamless Integration:</strong> You don&apos;t need to type in every single assignment. Simply copy your grade table from your school portal and paste it directly into TaskTornado.
+                <strong>2. Manual Entry:</strong> Add the categories, weights, and scores you want to calculate. AI-based grade-table parsing is currently unavailable.
             </p>
             <p>
-                <strong>3. AI-Powered Analysis:</strong> Our AI instantly reads the data, identifies which scores belong to which categories, and handles the math. It even skips exempt assignments automatically so your total is always accurate.
+                <strong>3. Transparent Math:</strong> The calculator applies the weights and scores you provide so you can review the inputs and result yourself.
             </p>
             <p>
                 The result? A clean, structured breakdown of your grade that shows you exactly how much each category is contributing to your success.

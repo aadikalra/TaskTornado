@@ -4,23 +4,21 @@ import type {
 } from '@/components/editor/use-chat';
 import type { NextRequest } from 'next/server';
 
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import {
-  type LanguageModel,
-  type UIMessageStreamWriter,
   createUIMessageStream,
   createUIMessageStreamResponse,
-  generateObject,
-  streamObject,
-  streamText,
-  tool,
 } from 'ai';
 import { NextResponse } from 'next/server';
-import { type SlateEditor, createSlateEditor, nanoid } from 'platejs';
+import { createSlateEditor, nanoid } from 'platejs';
 import { z } from 'zod';
 
 import { BaseEditorKit } from '@/components/editor/editor-base-kit';
-import { markdownJoinerTransform } from '@/lib/markdown-joiner-transform';
+import { authorizeAiAction } from '@/lib/ai/http';
+import {
+  checkTeenSafety,
+  completeWithFallback,
+} from '@/lib/ai/groq';
+import { recordAiUsage } from '@/lib/ai/quota';
 
 import {
   getChooseToolPrompt,
@@ -29,192 +27,174 @@ import {
   getGeneratePrompt,
 } from './prompts';
 
+const commentSchema = z.array(
+  z.object({
+    blockId: z.string().max(200),
+    content: z.string().max(4000),
+    comments: z.string().max(2000),
+  })
+);
+
+function extractArray(text: string) {
+  const start = text.indexOf('[');
+  const end = text.lastIndexOf(']');
+  if (start < 0 || end <= start) throw new Error('Invalid comment response.');
+  return JSON.parse(text.slice(start, end + 1));
+}
 export async function POST(req: NextRequest) {
-  const {
-    apiKey: key,
-    ctx,
-    messages: messagesRaw = [],
-    model,
-  } = await req.json();
-
-  const { children, selection, toolName: toolNameParam } = ctx;
-
-  const editor = createSlateEditor({
-    plugins: BaseEditorKit,
-    selection,
-    value: children,
-  });
-
-  const apiKey = key || process.env.GOOGLE_AI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'Missing Google AI API key.' },
-      { status: 401 }
-    );
-  }
-
-  const isSelecting = editor.api.isExpanded();
-
-  const google = createGoogleGenerativeAI({
-    apiKey,
-  });
+  const access = await authorizeAiAction(req, 'copilot');
+  if (!access.ok) return access.response;
 
   try {
+    const { ctx, messages: messagesRaw = [] } = await req.json();
+    if (!ctx?.children) {
+      return NextResponse.json(
+        { error: 'Editor context is required.' },
+        { status: 400 }
+      );
+    }
+
+    const editor = createSlateEditor({
+      plugins: BaseEditorKit,
+      selection: ctx.selection,
+      value: ctx.children,
+    });
+    const isSelecting = editor.api.isExpanded();
+    let toolName = ctx.toolName as ToolName | undefined;
+
+    if (!toolName) {
+      const classifierPrompt = getChooseToolPrompt({
+        messages: messagesRaw as ChatMessage[],
+      });
+      const choice = await completeWithFallback({
+        action: 'quick',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Return exactly one word: generate, edit, or comment.',
+          },
+          { role: 'user', content: classifierPrompt.slice(0, 12_000) },
+        ],
+        temperature: 0,
+        maxTokens: 12,
+        signal: req.signal,
+      });
+      const candidate = choice.content.trim().toLowerCase();
+      toolName =
+        candidate.includes('comment')
+          ? 'comment'
+          : candidate.includes('edit') && isSelecting
+            ? 'edit'
+            : 'generate';
+    }
+
+    const prompt =
+      toolName === 'comment'
+        ? getCommentPrompt(editor, {
+            messages: messagesRaw as ChatMessage[],
+          })
+        : toolName === 'edit'
+          ? getEditPrompt(editor, {
+              isSelecting,
+              messages: messagesRaw as ChatMessage[],
+            })
+          : getGeneratePrompt(editor, {
+              messages: messagesRaw as ChatMessage[],
+            });
+
+    const inputSafety = await checkTeenSafety(
+      prompt.slice(0, 12_000),
+      'input',
+      req.signal
+    );
+    if (!inputSafety.safe) {
+      return NextResponse.json(
+        { error: 'This editor request cannot be processed.' },
+        { status: 400 }
+      );
+    }
+
+    const result = await completeWithFallback({
+      action: toolName === 'comment' ? 'grader' : 'copilot',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a student-safe writing coach. Help without impersonating the student or producing prohibited content.',
+        },
+        { role: 'user', content: prompt.slice(0, 18_000) },
+      ],
+      temperature: 0.3,
+      maxTokens: toolName === 'comment' ? 1500 : 900,
+      signal: req.signal,
+    });
+
+    const outputSafety = await checkTeenSafety(
+      result.content,
+      'output',
+      req.signal
+    );
+    if (!outputSafety.safe) {
+      return NextResponse.json(
+        { error: 'The editor response did not pass the safety check.' },
+        { status: 502 }
+      );
+    }
+
+    await recordAiUsage(
+      'copilot',
+      result.model,
+      result.usage.prompt_tokens,
+      result.usage.completion_tokens
+    );
+
     const stream = createUIMessageStream<ChatMessage>({
-      execute: async ({ writer }) => {
-        let toolName = toolNameParam;
-
-        if (!toolName) {
-          const { object: AIToolName } = await generateObject({
-            enum: isSelecting
-              ? ['generate', 'edit', 'comment']
-              : ['generate', 'comment'],
-            model: google(model || 'gemini-2.5-flash-lite'),
-            output: 'enum',
-            prompt: getChooseToolPrompt({ messages: messagesRaw }),
-          });
-
-          writer.write({
-            data: AIToolName as ToolName,
-            type: 'data-toolName',
-          });
-
-          toolName = AIToolName;
-        }
-
-        const stream = streamText({
-          experimental_transform: markdownJoinerTransform(),
-          model: google(model || 'gemini-2.5-flash-lite'),
-          // Not used
-          prompt: '',
-          tools: {
-            comment: getCommentTool(editor, {
-              messagesRaw,
-              model: google(model || 'gemini-2.5-flash-lite'),
-              writer,
-            }),
-          },
-          prepareStep: async (step) => {
-            if (toolName === 'comment') {
-              return {
-                ...step,
-                toolChoice: { toolName: 'comment', type: 'tool' },
-              };
-            }
-
-            if (toolName === 'edit') {
-              const editPrompt = getEditPrompt(editor, {
-                isSelecting,
-                messages: messagesRaw,
-              });
-
-              return {
-                ...step,
-                activeTools: [],
-                messages: [
-                  {
-                    content: editPrompt,
-                    role: 'user',
-                  },
-                ],
-              };
-            }
-
-            if (toolName === 'generate') {
-              const generatePrompt = getGeneratePrompt(editor, {
-                messages: messagesRaw,
-              });
-
-              return {
-                ...step,
-                activeTools: [],
-                messages: [
-                  {
-                    content: generatePrompt,
-                    role: 'user',
-                  },
-                ],
-                model: google(model || 'gemini-2.5-flash-lite'),
-              };
-            }
-          },
+      execute: ({ writer }) => {
+        writer.write({
+          data: toolName as ToolName,
+          type: 'data-toolName',
         });
 
-        writer.merge(stream.toUIMessageStream({ sendFinish: false }));
+        if (toolName === 'comment') {
+          const comments = commentSchema.parse(extractArray(result.content));
+          for (const item of comments) {
+            writer.write({
+              id: nanoid(),
+              data: {
+                comment: {
+                  blockId: item.blockId,
+                  comment: item.comments,
+                  content: item.content,
+                },
+                status: 'streaming',
+              },
+              type: 'data-comment',
+            });
+          }
+          writer.write({
+            id: nanoid(),
+            data: { comment: null, status: 'finished' },
+            type: 'data-comment',
+          });
+          return;
+        }
+
+        const id = nanoid();
+        writer.write({ type: 'text-start', id });
+        for (const delta of result.content.match(/[\s\S]{1,120}/g) || []) {
+          writer.write({ type: 'text-delta', id, delta });
+        }
+        writer.write({ type: 'text-end', id });
       },
     });
 
     return createUIMessageStreamResponse({ stream });
   } catch {
+    console.error('Editor AI request failed.');
     return NextResponse.json(
-      { error: 'Failed to process AI request' },
+      { error: 'Failed to process editor AI request.' },
       { status: 500 }
     );
   }
 }
-
-const getCommentTool = (
-  editor: SlateEditor,
-  {
-    messagesRaw,
-    model,
-    writer,
-  }: {
-    messagesRaw: ChatMessage[];
-    model: LanguageModel;
-    writer: UIMessageStreamWriter<ChatMessage>;
-  }
-) =>
-  tool({
-    description: 'Comment on the content',
-    inputSchema: z.object({}),
-    execute: async () => {
-      const { elementStream } = streamObject({
-        model,
-        output: 'array',
-        prompt: getCommentPrompt(editor, {
-          messages: messagesRaw,
-        }),
-        schema: z
-          .object({
-            blockId: z
-              .string()
-              .describe(
-                'The id of the starting block. If the comment spans multiple blocks, use the id of the first block.'
-              ),
-            comment: z
-              .string()
-              .describe('A brief comment or explanation for this fragment.'),
-            content: z
-              .string()
-              .describe(
-                String.raw`The original document fragment to be commented on.It can be the entire block, a small part within a block, or span multiple blocks. If spanning multiple blocks, separate them with two \n\n.`
-              ),
-          })
-          .describe('A single comment'),
-      });
-
-      for await (const comment of elementStream) {
-        const commentDataId = nanoid();
-
-        writer.write({
-          id: commentDataId,
-          data: {
-            comment,
-            status: 'streaming',
-          },
-          type: 'data-comment',
-        });
-      }
-
-      writer.write({
-        id: nanoid(),
-        data: {
-          comment: null,
-          status: 'finished',
-        },
-        type: 'data-comment',
-      });
-    },
-  });

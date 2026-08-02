@@ -35,46 +35,32 @@ const FEATURES: PlanFeature[] = [
     { category: 'Core', label: 'Search', free: true, pro: true, family: true, icon: <Search className="w-3.5 h-3.5" /> },
 
     // ── AI ──
-    { category: 'AI & Intelligence', label: 'Aurora AI — Quick', free: '12/day', pro: '50/day', family: '100/day', icon: <Zap className="w-3.5 h-3.5" /> },
-    { category: 'AI & Intelligence', label: 'Aurora AI — Deep', free: false, pro: '30/day', family: '50/day', icon: <Brain className="w-3.5 h-3.5" /> },
-    { category: 'AI & Intelligence', label: 'Aurora AI — Cloud', free: false, pro: false, family: '20/day', icon: <Cloud className="w-3.5 h-3.5" /> },
-    { category: 'AI & Intelligence', label: 'All 7 @commands', free: true, pro: true, family: true, icon: <Zap className="w-3.5 h-3.5" /> },
-    { category: 'AI & Intelligence', label: 'Quiz generation (@quiz)', free: '1/week', pro: '5/day', family: 'Unlimited', icon: <HelpCircle className="w-3.5 h-3.5" /> },
-    { category: 'AI & Intelligence', label: 'Flashcard generation (@flashcards)', free: '1/week', pro: '5/day', family: 'Unlimited', icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { category: 'AI & Intelligence', label: 'Aurora AI — Quick', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Zap className="w-3.5 h-3.5" /> },
+    { category: 'AI & Intelligence', label: 'Aurora AI — Deep', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Brain className="w-3.5 h-3.5" /> },
+    { category: 'AI & Intelligence', label: 'Aurora AI — Cloud', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Cloud className="w-3.5 h-3.5" /> },
+    { category: 'AI & Intelligence', label: 'All 7 @commands', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Zap className="w-3.5 h-3.5" /> },
+    { category: 'AI & Intelligence', label: 'Quiz generation (@quiz)', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <HelpCircle className="w-3.5 h-3.5" /> },
+    { category: 'AI & Intelligence', label: 'Flashcard generation (@flashcards)', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Sparkles className="w-3.5 h-3.5" /> },
 
     // ── Translation ──
-    { category: 'Translation', label: 'Translations per day', free: '5/day', pro: '30/day', family: 'Unlimited', icon: <Languages className="w-3.5 h-3.5" /> },
-    { category: 'Translation', label: 'Max text length', free: '1,000 chars', pro: '5,000 chars', family: '10,000 chars', icon: <Languages className="w-3.5 h-3.5" /> },
-    { category: 'Translation', label: 'Pronunciation guide', free: true, pro: true, family: true, icon: <Languages className="w-3.5 h-3.5" /> },
-    { category: 'Translation', label: 'Context explanation', free: 'Translation only', pro: 'Full explanation', family: 'Full explanation', icon: <Languages className="w-3.5 h-3.5" /> },
+    { category: 'Translation', label: 'Translations', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Languages className="w-3.5 h-3.5" /> },
 
     // ── Community ──
-    { category: 'Community', label: 'Browse boards', free: true, pro: true, family: true, icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Join boards', free: '2 boards', pro: 'Unlimited', family: 'Unlimited', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Create boards', free: false, pro: true, family: true, icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Post threads', free: '2 posts/day', pro: 'Unlimited', family: 'Unlimited', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Reply to threads', free: '5 replies/day', pro: 'Unlimited', family: 'Unlimited', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Share resources', free: false, pro: true, family: true, icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Upvote', free: true, pro: true, family: true, icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Join groups', free: '1 group', pro: 'Unlimited', family: 'Unlimited', icon: <Users className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Create groups', free: false, pro: true, family: true, icon: <Users className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Group chat messages', free: '10 msgs/day', pro: 'Unlimited', family: 'Unlimited', icon: <Users className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'Group member cap', free: '5 members', pro: '25 members', family: '50 members', icon: <Users className="w-3.5 h-3.5" /> },
-    { category: 'Community', label: 'File sharing in groups', free: false, pro: true, family: true, icon: <Users className="w-3.5 h-3.5" /> },
+    { category: 'Community', label: 'Discussion boards and study groups', free: 'Unavailable', pro: 'Unavailable', family: 'Unavailable', icon: <MessageSquare className="w-3.5 h-3.5" /> },
     { category: 'Community', label: 'Saved links', free: '5 total', pro: 'Unlimited', family: 'Unlimited', icon: <Bookmark className="w-3.5 h-3.5" /> },
     { category: 'Community', label: 'Organization', free: 'Flat list only', pro: 'Folders by subject', family: 'Folders by subject', icon: <Bookmark className="w-3.5 h-3.5" /> },
     { category: 'Community', label: 'Auto-favicon/preview', free: true, pro: true, family: true, icon: <Bookmark className="w-3.5 h-3.5" /> },
 
     // ── Premium ──
-    { category: 'Premium', label: 'Google Classroom sync', free: false, pro: true, family: true, icon: <Globe className="w-3.5 h-3.5" /> },
+    { category: 'Premium', label: 'Google Classroom sync', free: 'OAuth review pending', pro: 'OAuth review pending', family: 'OAuth review pending', icon: <Globe className="w-3.5 h-3.5" /> },
     { category: 'Premium', label: 'Rich text editor', free: false, pro: false, family: true, icon: <PenTool className="w-3.5 h-3.5" /> },
-    { category: 'Premium', label: 'AI Copilot (autocomplete)', free: false, pro: false, family: true, icon: <PenTool className="w-3.5 h-3.5" /> },
-    { category: 'Premium', label: 'AI Commands (edit/generate)', free: false, pro: false, family: true, icon: <PenTool className="w-3.5 h-3.5" /> },
+    { category: 'Premium', label: 'AI Copilot (autocomplete)', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <PenTool className="w-3.5 h-3.5" /> },
+    { category: 'Premium', label: 'AI Commands (edit/generate)', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <PenTool className="w-3.5 h-3.5" /> },
     { category: 'Premium', label: 'Guardian Dashboard', free: false, pro: false, family: true, icon: <Shield className="w-3.5 h-3.5" /> },
-    { category: 'Premium', label: 'Guardian AI Chat', free: false, pro: false, family: '30/day', icon: <Shield className="w-3.5 h-3.5" /> },
+    { category: 'Premium', label: 'Guardian AI Chat', free: 'Coming later', pro: 'Coming later', family: 'Coming later', icon: <Shield className="w-3.5 h-3.5" /> },
     { category: 'Premium', label: 'Multi-child accounts', free: false, pro: false, family: 'Up to 4', icon: <Users className="w-3.5 h-3.5" /> },
     { category: 'Premium', label: 'Weekly email reports', free: false, pro: false, family: true, icon: <Shield className="w-3.5 h-3.5" /> },
-    { category: 'Premium', label: 'Ads', free: 'Subtle banner', pro: false, family: false, icon: <X className="w-3.5 h-3.5" /> },
+    { category: 'Premium', label: 'Third-party ads', free: false, pro: false, family: false, icon: <X className="w-3.5 h-3.5" /> },
 ];
 
 // Get unique categories
@@ -88,19 +74,19 @@ const FAQS = [
     },
     {
         q: 'What are the AI models (Quick, Deep, Cloud)?',
-        a: 'Quick is fast and great for simple questions. Deep gives more detailed, nuanced answers. Cloud is our most powerful model for complex analysis. Free users get Quick, Pro unlocks Deep, and Family unlocks Cloud.',
+        a: 'These are planned AI service levels. AI is currently disabled while we select a provider and complete student-safety controls.',
     },
     {
         q: 'Can I cancel anytime?',
-        a: 'Yes! You can cancel your subscription at any time. You\'ll keep your plan benefits until the end of your billing period. All your data stays safe.',
+        a: 'Paid subscriptions are not currently offered. Cancellation details will be published before any paid plan becomes available.',
     },
     {
         q: 'What\'s the difference between Pro and Family?',
-        a: 'Pro is for individual students who want unlimited features. Family adds Guardian Dashboard (parent monitoring), Writing Assist with AI Copilot, Cloud AI model, and up to 4 child accounts.',
+        a: 'Pro and Family are previews of possible future plans and are not currently for sale. Features and prices may change before launch.',
     },
     {
         q: 'Do you offer student discounts?',
-        a: 'Our free tier is already designed for students! For school-wide access, ask your school about our district licensing starting at $2/student/year.',
+        a: 'School and district licensing is not currently available. We will not offer it until the required privacy, security, contracting, and support program is ready.',
     },
     {
         q: 'What happens to my data if I downgrade?',
@@ -164,7 +150,8 @@ export default function PricingPage() {
                         Plans that grow with you.
                     </h1>
                     <p className="text-base sm:text-lg text-sky-600/60 dark:text-sky-300/60 font-medium max-w-md mx-auto">
-                        Start free, upgrade when you need more power.
+                        Core access is free. Paid plans shown below are previews
+                        and are not currently for sale.
                     </p>
                 </motion.div>
 
@@ -235,13 +222,12 @@ export default function PricingPage() {
                         <div className="space-y-3 flex-1 mb-6">
                             {[
                                 '20 homework entries',
-                                '12 Quick AI questions/day',
-                                '5 translations/day',
                                 '20 flashcards',
                                 'Grade calculator',
                                 'Study timer',
-                                '1 study group',
                                 '5 web bookmarks',
+                                'AI and social features unavailable',
+                                'Google integrations pending OAuth review',
                             ].map((feature, i) => (
                                 <div key={i} className="flex items-center gap-2.5">
                                     <div className="w-4 h-4 rounded-full bg-sky-100 dark:bg-sky-500/10 flex items-center justify-center shrink-0">
@@ -301,14 +287,11 @@ export default function PricingPage() {
                             {[
                                 'Everything in Free',
                                 'Unlimited homework & tests',
-                                '50 Quick + 30 Deep AI/day',
-                                '30 translations/day + context',
                                 'Unlimited flashcards & quizzes',
-                                'Google Classroom sync',
-                                'Unlimited study groups',
                                 'Unlimited web bookmarks + folders',
-                                'Create boards & groups',
                                 'No ads',
+                                'AI features planned',
+                                'Google sync planned after OAuth review',
                             ].map((feature, i) => (
                                 <div key={i} className="flex items-center gap-2.5">
                                     <div className="w-4 h-4 rounded-full bg-sky-500/15 dark:bg-sky-500/15 flex items-center justify-center shrink-0">
@@ -321,9 +304,8 @@ export default function PricingPage() {
                             ))}
                         </div>
 
-                        <button className="w-full flex items-center justify-center gap-2 h-11 text-[13px] font-bold text-white bg-sky-500 hover:bg-sky-600 dark:bg-sky-500 dark:hover:bg-sky-400 rounded-2xl shadow-lg shadow-sky-500/20 transition-all active:scale-[0.98]">
-                            Upgrade to Pro
-                            <ArrowRight className="w-3.5 h-3.5" />
+                        <button disabled className="w-full flex items-center justify-center gap-2 h-11 text-[13px] font-bold text-white bg-sky-500 rounded-2xl opacity-60 cursor-not-allowed">
+                            Pro not yet available
                         </button>
                     </motion.div>
 
@@ -359,13 +341,11 @@ export default function PricingPage() {
                         <div className="space-y-3 flex-1 mb-6">
                             {[
                                 'Everything in Pro',
-                                '100 Quick + 50 Deep + 20 Cloud AI/day',
-                                'Writing Assist + AI Copilot',
                                 'Guardian Dashboard',
-                                'Guardian AI Chat (30/day)',
-                                'Unlimited translations (10K chars)',
                                 'Up to 4 child accounts',
                                 'Weekly progress email reports',
+                                'AI writing and guardian tools planned',
+                                'Final features and limits may change',
                             ].map((feature, i) => (
                                 <div key={i} className="flex items-center gap-2.5">
                                     <div className="w-4 h-4 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 flex items-center justify-center shrink-0 border border-[#d4e88e]/30">
@@ -378,9 +358,8 @@ export default function PricingPage() {
                             ))}
                         </div>
 
-                        <button className="w-full flex items-center justify-center gap-2 h-11 text-[13px] font-bold text-sky-700 dark:text-sky-800 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-2xl transition-all active:scale-[0.98]">
-                            Start Family Plan
-                            <ArrowRight className="w-3.5 h-3.5" />
+                        <button disabled className="w-full flex items-center justify-center gap-2 h-11 text-[13px] font-bold text-sky-700 dark:text-sky-800 bg-[#ebf6b5] border border-[#d4e88e] rounded-2xl opacity-60 cursor-not-allowed">
+                            Family plan not yet available
                         </button>
                     </motion.div>
                 </div>
@@ -400,17 +379,13 @@ export default function PricingPage() {
                             <div>
                                 <h3 className="text-lg font-bold text-sky-900 dark:text-white mb-0.5">School & District Plans</h3>
                                 <p className="text-sm text-sky-600/50 dark:text-sky-400/40">
-                                    Starting at $2/student/year · SSO, FERPA, COPPA compliance
+                                    Not currently available while our school privacy program is under development
                                 </p>
                             </div>
                         </div>
-                        <Link
-                            href="/teachers"
-                            className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold text-violet-600 dark:text-violet-400 bg-violet-100/60 dark:bg-violet-500/10 hover:bg-violet-100 dark:hover:bg-violet-500/20 border border-violet-200/60 dark:border-violet-600/30 rounded-2xl transition-all active:scale-[0.98] shrink-0"
-                        >
-                            Contact Sales
-                            <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
+                        <span className="rounded-2xl border border-violet-200/60 bg-violet-100/60 px-5 py-2.5 text-[13px] font-bold text-violet-600 dark:border-violet-600/30 dark:bg-violet-500/10 dark:text-violet-400">
+                            Coming later
+                        </span>
                     </div>
                 </motion.div>
 

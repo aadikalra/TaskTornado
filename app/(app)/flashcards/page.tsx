@@ -11,9 +11,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
-import { useAI } from '@/context/AIContext';
 import { useUpgrade } from '@/context/UpgradeContext';
-import Link from 'next/link';
 import { getPlanTier, TIER_LIMITS, getTierLabel } from '@/lib/planTier';
 
 interface FlashcardDeckType {
@@ -39,7 +37,6 @@ export default function FlashcardsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
 
   const { showIntro, dismissIntro } = useRouteIntro('flashcards');
-  const { setAIAssistantOpen, setAIInput } = useAI();
   const { promptUpgrade } = useUpgrade();
 
   // ── Search state ──
@@ -48,10 +45,7 @@ export default function FlashcardsPage() {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Create dropdown & manual create state ──
-  const [createDropdownOpen, setCreateDropdownOpen] = useState(false);
-  const createDropdownRef = useRef<HTMLDivElement>(null);
-  const csvInputRef = useRef<HTMLInputElement>(null);
+  // ── Manual create state ──
   const [manualCreateOpen, setManualCreateOpen] = useState(false);
   const [manualDeckTitle, setManualDeckTitle] = useState('');
   const [manualCards, setManualCards] = useState<{ question: string; answer: string }[]>([
@@ -67,25 +61,6 @@ export default function FlashcardsPage() {
       d.description?.toLowerCase().includes(q)
     );
   }, [savedDecks, searchQuery]);
-
-  const openFlashcardAssistant = () => {
-    setCreateDropdownOpen(false);
-    setAIInput('@flashcard ');
-    setAIAssistantOpen(true);
-  };
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (createDropdownRef.current && !createDropdownRef.current.contains(e.target as Node)) {
-        setCreateDropdownOpen(false);
-      }
-    };
-    if (createDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [createDropdownOpen]);
 
   // Manual deck helpers
   const addManualCard = () => {
@@ -142,113 +117,6 @@ export default function FlashcardsPage() {
     } finally {
       setSavingManual(false);
     }
-  };
-
-  // CSV import handler
-  const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const text = event.target?.result as string;
-      if (!text?.trim()) {
-        toast.error('File is empty');
-        return;
-      }
-
-      // Parse CSV — handle quoted fields, commas inside quotes, tabs, semicolons
-      const parseCSVLine = (line: string): string[] => {
-        const result: string[] = [];
-        let current = '';
-        let inQuotes = false;
-
-        // Detect delimiter
-        const delimiter = line.includes('\t') ? '\t' : line.includes(';') ? ';' : ',';
-
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              current += '"';
-              i++; // skip escaped quote
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === delimiter && !inQuotes) {
-            result.push(current.trim());
-            current = '';
-          } else {
-            current += char;
-          }
-        }
-        result.push(current.trim());
-        return result;
-      };
-
-      const lines = text.split(/\r?\n/).filter(l => l.trim());
-      if (lines.length === 0) {
-        toast.error('No data found in file');
-        return;
-      }
-
-      // Check if first line is a header
-      const firstLine = parseCSVLine(lines[0]);
-      const isHeader = firstLine.length >= 2 &&
-        firstLine.slice(0, 2).every(cell =>
-          /^(question|answer|front|back|term|definition|q|a|prompt|response)$/i.test(cell)
-        );
-
-      const dataLines = isHeader ? lines.slice(1) : lines;
-      const cards: { question: string; answer: string }[] = [];
-
-      for (const line of dataLines) {
-        const cols = parseCSVLine(line);
-        if (cols.length >= 2 && cols[0] && cols[1]) {
-          cards.push({ question: cols[0], answer: cols[1] });
-        }
-      }
-
-      if (cards.length === 0) {
-        toast.error('No valid cards found. CSV needs at least 2 columns: Question, Answer');
-        return;
-      }
-
-      // ─── Plan tier limit check ─────────────────────────────────────────
-      const tier = getPlanTier();
-      const limits = TIER_LIMITS[tier];
-      if (limits.flashcardStorage !== Infinity && user) {
-        try {
-          const currentCount = await flashcardService.getTotalCardCount(user.id);
-          if (currentCount + cards.length > limits.flashcardStorage) {
-            const remaining = Math.max(0, limits.flashcardStorage - currentCount);
-            promptUpgrade({
-              limitMessage: remaining === 0
-                ? `The free plan includes up to ${limits.flashcardStorage} flashcards — upgrade to Pro for unlimited.`
-                : `You have ${remaining} card${remaining !== 1 ? 's' : ''} left on the free plan (${currentCount}/${limits.flashcardStorage} used). Upgrade for unlimited.`
-            });
-            return;
-          }
-        } catch (err) {
-          console.error('Error checking flashcard limit:', err);
-        }
-      }
-
-      // Pre-populate manual create modal with parsed cards
-      const fileName = file.name.replace(/\.(csv|tsv|txt)$/i, '').replace(/[_-]/g, ' ');
-      setManualDeckTitle(fileName.charAt(0).toUpperCase() + fileName.slice(1));
-      setManualCards(cards);
-      setManualCreateOpen(true);
-      toast.success(`Imported ${cards.length} card${cards.length !== 1 ? 's' : ''} from CSV`);
-    };
-
-    reader.onerror = () => {
-      toast.error('Failed to read file');
-    };
-
-    reader.readAsText(file);
-    // Reset input so the same file can be re-imported
-    e.target.value = '';
   };
 
   // Fetch saved decks
@@ -387,7 +255,7 @@ export default function FlashcardsPage() {
                   All Decks
                 </button>
                 <button
-                  onClick={openFlashcardAssistant}
+                  onClick={() => setManualCreateOpen(true)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
                 >
                   <HugeIcon name="PlusSign" className="h-4 w-4" />
@@ -406,10 +274,10 @@ export default function FlashcardsPage() {
           isOpen={showIntro}
           onClose={dismissIntro}
           title="Welcome to Flashcards!"
-          description="Master any subject with interactive flashcards powered by AI"
+          description="Master any subject with interactive flashcards you create"
           icon={<HugeIcon name="Cards01" size={24} className="h-6 w-6" />}
           features={[
-            'Create flashcard decks using the AI Aurora',
+            'Create your own flashcard decks',
             'Flip cards to reveal answers and test your knowledge',
             'Save decks to review anytime',
             'Track your progress as you study',
@@ -495,78 +363,13 @@ export default function FlashcardsPage() {
                 </div>
               </motion.div>
 
-              {/* Create dropdown */}
-              <div ref={createDropdownRef} className="relative">
-                <button
-                  onClick={() => setCreateDropdownOpen(prev => !prev)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
-                >
-                  <HugeIcon name="PlusSign" className="h-4 w-4" />
-                  Create
-                  <HugeIcon name="ArrowDown01" className={`h-3.5 w-3.5 transition-transform duration-200 ${createDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                <AnimatePresence>
-                  {createDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl shadow-2xl shadow-sky-500/5 overflow-hidden z-50 p-1.5"
-                    >
-                      <button
-                        onClick={openFlashcardAssistant}
-                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
-                      >
-                        <HugeIcon name="AiMagic" className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
-                        <div>
-                          <div className="font-semibold text-[13px]">Smart Create</div>
-                          <div className="text-[11px] text-sky-500/50 dark:text-sky-400/40">AI-powered with Aurora</div>
-                        </div>
-                      </button>
-                      <div className="mx-2 my-0.5 border-t border-sky-100/60 dark:border-gray-800" />
-                      <button
-                        onClick={() => { setCreateDropdownOpen(false); setManualCreateOpen(true); }}
-                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
-                      >
-                        <HugeIcon name="PencilEdit01" className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
-                        <div>
-                          <div className="font-semibold text-[13px]">Manual Create</div>
-                          <div className="text-[11px] text-sky-500/50 dark:text-sky-400/40">Write your own cards</div>
-                        </div>
-                      </button>
-                      <div className="mx-2 my-0.5 border-t border-sky-100/60 dark:border-gray-800" />
-                      <button
-                        onClick={() => { setCreateDropdownOpen(false); csvInputRef.current?.click(); }}
-                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-sky-900 dark:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
-                      >
-                        <HugeIcon name="FileUp" className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-[13px]">Import CSV</div>
-                          <div className="text-[11px] text-sky-500/50 dark:text-sky-400/40">Upload a spreadsheet</div>
-                        </div>
-                        <Link
-                          href="/tutorials/csv-import"
-                          target="_blank"
-                          onClick={(e) => e.stopPropagation()}
-                          className="p-1 rounded-lg text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-100 dark:hover:bg-gray-700 transition-colors shrink-0"
-                          title="How to format your CSV"
-                        >
-                          <HugeIcon name="HelpCircle" className="h-3.5 w-3.5" />
-                        </Link>
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <input
-                  ref={csvInputRef}
-                  type="file"
-                  accept=".csv,.tsv,.txt"
-                  className="hidden"
-                  onChange={handleCsvImport}
-                />
-              </div>
+              <button
+                onClick={() => setManualCreateOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
+              >
+                <HugeIcon name="PlusSign" className="h-4 w-4" />
+                Create
+              </button>
             </div>
           </div>
         </motion.div>
@@ -586,14 +389,14 @@ export default function FlashcardsPage() {
               No Flashcards Yet
             </h3>
             <p className="text-sm text-sky-600/50 dark:text-sky-400/50 mb-8 max-w-sm text-center">
-              Generate flashcards with Aurora AI to start studying
+              Create a deck and add your first question and answer
             </p>
             <button
-              onClick={openFlashcardAssistant}
+              onClick={() => setManualCreateOpen(true)}
               className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-sky-700 bg-[#ebf6b5] hover:bg-[#e0efa0] border border-[#d4e88e] rounded-xl transition-colors"
             >
-              <HugeIcon name="AiMagic" className="h-4 w-4" />
-              Open Aurora
+              <HugeIcon name="PencilEdit01" className="h-4 w-4" />
+              Create a deck
             </button>
           </motion.div>
         )}
@@ -689,10 +492,10 @@ export default function FlashcardsPage() {
         isOpen={showIntro}
         onClose={dismissIntro}
         title="Welcome to Flashcards!"
-        description="Master any subject with interactive flashcards powered by AI"
+        description="Master any subject with interactive flashcards you create"
         icon={<HugeIcon name="Cards01" size={24} className="h-6 w-6" />}
         features={[
-          'Create flashcard decks using the AI Aurora',
+          'Create your own flashcard decks',
           'Flip cards to reveal answers and test your knowledge',
           'Save decks to review anytime',
           'Track your progress as you study',

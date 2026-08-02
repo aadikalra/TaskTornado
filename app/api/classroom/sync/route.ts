@@ -1,19 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ClassroomSyncService } from '@/lib/classroomSyncService';
 import { ClassroomDatabaseService } from '@/lib/database/classroomService';
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
+import { getGoogleClientForUser } from '@/lib/google-oauth';
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { accessToken, userId } = body;
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!access.ok) return access.response;
 
-    if (!accessToken || !userId) {
+  try {
+    const googleAuth = await getGoogleClientForUser(access.user.id, 'classroom');
+    if (!googleAuth) {
       return NextResponse.json({
-        message: 'Access token and user ID are required'
-      }, { status: 400 });
+        message: 'Google Classroom is not connected'
+      }, { status: 401 });
     }
 
-    const syncService = new ClassroomSyncService(accessToken, userId);
+    const accessToken = await googleAuth.client.getAccessToken();
+    if (!accessToken.token) {
+      return NextResponse.json({
+        message: 'Google Classroom authorization expired'
+      }, { status: 401 });
+    }
+
+    const syncService = new ClassroomSyncService(
+      accessToken.token,
+      access.user.id
+    );
     const assignments = await syncService.syncAllCoursesAndAssignments();
 
     // Save to database
@@ -26,7 +42,7 @@ export async function POST(request: NextRequest) {
       try {
         // Find or create the course record
         const courseData = {
-          user_id: userId,
+          user_id: access.user.id,
           google_course_id: assignment.externalId,
           name: assignment.courseName,
           section: assignment.subject,
@@ -44,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     // Update sync settings
     try {
-      await dbService.saveSyncSettings(userId, {
+      await dbService.saveSyncSettings(access.user.id, {
         last_sync_at: new Date().toISOString(),
       });
     } catch (syncError: any) {

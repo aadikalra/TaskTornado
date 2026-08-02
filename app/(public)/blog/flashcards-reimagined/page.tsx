@@ -37,9 +37,9 @@ export default function FlashcardsArticle() {
                 Creating flashcards manually can be a chore. We&apos;ve added several ways to get your data into the system quickly:
             </p>
             <ul>
-                <li><strong>AI Generation:</strong> Let Aurora read your notes and suggest a set of flashcards based on the key concepts.</li>
+                <li><strong>AI Generation:</strong> Planned for a later release after the AI provider and safety review.</li>
                 <li><strong>Markdown Support:</strong> For those who love structured data, our system supports full markdown for clean, beautiful cards.</li>
-                <li><strong>CSV Imports:</strong> Already have a list? Bring it in with a simple CSV upload.</li>
+                <li><strong>Manual Creation:</strong> Add terms and definitions directly in the flashcard editor.</li>
             </ul>
 
             <h2>Beautiful and Focused</h2>

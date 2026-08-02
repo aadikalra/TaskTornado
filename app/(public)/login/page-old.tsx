@@ -97,20 +97,9 @@ export default function LoginPage() {
   };
 
   const proceedWithGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      setError('Failed to initiate Google sign-in. Please try again.');
-      setIsGoogleLoading(false);
-    }
+    setShowVerifyModal(false);
+    setIsGoogleLoading(false);
+    setError('Google account sign-in is unavailable. Please use an email and password account.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

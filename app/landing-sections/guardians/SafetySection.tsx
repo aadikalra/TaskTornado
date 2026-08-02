@@ -8,9 +8,9 @@ import Image from 'next/image';
 const SAFETY_CHECKS = [
     { text: 'No advertisements — ever', safe: true },
     { text: 'No student data sold to third parties', safe: true },
-    { text: 'Built-in crisis support & mental health resources', safe: true },
+    { text: 'Clear limits: not therapy or emergency support', safe: true },
     { text: 'No social media feeds or doom-scrolling', safe: true },
-    { text: 'AI tutor teaches — never gives raw answers', safe: true },
+    { text: 'AI study tools are paused during our provider update', safe: true },
     { text: 'No credit card required', safe: true },
 ];
 

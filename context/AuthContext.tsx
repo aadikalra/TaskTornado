@@ -4,7 +4,12 @@ import { useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { isNameBlocked, isEmailBlocked } from '@/lib/blockedNames';
+
+type SignUpEligibility = {
+  dateOfBirth: string;
+  countryCode: 'US';
+  guardianEmail?: string;
+};
 
 type LinkedStudent = {
   id: string;
@@ -18,7 +23,13 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  signUp: (email: string, password: string, name: string, accountType?: 'student' | 'guardian') => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+    accountType: 'student' | 'guardian',
+    eligibility: SignUpEligibility
+  ) => Promise<{ userId: string }>;
   signOut: () => Promise<void>;
   full_name: string | null;
   isGoogleUser: boolean;
@@ -28,140 +39,6 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-// Helper function to save courses and assignments to database, avoiding duplicates
-async function saveCoursesToDatabase(userId: string, formattedData: any[]) {
-  try {
-    // Use the main database service for classes and homework
-    const { db } = await import('@/lib/supabase/db');
-
-    // Get existing courses for this user
-    const existingCourses = await db.getClasses(userId);
-    const existingCourseNames = new Set(existingCourses.map(course => course.name));
-
-    // Get existing homework for this user to avoid duplicates
-    const existingHomework = await db.getHomework(userId);
-    const existingHomeworkTitles = new Set(existingHomework.map(hw => hw.title));
-
-    let savedCoursesCount = 0;
-    let savedHomeworkCount = 0;
-
-    // Save each course and its assignments
-    for (const item of formattedData) {
-      const course = item.course;
-      let classId: string | null = null;
-
-      // Save the course to the main classes table if it doesn't exist
-      if (!existingCourseNames.has(course.name)) {
-        const courseData = {
-          user_id: userId,
-          name: course.name,
-          // Use icon to indicate Google Classroom origin
-          icon: '📚', // Book icon for Google Classroom courses
-          color: '#4285F4', // Google blue color
-        };
-
-        const savedCourse = await db.createClass(courseData);
-        classId = savedCourse.id;
-        savedCoursesCount++;
-      } else {
-        // Find the existing course ID
-        const existingCourse = existingCourses.find(c => c.name === course.name);
-        classId = existingCourse?.id || null;
-      }
-
-      // Save assignments for this course if we have a class ID
-      if (classId && item.assignments && item.assignments.length > 0) {
-        for (const assignment of item.assignments) {
-          // Skip if homework with same title already exists
-          if (existingHomeworkTitles.has(assignment.title)) {
-            continue;
-          }
-
-          // Convert Google Classroom assignment to homework format
-          let dueDate: string;
-
-          // Handle different due date formats from Google Classroom
-          if (assignment.dueDate) {
-            if (typeof assignment.dueDate === 'string') {
-              dueDate = assignment.dueDate;
-            } else if (typeof assignment.dueDate === 'object' && assignment.dueDate.year) {
-              // Convert date object to ISO string
-              const date = new Date(assignment.dueDate.year, assignment.dueDate.month - 1, assignment.dueDate.day);
-              dueDate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-            } else {
-              // Default to 1 week from now
-              dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-            }
-          } else {
-            // Default to 1 week from now
-            dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-          }
-
-          const homeworkData = {
-            user_id: userId,
-            class_id: classId,
-            title: assignment.title,
-            description: assignment.description || null,
-            due_date: dueDate,
-            completed: false,
-            pinned: false,
-            priority: 'medium', // Default priority
-          };
-
-          await db.createHomework(homeworkData);
-          savedHomeworkCount++;
-        }
-      }
-    }
-
-
-  } catch (error) {
-    console.error('Error saving courses and assignments to database:', error);
-  }
-}
-
-async function checkGoogleUserAndLogClassroom(user: User) {
-  try {
-    // Check if user is from Google using auth metadata instead of profiles table
-    // Only check app_metadata.provider — this is the authoritative field
-    // Supabase sets during OAuth. Checking email domain or email_verified
-    // would false-positive for email/password users with @gmail.com addresses
-    // or any verified email.
-    const isGoogleUser = user.app_metadata?.provider === 'google';
-
-    if (isGoogleUser) {
-
-      // Check if Classroom API is authorized by looking for the classroom-auth cookie
-      try {
-        const response = await fetch('/api/classroom/debug-log', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Also save courses to database if they don't already exist
-          await saveCoursesToDatabase(user.id, data.formattedData);
-        } else {
-          const errorData = await response.json();
-          if (response.status === 401 && errorData.message?.includes('No Google Classroom authentication found')) {
-            // Don't show an error - this is expected for many Google users
-          } else {
-            console.warn('⚠️  Unexpected error checking Classroom access:', errorData.message);
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️  Network error checking Classroom access:', error);
-      }
-    }
-  } catch (error) {
-    console.error('Error checking Google user:', error);
-  }
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -253,6 +130,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFullName(session?.user?.user_metadata?.full_name ?? null);
 
       if (session?.user) {
+        const eligibilityResponse = await fetch('/api/auth/eligibility', {
+          cache: 'no-store',
+        });
+
+        if (!eligibilityResponse.ok) {
+          const eligibilityBody = await eligibilityResponse
+            .json()
+            .catch(() => ({}));
+
+          // Accounts created before the age gate do not have eligibility
+          // fields yet. Keep their authenticated session long enough to collect
+          // those fields instead of briefly showing the signed-in UI and then
+          // silently signing them back out.
+          if (
+            eligibilityResponse.status === 428 &&
+            eligibilityBody.code === 'eligibility_setup_required'
+          ) {
+            setLoading(false);
+            if (
+              typeof window === 'undefined' ||
+              window.location.pathname !== '/account-eligibility'
+            ) {
+              router.replace('/account-eligibility');
+            }
+            return;
+          }
+
+          // The login form sends (or re-sends) the guardian approval email and
+          // then signs the pending account out with a useful message. Let it
+          // finish that flow instead of racing it from this global listener.
+          if (
+            eligibilityResponse.status === 403 &&
+            eligibilityBody.code === 'parental_consent_required' &&
+            typeof window !== 'undefined' &&
+            window.location.pathname === '/login'
+          ) {
+            setLoading(false);
+            return;
+          }
+
+          await supabase.auth.signOut();
+          setUser(null);
+          setSession(null);
+          setFullName(null);
+          setLoading(false);
+          router.replace(
+            eligibilityBody.code === 'parental_consent_required'
+              ? '/login?approval=required'
+              : '/login?error=account_not_eligible'
+          );
+          return;
+        }
+
         // Save to prior accounts for quick login
         if (typeof window !== 'undefined') {
           try {
@@ -275,25 +205,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // Block restricted users — even if they got past the login/signup page
-        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
-        const userEmail = session.user.email || '';
-        if (isNameBlocked(userName) || isEmailBlocked(userEmail)) {
-          await supabase.auth.signOut();
-          setUser(null);
-          setSession(null);
-          setFullName(null);
-          setLoading(false);
-          return;
-        }
-
         // Set account type synchronously from JWT metadata (instant, no DB call)
         const metaAccountType = session.user.user_metadata?.account_type as 'student' | 'guardian' | undefined;
         if (metaAccountType === 'guardian') {
           setAccountType('guardian');
         }
 
-        checkGoogleUserAndLogClassroom(session.user);
         setLoading(false);
 
         // Then verify/sync with DB in background (fixes mismatches without blocking)
@@ -323,7 +240,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, name: string, acctType: 'student' | 'guardian' = 'student'): Promise<void> => {
+  const signUp = async (
+    email: string,
+    password: string,
+    name: string,
+    acctType: 'student' | 'guardian',
+    eligibility: SignUpEligibility
+  ): Promise<{ userId: string }> => {
     try {
       // Use Supabase Auth signup - it will handle duplicate emails automatically
       const { data, error } = await supabase.auth.signUp({
@@ -333,20 +256,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             full_name: name,
             account_type: acctType,
+            date_of_birth: eligibility.dateOfBirth,
+            country_code: eligibility.countryCode,
+            guardian_email: eligibility.guardianEmail || null,
           },
         },
       });
 
       if (error) throw error;
+      if (!data.user) throw new Error('The account could not be created.');
 
-      // Update the profiles table with the account type
-      if (data.user) {
-        await supabase
-          .from('profiles')
-          .update({ account_type: acctType })
-          .eq('id', data.user.id);
-        setAccountType(acctType);
-      }
+      setAccountType(acctType);
+      return { userId: data.user.id };
     } catch (error: any) {
       // Re-throw any errors for the UI to handle
       throw error;
@@ -383,12 +304,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Skip preserved cookies
         if (preservedCookies.includes(cookieName)) {
-          return;
-        }
-
-        // Clear Google Classroom cookies
-        if (cookieName === 'classroom-auth' || cookieName === 'classroom-sync') {
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
           return;
         }
 

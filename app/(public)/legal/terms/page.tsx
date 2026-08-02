@@ -31,7 +31,7 @@ export default function TermsOfService() {
             Terms of Service
           </h1>
           <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
-            Last updated: August 19, 2025
+            Last updated: July 28, 2026
           </p>
         </motion.div>
 
@@ -51,10 +51,10 @@ export default function TermsOfService() {
             </div>
             <div className="space-y-2.5">
               {[
-                { bold: 'Free to use:', rest: 'Core TaskTornado features are free for all students' },
+                { bold: 'Launch eligibility:', rest: 'Currently limited to U.S. users age 13 or older' },
                 { bold: 'Your data stays yours:', rest: 'You own your assignments, grades, and academic information' },
-                { bold: 'School-friendly:', rest: 'Designed to help, not interfere with your education' },
-                { bold: 'No cheating:', rest: 'AI assistant helps you learn, doesn\'t do your work for you' },
+                { bold: 'Parent approval:', rest: 'Users age 13–17 must receive parent or legal guardian approval' },
+                { bold: 'AI and social features:', rest: 'Aurora is available for limited educational help; social features remain unavailable' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-1.5 h-1.5 bg-sky-500 dark:bg-sky-400 rounded-full mt-2 shrink-0" />
@@ -90,8 +90,21 @@ export default function TermsOfService() {
             <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">1. Acceptance of Terms</h2>
             <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
               <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
-                By using TaskTornado to organize your homework, track assignments, or get AI study help,
+                By using TaskTornado to organize your homework or track assignments,
                 you agree to these terms. If you don&apos;t agree, that&apos;s okay — just don&apos;t use the service.
+              </p>
+              <p className="mt-3 text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
+                TaskTornado is currently offered only in the United States. You must be at least 13 years old.
+                If you are 13–17, your parent or legal guardian must review and approve your account. Guardian
+                accounts may be created only by adults.
+              </p>
+              <p className="mt-3 text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
+                Our{' '}
+                <Link href="/legal/privacy" className="font-semibold underline underline-offset-2">
+                  Privacy Policy
+                </Link>{' '}
+                explains how TaskTornado handles personal information and is
+                incorporated into these terms.
               </p>
             </div>
           </motion.div>
@@ -104,7 +117,7 @@ export default function TermsOfService() {
               {[
                 { icon: BookOpen, label: 'Assignment Tracking', desc: 'Keep track of homework, projects, and test dates with smart reminders' },
                 { icon: Target, label: 'Grade Management', desc: 'Monitor your academic progress and identify areas for improvement' },
-                { icon: Shield, label: 'AI Aurora', desc: 'Get help with homework questions and study suggestions (not cheating!)' },
+                { icon: Shield, label: 'AI Aurora', desc: 'Educational study help powered by Groq, with no web search and daily usage limits' },
                 { icon: Gamepad2, label: 'Study Break Games', desc: 'Unlock brain-training games when you keep up with your homework' },
               ].map((item, i) => {
                 const Icon = item.icon;
@@ -131,7 +144,7 @@ export default function TermsOfService() {
               <div className="space-y-2.5">
                 {[
                   'Keep your password secret and don\'t share your account',
-                  'Use your real school information (we don\'t sell it, promise)',
+                  'Provide accurate registration information and only the school information needed to use features you choose',
                   'You\'re responsible for what happens on your account',
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -150,8 +163,7 @@ export default function TermsOfService() {
             <div className="grid sm:grid-cols-2 gap-3">
               {[
                 'Be honest about your assignments and grades',
-                'Don\'t use the AI to cheat on tests or homework',
-                'Respect other students using the platform',
+                  'Don\'t attempt to bypass AI safety controls, usage limits, or disabled social features',
                 'Don\'t try to break or hack the system',
                 'Use it to help your learning, not replace it',
                 'Follow your school\'s academic honesty policies',
@@ -174,7 +186,14 @@ export default function TermsOfService() {
                   You own all your assignments, grades, and study materials. We don&apos;t claim any rights to your schoolwork.
                 </p>
                 <p className="text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
-                  You can download or delete your data at any time.
+                  You can delete individual records and request account deletion. A self-service data export is not currently available.
+                </p>
+                <p className="mt-1.5 text-xs text-sky-600/50 dark:text-sky-400/40 leading-relaxed">
+                  You give TaskTornado a limited, non-exclusive license to
+                  host, process, and display your content only as needed to
+                  operate the features you choose. This license ends when the
+                  content or account is deleted, subject to temporary provider
+                  backups and legal-retention obligations.
                 </p>
               </div>
               <div className="bg-[#ebf6b5]/30 dark:bg-sky-500/5 border border-[#d4e88e]/40 dark:border-sky-500/10 rounded-2xl px-5 py-4">
@@ -193,7 +212,8 @@ export default function TermsOfService() {
               <div className="space-y-2.5">
                 {[
                   'TaskTornado is a tool to help you stay organized — not guarantee academic success',
-                  'AI assistant may make mistakes — always double-check important information',
+                  'AI output may be incomplete, incorrect, or inappropriate and must be checked against reliable course materials',
+                  'Aurora is educational support, not a substitute for a teacher, parent, counselor, doctor, lawyer, or emergency service',
                   'We\'re not responsible for grades, test scores, or school outcomes',
                   'Service may occasionally be down for maintenance or technical issues',
                 ].map((item, i) => (
@@ -213,8 +233,11 @@ export default function TermsOfService() {
             <h2 className="text-xl font-bold text-sky-900 dark:text-white mb-5">7. Changes to These Terms</h2>
             <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl px-5 py-4">
               <p className="text-sm text-sky-700 dark:text-sky-300 leading-relaxed">
-                We might update these terms as TaskTornado grows and improves. We&apos;ll update the date at the top
-                when we do. Continuing to use the service means you accept the new terms.
+                We may update these terms as TaskTornado grows and improves.
+                We&apos;ll update the date at the top and provide additional
+                notice for material changes when appropriate. We will request
+                renewed consent when required by law. If you do not agree to
+                updated terms, stop using the service and delete your account.
               </p>
             </div>
           </motion.div>

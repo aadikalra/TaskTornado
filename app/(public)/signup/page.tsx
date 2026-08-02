@@ -8,6 +8,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { getBlockedError } from '@/lib/blockedNames';
+import {
+  getAgeGroup,
+  SUPPORTED_COUNTRY_CODE,
+} from '@/lib/legal/eligibility';
 import confetti from 'canvas-confetti';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import Image from 'next/image';
@@ -66,6 +70,9 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [countryCode, setCountryCode] = useState(SUPPORTED_COUNTRY_CODE);
+  const [guardianEmail, setGuardianEmail] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -179,6 +186,32 @@ export default function SignUpPage() {
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const ageGroup = getAgeGroup(dateOfBirth);
+
+    if (countryCode !== SUPPORTED_COUNTRY_CODE) {
+      setError('TaskTornado is currently available only in the United States.');
+      return;
+    }
+    if (!ageGroup) {
+      setError('Please enter a valid date of birth.');
+      return;
+    }
+    if (ageGroup === 'under_13') {
+      setError('TaskTornado is not available to children under 13.');
+      return;
+    }
+    if (accountType === 'guardian' && ageGroup !== 'adult') {
+      setError('Guardian accounts must be created by an adult.');
+      return;
+    }
+    if (
+      ageGroup === 'minor' &&
+      (!guardianEmail.includes('@') ||
+        guardianEmail.trim().toLowerCase() === email.trim().toLowerCase())
+    ) {
+      setError('Enter a valid parent or guardian email that is different from your own.');
+      return;
+    }
     if (!termsAccepted) {
       setError('You must accept the terms & privacy policy.');
       return;
@@ -187,7 +220,41 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      await signUp(email, password, name, accountType || 'student');
+      const { userId } = await signUp(
+        email,
+        password,
+        name,
+        accountType || 'student',
+        {
+          dateOfBirth,
+          countryCode: SUPPORTED_COUNTRY_CODE,
+          guardianEmail: ageGroup === 'minor' ? guardianEmail.trim() : undefined,
+        }
+      );
+
+      const finalizeResponse = await fetch('/api/auth/registration/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email }),
+      });
+      const finalizeBody = await finalizeResponse.json();
+
+      if (!finalizeResponse.ok) {
+        throw new Error(finalizeBody.error || 'Registration could not be finalized.');
+      }
+
+      if (finalizeBody.requiresParentalConsent) {
+        const consentResponse = await fetch('/api/auth/parental-consent/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, email }),
+        });
+        const consentBody = await consentResponse.json();
+
+        if (!consentResponse.ok) {
+          throw new Error(consentBody.error || 'The parent approval email could not be sent.');
+        }
+      }
       
       setIsCompleted(true);
       
@@ -602,6 +669,47 @@ export default function SignUpPage() {
                     </div>
 
                     <form onSubmit={handleFinalSubmit} className="space-y-6 max-w-[450px]">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75">
+                          Date of birth
+                          <input
+                            type="date"
+                            required
+                            value={dateOfBirth}
+                            onChange={(event) => setDateOfBirth(event.target.value)}
+                            max={new Date().toISOString().split('T')[0]}
+                            className="mt-2 w-full rounded-xl border border-[#275085]/20 bg-transparent px-3 py-2.5 text-sm"
+                          />
+                        </label>
+                        <label className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75">
+                          Country
+                          <select
+                            value={countryCode}
+                            onChange={(event) => setCountryCode(event.target.value)}
+                            className="mt-2 w-full rounded-xl border border-[#275085]/20 bg-transparent px-3 py-2.5 text-sm"
+                          >
+                            <option value="US">United States</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      {getAgeGroup(dateOfBirth) === 'minor' && (
+                        <label className="block text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75">
+                          Parent or guardian email
+                          <input
+                            type="email"
+                            required
+                            value={guardianEmail}
+                            onChange={(event) => setGuardianEmail(event.target.value)}
+                            placeholder="guardian@example.com"
+                            className="mt-2 w-full rounded-xl border border-[#275085]/20 bg-transparent px-3 py-2.5 text-sm"
+                          />
+                          <span className="mt-2 block font-normal leading-5 opacity-80">
+                            The account remains unavailable until they approve it by email.
+                          </span>
+                        </label>
+                      )}
+
                       <label className="flex items-center gap-3 cursor-pointer py-1 select-none">
                         <Checkbox
                           checked={termsAccepted}
@@ -610,11 +718,11 @@ export default function SignUpPage() {
                         />
                         <span className="text-xs font-sans text-[#275085]/50 dark:text-[#a0c3ff]/50">
                           I agree to the{' '}
-                          <Link href="/terms" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
+                          <Link href="/legal/terms" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
                             Terms
                           </Link>{' '}
                           &{' '}
-                          <Link href="/privacy" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
+                          <Link href="/legal/privacy" className="text-[#275085] dark:text-[#4f8df0] hover:underline font-bold">
                             Privacy
                           </Link>
                         </span>
@@ -667,7 +775,7 @@ export default function SignUpPage() {
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold tracking-tight text-[#275085] dark:text-[#a0c3ff]">Check your inbox</h2>
                 <p className="text-sm text-[#275085]/70 dark:text-[#a0c3ff]/70 max-w-[400px] leading-relaxed">
-                  We sent a confirmation link to <span className="font-bold text-[#275085] dark:text-white">{email}</span>. Click the link to complete your registration.
+                  We sent a confirmation link to <span className="font-bold text-[#275085] dark:text-white">{email}</span>. If you are under 18, your parent or guardian must also approve the account before you can sign in.
                 </p>
               </div>
               {(() => {

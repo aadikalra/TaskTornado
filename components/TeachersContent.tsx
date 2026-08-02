@@ -4,7 +4,6 @@ import React from 'react';
 import TeachersHero from '@/app/landing-sections/teachers/TeachersHero';
 import GoogleClassroomSection from '@/app/landing-sections/teachers/GoogleClassroomSection';
 import AccountabilitySection from '@/app/landing-sections/teachers/AccountabilitySection';
-import AITASection from '@/app/landing-sections/teachers/AITASection';
 import TeachersSafetySection from '@/app/landing-sections/teachers/TeachersSafetySection';
 import PromiseSection from '@/app/landing-sections/PromiseSection';
 import TeachersFinalCTA from '@/app/landing-sections/teachers/TeachersFinalCTA';
@@ -16,14 +15,11 @@ export default function TeachersContent() {
             {/* 1. HERO — "Your students show up prepared" */}
             <TeachersHero />
 
-            {/* 2. GOOGLE CLASSROOM — "It already talks to Google Classroom" */}
+            {/* 2. GOOGLE CLASSROOM — planned integration */}
             <GoogleClassroomSection />
 
             {/* 3. ACCOUNTABILITY — "They actually do the homework" */}
             <AccountabilitySection />
-
-            {/* 4. AI TA — "A TA that works after hours" */}
-            <AITASection />
 
             {/* 5. SAFETY — "Built for classrooms, not boardrooms" */}
             <TeachersSafetySection />

@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
 
 export async function POST(request: NextRequest) {
+  const access = await guardAuthenticatedRequest(request, {
+    limit: 5,
+    windowMs: 60_000,
+    requireAiEnabled: true,
+    rateLimitKey: 'ai-suite-unlock',
+  });
+  if (!access.ok) return access.response;
+
   try {
     const { password } = await request.json();
 
@@ -10,7 +19,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid password format' }, { status: 400 });
     }
 
-    const expectedPassword = process.env.AI_SUITE_GATE_PASSWORD || 'default_gate_pw';
+    const expectedPassword = process.env.AI_SUITE_GATE_PASSWORD;
+    if (!expectedPassword) {
+      return NextResponse.json(
+        { success: false, error: 'AI suite is not configured' },
+        { status: 503 }
+      );
+    }
 
     // Hash both strings to prevent timing leakage on length comparison
     // timingSafeEqual requires buffers of identical length, which hashing guarantees (32 bytes for SHA-256)

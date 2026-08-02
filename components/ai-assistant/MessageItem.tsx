@@ -24,6 +24,7 @@ interface MessageItemProps {
   expandedUserMessages: Record<string, boolean>;
   setExpandedUserMessages: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   handleInteractiveButtonClick: (button: InteractiveButton) => void;
+  onRetry?: (msg: Message) => void;
 }
 
 export const MessageItem = ({
@@ -37,12 +38,30 @@ export const MessageItem = ({
   setExpandedToolDetails,
   expandedUserMessages,
   setExpandedUserMessages,
-  handleInteractiveButtonClick
+  handleInteractiveButtonClick,
+  onRetry
 }: MessageItemProps) => {
+  const [isCopied, setIsCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    if (!msg.content) return;
+    try {
+      await navigator.clipboard.writeText(msg.content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy AI response:', err);
+    }
+  };
+
+  const outputTokens = msg.usage?.completionTokens ?? Math.max(1, Math.ceil(((msg.content?.length || 0) + (msg.thought?.length || 0)) / 4.0));
+  const inputTokens = msg.usage?.promptTokens ?? Math.max(50, Math.ceil(((msg.content?.length || 20) * 1.2) / 4.0) + 360);
+  const totalTokens = msg.usage?.totalTokens ?? (inputTokens + outputTokens);
+
   return (
     <div
       className={cn(
-        'group flex flex-col gap-1.5 animate-in fade-in duration-300 slide-in-from-bottom-2',
+        'group flex flex-col gap-1.5 animate-in fade-in duration-300 slide-in-from-bottom-2 relative',
         msg.role === 'user' ? 'items-end' : 'items-start'
       )}
     >
@@ -440,7 +459,7 @@ export const MessageItem = ({
           'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-[24px] px-4 py-2.5'
         )}
         style={msg.role === 'user' && !msg.isError ? {
-          background: 'linear-gradient(135deg, #CFCAF8 0%, #8A9AFF 33%, #c2aefeff 66%, #4C85FF 100%)'
+          background: 'linear-gradient(135deg, #94A2FF 0%, #7B8DFE 100%)'
         } : {}}
       >
         <div className="flex-1 min-w-0">
@@ -542,6 +561,54 @@ export const MessageItem = ({
                   )}
                 </Button>
               ))}
+            </div>
+          )}
+
+          {/* Hover Toolbar for Assistant Messages (Icon-only, aligned left to AI text) */}
+          {msg.role === 'assistant' && !msg.isLoading && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 mt-1 pl-0 select-none">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="p-1 rounded-md text-zinc-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
+                title={isCopied ? "Copied to clipboard" : "Copy response"}
+              >
+                <HugeIcon name={isCopied ? "CopyCheck" : "Copy01"} size={14} className="w-3.5 h-3.5" />
+              </button>
+
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={() => onRetry(msg)}
+                  className="p-1 rounded-md text-zinc-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
+                  title="Retry response"
+                >
+                  <HugeIcon name="Reload" size={14} className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {/* Token Breakdown Popover */}
+              <div className="relative group/token border-l border-zinc-200/80 dark:border-zinc-800/80 pl-2 ml-1">
+                <span className="text-[10.5px] font-medium text-zinc-400/90 dark:text-zinc-500/90 tracking-tight cursor-pointer hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+                  {totalTokens} tokens
+                </span>
+
+                {/* Popup Breakdown */}
+                <div className="absolute bottom-full left-0 mb-2 hidden group-hover/token:flex flex-col gap-1.5 p-2.5 rounded-xl bg-white/95 dark:bg-zinc-900/95 border border-sky-100 dark:border-zinc-800 shadow-xl backdrop-blur-md text-[11px] font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-150 pointer-events-none min-w-[130px]">
+                  <div className="flex items-center justify-between gap-3 text-zinc-400 dark:text-zinc-500 font-semibold border-b border-zinc-100 dark:border-zinc-800/80 pb-1 text-[10px] uppercase tracking-wider">
+                    <span>Token Count</span>
+                    <span className="text-sky-600 dark:text-sky-400 font-bold">{totalTokens}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-zinc-400 dark:text-zinc-500 text-[10.5px]">Input Tokens</span>
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200">{inputTokens}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-zinc-400 dark:text-zinc-500 text-[10.5px]">Output Tokens</span>
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200">{outputTokens}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

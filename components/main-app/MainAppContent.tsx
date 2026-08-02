@@ -4,6 +4,7 @@ import { Facehash } from 'facehash';
 import { format, addDays } from 'date-fns';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';
+import { useDarkMode } from '@/context/DarkModeContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,16 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -79,13 +90,6 @@ const ClassIconRenderer: React.FC<{ iconName: string; className?: string; style?
   );
 };
 
-// Helper component to wrap ClassIconRenderer for EnhancedTestCard
-const createClassIconComponent = (iconName: string) => {
-  return (props: { className?: string; style?: React.CSSProperties }) => (
-    <ClassIconRenderer iconName={iconName} {...props} />
-  );
-};
-
 import { RecurringHomework, Class, Homework, Test } from '@/context/ClassContext';
 import { useToast } from '@/context/ToastContext';
 import { useUpgrade } from '@/context/UpgradeContext';
@@ -95,7 +99,6 @@ import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useTestContext } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
-import EnhancedTestCard from '@/components/EnhancedTestCard';
 
 
 import { useMainApp } from '@/context/MainAppContext';
@@ -107,7 +110,7 @@ export const MainAppContent = () => {
   const { handlePlanLimitError } = useUpgrade();
   const { data: gamificationData, addXP } = useGamification();
   const { getContainerClass } = useWideLayout();
-  const { classes, addClass, deleteClass, loading, error } = useClassContext();
+  const { classes, addClass, updateClass, deleteClass, loading, error } = useClassContext();
   const { homeworks, addHomework, addRecurringHomework, toggleHomework, togglePinHomework, deleteHomework, deleteRecurringSeries, updateHomeworkDueDate, updateHomework } = useHomeworkContext();
   const { tests, addTest, deleteTest, updateTestDueDate, markTestComplete } = useTestContext();
 
@@ -126,9 +129,6 @@ export const MainAppContent = () => {
     homeworkSearch, setHomeworkSearch,
     isHomeworkSearchExpanded, setIsHomeworkSearchExpanded,
     homeworkFilter, setHomeworkFilter,
-    testSearch, setTestSearch,
-    isTestSearchExpanded, setIsTestSearchExpanded,
-    testFilter, setTestFilter,
 
     showPinnedHomeworks, toggleShowPinnedHomeworks,
     showClasses, setShowClasses, toggleShowClasses,
@@ -139,12 +139,90 @@ export const MainAppContent = () => {
     isSelectionMode, setIsSelectionMode,
   } = useMainApp();
 
+  const { isDark } = useDarkMode();
+
   const [showPinHomeworkModal, setShowPinHomeworkModal] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showWelcomeLetter, setShowWelcomeLetter] = useState(false);
   const [isAddMenuExpanded, setIsAddMenuExpanded] = useState(false);
   const [isAddTestExpanded, setIsAddTestExpanded] = useState(false);
   const [hasShownInitialNotifications, setHasShownInitialNotifications] = useState(false);
+
+  // Grade Goals State per Class (Persisted in localStorage)
+  const [classGradeGoals, setClassGradeGoals] = useState<Record<string, string>>({});
+  const [savedClassGrades, setSavedClassGrades] = useState<Record<string, { finalGrade?: number }>>({});
+
+  useEffect(() => {
+    const loadSavedClassGrades = () => {
+      try {
+        const saved = localStorage.getItem('classGrades');
+        setSavedClassGrades(saved ? JSON.parse(saved) : {});
+      } catch {
+        setSavedClassGrades({});
+      }
+    };
+
+    try {
+      const saved = localStorage.getItem('class_grade_goals');
+      if (saved) setClassGradeGoals(JSON.parse(saved));
+    } catch (e) {
+      // fallback ignore
+    }
+
+    loadSavedClassGrades();
+    window.addEventListener('focus', loadSavedClassGrades);
+    window.addEventListener('storage', loadSavedClassGrades);
+
+    return () => {
+      window.removeEventListener('focus', loadSavedClassGrades);
+      window.removeEventListener('storage', loadSavedClassGrades);
+    };
+  }, []);
+
+  const handleCycleGradeGoal = useCallback(async (classId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const gradeOptions = ['A+', 'A', 'A-', 'B+', 'B', 'Pass'];
+    const currentCls = classes.find(c => c.id === classId);
+    const current = currentCls?.target_grade || classGradeGoals[classId] || 'A';
+    const nextIdx = (gradeOptions.indexOf(current) + 1) % gradeOptions.length;
+    const nextGrade = gradeOptions[nextIdx];
+    const updated = { ...classGradeGoals, [classId]: nextGrade };
+    setClassGradeGoals(updated);
+    try {
+      localStorage.setItem('class_grade_goals', JSON.stringify(updated));
+      if (updateClass) {
+        await updateClass(classId, { target_grade: nextGrade });
+      }
+    } catch (e) {}
+  }, [classGradeGoals, classes, updateClass]);
+
+  const [isClearingAll, setIsClearingAll] = useState(false);
+
+  const handleClearAllHWsAndTests = useCallback(async () => {
+    if (homeworks.length === 0 && tests.length === 0) {
+      info('Empty', 'No homeworks or tests to delete.');
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete ALL ${homeworks.length} homeworks and ${tests.length} tests? This cannot be undone.`)) {
+      return;
+    }
+
+    setIsClearingAll(true);
+    try {
+      for (const hw of homeworks) {
+        await deleteHomework(hw.id);
+      }
+      for (const t of tests) {
+        await deleteTest(t.id);
+      }
+      success('Cleared', 'Successfully deleted all homeworks and tests 🧹');
+    } catch (err: any) {
+      console.error('Error clearing all tasks:', err);
+      toastError('Error', err.message || 'Failed to clear all tasks');
+    } finally {
+      setIsClearingAll(false);
+    }
+  }, [homeworks, tests, deleteHomework, deleteTest, info, success, toastError]);
+
+
 
   // Refs for PlayfulHomeworkList instances to clear selection
   const pinnedListRef = useRef<PlayfulHomeworkListRef>(null);
@@ -166,28 +244,19 @@ export const MainAppContent = () => {
   const handleTogglePinnedHomeworks = (newState: boolean) => toggleShowPinnedHomeworks();
   const handleToggleClasses = (newState: boolean) => toggleShowClasses();
   const handleToggleTests = (newState: boolean) => toggleShowTests();
-  const handleTestFilterChange = (value: string) => setTestFilter(value);
+
+  const handleToggleSelectionMode = () => {
+    if (isSelectionMode) {
+      homeworkListRefs.current.forEach(ref => ref?.clearSelection());
+      setTimeout(() => setIsSelectionMode(false), 50);
+      return;
+    }
+    setIsSelectionMode(true);
+  };
 
   const handleExpandedClassesChange = (newState: Record<string, boolean>) => {
     setExpandedClasses(newState);
     setCookie('expandedClasses', JSON.stringify(newState));
-  };
-
-
-
-
-
-  // Auto-show onboarding modal for users with no classes
-  useEffect(() => {
-    if (user && classes.length === 0 && !loading) {
-      setShowOnboarding(true);
-    }
-  }, [user, classes.length, loading]);
-
-  // Show welcome letter after onboarding completion
-  const handleShowWelcomeLetter = () => {
-    setShowOnboarding(false);
-    setShowWelcomeLetter(true);
   };
 
   // Show toast notifications for overdue assignments - ONLY ON FIRST LOAD
@@ -434,6 +503,17 @@ export const MainAppContent = () => {
     gray: '#475569'     // slate-600
   };
 
+  const darkHeaderColors = {
+    red: '#F87171',     // red-400 (vibrant high-contrast on dark)
+    blue: '#60A5FA',    // blue-400
+    yellow: '#FBBF24',  // amber-400
+    green: '#34D399',   // emerald-400
+    purple: '#C084FC',  // purple-400
+    pink: '#F472B6',    // pink-400
+    teal: '#2DD4BF',    // teal-400
+    gray: '#CBD5E1'     // slate-300
+  };
+
   // Get initials from class name
   const getInitials = (name: string) => {
     return name
@@ -451,55 +531,9 @@ export const MainAppContent = () => {
   }, []);
 
   const getHeaderColor = useCallback((index: number) => {
-    const colors = Object.values(headerColors);
+    const colors = Object.values(isDark ? darkHeaderColors : headerColors);
     return colors[index % colors.length];
-  }, []);
-
-  // Memoized: test filtering logic
-  const filteredTests = useMemo(() => {
-    return tests.filter(test => {
-      const testDate = new Date(test.testDate + 'T00:00:00');
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);      // First apply status/type filter
-      let matches = true;
-      switch (testFilter) {
-        case 'upcoming':
-          matches = testDate >= today;
-          break;
-        case 'taken':
-          matches = testDate < today;
-          break;
-        case 'alpha_only':
-          matches = test.testType === 'ALPHA';
-          break;
-        case 'beta_only':
-          matches = test.testType === 'BETA';
-          break;
-        case 'exams':
-          matches = ['exam', 'midterm', 'final'].includes(test.testType?.toLowerCase() || '');
-          break;
-        case 'quizzes':
-          matches = ['quiz', 'Quiz'].includes(test.testType || '');
-          break;
-        default:
-          matches = true;
-      }
-
-      if (!matches) return false;
-
-      // Then apply search filter
-      if (testSearch.trim()) {
-        const searchLower = testSearch.toLowerCase();
-        return (
-          test.title.toLowerCase().includes(searchLower) ||
-          test.description?.toLowerCase().includes(searchLower) ||
-          classes.find(c => c.id === test.classId)?.name.toLowerCase().includes(searchLower)
-        );
-      }
-
-      return true;
-    });
-  }, [tests, testFilter, testSearch, classes]);
+  }, [isDark]);
 
   // Memoized: homework filtering logic
   const filteredHomeworks = useMemo(() => {
@@ -539,7 +573,7 @@ export const MainAppContent = () => {
   // Memoize the processed class data to prevent re-renders
   const processedClasses = useMemo(() => {
     return classes.map((cls: any, index: number) => {
-      const classTests = filteredTests.filter((t: any) => {
+      const classTests = tests.filter((t: any) => {
         const testDate = new Date(t.testDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -595,7 +629,7 @@ export const MainAppContent = () => {
         index
       };
     });
-  }, [classes, filteredHomeworks, filteredTests, getClassColor, isHomeworkArchived]);
+  }, [classes, filteredHomeworks, tests, getClassColor, isHomeworkArchived]);
 
   // Memoized: overdue homework count (used in stats section)
   const overdueCount = useMemo(() => {
@@ -632,30 +666,21 @@ export const MainAppContent = () => {
     return { nextUpcomingTest: next, daysUntilNextTest: days };
   }, [tests]);
 
-  // Memoized: group tests by class
-  const testsByClass = useMemo(() => {
-    return filteredTests.reduce((acc, test) => {
-      const classId = test.classId;
-      if (!acc[classId]) {
-        acc[classId] = [];
-      }
-      acc[classId].push(test);
-      return acc;
-    }, {} as Record<string, typeof tests>);
-  }, [filteredTests]);
+  const dashboardUpcomingTests = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  // Memoized: classes that have tests
-  const classesWithTests = useMemo(() => classes.filter(cls => testsByClass[cls.id]), [classes, testsByClass]);
-
-  // Memoized: test statistics
-  const { totalTests, upcomingTestsCount, takenTests } = useMemo(() => ({
-    totalTests: tests.length,
-    upcomingTestsCount: tests.filter(test => test.status === 'upcoming'),
-    takenTests: tests.filter(test => test.status === 'taken'),
-  }), [tests]);
-
-
-
+    return [...tests]
+      .filter((test: Test) => {
+        const testDate = new Date(`${test.testDate}T00:00:00`);
+        const status = test.status?.toLowerCase();
+        return testDate >= today && status !== 'taken' && status !== 'completed';
+      })
+      .sort((left: Test, right: Test) =>
+        new Date(left.testDate).getTime() - new Date(right.testDate).getTime()
+      )
+      .slice(0, 4);
+  }, [tests]);
 
 
   const handleTestClick = (test: Test) => {
@@ -671,7 +696,7 @@ export const MainAppContent = () => {
       case 'classes':
         const effectivelyShowClasses = showTestsInClassCards || showClasses;
         return (
-          <div key="classes" className="mt-8 mb-10" data-tour="classes">
+          <div key="classes" className="order-3 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="classes">
             <div>
               <div
                 className={`mb-3 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
@@ -680,19 +705,50 @@ export const MainAppContent = () => {
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
+                      <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
                         My Classes
                       </h2>
                     </div>
                     {!showTestsInClassCards && (
                       <div
-                        className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 md:hidden transition-all duration-300"
+                        className="hidden"
                       >
                         <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showClasses ? 'rotate-90' : 'rotate-0'}`} />
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div
+                    className="flex lg:hidden items-center gap-1.5"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setShowAddHomework(true)}
+                      className="h-9 px-3 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform"
+                    >
+                      <HugeIcon name="PlusSign" size={13} />
+                      Homework
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddClass(true)}
+                      className="h-9 w-9 rounded-full bg-sky-500/10 dark:bg-sky-400/15 text-sky-700 dark:text-sky-300 border border-sky-500/15 flex items-center justify-center"
+                      aria-label="Add class"
+                    >
+                      <HugeIcon name="Course" size={15} />
+                    </button>
+                    {!showTestsInClassCards && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleClasses(!showClasses)}
+                        className="h-9 w-9 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 flex items-center justify-center"
+                        aria-label={showClasses ? 'Collapse classes' : 'Expand classes'}
+                      >
+                        <HugeIcon name="ArrowRight01" size={16} className={`text-sky-700 dark:text-sky-300 transition-transform ${showClasses ? 'rotate-90' : ''}`} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="hidden">
                     {/* Nav-pill style action buttons */}
                     <div 
                       className="flex items-center gap-0 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20"
@@ -808,7 +864,17 @@ export const MainAppContent = () => {
                               {isSelectionMode ? 'Done' : 'Select'}
                             </motion.span>
                           </motion.button>
-                          <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1.5 mr-1.5" />
+                          <button
+                            onClick={handleClearAllHWsAndTests}
+                            disabled={isClearingAll}
+                            className="h-8 px-2.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 text-[12px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                            title="Delete all homeworks and tests"
+                          >
+                            <HugeIcon name="Delete02" size={14} className="text-red-500" />
+                            <span className="hidden sm:inline">Delete All HWs & Tests</span>
+                            <span className="sm:hidden">Clear</span>
+                          </button>
+                          <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1 mr-1" />
                         </>
                       )}
                       <div className="relative flex items-center h-8">
@@ -830,7 +896,7 @@ export const MainAppContent = () => {
                           >
                             Class
                           </button>
-                          <div 
+                          <div
                             className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 shrink-0 transition-opacity duration-200" 
                             style={{ opacity: isAddMenuExpanded ? 1 : 0 }} 
                           />
@@ -906,6 +972,100 @@ export const MainAppContent = () => {
                       </button>
                     )}
                   </div>
+                  <div
+                    className="hidden lg:flex items-center gap-2"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {homeworks.length > 0 && (
+                      <div className="relative">
+                        <HugeIcon
+                          name="Search01"
+                          size={14}
+                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sky-600/45 dark:text-sky-300/40"
+                        />
+                        <input
+                          type="search"
+                          aria-label="Search homework"
+                          placeholder="Search homework"
+                          value={homeworkSearch}
+                          onChange={(event) => setHomeworkSearch(event.target.value)}
+                          className="h-9 w-40 rounded-full bg-sky-500/[0.07] pl-9 pr-3 text-xs font-semibold text-sky-900 outline-none transition-all placeholder:text-sky-600/35 focus:w-52 focus:bg-sky-500/10 dark:bg-white/[0.05] dark:text-sky-100 dark:placeholder:text-sky-300/30 dark:focus:bg-white/[0.075]"
+                        />
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAddHomework(true)}
+                      className="flex h-9 items-center gap-1.5 rounded-full bg-sky-500 px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-sky-600"
+                    >
+                      <HugeIcon name="PlusSign" size={13} />
+                      Homework
+                    </button>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500/[0.08] text-sky-700 transition-colors hover:bg-sky-500/[0.13] dark:bg-white/[0.05] dark:text-sky-300 dark:hover:bg-white/[0.08]"
+                          aria-label="More class actions"
+                        >
+                          <HugeIcon name="MoreVertical" size={16} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-56 rounded-2xl border-sky-100 bg-white/95 p-1.5 shadow-xl backdrop-blur-xl dark:border-sky-500/10 dark:bg-gray-900/95"
+                      >
+                        <DropdownMenuItem onSelect={() => setShowAddClass(true)} className="rounded-xl py-2">
+                          <HugeIcon name="Course" size={15} />
+                          Add class
+                        </DropdownMenuItem>
+                        {homeworks.length > 0 && (
+                          <DropdownMenuItem onSelect={handleToggleSelectionMode} className="rounded-xl py-2">
+                            <HugeIcon name="CheckmarkCircle02" size={15} />
+                            {isSelectionMode ? 'Finish selecting' : 'Select assignments'}
+                          </DropdownMenuItem>
+                        )}
+
+                        {homeworks.length > 0 && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-xs font-medium text-sky-700/45 dark:text-sky-300/40">
+                              Show homework
+                            </DropdownMenuLabel>
+                            <DropdownMenuRadioGroup value={homeworkFilter} onValueChange={setHomeworkFilter}>
+                              <DropdownMenuRadioItem value="all" className="rounded-xl">All</DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="incomplete" className="rounded-xl">Incomplete</DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="completed" className="rounded-xl">Completed</DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="pinned" className="rounded-xl">Pinned</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="destructive"
+                              disabled={isClearingAll}
+                              onSelect={handleClearAllHWsAndTests}
+                              className="rounded-xl py-2"
+                            >
+                              <HugeIcon name="Delete02" size={15} />
+                              Clear homework and tests
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {!showTestsInClassCards && (
+                      <button
+                        type="button"
+                        onClick={() => setShowClasses(!showClasses)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ebf6b5]/60 text-sky-700 transition-colors hover:bg-[#ebf6b5] dark:bg-[#ebf6b5]/10 dark:text-sky-300 dark:hover:bg-[#ebf6b5]/20"
+                        aria-label={showClasses ? 'Collapse classes' : 'Expand classes'}
+                      >
+                        <HugeIcon name="ArrowRight01" size={16} className={`transition-transform ${showClasses ? 'rotate-90' : ''}`} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -926,45 +1086,85 @@ export const MainAppContent = () => {
             >
               {classes.length === 0 ? (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-[#f5f9fc] dark:bg-sky-500/[0.03] backdrop-blur-md rounded-[32px] border border-sky-100 dark:border-sky-500/10 p-12 sm:p-20 text-center shadow-sm relative overflow-hidden group"
+                  className="rounded-[28px] bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] p-8 sm:p-12 text-center transition-all duration-500 relative overflow-hidden group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-sky-500/[0.02] to-transparent pointer-events-none" />
-                  <div className="relative z-10">
-                    <div className="w-16 h-16 rounded-3xl bg-white dark:bg-gray-900 flex items-center justify-center mx-auto mb-6 border border-sky-100 dark:border-sky-500/20 shadow-sm group-hover:scale-110 transition-transform duration-500">
-                      <HugeIcon name="Layers01" size={32} className="h-8 w-8 text-sky-500/40 dark:text-sky-400/40" />
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-2xl bg-sky-500/10 dark:bg-sky-400/15 flex items-center justify-center mb-3.5 border border-sky-200/50 dark:border-sky-500/20 shadow-xs group-hover:scale-110 transition-transform duration-500">
+                      <HugeIcon name="Course" size={24} className="text-sky-600 dark:text-sky-400" />
                     </div>
-                    <h3 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">No classes yet</h3>
-                    <p className="text-sky-600/50 dark:text-sky-400/40 max-w-xs mx-auto text-sm font-medium leading-relaxed">
+                    <h3 className="text-lg sm:text-xl font-bold text-sky-800 dark:text-sky-200 mb-1.5 tracking-tight">No classes yet</h3>
+                    <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-300/50 max-w-xs mx-auto font-medium leading-relaxed">
                       Get started by adding your first class to organize your schoolwork and track your progress.
                     </p>
                     <button
                       onClick={() => setShowAddClass(true)}
-                      className="mt-8 px-6 py-2.5 bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-900 font-bold rounded-xl border border-[#d4e88e] transition-all active:scale-95 shadow-sm"
+                      className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-[#ebf6b5] hover:bg-[#e0efa0] dark:bg-[#ebf6b5]/20 dark:hover:bg-[#ebf6b5]/30 text-sky-950 dark:text-[#ebf6b5] font-bold text-xs sm:text-sm rounded-xl border border-[#d4e88e] dark:border-[#d4e88e]/40 transition-all active:scale-95 shadow-xs cursor-pointer"
                     >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 4V20M20 12H4" />
+                      </svg>
                       Add Your First Class
                     </button>
                   </div>
                 </motion.div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-px-1 px-1 pb-2 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
 
 
 
                   {processedClasses.map((cls: any) => {
                     const { classHomeworks, classArchivedHomeworks, classTests, index } = cls;
-                    const visibleHomeworks = expandedClasses[cls.id] ? classHomeworks : classHomeworks.slice(0, 3);
-                    const hasTests = classTests.length > 0 && showTestsInClassCards;
+                    const nextClassTest = classTests[0] || null;
+                    const hasTests = Boolean(nextClassTest);
                     const hasHomework = classHomeworks.length > 0;
                     const hasArchivedHomework = classArchivedHomeworks.length > 0;
                     const isShowingArchived = showArchivedForClass[cls.id] || false;
+                    const isEmptyClass = !hasHomework && !hasTests && (!hasArchivedHomework || !isShowingArchived);
 
                     // Check if this class has overdue homework
                     const todayStart = new Date();
                     todayStart.setHours(0, 0, 0, 0);
                     const hasOverdueHomework = classHomeworks.some((hw: any) => !hw.completed && new Date(hw.subtext) < todayStart);
+                    const gradeFromClassData = typeof cls.grade_data?.finalGrade === 'number'
+                      ? cls.grade_data.finalGrade
+                      : null;
+                    const gradeFromLocalStorage = typeof savedClassGrades[cls.id]?.finalGrade === 'number'
+                      ? savedClassGrades[cls.id].finalGrade!
+                      : null;
+                    const savedGrade = typeof cls.grade === 'number'
+                      ? cls.grade
+                      : gradeFromClassData ?? gradeFromLocalStorage;
+                    const savedGradeLetter = savedGrade === null
+                      ? null
+                      : savedGrade >= 90
+                        ? 'A'
+                        : savedGrade >= 80
+                          ? 'B'
+                          : savedGrade >= 70
+                            ? 'C'
+                            : 'I';
+                    const savedGradeColor = savedGrade === null
+                      ? ''
+                      : savedGrade >= 90
+                        ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                        : savedGrade >= 80
+                          ? 'border-blue-400/30 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+                          : savedGrade >= 70
+                            ? 'border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            : 'border-red-400/30 bg-red-500/10 text-red-700 dark:text-red-300';
 
                     return (
                       <motion.div
@@ -975,19 +1175,22 @@ export const MainAppContent = () => {
                           duration: 0.3,
                           delay: index * 0.05,
                         }}
-                        className={`group rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-500 border bg-[#f5f9fc] dark:bg-gray-900 ${showFrowny && hasOverdueHomework
-                          ? 'border-red-300 dark:border-red-500/40 shadow-red-100 dark:shadow-red-900/20 shadow-md'
-                          : 'border-sky-100 dark:border-white/5'
+                        className={`w-[86vw] max-w-[360px] shrink-0 snap-start sm:w-auto sm:max-w-none sm:shrink rounded-[22px] sm:rounded-[28px] ${isEmptyClass ? 'p-3 sm:p-4' : 'p-3 sm:p-5'} shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] transition-all duration-500 border bg-[#f5f9fc] dark:bg-sky-500/[0.03] ${showFrowny && hasOverdueHomework
+                          ? 'border-red-300 dark:border-red-500/40 shadow-red-100 dark:shadow-red-900/20 shadow-xs'
+                          : 'border-sky-100 dark:border-sky-500/10'
                           }`}
 
                       >
                         <div
-                          className="p-3 mb-3 rounded-xl transition-colors duration-500"
-                          style={{ backgroundColor: `${getClassColor(index)}40` }}
+                          className={`group/header p-3 sm:p-3.5 ${isEmptyClass ? 'mb-0' : 'mb-2.5 sm:mb-3'} rounded-[18px] sm:rounded-[20px] transition-colors duration-500 border`}
+                          style={{
+                            backgroundColor: isDark ? `${getHeaderColor(index)}1F` : `${getClassColor(index)}40`,
+                            borderColor: isDark ? `${getHeaderColor(index)}40` : 'transparent'
+                          }}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex items-center w-full gap-3">
-                              <div className="shrink-0 transition-transform group-hover:scale-110 duration-500">
+                              <div className="shrink-0 transition-transform group-hover/header:scale-110 duration-500">
                                 <ClassIconRenderer
                                   iconName={cls.icon}
                                   className="w-6 h-6"
@@ -995,39 +1198,38 @@ export const MainAppContent = () => {
                                 />
                               </div>
 
-                              <div className="flex-1 min-w-0">
+                              <div className="flex-1 min-w-0 flex items-center gap-2">
                                 <h3
-                                  className="text-base font-bold truncate tracking-tight uppercase"
+                                  className="text-sm sm:text-base font-bold truncate tracking-tight uppercase"
                                   style={{ color: getHeaderColor(index) }}
                                 >
                                   {cls.name}
                                 </h3>
+                                {savedGrade !== null ? (
+                                  <span
+                                    className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-extrabold border tabular-nums ${savedGradeColor}`}
+                                    title={`Saved grade: ${savedGrade.toFixed(1)}% (${savedGradeLetter})`}
+                                  >
+                                    {savedGrade.toFixed(1)}%
+                                    <span className="hidden sm:inline"> · {savedGradeLetter}</span>
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={(e) => handleCycleGradeGoal(cls.id, e)}
+                                    className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold border border-sky-300/40 dark:border-sky-500/30 bg-white/40 dark:bg-black/20 text-sky-800 dark:text-sky-200 hover:bg-white/70 dark:hover:bg-black/40 transition-all cursor-pointer flex items-center gap-1"
+                                    title="Click to cycle target grade goal"
+                                  >
+                                    <span>Goal: {cls.target_grade || classGradeGoals[cls.id] || 'A'}</span>
+                                  </button>
+                                )}
                               </div>
 
-                              {/* Summary counts */}
-                              <div className="shrink-0 translate-x-10 group-hover:translate-x-0 transition-transform duration-300">
-                                {(() => {
-                                  const activeCount = classHomeworks.filter((hw: any) => !hw.completed).length;
-                                  const testCount = classTests.length;
-                                  const parts: string[] = [];
-                                  if (activeCount > 0) parts.push(`${activeCount} task${activeCount !== 1 ? 's' : ''}`);
-                                  if (testCount > 0) parts.push(`${testCount} test${testCount !== 1 ? 's' : ''}`);
-                                  const summary = parts.length > 0 ? parts.join(' · ') : 'No tasks';
-                                  return (
-                                    <span
-                                      className="text-[11px] font-semibold tracking-wide opacity-50"
-                                      style={{ color: getHeaderColor(index) }}
-                                    >
-                                      {summary}
-                                    </span>
-                                  );
-                                })()}
-                              </div>
+
 
                               <div className="flex flex-row items-center gap-1">
                                 <Link
                                   href={`/classes/edit/${cls.id}`}
-                                  className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-sky-500 dark:text-gray-500 dark:hover:text-sky-400 hover:bg-sky-500/10 dark:hover:bg-sky-500/20 transition-all shrink-0"
+                                  className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-sky-500 dark:text-gray-500 dark:hover:text-sky-400 hover:bg-sky-500/10 dark:hover:bg-sky-500/20 transition-all shrink-0"
                                   onClick={(e) => e.stopPropagation()}
                                   aria-label="Edit class"
                                 >
@@ -1039,7 +1241,7 @@ export const MainAppContent = () => {
                                     e.stopPropagation();
                                     setClassToDelete({ id: cls.id, name: cls.name });
                                   }}
-                                  className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition-all shrink-0"
+                                  className="hidden sm:inline-flex sm:opacity-0 sm:group-hover/header:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition-all shrink-0"
                                   aria-label="Delete class"
                                 >
                                   <HugeIcon name="Delete02" size={16} className="w-4 h-4" />
@@ -1048,6 +1250,8 @@ export const MainAppContent = () => {
                             </div>
                           </div>
                         </div>
+
+
 
                         <div className="space-y-1 mt-1">
                           <PlayfulHomeworkList
@@ -1058,7 +1262,7 @@ export const MainAppContent = () => {
                                 homeworkListRefs.current.delete(`${cls.id}-main`);
                               }
                             }}
-                            items={classHomeworks.slice(0, 3)}
+                            items={classHomeworks.slice(0, 2)}
                             onItemToggle={handleHomeworkToggle}
                             onPinToggle={togglePinHomework}
                             onBulkDelete={handleBulkDelete}
@@ -1075,7 +1279,7 @@ export const MainAppContent = () => {
                           />
 
                           <AnimatePresence>
-                            {expandedClasses[cls.id] && classHomeworks.length > 3 && (
+                            {expandedClasses[cls.id] && classHomeworks.length > 2 && (
                               <motion.div
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: 'auto', opacity: 1 }}
@@ -1091,7 +1295,7 @@ export const MainAppContent = () => {
                                       homeworkListRefs.current.delete(`${cls.id}-expanded`);
                                     }
                                   }}
-                                  items={classHomeworks.slice(3)}
+                                  items={classHomeworks.slice(2)}
                                   onItemToggle={handleHomeworkToggle}
                                   onPinToggle={togglePinHomework}
                                   className="space-y-1.5 pt-1.5"
@@ -1100,31 +1304,30 @@ export const MainAppContent = () => {
                             )}
                           </AnimatePresence>
 
-                          {hasTests && (
-                            <>
-                              {hasHomework && (
-                                <div className="flex items-center gap-3 my-3">
-                                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
-                                  <span className="text-[11px] uppercase font-semibold text-sky-600/30 dark:text-sky-400/30 tracking-wider">Upcoming Tests</span>
-                                  <div className="h-px bg-sky-100 dark:bg-gray-800 flex-1"></div>
-                                </div>
-                              )}
-                              <div className="space-y-0.5">
-                                {classTests.map((test: any) => (
-                                  <EnhancedTestCard
-                                    key={test.id}
-                                    test={test}
-                                    classIcon={createClassIconComponent(cls.icon)}
-                                    variant="list-item"
-                                    onClick={() => handleTestClick(test)}
-                                    className="hover:bg-sky-500/[0.03] rounded-lg -mx-2 px-2"
-                                  />
-                                ))}
-                              </div>
-                            </>
+                          {nextClassTest && (
+                            <button
+                              type="button"
+                              onClick={() => handleTestClick(nextClassTest)}
+                              className="flex w-full items-center gap-2.5 mt-3 px-2.5 py-2 rounded-2xl bg-sky-500/[0.045] dark:bg-white/[0.035] text-left group/test lg:rounded-none lg:bg-transparent lg:dark:bg-transparent lg:px-0 lg:pt-3 lg:pb-0 lg:border-t lg:border-sky-100 lg:dark:border-sky-500/10"
+                            >
+                              <span className="h-8 w-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+                                <HugeIcon name="Quiz04" size={15} />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-[10px] font-medium text-sky-500/55">
+                                  Next test
+                                </span>
+                                <span className="block truncate text-xs font-bold text-sky-900 dark:text-sky-100 group-hover/test:text-sky-600 dark:group-hover/test:text-sky-300">
+                                  {nextClassTest.title}
+                                </span>
+                              </span>
+                              <span className="text-[10px] font-bold text-sky-500/50 shrink-0">
+                                {new Date(`${nextClassTest.testDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </span>
+                            </button>
                           )}
 
-                          {classHomeworks.length > 3 && (
+                          {classHomeworks.length > 2 && (
                             <div className="text-xs text-center text-sky-600/30 dark:text-sky-400/30 pt-1">
                               {expandedClasses[cls.id] ? (
                                 <button
@@ -1138,7 +1341,7 @@ export const MainAppContent = () => {
                                   onClick={() => handleExpandedClassesChange({ ...expandedClasses, [cls.id]: true })}
                                   className="hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
                                 >
-                                  +{classHomeworks.length - 3} more assignments
+                                  +{classHomeworks.length - 2} more assignments
                                 </button>
                               )}
                             </div>
@@ -1243,9 +1446,8 @@ export const MainAppContent = () => {
         );
 
       case 'tests':
-        if (showTestsInClassCards) return null;
         return (
-          <div key="tests" className="mt-8 mb-10" data-tour="tests">
+          <div key="tests" className="order-2 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="tests">
             <div>
               <div
                 className={`mb-3 group cursor-pointer`}
@@ -1254,128 +1456,71 @@ export const MainAppContent = () => {
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex justify-between items-center md:justify-start">
                     <div>
-                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
-                        Tests & Exams
+                      <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
+                        Upcoming Tests
                       </h2>
                     </div>
                     <div
-                      className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 md:hidden transition-all duration-300"
+                      className="hidden"
                     >
                       <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    {/* Nav-pill style action buttons — matching My Classes */}
-                    <div
-                      className="flex items-center gap-0 p-1 bg-[#dbeafe]/60 dark:bg-[#dbeafe]/10 backdrop-blur-md rounded-full shadow-sm border border-[#93c5fd]/50 dark:border-[#93c5fd]/20"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div 
-                        className="relative flex items-center h-10 sm:h-8"
-                        onClick={(e) => {
-                          if (!isTestSearchExpanded) {
-                            setIsTestSearchExpanded(true);
-                            // Auto-focus the input after animation or immediately
-                            setTimeout(() => {
-                              const input = document.getElementById('test-search-input');
-                              input?.focus();
-                            }, 10);
-                          }
-                        }}
-                      >
-                        <motion.div
-                          initial={false}
-                          animate={{
-                            width: isTestSearchExpanded || testSearch ? (window.innerWidth < 400 ? 110 : (window.innerWidth < 640 ? 128 : 160)) : (window.innerWidth < 640 ? 40 : 32)
-                          }}
-                          className="relative h-full flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-l-full border-r border-sky-500/20 dark:border-sky-400/20 transition-all overflow-hidden"
-                          style={{ minWidth: isTestSearchExpanded || testSearch ? undefined : '32px' }}
-                        >
-                          <HugeIcon 
-                            name="Search01" 
-                            size={14} 
-                            className={`absolute left-[9px] h-3.5 w-3.5 text-sky-700 dark:text-sky-300 transition-colors ${isTestSearchExpanded || testSearch ? 'opacity-90' : 'opacity-100'}`} 
-                          />
-                          <motion.input
-                            id="test-search-input"
-                            type="text"
-                            placeholder="Search tests..."
-                            value={testSearch}
-                            onChange={(e) => setTestSearch(e.target.value)}
-                            onBlur={() => {
-                              if (!testSearch) setIsTestSearchExpanded(false);
-                            }}
-                            animate={{ opacity: isTestSearchExpanded || testSearch ? 1 : 0 }}
-                            className="w-full h-full pl-8 pr-3 text-[12px] font-semibold bg-transparent text-sky-700 dark:text-sky-300 placeholder-sky-700/40 dark:placeholder-sky-300/40 border-0 focus:ring-0 outline-none"
-                          />
-                        </motion.div>
-                      </div>
-
-                      <Select value={testFilter} onValueChange={(value: string) => handleTestFilterChange(value)}>
-                        <SelectTrigger size="sm" hideIcon className="w-10 h-10 sm:w-8 sm:h-8 p-0 flex items-center justify-center text-sky-700 dark:text-sky-300 rounded-r-full bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 transition-all border-0 focus:ring-0 shadow-none shrink-0">
-                          <HugeIcon name="Filter" size={14} className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
-                        </SelectTrigger>
-                        <SelectContent className="w-56 bg-[#f5f9fc] dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl p-1.5" position="popper" sideOffset={4}>
-                          <SelectGroup>
-                            <SelectLabel className="px-3 py-2 text-[10px] font-bold text-sky-500/50 uppercase tracking-widest">Visibility</SelectLabel>
-                            <SelectItem value="all" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">All Tests</SelectItem>
-                            <SelectItem value="upcoming" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Upcoming</SelectItem>
-                            <SelectItem value="taken" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Taken</SelectItem>
-                          </SelectGroup>
-                          
-                          <SelectSeparator className="my-1.5 bg-sky-100/50 dark:bg-gray-800/50" />
-                          
-                          <SelectGroup>
-                            <SelectLabel className="px-3 py-2 text-[10px] font-bold text-sky-500/50 uppercase tracking-widest">Test Types</SelectLabel>
-                            <SelectItem value="alpha_only" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">ALPHA</SelectItem>
-                            <SelectItem value="beta_only" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">BETA</SelectItem>
-                            <SelectItem value="exams" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Exams</SelectItem>
-                            <SelectItem value="quizzes" className="text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-500/10 focus:bg-sky-200 dark:focus:bg-sky-500/15 text-sm rounded-lg transition-colors">Quizzes</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      <div className="w-px h-4 bg-sky-500/30 dark:bg-sky-400/20 ml-1.5 mr-1.5" />
-                      <motion.div
-                        initial={false}
-                        animate={{ width: isAddTestExpanded ? (window.innerWidth < 640 ? 80 : 72) : (window.innerWidth < 640 ? 40 : 32) }}
-                        transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                        className="relative h-10 sm:h-8 flex items-center bg-sky-500/25 hover:bg-sky-500/35 dark:bg-sky-400/20 dark:hover:bg-sky-400/30 rounded-full overflow-hidden cursor-pointer shrink-0"
-                        onMouseEnter={() => setIsAddTestExpanded(true)}
-                        onMouseLeave={() => setIsAddTestExpanded(false)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAddTest(true);
-                        }}
-                      >
-                        <span
-                          className="flex items-center pl-3 h-full text-[13px] font-semibold text-sky-700 dark:text-sky-300 transition-opacity duration-200 whitespace-nowrap"
-                          style={{ opacity: isAddTestExpanded ? 1 : 0 }}
-                        >
-                          Test
-                        </span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          className="absolute h-3.5 w-3.5 text-sky-700 dark:text-sky-300 pointer-events-none transition-all duration-200"
-                          style={{ right: isAddTestExpanded ? '10px' : '9px', top: '50%', transform: 'translateY(-50%)' }}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 4V20M20 12H4" />
-                        </svg>
-                      </motion.div>
-                    </div>
+                  <div
+                    className="flex lg:hidden items-center gap-1.5"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      type="button"
+                      onClick={() => setShowAddTest(true)}
+                      className="h-9 px-3 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform"
+                    >
+                      <HugeIcon name="PlusSign" size={13} />
+                      Test
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleTests(!showTests)}
+                      className="h-9 w-9 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 flex items-center justify-center"
+                      aria-label={showTests ? 'Collapse tests' : 'Expand tests'}
+                    >
+                      <HugeIcon name="ArrowRight01" size={16} className={`text-sky-700 dark:text-sky-300 transition-transform ${showTests ? 'rotate-90' : ''}`} />
+                    </button>
+                  </div>
+                  <div className="hidden lg:flex items-center gap-1.5">
+                    <Link
+                      href="/tests"
+                      onClick={(event) => event.stopPropagation()}
+                      className="h-9 px-4 rounded-full bg-sky-500/10 hover:bg-sky-500/15 text-sky-700 dark:text-sky-300 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      All tests
+                      <HugeIcon name="ArrowRight01" size={12} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setShowAddTest(true);
+                      }}
+                      className="h-9 px-4 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm hover:bg-sky-600 transition-colors"
+                    >
+                      <HugeIcon name="PlusSign" size={13} />
+                      Add test
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
                         setShowTests(!showTests);
                       }}
-                      className="p-2.5 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/20 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 hidden md:flex items-center justify-center transition-all duration-300"
+                      className="h-9 w-9 rounded-full bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/20 border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 flex items-center justify-center transition-all"
+                      aria-label={showTests ? 'Collapse upcoming tests' : 'Expand upcoming tests'}
                     >
-                      <HugeIcon name="ArrowRight01" size={20} className={`h-5 w-5 text-sky-700 dark:text-sky-300 transition-transform duration-500 ${showTests ? 'rotate-90' : 'rotate-0'}`} />
+                      <HugeIcon
+                        name="ArrowRight01"
+                        size={16}
+                        className={`text-sky-700 dark:text-sky-300 transition-transform ${showTests ? 'rotate-90' : ''}`}
+                      />
                     </button>
                   </div>
                 </div>
@@ -1387,34 +1532,48 @@ export const MainAppContent = () => {
                   : 'max-h-0 opacity-0'
                   }`}
               >
-                {/* Tests by Class */}
-                {classesWithTests.length === 0 ? (
+                {dashboardUpcomingTests.length === 0 ? (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-[#f5f9fc] dark:bg-sky-500/[0.03] backdrop-blur-md rounded-[32px] border border-sky-100 dark:border-sky-500/10 p-12 sm:p-20 text-center shadow-sm relative overflow-hidden group"
+                    className="rounded-[28px] bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] p-8 sm:p-12 text-center transition-all duration-500 relative overflow-hidden group"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-b from-sky-500/[0.02] to-transparent pointer-events-none" />
-                    <div className="relative z-10">
-                      <div className="w-16 h-16 rounded-3xl bg-white dark:bg-gray-900 flex items-center justify-center mx-auto mb-6 border border-sky-100 dark:border-sky-500/20 shadow-sm group-hover:scale-110 transition-transform duration-500">
-                        <HugeIcon name="Calendar02" size={32} className="h-8 w-8 text-sky-500/40 dark:text-sky-400/40" />
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-2xl bg-sky-500/10 dark:bg-sky-400/15 flex items-center justify-center mb-3.5 border border-sky-200/50 dark:border-sky-500/20 shadow-xs group-hover:scale-110 transition-transform duration-500">
+                        <HugeIcon name="Quiz04" size={24} className="text-sky-600 dark:text-sky-400" />
                       </div>
-                      <h3 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">No tests scheduled</h3>
-                      <p className="text-sky-600/50 dark:text-sky-400/40 max-w-xs mx-auto text-sm font-medium leading-relaxed">
-                        Start by adding your first test to keep track of your exam schedule and academic performance.
+                      <h3 className="text-lg sm:text-xl font-bold text-sky-800 dark:text-sky-200 mb-1.5 tracking-tight">
+                        No upcoming tests
+                      </h3>
+                      <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-300/50 max-w-xs mx-auto font-medium leading-relaxed">
+                        You’re clear for now. Add a test whenever a new date lands on your calendar.
                       </p>
                       <button
                         onClick={() => setShowAddTest(true)}
-                        className="mt-8 px-6 py-2.5 bg-[#ebf6b5] hover:bg-[#e0efa0] text-sky-900 font-bold rounded-xl border border-[#d4e88e] transition-all active:scale-95 shadow-sm"
+                        className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-[#ebf6b5] hover:bg-[#e0efa0] dark:bg-[#ebf6b5]/20 dark:hover:bg-[#ebf6b5]/30 text-sky-950 dark:text-[#ebf6b5] font-bold text-xs sm:text-sm rounded-xl border border-[#d4e88e] dark:border-[#d4e88e]/40 transition-all active:scale-95 shadow-xs cursor-pointer"
                       >
-                        Add Your First Test
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 4V20M20 12H4" />
+                        </svg>
+                        Add a Test
                       </button>
                     </div>
                   </motion.div>
                 ) : (
                   <StatusGroupedTestList
-                    tests={filteredTests}
+                    tests={dashboardUpcomingTests}
                     onDeleteTest={deleteTest}
+                    dashboardPreview
                   />
                 )}
               </div>
@@ -1709,7 +1868,7 @@ export const MainAppContent = () => {
   }, [full_name, user?.email]);
 
   return (
-    <div className="w-full flex-1">
+    <div className="w-full flex-1 flex flex-col">
         {/* Render sections in user-defined order */}
         {sectionOrder.map(sectionId => renderSection(sectionId))}
     </div>

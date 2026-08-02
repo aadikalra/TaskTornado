@@ -3,7 +3,6 @@
 import React from 'react';
 import GuardiansHero from '@/app/landing-sections/guardians/GuardiansHero';
 import VisibilitySection from '@/app/landing-sections/guardians/VisibilitySection';
-import AcademicToolkitSection from '@/app/landing-sections/guardians/AcademicToolkitSection';
 import SafetySection from '@/app/landing-sections/guardians/SafetySection';
 
 
@@ -24,8 +23,6 @@ export default function GuardiansContent() {
             <VisibilitySection />
 
             {/* 3. ACADEMIC TOOLKIT — "Built-in tutoring, not another tab" */}
-            <AcademicToolkitSection />
-
             {/* 4. SAFETY — "A safe space, built for students" */}
             <SafetySection />
 

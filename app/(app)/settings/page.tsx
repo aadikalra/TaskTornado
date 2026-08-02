@@ -48,7 +48,7 @@ export default function SettingsPage() {
   if (!authenticated) return null;
   const { classes, clearAllClasses } = useClassContext();
   const { homeworks, clearAllHomeworks } = useHomeworkContext();
-  const { signOut, full_name, isGoogleUser, isGuardian } = useAuth() || {};
+  const { signOut, full_name, isGuardian } = useAuth() || {};
   const [activeTab, setActiveTab] = useState<SettingTab>(isGuardian ? 'accessibility' : 'preferences');
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
@@ -159,14 +159,14 @@ export default function SettingsPage() {
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
     const sections = isGuardian
       ? ['accessibility', 'account']
-      : ['preferences', 'guardian', ...(isGoogleUser ? ['classroom'] : []), 'accessibility', 'data', 'account'];
+      : ['preferences', 'guardian', 'classroom', 'accessibility', 'data', 'account'];
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
 
     return () => observer.disconnect();
-  }, [isGoogleUser, isGuardian]);
+  }, [isGuardian]);
 
   const handleClearClasses = () => {
     if (showClassConfirm) {
@@ -241,7 +241,7 @@ export default function SettingsPage() {
     : [
       { id: 'preferences', label: 'Preferences', icon: Zap },
       { id: 'guardian', label: 'Guardian Access', icon: Users },
-      ...(isGoogleUser ? [{ id: 'classroom', label: 'Google Classroom', icon: Globe }] : []),
+      { id: 'classroom', label: 'Google Classroom', icon: Globe },
       { id: 'accessibility', label: 'Accessibility', icon: Accessibility },
       { id: 'data', label: 'Data', icon: Database },
       { id: 'account', label: 'Account', icon: User },
@@ -411,7 +411,7 @@ export default function SettingsPage() {
           })()}
 
           {/* Google Classroom (students only) */}
-          {isGoogleUser && !isGuardian && (
+          {!isGuardian && (
             <section id="classroom" className="scroll-mt-24 mb-20">
               <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
                 Google Classroom

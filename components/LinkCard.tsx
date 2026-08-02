@@ -2,7 +2,19 @@
 
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { GoogleDocsIcon, GoogleSheetsIcon, GoogleSlidesIcon, GoogleDriveIcon, GoogleClassroomIcon, GoogleFormsIcon } from './BrandIcons';
+import {
+  GoogleDocsIcon,
+  GoogleSheetsIcon,
+  GoogleSlidesIcon,
+  GoogleDriveIcon,
+  GoogleClassroomIcon,
+  GoogleFormsIcon,
+  GmailIcon,
+  GoogleTasksIcon,
+  GoogleMeetIcon,
+  GoogleCalendarIcon,
+  YouTubeIcon,
+} from './BrandIcons';
 
 interface LinkCardProps {
   url: string;
@@ -37,52 +49,37 @@ export function LinkCard({ url, title, className = '' }: LinkCardProps) {
     const urlLower = url.toLowerCase();
 
     if (urlLower.includes('docs.google.com/document')) {
-      return {
-        label: 'Google Docs',
-        color: 'bg-gray-100 dark:bg-zinc-800 group-hover:bg-blue-500/10 group-hover:dark:bg-blue-400/10 group-hover:ring-1 group-hover:ring-blue-500/20',
-        textColor: 'text-gray-500 dark:text-gray-400 group-hover:text-blue-700 group-hover:dark:text-blue-300',
-        Icon: GoogleDocsIcon
-      };
+      return { label: 'Google Docs', Icon: GoogleDocsIcon };
     }
     if (urlLower.includes('docs.google.com/spreadsheets')) {
-      return {
-        label: 'Google Sheets',
-        color: 'bg-gray-100 dark:bg-zinc-800 group-hover:bg-emerald-500/10 group-hover:dark:bg-emerald-400/10 group-hover:ring-1 group-hover:ring-emerald-500/20',
-        textColor: 'text-gray-500 dark:text-gray-400 group-hover:text-emerald-700 group-hover:dark:text-emerald-300',
-        Icon: GoogleSheetsIcon
-      };
+      return { label: 'Google Sheets', Icon: GoogleSheetsIcon };
     }
     if (urlLower.includes('docs.google.com/presentation')) {
-      return {
-        label: 'Google Slides',
-        color: 'bg-gray-100 dark:bg-zinc-800 group-hover:bg-amber-500/10 group-hover:dark:bg-amber-400/10 group-hover:ring-1 group-hover:ring-amber-500/20',
-        textColor: 'text-gray-500 dark:text-gray-400 group-hover:text-amber-700 group-hover:dark:text-amber-300',
-        Icon: GoogleSlidesIcon
-      };
-    }
-    if (urlLower.includes('drive.google.com')) {
-      return {
-        label: 'Google Drive',
-        color: 'bg-gray-100 dark:bg-zinc-800 group-hover:bg-blue-500/5 group-hover:dark:bg-blue-400/10 group-hover:ring-1 group-hover:ring-blue-400/20',
-        textColor: 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 group-hover:dark:text-blue-400',
-        Icon: GoogleDriveIcon
-      };
-    }
-    if (urlLower.includes('classroom.google.com')) {
-      return {
-        label: 'Google Classroom',
-        color: 'bg-gray-100 dark:bg-zinc-800 group-hover:bg-green-600/10 group-hover:dark:bg-green-500/10 group-hover:ring-1 group-hover:ring-green-600/20',
-        textColor: 'text-gray-500 dark:text-gray-400 group-hover:text-green-700 group-hover:dark:text-green-300',
-        Icon: GoogleClassroomIcon
-      };
+      return { label: 'Google Slides', Icon: GoogleSlidesIcon };
     }
     if (urlLower.includes('docs.google.com/forms')) {
-      return {
-        label: 'Google Forms',
-        color: 'bg-gray-100 dark:bg-zinc-800 group-hover:bg-purple-500/10 group-hover:dark:bg-purple-400/10 group-hover:ring-1 group-hover:ring-purple-500/20',
-        textColor: 'text-gray-500 dark:text-gray-400 group-hover:text-purple-700 group-hover:dark:text-purple-300',
-        Icon: GoogleFormsIcon
-      };
+      return { label: 'Google Forms', Icon: GoogleFormsIcon };
+    }
+    if (urlLower.includes('drive.google.com')) {
+      return { label: 'Google Drive', Icon: GoogleDriveIcon };
+    }
+    if (urlLower.includes('classroom.google.com')) {
+      return { label: 'Google Classroom', Icon: GoogleClassroomIcon };
+    }
+    if (urlLower.includes('mail.google.com') || urlLower.includes('gmail.com')) {
+      return { label: 'Gmail', Icon: GmailIcon };
+    }
+    if (urlLower.includes('tasks.google.com')) {
+      return { label: 'Google Tasks', Icon: GoogleTasksIcon };
+    }
+    if (urlLower.includes('meet.google.com')) {
+      return { label: 'Google Meet', Icon: GoogleMeetIcon };
+    }
+    if (urlLower.includes('calendar.google.com')) {
+      return { label: 'Google Calendar', Icon: GoogleCalendarIcon };
+    }
+    if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) {
+      return { label: 'YouTube', Icon: YouTubeIcon };
     }
 
     return null;
@@ -111,21 +108,19 @@ export function LinkCard({ url, title, className = '' }: LinkCardProps) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all",
-        specialResource ? specialResource.color : "bg-gray-100 dark:bg-zinc-800 group-hover:bg-[#264f84]/5 group-hover:dark:bg-blue-500/10 group-hover:hover:bg-[#264f84]/10 group-hover:dark:hover:bg-blue-500/20",
-        specialResource ? specialResource.textColor : "text-gray-500 dark:text-gray-400 group-hover:text-gray-600 group-hover:dark:text-gray-300",
+        "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer bg-sky-500/8 dark:bg-sky-400/10 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/20 hover:bg-sky-500/15 dark:hover:bg-sky-400/20 hover:border-sky-300 dark:hover:border-sky-400/40",
         className
       )}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="shrink-0 h-3.5 w-3.5 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-300">
+      <div className="shrink-0 h-3 w-3 flex items-center justify-center overflow-hidden">
         {specialResource?.Icon ? (
-          <specialResource.Icon className="w-full h-full opacity-70 group-hover:opacity-100 transition-opacity" />
+          <specialResource.Icon className="w-full h-full opacity-90 group-hover:opacity-100 transition-opacity" />
         ) : faviconUrl ? (
           <img
             src={faviconUrl}
             alt=""
-            className="w-full h-full object-contain rounded-full opacity-70 group-hover:opacity-100 transition-opacity"
+            className="w-full h-full object-contain rounded-full opacity-90 group-hover:opacity-100 transition-opacity"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -134,11 +129,11 @@ export function LinkCard({ url, title, className = '' }: LinkCardProps) {
             }}
           />
         ) : null}
-        <div className="hidden items-center justify-center h-full w-full opacity-50 font-bold text-[8px] rounded-full">
+        <div className="hidden items-center justify-center h-full w-full opacity-60 font-bold text-[8px] rounded-full">
           {initials}
         </div>
       </div>
-      <span className="text-[10px] font-medium truncate max-w-[120px]">
+      <span className="text-[10px] font-medium truncate max-w-[100px]">
         {title || (specialResource ? specialResource.label : domain)}
       </span>
     </a>

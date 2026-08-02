@@ -53,8 +53,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { isAIAssistantOpen, isAISidebarMode } = useAI();
-  const { user, isGuardian } = useAuth() || {};
-  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string } | null>(null);
+  const { user, isGuardian, loading: authLoading } = useAuth() || {};
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string; isAiChat?: boolean } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
   
   // Advanced AI Mode state
@@ -85,8 +85,20 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     }
   }, [user, isGuardian, pathname, router]);
 
+  // The landing page is only for signed-out visitors. Once the authenticated
+  // session and eligibility check finish, send each account to its dashboard.
+  React.useEffect(() => {
+    if (authLoading || !user || pathname !== '/') return;
+    router.replace(isGuardian ? '/guardian/dashboard' : '/dashboard');
+  }, [authLoading, isGuardian, pathname, router, user]);
+
+
+
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
+
+    const target = event.target as HTMLElement | null;
+    const isAiChat = Boolean(target?.closest('[data-ai-chat]'));
 
     // Detect text selection
     const selection = window.getSelection();
@@ -97,7 +109,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       x: event.clientX,
       y: event.clientY,
       hasSelection,
-      selectedText: hasSelection ? selectedText : undefined
+      selectedText: hasSelection ? selectedText : undefined,
+      isAiChat,
     });
   };
 
@@ -113,31 +126,11 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     setDictionaryWord(null);
   };
 
-  // Define all valid routes that should show the navbar
-  const protectedRoutes = [
-    '/dashboard',
-    '/calendar',
-    '/homework',
-    '/flashcards',
-    '/web-saves',
-    '/discussions',
-    '/settings',
-    '/groups',
-    '/grader',
-    '/complete-signup',
-    '/guardian/dashboard',
-    '/guardian/link',
-  ];
-
-  // Keep the navbar logic but don't use it for showing Navbar component
-  const shouldShowNavbar = false; // Always hide the top navbar
-
-  // Routes that should hide navbar (public routes)
-  const isLandingPage = pathname === '/' || pathname === '/guardians' || pathname === '/teachers';
-  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/translate' || pathname === '/tutorials' || pathname === '/changelog' || pathname === '/blog';
-  const isAIGuidelinesPage = pathname === '/ai-guidelines';
-  const isLegalPage = pathname?.startsWith('/legal');
-  const is404Page = !isLandingPage && !isAuthPage && !isLegalPage;
+  // Presentation routes intentionally skip every piece of site chrome so the
+  // content can occupy the entire display (for example, a wall-mounted TV).
+  if (pathname === '/publiccalendar/tv') {
+    return <>{children}</>;
+  }
 
   return (
     <>
@@ -153,10 +146,23 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {children}
+          {pathname === '/' && (authLoading || user) ? (
+            <div
+              aria-label={user ? 'Opening dashboard' : 'Checking account'}
+              className="flex min-h-screen items-center justify-center"
+            >
+              <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#275085]/20 border-t-[#275085]" />
+            </div>
+          ) : (
+            children
+          )}
         </main>
         {/* Nav: GuardianNavbar for guardians, AppNavbar for students, ReboundNavbar for logged-out */}
-        {user ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />) : <ReboundNavbar />}
+        {!authLoading && (
+          user
+            ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />)
+            : <ReboundNavbar />
+        )}
                 {contextMenu && (
           <CustomContextMenu
             x={contextMenu.x}
@@ -164,6 +170,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             onClose={closeContextMenu}
             hasSelection={contextMenu.hasSelection}
             selectedText={contextMenu.selectedText}
+            isAiChat={contextMenu.isAiChat}
             onDictionaryOpen={handleDictionaryOpen}
           />
         )}

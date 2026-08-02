@@ -17,10 +17,10 @@ interface UpgradeModalProps {
 
 const PERKS = [
     { icon: '📝', text: 'Unlimited homework & tests' },
-    { icon: '🧠', text: 'More powerful AI models' },
-    { icon: '🌐', text: 'Unlimited translations' },
     { icon: '🃏', text: 'Unlimited flashcards' },
-    { icon: '💬', text: 'Unlimited study groups' },
+    { icon: '🔖', text: 'More saved links' },
+    { icon: '📊', text: 'Additional planning tools' },
+    { icon: '🧠', text: 'AI planned separately' },
     { icon: '🚫', text: 'No ads, ever' },
 ];
 
@@ -124,10 +124,10 @@ export default function UpgradeModal({ isOpen, onClose, featureLabel, limitMessa
                             {/* Price tease */}
                             <div className="text-center mb-2">
                                 <span className="text-[12px] text-sky-600/40 dark:text-sky-400/30">
-                                    Plans start at{' '}
+                                    Paid plans are a preview and are{' '}
                                 </span>
                                 <span className="text-[15px] font-bold text-sky-600 dark:text-sky-400">
-                                    $4.99/mo
+                                    not yet available
                                 </span>
                             </div>
                         </div>

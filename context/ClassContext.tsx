@@ -162,7 +162,15 @@ export const ClassProvider = ({ children, initialClasses }: { children: React.Re
   const updateClass = async (id: string, updates: Partial<Class>) => {
     if (!user) throw new Error('User not authenticated');
     try {
-      const dbUpdates: Record<string, any> = { name: updates.name, color: updates.color, icon: updates.icon, updated_at: new Date().toISOString() };
+      const dbUpdates: Record<string, any> = {
+        name: updates.name,
+        color: updates.color,
+        icon: updates.icon,
+        grade: updates.grade,
+        target_grade: updates.target_grade,
+        grade_data: updates.grade_data,
+        updated_at: new Date().toISOString()
+      };
       Object.keys(dbUpdates).forEach((key: string) => { if (dbUpdates[key] === undefined) delete dbUpdates[key]; });
       await db.updateClass(id, dbUpdates);
       setClasses(prev => prev.map(cls => cls.id === id ? { ...cls, ...updates, updated_at: new Date().toISOString() } : cls));

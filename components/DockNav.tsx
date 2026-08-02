@@ -1,14 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import ReboundNavbar from './ReboundNavbar';
-import { X, LogOut } from 'lucide-react';
+import {
+  Bell as IconBell,
+  CircleHelp as IconQuestion,
+  CopyPlus as IconCircleCopyPlus,
+  ExternalLink as IconTabOpen,
+  Languages as IconTranslate,
+  LayoutGrid as IconGrid2,
+  LogOut,
+  Newspaper as IconBlog,
+  PenLine as IconPen,
+  Search as IconMagnifier,
+  X,
+} from 'lucide-react';
 import { Facehash } from 'facehash';
 import { useAuth } from '@/context/AuthContext';
 import { useSearch } from '@/context/SearchContext';
 import Dock from './Dock';
 import { AIAssistant } from './AIAssistant';
 import { StudyTimer } from './StudyTimer';
-import IconMagnifier from './glass-icons/IconMagnifier';
 import IconSparkle from './glass-icons/IconSparkle';
 import IconCalendar from './glass-icons/IconCalendar';
 import IconBookOpen from './glass-icons/IconBookOpen';
@@ -19,16 +30,8 @@ import IconHouse from './glass-icons/IconHouse';
 import IconGear from './glass-icons/IconGear';
 import IconProgressBar from './glass-icons/IconProgressBar';
 import IconBox from './glass-icons/IconBox';
-import IconGrid2 from './glass-icons/IconGrid2';
-import IconPen from './glass-icons/IconPen';
-import IconTabOpen from './glass-icons/IconTabOpen';
-import IconCircleCopyPlus from './glass-icons/IconCircleCopyPlus';
 import IconMessageSquare from './glass-icons/IconMessageSquare';
-import IconQuestion from './glass-icons/IconQuestions';
 import { useAI } from '@/context/AIContext';
-import IconBlog from './glass-icons/IconBlog';
-import IconTranslate from './glass-icons/IconTranslate';
-import IconBell from './glass-icons/IconBell';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationPanel, useNotifications } from './NotificationPanel';
 

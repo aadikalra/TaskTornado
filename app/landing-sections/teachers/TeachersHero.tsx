@@ -17,7 +17,7 @@ const ROTATING_WORDS = [
 // ─── Orbiting chips — teacher-relevant features ─────────────────────────────────
 const ORBITING_CHIPS = [
     { icon: ClipboardList, label: 'Homework', accent: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200/60 dark:border-blue-800/30', startAngle: 0, radius: 185 },
-    { icon: Brain, label: 'AI Tutor', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 45, radius: 215 },
+    { icon: Brain, label: 'AI Tutor (planned)', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 45, radius: 215 },
     { icon: CalendarCheck, label: 'Deadlines', accent: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200/60 dark:border-emerald-800/30', startAngle: 90, radius: 185 },
     { icon: BookOpen, label: 'Flashcards', accent: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200/60 dark:border-amber-800/30', startAngle: 135, radius: 215 },
     { icon: LayoutGrid, label: 'Quizzes', accent: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-200/60 dark:border-indigo-800/30', startAngle: 180, radius: 185 },
@@ -134,7 +134,10 @@ export default function TeachersHero() {
                         transition={{ delay: 0.2, duration: 0.5 }}
                         className="text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium mb-10"
                     >
-                        TaskTornado syncs with Google Classroom, tracks homework completion, and gives your students a built-in AI tutor — so they come to class ready to learn.
+                        TaskTornado tracks homework directly. Google Classroom
+                        sync is planned after OAuth review, and
+                        student-appropriate AI tutoring is planned after our
+                        provider update.
                     </motion.p>
 
                     {/* ── CTAs ─────────────────────────────────────────────── */}
@@ -179,7 +182,7 @@ export default function TeachersHero() {
                         transition={{ delay: 1.2, duration: 0.5 }}
                         className="text-[10px] font-medium uppercase tracking-widest text-[#275085]/40 dark:text-zinc-600"
                     >
-                        Google Classroom sync · Free for every student · No setup required for teachers
+                        U.S. only · Ages 13+ · Google Classroom sync planned
                     </motion.p>
                 </div>
 

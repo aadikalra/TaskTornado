@@ -334,7 +334,10 @@ export const schoolYear2026_2027: SchoolEvent[] = [
 export const schoolYear2025_2026 = schoolYear2026_2027;
 
 // Helper function to get events for a specific date
-export const getEventsForDate = (date: Date, events: SchoolEvent[]): SchoolEvent[] => {
+export const getEventsForDate = (
+  date: Date | string,
+  events: SchoolEvent[] = schoolYear2026_2027
+): SchoolEvent[] => {
   return events.filter(event => {
     const eventStartDate = new Date(event.startDate);
     eventStartDate.setHours(0, 0, 0, 0);

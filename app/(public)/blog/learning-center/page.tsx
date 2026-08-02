@@ -32,9 +32,11 @@ export default function LearningCenterArticle() {
                 Our tutorials aren&apos;t just lists of features; they&apos;re guided journeys through specific workflows. Whether you&reg;re trying to set up your first class or deep-diving into grade modeling, our step-by-step guides ensure you reach your goal without any guesswork.
             </p>
 
-            <h2>Mastering the AI</h2>
+            <h2>AI guidance is coming later</h2>
             <p>
-                The most powerful part of TaskTornado is our AI, Aurora. In the Learning Center, you&apos;ll find dedicated resources on how to communicate with Aurora effectively. Learn how to craft prompts that get the best study explanations, brainstorming sessions, and essay feedback.
+                Aurora resources will be added only after the AI provider,
+                privacy, and student-safety review is complete. AI is currently
+                unavailable.
             </p>
 
             <h2>Power User Shortcuts</h2>

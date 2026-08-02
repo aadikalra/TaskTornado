@@ -1,19 +1,16 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useClassContext } from '@/context/ClassContext';
 import type { Test as TestType } from '@/context/ClassContext';
-import { LinkCard } from './LinkCard';
-
-
-import { getClassIcon } from '@/lib/icon-map';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { TestDetailModal } from './TestDetailModal';
 
 type StatusGroupedTestListProps = {
   tests: TestType[];
   onDeleteTest: (id: string) => Promise<void>;
+  dashboardPreview?: boolean;
 };
 
 
@@ -32,6 +29,7 @@ const CLASS_COLORS = [
 const StatusGroupedTestList = ({
   tests,
   onDeleteTest,
+  dashboardPreview = false,
 }: StatusGroupedTestListProps) => {
   const { classes } = useClassContext();
   const [selectedTest, setSelectedTest] = useState<TestType | null>(null);
@@ -107,18 +105,6 @@ const StatusGroupedTestList = ({
     }
   }, []);
 
-  const formatTime = (timeString?: string | null) => {
-    if (!timeString) return '';
-    try {
-      const [hours, minutes] = timeString.split(':');
-      const date = new Date();
-      date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return timeString;
-    }
-  };
-
   const getDueDateLabel = useCallback((testDate: Date) => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -133,125 +119,134 @@ const StatusGroupedTestList = ({
     return test.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }, []);
 
-  // Render a single test as a premium square card
+  // A compact horizontal card keeps the important information scannable without
+  // turning the dashboard into a wall of equally weighted square tiles.
   const renderTestCard = useCallback((test: TestType, index: number) => {
     const classInfo = classesById.get(test.classId);
     const color = getColorForClass(test.classId);
     const TypeIcon = getTestTypeIcon(test.testType);
-    const dueDate = new Date(test.testDate);
+    const dueDate = new Date(`${test.testDate}T00:00:00`);
     const dueDateLabel = getDueDateLabel(dueDate);
     const badgeClasses = getTestTypeBadgeClasses(test.testType);
     const isPast = new Date(test.testDate + 'T00:00:00') < new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) || test.status?.toLowerCase() === 'completed';
-
     const isToday = dueDateLabel === 'Today';
     const isTomorrow = dueDateLabel === 'Tomorrow';
+    const exactDateLabel = dueDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    const hasScore = Boolean(test.grade) || (test.score !== null && test.score !== undefined);
+    const resultLabel = test.grade || (test.score !== null && test.score !== undefined
+      ? `${test.score}${test.maxScore ? `/${test.maxScore}` : ''}`
+      : 'Completed');
 
     return (
-      <motion.div
+      <motion.button
+        type="button"
         key={test.id}
+        layoutId={`test-card-${test.id}`}
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
+        whileHover={{ y: -3 }}
         transition={{ duration: 0.3, delay: index * 0.04, ease: [0.23, 1, 0.32, 1] }}
         onClick={() => handleTestClick(test)}
-        className={`group relative flex flex-col justify-between p-3.5 pb-3 w-[160px] h-[160px] rounded-[24px] cursor-pointer transition-all duration-300 overflow-hidden shrink-0 border ${
-          isPast 
-            ? 'bg-[#f8fafc]/50 dark:bg-gray-900/40 border-slate-100 dark:border-slate-800 grayscale-[0.6] opacity-60 hover:grayscale-0 hover:opacity-100 hover:bg-white dark:hover:bg-gray-900' 
-            : 'bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 hover:shadow-2xl hover:shadow-sky-500/10 hover:border-[#d4e88e]'
+        aria-label={`Open ${test.title}, ${exactDateLabel}`}
+        className={`group relative h-[154px] min-w-[272px] lg:min-w-0 lg:w-full overflow-hidden rounded-[22px] text-left snap-start transition-[box-shadow,background-color,opacity] duration-300 ${
+          isPast
+            ? 'bg-slate-100/55 dark:bg-white/[0.035] opacity-60 hover:bg-slate-100/80 dark:hover:bg-white/[0.055] hover:opacity-100'
+            : 'bg-sky-50/70 dark:bg-white/[0.05] shadow-[0_8px_28px_rgba(3,105,161,0.04)] hover:bg-white dark:hover:bg-white/[0.075] hover:shadow-[0_16px_38px_rgba(3,105,161,0.09)]'
         }`}
       >
-        {/* Background Highlight Decor */}
-        <div 
-          className="absolute -top-4 -right-4 w-12 h-12 rounded-full blur-2xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"
+        <div
+          className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full blur-3xl opacity-[0.12] transition-all duration-500 group-hover:scale-125 group-hover:opacity-20"
           style={{ backgroundColor: color.header }}
         />
 
-        <div className="flex items-center justify-between mb-auto">
-          <div
-            className="flex items-center justify-center w-10 h-10 rounded-2xl shadow-sm transition-transform group-hover:scale-110 duration-500"
-            style={{ backgroundColor: `${color.bg}40` }}
-          >
-            <HugeIcon name={TypeIcon} size={18} className="w-4.5 h-4.5" style={{ color: color.header }} />
-          </div>
-          
-          {test.grade ? (
-            <div 
-              className="flex items-center justify-center min-w-[28px] h-7 px-2 rounded-lg text-[12px] font-extrabold shadow-sm transition-all group-hover:scale-110 duration-500"
-              style={{ backgroundColor: `${color.header}15`, color: color.header, border: `1px solid ${color.header}25` }}
-            >
-              {test.grade}
+        <div className="relative z-10 flex h-full flex-col p-4">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+                style={{ backgroundColor: `${color.bg}28`, color: color.header }}
+              >
+                <HugeIcon name={TypeIcon} size={15} />
+              </span>
+              <span className="truncate text-[11px] font-medium text-sky-700/50 dark:text-sky-300/45">
+                {classInfo?.name || 'Unassigned'}
+              </span>
             </div>
-          ) : (
-            <div
-              className="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_rgba(0,0,0,0.1)] transition-all group-hover:scale-125 duration-500"
-              style={{ backgroundColor: color.header }}
-            />
-          )}
-        </div>
+            <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold capitalize ${badgeClasses}`}>
+              {test.testType || 'Test'}
+            </span>
+          </div>
 
-        {/* Middle Section: Title & Class */}
-        <div className="my-1.5 flex-1 flex flex-col justify-center min-h-0">
-          <h3 className="text-[13px] font-bold text-sky-900 dark:text-sky-100 leading-tight line-clamp-2 group-hover:text-sky-700 dark:group-hover:text-white transition-colors">
+          <h3 className="mt-3 line-clamp-2 text-[14px] font-bold leading-[1.25] text-sky-950 transition-colors group-hover:text-sky-700 dark:text-sky-50 dark:group-hover:text-sky-200">
             {test.title}
           </h3>
-          {classInfo && (
-            <p className="text-[10px] font-semibold text-sky-600/40 dark:text-sky-400/30 mt-1 truncate uppercase tracking-wider">
-              {classInfo.name}
-            </p>
-          )}
-        </div>
 
-        {/* Bottom Section: Date & Type Badge */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-sky-50/50 dark:border-gray-800/50">
-          <span className={`text-[10px] font-bold uppercase tracking-widest ${badgeClasses.split(' ').filter(c => !c.startsWith('bg')).join(' ')}`}>
-            {test.testType || 'Quiz'}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[10px] font-bold tabular-nums ${
-              isToday ? 'text-sky-600 dark:text-sky-400' : 'text-sky-400/50'
+          <div className="mt-auto flex items-center justify-between gap-2 pt-2.5">
+            <span className="flex min-w-0 items-center gap-1.5 truncate text-[10px] font-semibold text-sky-700/45 dark:text-sky-300/40">
+              <HugeIcon name="Calendar03" size={12} className="shrink-0" />
+              <span className="truncate">{exactDateLabel}</span>
+            </span>
+            <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-extrabold tabular-nums ${
+              isPast
+                ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
+                : isToday
+                  ? 'bg-rose-500/10 text-rose-500'
+                  : isTomorrow
+                    ? 'bg-amber-500/10 text-amber-500'
+                    : 'bg-sky-500/10 text-sky-600 dark:text-sky-300'
             }`}>
-              {dueDateLabel}
+              {isPast ? (hasScore ? resultLabel : 'Completed') : dueDateLabel}
             </span>
           </div>
         </div>
-      </motion.div>
+      </motion.button>
     );
   }, [classesById, getColorForClass, getTestTypeIcon, getTestTypeBadgeClasses, getDueDateLabel]);
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-4 justify-start">
-        {/* Upcoming Tests */}
-        {groupedTests.upcoming.map((test, index) => renderTestCard(test, index))}
+      {groupedTests.upcoming.length > 0 && (
+        <div className={`flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 ${dashboardPreview ? 'xl:grid-cols-4' : 'xl:grid-cols-6'}`}>
+          {groupedTests.upcoming.map((test, index) => renderTestCard(test, index))}
+        </div>
+      )}
 
-        {/* Vertical Separator if both exist */}
-        {groupedTests.upcoming.length > 0 && groupedTests.taken.length > 0 && (
-          <div className="w-px h-28 bg-[#d4e88e] dark:bg-[#d4e88e]/40 mx-2 self-center shrink-0" />
-        )}
-
-        {/* Taken Tests */}
-        {groupedTests.taken.map((test, index) => renderTestCard(test, index + groupedTests.upcoming.length))}
-      </div>
+      {groupedTests.taken.length > 0 && (
+        <div className="space-y-3 pt-2">
+          {groupedTests.upcoming.length > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-sky-700/40 dark:text-sky-300/35">
+                Completed
+              </span>
+              <span className="h-px flex-1 bg-sky-100 dark:bg-sky-500/10" />
+            </div>
+          )}
+          <div className={`flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 ${dashboardPreview ? 'xl:grid-cols-4' : 'xl:grid-cols-6'}`}>
+            {groupedTests.taken.map((test, index) => renderTestCard(test, index + groupedTests.upcoming.length))}
+          </div>
+        </div>
+      )}
 
       {/* Empty State */}
       {tests.length === 0 && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#f5f9fc] dark:bg-sky-500/[0.03] backdrop-blur-md rounded-[32px] border border-sky-100 dark:border-sky-500/10 p-12 sm:p-20 text-center shadow-sm relative overflow-hidden group mt-4"
+          className="rounded-[22px] sm:rounded-[28px] bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] p-5 sm:p-12 text-center transition-all duration-500 relative overflow-hidden group mt-4"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-500/[0.02] to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <div className="w-16 h-16 rounded-3xl bg-white dark:bg-gray-900 flex items-center justify-center mx-auto mb-6 border border-sky-100 dark:border-sky-500/20 shadow-sm group-hover:scale-110 transition-transform duration-500">
-              <HugeIcon name="Calendar02" size={32} className="h-8 w-8 text-sky-500/40 dark:text-sky-400/40" />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 dark:bg-sky-400/15 flex items-center justify-center mb-3.5 border border-sky-200/50 dark:border-sky-500/20 shadow-xs group-hover:scale-110 transition-transform duration-500">
+              <HugeIcon name="Quiz04" size={24} className="text-sky-600 dark:text-sky-400" />
             </div>
-            <h3 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">
+            <h3 className="text-lg sm:text-xl font-bold text-sky-800 dark:text-sky-200 mb-1.5 tracking-tight">
               No tests scheduled
             </h3>
-            <p className="text-sky-600/50 dark:text-sky-400/40 max-w-xs mx-auto text-sm font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-sky-700/60 dark:text-sky-300/50 max-w-xs mx-auto font-medium leading-relaxed">
               Start by adding your first test to keep track of your exam schedule and academic performance.
-            </p>
-            <p className="mt-8 text-[11px] font-bold text-sky-500/40 uppercase tracking-widest">
-              Use the Test button to get started
             </p>
           </div>
         </motion.div>

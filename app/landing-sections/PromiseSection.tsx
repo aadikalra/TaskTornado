@@ -38,12 +38,12 @@ export default function PromiseSection({ id }: { id?: string }) {
                     {/* ── Left Column: The Big $0 ────────────────────────── */}
                     <div className="lg:col-span-4 flex flex-col items-center lg:items-start relative">
                         <div className="relative">
-                            {/* "forever" Badge */}
+                            {/* Core-access badge */}
                             <motion.span
                                 variants={itemVariants}
                                 className="absolute -top-4 -right-12 bg-[#d1fae5] dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
                             >
-                                forever
+                                core access
                             </motion.span>
 
                             {/* The $0 */}
@@ -70,15 +70,17 @@ export default function PromiseSection({ id }: { id?: string }) {
                             variants={itemVariants}
                             className="text-3xl md:text-5xl font-semibold text-green-600 dark:text-green-400 tracking-tight leading-[1.15] mb-4"
                         >
-                            No hidden fees.<br />
-                            No bait-and-switch.
+                            Core tools are free today.<br />
+                            Future plans are clearly labeled.
                         </motion.h3>
 
                         <motion.p
                             variants={itemVariants}
                             className="text-lg text-[#275085]/80 dark:text-[#4a9cdb]/80 mb-12 max-w-2xl leading-relaxed"
                         >
-                            We&apos;ve been burned by &ldquo;free&rdquo; apps that switch to paid models too. TaskTornado is genuinely different.
+                            Paid plans are not currently for sale. The pricing
+                            page shows an early preview, and features or prices
+                            may change before any paid launch.
                         </motion.p>
 
                         {/* Comparison Cards */}
@@ -127,7 +129,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                     <p className="text-xs text-blue-100/90 mb-6 mt-1">
                                         TaskTornado is a new way to study.
                                     </p>
-                                    <p className="text-3xl font-bold text-white">$0<span className="text-sm font-medium text-blue-200/80 tracking-normal">/forever</span></p>
+                                    <p className="text-3xl font-bold text-white">$0<span className="text-sm font-medium text-blue-200/80 tracking-normal"> core access</span></p>
                                 </div>
                             </div>
                         </motion.div>
@@ -144,7 +146,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                 >
                     <div className="text-center mb-10">
                         <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-                            How We Keep It Free
+                            Current Launch Boundaries
                         </h3>
                     </div>
 
@@ -158,7 +160,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                         <div className="text-green-600 dark:text-green-400 mb-4">
                                             <Github className="w-8 h-8 stroke-[2.5]" />
                                         </div>
-                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">Open-source models</h4>
+                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">Provider under review</h4>
                                     </div>
                                     <div className="relative w-28 h-28 shrink-0 -mt-3 -mr-3 transition-transform duration-500 ease-out">
                                         <Image
@@ -172,7 +174,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 {/* Bottom Half: Text content (full width) */}
                                 <div className="-mt-1">
                                     <p className="text-sm text-green-900/60 dark:text-green-400/60 leading-relaxed">
-                                        Open-source models like Gemma allow us to operate near zero cost.
+                                        AI stays paused until the provider, privacy terms, and student-safety controls are ready.
                                     </p>
                                 </div>
                             </motion.div>
@@ -199,7 +201,8 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 {/* Bottom Half: Text content (full width) */}
                                 <div className="-mt-1">
                                     <p className="text-sm text-green-900/60 dark:text-green-400/60 leading-relaxed">
-                                        Sensible caps ensure everyone gets equal access to our resources.
+                                        Sensible caps help protect service
+                                        availability during pre-launch.
                                     </p>
                                 </div>
                             </motion.div>
@@ -212,7 +215,7 @@ export default function PromiseSection({ id }: { id?: string }) {
                                         <div className="text-green-600 dark:text-green-400 mb-4">
                                             <Ban className="w-8 h-8 stroke-[2.5]" />
                                         </div>
-                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">No investor pressure</h4>
+                                        <h4 className="font-bold text-xl text-green-600 dark:text-green-400">No paid plans yet</h4>
                                     </div>
                                     <div className="relative w-28 h-28 shrink-0 -mt-2 -mr-2 transition-transform duration-500 ease-out">
                                         <Image
@@ -226,7 +229,9 @@ export default function PromiseSection({ id }: { id?: string }) {
                                 {/* Bottom Half: Text content (full width) */}
                                 <div className="-mt-1">
                                     <p className="text-sm text-green-900/60 dark:text-green-400/60 leading-relaxed">
-                                        We answer to students, not shareholders looking for infinite growth.
+                                        Any paid offering will be described with
+                                        its actual price and available features
+                                        before checkout is enabled.
                                     </p>
                                 </div>
                             </motion.div>

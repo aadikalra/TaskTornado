@@ -1,18 +1,15 @@
 // app/api/classroom/assignments/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { ClassroomDatabaseService } from '@/lib/database/classroomService';
+import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
 
 export async function GET(request: NextRequest) {
+  const access = await guardAuthenticatedRequest(request);
+  if (!access.ok) return access.response;
+
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
-    }
-
     const dbService = new ClassroomDatabaseService();
-    const courses = await dbService.getUserCourses(userId);
+    const courses = await dbService.getUserCourses(access.user.id);
 
     // For each course, get the coursework
     const coursesWithAssignments = await Promise.all(

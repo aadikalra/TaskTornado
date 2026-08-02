@@ -16,8 +16,12 @@ const TestDetailModal = dynamic(() => import('./TestDetailModal').then(mod => mo
 const TaskBracket = dynamic(() => import('./TaskBracket').then(mod => mod.TaskBracket), { ssr: false });
 
 import { useMainApp, setCookie, getCookie } from '@/context/MainAppContext';
+import { useAuth } from '@/context/AuthContext';
+import { useClassContext } from '@/context/ClassContext';
 import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useTestContext } from '@/context/TestContext';
+
+const PHONE_BREAKPOINT = '(max-width: 640px)';
 
 export const MainApp = () => {
   const {
@@ -30,27 +34,77 @@ export const MainApp = () => {
 
   const { homeworks } = useHomeworkContext();
   const { deleteTest } = useTestContext();
+  const { user, isGuardian } = useAuth();
+  const { classes, loading: classesLoading } = useClassContext();
 
   const [showOnboarding, setShowOnboarding] = React.useState(false);
   const [showWelcomeLetter, setShowWelcomeLetter] = React.useState(false);
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasSeenWelcome = getCookie('hasSeenWelcomeLetter2');
-      if (!hasSeenWelcome) {
-        setShowWelcomeLetter(true);
-      } else {
-        const hasSeenOnboarding = getCookie('hasSeenOnboarding');
-        if (!hasSeenOnboarding) {
-          setShowOnboarding(true);
-        }
-      }
+    if (typeof window === 'undefined' || !user || classesLoading) return;
+
+    const guardianAccount =
+      isGuardian || user.user_metadata?.account_type === 'guardian';
+    if (guardianAccount) {
+      setShowOnboarding(false);
+      setShowWelcomeLetter(false);
+      return;
     }
-  }, []);
+
+    const onboardingCookie = `hasSeenOnboarding_${user.id}`;
+    const welcomeCookie = `hasSeenWelcomeLetter2_${user.id}`;
+
+    // If the account has not completed or has reset setup onboarding,
+    // show the setup wizard.
+    if (!getCookie(onboardingCookie)) {
+      setShowWelcomeLetter(false);
+      setShowOnboarding(true);
+      return;
+    }
+
+    // Creating the first class updates context before the wizard's final
+    // callback runs. Keep the welcome letter behind the active wizard.
+    if (showOnboarding) return;
+
+    if (window.matchMedia(PHONE_BREAKPOINT).matches) {
+      setShowWelcomeLetter(false);
+      setCookie(welcomeCookie, 'true');
+      return;
+    }
+
+    if (!getCookie(welcomeCookie) && !getCookie('hasSeenWelcomeLetter2')) {
+      setShowWelcomeLetter(true);
+    }
+  }, [classes.length, classesLoading, isGuardian, showOnboarding, user]);
+
+  const onboardingCookie = user
+    ? `hasSeenOnboarding_${user.id}`
+    : null;
+  const welcomeCookie = user
+    ? `hasSeenWelcomeLetter2_${user.id}`
+    : null;
+
+  const closeOnboarding = () => {
+    setShowOnboarding(false);
+    if (onboardingCookie) setCookie(onboardingCookie, 'true');
+  };
+
+  const finishOnboarding = () => {
+    closeOnboarding();
+    if (window.matchMedia(PHONE_BREAKPOINT).matches) {
+      setShowWelcomeLetter(false);
+      if (welcomeCookie) setCookie(welcomeCookie, 'true');
+      return;
+    }
+
+    if (welcomeCookie && !getCookie(welcomeCookie)) {
+      setShowWelcomeLetter(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
-      <main className="w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-20 sm:pt-28 pb-24 sm:pb-8">
+      <main className="w-full mx-auto px-3.5 sm:px-6 md:px-12 lg:px-16 pt-[4.5rem] sm:pt-28 pb-24 sm:pb-8">
         <MainAppHeader />
         <MainAppDashboard />
         <MainAppContent />
@@ -83,22 +137,15 @@ export const MainApp = () => {
 
         <OnboardingModal
           isOpen={showOnboarding}
-          onClose={() => {
-            setShowOnboarding(false);
-            setCookie('hasSeenOnboarding', 'true');
-          }}
+          onClose={closeOnboarding}
+          onShowLetter={finishOnboarding}
         />
 
         <WelcomeLetter
           isOpen={showWelcomeLetter}
           onClose={() => {
             setShowWelcomeLetter(false);
-            setCookie('hasSeenWelcomeLetter2', 'true');
-            if (!getCookie('hasSeenOnboarding')) {
-              setTimeout(() => {
-                setShowOnboarding(true);
-              }, 500);
-            }
+            if (welcomeCookie) setCookie(welcomeCookie, 'true');
           }}
         />
 
