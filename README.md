@@ -72,11 +72,12 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Google integrations (keep disabled until OAuth review is complete)
+# Google integrations (enable independently; keep public access disabled until the applicable OAuth review is complete)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_TOKEN_ENCRYPTION_KEY=generate_a_dedicated_random_secret
-GOOGLE_INTEGRATIONS_ENABLED=false
+GMAIL_INTEGRATION_ENABLED=false
+GOOGLE_CLASSROOM_INTEGRATION_ENABLED=false
 
 # Aurora AI
 GROQ_API_KEY=your_server_only_groq_api_key
@@ -99,12 +100,15 @@ NEXT_PUBLIC_SITE_URL=https://your-domain.example
 ### 5. Prepare Google OAuth (Optional; Disabled by Default)
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project and enable the Google Classroom API
+2. Create a new project and enable the Gmail API and/or Google Classroom API
 3. Create OAuth 2.0 credentials
 4. Add the exact production privacy policy, terms, homepage, and redirect URLs
 5. Request the narrowest scopes and complete the required Google OAuth review
 6. Add credentials and a dedicated token-encryption key to `.env.local`
-7. Set `GOOGLE_INTEGRATIONS_ENABLED=true` only after review and production validation
+7. Set `GMAIL_INTEGRATION_ENABLED=true` and/or
+   `GOOGLE_CLASSROOM_INTEGRATION_ENABLED=true` only after the applicable review
+   and production validation. The legacy `GOOGLE_INTEGRATIONS_ENABLED` flag is
+   still supported as a fallback, but enables both services together.
 
 ### 6. Run the Development Server
 

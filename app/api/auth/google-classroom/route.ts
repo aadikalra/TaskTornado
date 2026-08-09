@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
 
   try {
-    if (!googleIntegrationsEnabled()) {
+    if (!googleIntegrationsEnabled('classroom')) {
       cookieStore.delete(FLOW_COOKIE);
       return redirect(request, 'error');
     }

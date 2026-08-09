@@ -29,9 +29,12 @@ Use get_school_data for schedule, workload, class, test, or grade queries. Use a
 For dates, compute date/dueDate as YYYY-MM-DD based on today (${localDateStr}).`.trim();
 }
 
-async function getStudentClassNames(userId: string): Promise<string[]> {
+async function getStudentClassNames(
+  userId: string,
+  accessToken?: string
+): Promise<string[]> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient(accessToken);
     const { data } = await supabase
       .from('classes')
       .select('name')
@@ -378,7 +381,10 @@ export async function POST(req: NextRequest) {
       day: 'numeric',
     });
 
-    const userClassNames = await getStudentClassNames(access.user.id);
+    const userClassNames = await getStudentClassNames(
+      access.user.id,
+      access.accessToken
+    );
     const tools = getToolsForUser(userClassNames);
 
     const conversationHistory: GroqMessage[] = [
@@ -422,7 +428,10 @@ export async function POST(req: NextRequest) {
         }
 
         if (call.function.name === 'get_school_data') {
-          const data = await getBoundedSchoolData(access.user.id);
+          const data = await getBoundedSchoolData(
+            access.user.id,
+            access.accessToken
+          );
           executableCalls.push(call);
           allToolDataStrings.push(data);
           toolResults.push({
@@ -497,7 +506,8 @@ export async function POST(req: NextRequest) {
       action,
       result.model,
       result.usage.prompt_tokens,
-      result.usage.completion_tokens
+      result.usage.completion_tokens,
+      access.accessToken
     );
 
     return createSseResponse([

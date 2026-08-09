@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
     windowMs: 60_000,
   });
   if (!access.ok) return access.response;
-  if (!googleIntegrationsEnabled()) {
+  if (!googleIntegrationsEnabled('gmail')) {
     return NextResponse.json(
       {
         error:
-          'Google integrations are unavailable until OAuth review is complete.',
+          'Gmail integration is unavailable until OAuth review is complete.',
       },
       { status: 503 }
     );

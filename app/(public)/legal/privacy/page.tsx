@@ -10,7 +10,7 @@ const sections = [
     title: '1. Information We Collect',
     items: [
       { label: 'Account Information', desc: 'Name, email address, account type, date of birth, country, and—when the user is under 18—a parent or guardian email and approval record. The approval record includes the guardian name, consent version, time, IP address, and browser user agent. Passwords are managed by our authentication provider; TaskTornado does not store raw passwords.' },
-      { label: 'Academic Information', desc: 'Classes, assignments, test dates, grades, flashcard decks, quiz data, and web saves you create or import from Google Classroom.' },
+      { label: 'Academic Information', desc: 'Classes, assignments, test dates, grades, flashcard decks, quiz data, web saves you create or import from Google Classroom, and email follow-up homework you explicitly create from Gmail.' },
       { label: 'AI Interaction Data', desc: 'When you use Aurora, TaskTornado sends your prompt, a short recent conversation history, and only the limited school-organizer records needed for the request to Groq for model inference. We do not send passwords, guardian contact details, Google OAuth tokens, Gmail contents, or your entire database. Web search is not enabled.' },
       { label: 'Social and Collaborative Data', desc: 'Discussion boards, study groups, invitations, and group chat are currently disabled.' },
       { label: 'Guardian-Linked Data', desc: 'If you link a guardian account, your guardian can view your homework, tests, grades, and class information through a read-only dashboard.' },
@@ -107,7 +107,7 @@ const thirdPartyServices = [
   {
     name: 'Gmail API',
     role: 'Optional read-only inbox viewer',
-    data: 'Message sender, recipients, subject, date, snippet, message body, labels, and attachment metadata — only when you explicitly connect Gmail. TaskTornado displays this data on request and does not save message contents to its database.',
+    data: 'Message sender, recipients, subject, date, snippet, message body, labels, and attachment metadata — only when you explicitly connect Gmail. TaskTornado displays this data on request and does not save messages to its database. If you choose “Remind in,” TaskTornado saves that message’s subject and Gmail message ID as homework; it does not save the body or sender for the reminder.',
     link: 'https://policies.google.com/privacy',
   },
   {
@@ -157,7 +157,7 @@ export default function PrivacyPolicy() {
             Privacy Policy
           </h1>
           <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
-            Last updated: July 28, 2026
+            Last updated: August 9, 2026
           </p>
         </motion.div>
 

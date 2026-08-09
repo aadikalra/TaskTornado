@@ -19,8 +19,10 @@ checklist, not legal advice.
   `AI_FEATURES_ENABLED=true`.
 - AI context is bounded, school-data access is read-only, and web search is
   not enabled.
-- Gmail and Google Classroom fail closed unless
-  `GOOGLE_INTEGRATIONS_ENABLED=true`.
+- Gmail and Google Classroom fail closed independently unless their
+  service-specific flags are enabled. The legacy
+  `GOOGLE_INTEGRATIONS_ENABLED=true` flag enables both and should not be used
+  when only one integration has completed review.
 - Upload, discussion board, study group, invitation, and group-chat entry
   points are disabled.
 - Paid plans are previews only. Checkout is not enabled.
@@ -45,9 +47,11 @@ Classroom data to Groq merely because both integrations are enabled. That is a
 separate data-use decision requiring its own policy review and clear user
 disclosure.
 
-## Never enable Google integrations from configuration alone
+## Never enable Google integrations publicly from configuration alone
 
-Before setting `GOOGLE_INTEGRATIONS_ENABLED=true`:
+Before setting `GMAIL_INTEGRATION_ENABLED=true`,
+`GOOGLE_CLASSROOM_INTEGRATION_ENABLED=true`, or the legacy combined flag in a
+public environment:
 
 1. Use a dedicated, random `GOOGLE_TOKEN_ENCRYPTION_KEY`.
 2. Configure exact production redirect URIs.

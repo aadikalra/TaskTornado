@@ -93,6 +93,10 @@ export const AI_OUTPUT_LIMITS: Record<AiAction, number> = {
 };
 
 export function getAiActionForRequestedModel(model: unknown): AiAction {
+  if (model === 'bulk_generation') {
+    return 'bulk_generation';
+  }
+
   if (
     model === 'tutor' ||
     model === 'gemini-2.5-flash-lite' ||

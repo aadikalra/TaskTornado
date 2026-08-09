@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     windowMs: 60_000,
   });
   if (!access.ok) return access.response;
-  if (!googleIntegrationsEnabled()) {
+  if (!googleIntegrationsEnabled('classroom')) {
     return NextResponse.json(
       {
         error:

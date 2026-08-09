@@ -81,14 +81,6 @@ export const WeeklyCalendarWidget = () => {
     return map;
   }, [homeworks, tests, weekDays]);
 
-  const totalWeekItems = useMemo(
-    () => weekDays.reduce((total, day) => {
-      const items = itemsByDate[format(day, 'yyyy-MM-dd')];
-      return total + (items ? items.homeworks.length + items.tests.length + items.events.length : 0);
-    }, 0),
-    [itemsByDate, weekDays],
-  );
-
   useEffect(() => {
     if (manuallySelectedDay.current) return;
 
@@ -216,16 +208,96 @@ export const WeeklyCalendarWidget = () => {
     );
   };
 
+  const renderTableItems = (dayItems: DayItems) => {
+    const allItems = getCalendarItems(dayItems);
+    const visibleItems = allItems.slice(0, 3);
+
+    if (allItems.length === 0) {
+      return (
+        <div className="flex min-h-14 items-center justify-center text-xs font-medium text-sky-700/30 dark:text-sky-400/30">
+          No items
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-1.5">
+        {visibleItems.map(entry => {
+          if (entry.kind === 'homework') {
+            return (
+              <motion.button
+                type="button"
+                key={`table-hw-${entry.item.id}`}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => toggleHomework(entry.item.id)}
+                title={entry.item.title}
+                className={cn(
+                  'flex w-full min-w-0 items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors',
+                  entry.item.completed
+                    ? 'bg-sky-50/50 text-sky-400/55 line-through opacity-70 dark:bg-zinc-900/40 dark:text-sky-500/45'
+                    : 'bg-sky-100/75 text-sky-700 hover:bg-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25',
+                )}
+              >
+                <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{entry.item.title}</span>
+              </motion.button>
+            );
+          }
+
+          if (entry.kind === 'test') {
+            const classInfo = classes.find(item => item.id === entry.item.classId);
+            const ClassIcon = classInfo
+              ? getClassIcon(classInfo.icon)
+              : () => <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />;
+
+            return (
+              <div
+                key={`table-test-${entry.item.id}`}
+                title={entry.item.title}
+                className="flex min-w-0 items-center gap-2 rounded-xl bg-rose-100/75 px-2.5 py-2 text-sm font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
+              >
+                <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
+                  <ClassIcon />
+                </div>
+                <span className="truncate">{entry.item.title}</span>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={`table-event-${entry.item.id}`}
+              title={entry.item.title}
+              className="flex min-w-0 items-center gap-2 rounded-xl bg-emerald-100/75 px-2.5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+            >
+              <HugeIcon name="Calendar02" size={14} className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{entry.item.title}</span>
+            </div>
+          );
+        })}
+
+        {allItems.length > visibleItems.length && (
+          <Link
+            href="/calendar"
+            className="block px-1 pt-0.5 text-xs font-semibold text-sky-600 hover:text-sky-700 dark:text-sky-400"
+          >
+            +{allItems.length - visibleItems.length} more
+          </Link>
+        )}
+      </div>
+    );
+  };
+
   const selectedDay = weekDays[selectedMobileDay] || weekDays[0];
   const selectedDate = format(selectedDay, 'yyyy-MM-dd');
   const selectedItems = itemsByDate[selectedDate] || { homeworks: [], tests: [], events: [] };
 
   return (
     <div
-      className="relative group w-full mb-4 sm:mb-6 bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 rounded-[22px] sm:rounded-[28px] p-3 sm:p-4 shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] transition-all duration-500 overflow-hidden"
+      className="relative group w-full mb-4 sm:mb-6 bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 rounded-[22px] sm:rounded-[28px] shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] transition-all duration-500 overflow-hidden"
     >
       {/* Compact phone calendar: choose a day instead of stacking five full panels. */}
-      <div className="md:hidden">
+      <div className="p-3 sm:p-4 md:hidden">
         <div className="flex items-center justify-between px-1 pb-3">
           <button
             type="button"
@@ -312,92 +384,65 @@ export const WeeklyCalendarWidget = () => {
         </div>
       </div>
 
-      <div className="hidden md:block">
-        <div className="flex items-center gap-2.5">
+      <div className="relative hidden md:block">
+        <div className="group/previous absolute inset-y-0 left-0 z-20 flex w-12 items-center justify-start pl-2">
           <button
             type="button"
             onClick={prevWeek}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/65 text-sky-600 transition-colors hover:bg-white dark:bg-white/[0.05] dark:text-sky-300 dark:hover:bg-white/[0.08]"
+            className="flex h-9 w-9 -translate-x-2 items-center justify-center rounded-xl border border-sky-100 bg-white/95 text-sky-600 opacity-0 shadow-md transition-all duration-200 group-hover/previous:translate-x-0 group-hover/previous:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100 dark:border-sky-500/15 dark:bg-zinc-900/95 dark:text-sky-300"
             aria-label="Previous week"
           >
-            <HugeIcon name="ArrowLeft01" size={17} />
+            <HugeIcon name="ArrowLeft01" size={15} />
           </button>
+        </div>
 
-          <div className="w-32 shrink-0">
-            <p className="text-xs font-medium text-sky-600/45 dark:text-sky-300/40">School week</p>
-            <p className="text-sm font-semibold text-sky-950 dark:text-sky-100">
-              {format(weekDays[0], 'MMM d')}–{format(weekDays[4], 'MMM d')}
-            </p>
-            {totalWeekItems === 0 && (
-              <p className="text-[11px] font-normal text-emerald-600/65 dark:text-emerald-300/55">Nothing scheduled</p>
-            )}
-          </div>
-
-          <div className="grid min-w-0 flex-1 grid-cols-5 gap-1.5" role="tablist" aria-label="Choose a school day">
-            {weekDays.map((day, index) => {
-              const date = format(day, 'yyyy-MM-dd');
-              const dayItems = itemsByDate[date] || { homeworks: [], tests: [], events: [] };
-              const count = getCalendarItems(dayItems).length;
-              const isSelected = selectedMobileDay === index;
-
-              return (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={isSelected}
-                  key={date}
-                  onClick={() => selectDay(index)}
-                  className={cn(
-                    'flex h-10 min-w-0 items-center justify-center gap-2 rounded-2xl px-2 text-xs transition-colors',
-                    isSelected
-                      ? 'bg-sky-500 text-white shadow-sm'
-                      : 'bg-white/55 text-sky-700/65 hover:bg-white hover:text-sky-800 dark:bg-white/[0.04] dark:text-sky-300/60 dark:hover:bg-white/[0.07] dark:hover:text-sky-300',
-                  )}
-                >
-                  <span className="truncate font-medium">{format(day, 'EEE')}</span>
-                  <span className="font-semibold tabular-nums">{format(day, 'd')}</span>
-                  {count > 0 && (
-                    <span className={cn(
-                      'flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums',
-                      isSelected ? 'bg-white/20 text-white' : 'bg-sky-500/10 text-sky-600 dark:text-sky-300',
-                    )}>
-                      {count > 9 ? '9+' : count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
+        <div className="group/next absolute inset-y-0 right-0 z-20 flex w-12 items-center justify-end pr-2">
           <button
             type="button"
             onClick={nextWeek}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/65 text-sky-600 transition-colors hover:bg-white dark:bg-white/[0.05] dark:text-sky-300 dark:hover:bg-white/[0.08]"
+            className="flex h-9 w-9 translate-x-2 items-center justify-center rounded-xl border border-sky-100 bg-white/95 text-sky-600 opacity-0 shadow-md transition-all duration-200 group-hover/next:translate-x-0 group-hover/next:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100 dark:border-sky-500/15 dark:bg-zinc-900/95 dark:text-sky-300"
             aria-label="Next week"
           >
-            <HugeIcon name="ArrowRight01" size={17} />
+            <HugeIcon name="ArrowRight01" size={15} />
           </button>
-
         </div>
 
-        {totalWeekItems > 0 && (
-          <motion.div
-            key={selectedDate}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-2.5 flex items-start gap-3 rounded-2xl bg-white/45 p-2.5 dark:bg-white/[0.03]"
-          >
-            <div className="w-28 shrink-0 px-1 pt-1">
-              <p className="text-xs font-medium text-sky-600/45 dark:text-sky-300/40">
-                {isDateToday(selectedDay) ? 'Today' : format(selectedDay, 'EEEE')}
-              </p>
-              <p className="text-sm font-semibold text-sky-950 dark:text-sky-100">{format(selectedDay, 'MMMM d')}</p>
-            </div>
-            <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5 lg:grid-cols-2 xl:grid-cols-4">
-              {renderCalendarItems(selectedItems)}
-            </div>
-          </motion.div>
-        )}
+        <div>
+          <div className="grid grid-cols-5 divide-x divide-sky-100/90 dark:divide-sky-500/10">
+            {weekDays.map(day => {
+              const date = format(day, 'yyyy-MM-dd');
+              const dayItems = itemsByDate[date] || { homeworks: [], tests: [], events: [] };
+              const count = getCalendarItems(dayItems).length;
+              const isToday = isDateToday(day);
+
+              return (
+                <section key={date} className="min-w-0">
+                  <div className={cn(
+                    'flex h-10 items-center justify-between gap-2 border-b border-sky-100/90 px-3 dark:border-sky-500/10',
+                    isToday
+                      ? 'bg-sky-100/65 dark:bg-sky-500/12'
+                      : 'bg-sky-500/[0.04] dark:bg-white/[0.025]',
+                  )}>
+                    <p className={cn(
+                      'min-w-0 truncate text-sm font-bold uppercase tracking-tight sm:text-base',
+                      isToday ? 'text-sky-700 dark:text-sky-300' : 'text-sky-900 dark:text-sky-100',
+                    )}>
+                      {format(day, 'EEE d')}
+                    </p>
+                    {count > 0 && (
+                      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/10 px-1 text-[9px] font-bold tabular-nums text-sky-600 dark:text-sky-300">
+                        {count > 9 ? '9+' : count}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-h-16 p-2.5">
+                    {renderTableItems(dayItems)}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

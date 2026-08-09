@@ -10,7 +10,18 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export type GoogleOAuthService = 'gmail' | 'classroom';
 
-export function googleIntegrationsEnabled() {
+export function googleIntegrationsEnabled(service?: GoogleOAuthService) {
+  const serviceFlag =
+    service === 'gmail'
+      ? process.env.GMAIL_INTEGRATION_ENABLED
+      : service === 'classroom'
+        ? process.env.GOOGLE_CLASSROOM_INTEGRATION_ENABLED
+        : undefined;
+
+  if (serviceFlag !== undefined) {
+    return serviceFlag === 'true';
+  }
+
   return process.env.GOOGLE_INTEGRATIONS_ENABLED === 'true';
 }
 
@@ -162,7 +173,7 @@ export async function getGoogleClientForUser(
   userId: string,
   service: GoogleOAuthService
 ) {
-  if (!googleIntegrationsEnabled()) return null;
+  if (!googleIntegrationsEnabled(service)) return null;
 
   const connection = await getGoogleConnection(userId, service);
   if (!connection) return null;

@@ -4,8 +4,11 @@ import {
   getScorePercentage,
 } from '@/lib/ai/school-percentages';
 
-export async function getBoundedSchoolData(userId: string) {
-  const supabase = await createClient();
+export async function getBoundedSchoolData(
+  userId: string,
+  accessToken?: string
+) {
+  const supabase = await createClient(accessToken);
   const [classesResult, homeworkResult, testsResult] = await Promise.all([
     supabase
       .from('classes')

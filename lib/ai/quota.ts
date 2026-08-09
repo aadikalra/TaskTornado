@@ -32,8 +32,11 @@ export type QuotaResult =
       reason: string;
     };
 
-export async function reserveAiBurst(userId: string): Promise<QuotaResult> {
-  const supabase = await createClient();
+export async function reserveAiBurst(
+  userId: string,
+  accessToken?: string
+): Promise<QuotaResult> {
+  const supabase = await createClient(accessToken);
   const { data, error } = await supabase.rpc('reserve_ai_burst' as never);
 
   if (!error && data && typeof data === 'object') {
@@ -137,10 +140,11 @@ function reserveFallback(
 export async function reserveAiQuota(
   userId: string,
   action: AiAction,
-  tier: ServerPlanTier = 'free'
+  tier: ServerPlanTier = 'free',
+  accessToken?: string
 ): Promise<QuotaResult> {
   const limits = AI_PLAN_LIMITS[tier];
-  const supabase = await createClient();
+  const supabase = await createClient(accessToken);
   const { data, error } = await supabase.rpc('reserve_ai_quota' as never, {
     p_action: action,
     p_action_limit: limits[action],
@@ -187,9 +191,10 @@ export async function recordAiUsage(
   action: AiAction,
   model: string,
   promptTokens = 0,
-  completionTokens = 0
+  completionTokens = 0,
+  accessToken?: string
 ) {
-  const supabase = await createClient();
+  const supabase = await createClient(accessToken);
   const { error } = await supabase.rpc('record_ai_usage' as never, {
     p_action: action,
     p_model: model.slice(0, 100),

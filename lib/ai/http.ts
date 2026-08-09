@@ -29,7 +29,7 @@ export async function authorizeAiAction(
     };
   }
 
-  const burst = await reserveAiBurst(access.user.id);
+  const burst = await reserveAiBurst(access.user.id, access.accessToken);
   if (!burst.allowed) {
     return {
       ok: false as const,
@@ -50,7 +50,12 @@ export async function authorizeAiAction(
     };
   }
 
-  const quota = await reserveAiQuota(access.user.id, action, tier);
+  const quota = await reserveAiQuota(
+    access.user.id,
+    action,
+    tier,
+    access.accessToken
+  );
   if (!quota.allowed) {
     return {
       ok: false as const,

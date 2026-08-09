@@ -30,6 +30,18 @@ function getClientIp(request: Request): string {
   );
 }
 
+function getBearerToken(request: Request): string | null {
+  const authorization = request.headers.get('authorization')?.trim();
+  if (!authorization) return null;
+
+  const [scheme, token, ...rest] = authorization.split(/\s+/);
+  if (scheme?.toLowerCase() !== 'bearer' || !token || rest.length > 0) {
+    return null;
+  }
+
+  return token;
+}
+
 function consumeRateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const existing = rateLimits.get(key);
@@ -61,11 +73,14 @@ export async function guardAuthenticatedRequest(
     rateLimitKey,
   } = options;
 
-  const supabase = await createClient();
+  const accessToken = getBearerToken(request);
+  const supabase = await createClient(accessToken || undefined);
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser();
+  } = accessToken
+    ? await supabase.auth.getUser(accessToken)
+    : await supabase.auth.getUser();
 
   if (error || !user) {
     return {
@@ -210,7 +225,12 @@ export async function guardAuthenticatedRequest(
     };
   }
 
-  return { ok: true as const, user, profile };
+  return {
+    ok: true as const,
+    user,
+    profile,
+    accessToken: accessToken || undefined,
+  };
 }
 
 export function guardAiRequest(request: Request) {

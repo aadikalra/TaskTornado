@@ -10,7 +10,7 @@ import {
 export async function GET(request: NextRequest) {
   const access = await guardAuthenticatedRequest(request);
   if (!access.ok) return access.response;
-  if (!googleIntegrationsEnabled()) {
+  if (!googleIntegrationsEnabled('classroom')) {
     return NextResponse.json({
       authenticated: false,
       enabled: false,
