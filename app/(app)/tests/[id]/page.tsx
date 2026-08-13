@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, Clock, Edit, BookOpen, GraduationCap, ExternalLink
 import Link from 'next/link';
 import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 const CLASS_COLORS = ['#DC2626', '#2563EB', '#D97706', '#16A34A', '#7C3AED', '#DB2777', '#0D9488', '#475569'];
 
@@ -67,7 +68,7 @@ export default function TestDetailPage() {
 
   const ClassIcon = classItem ? (iconMap[classItem.icon as keyof typeof iconMap] ?? GraduationCap) : GraduationCap;
 
-  const testDate = new Date(test.testDate);
+  const testDate = parseCalendarDate(test.testDate);
   const formattedDate = testDate.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',

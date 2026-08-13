@@ -1,12 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { format, addDays } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
 import { Database } from '@/types/database.types';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
+import { formatCalendarDate, parseCalendarDate } from '@/lib/dateUtils';
 
 export type Priority = 'low' | 'medium' | 'high';
 
@@ -19,7 +19,7 @@ export type Test = Omit<Database['public']['Tables']['tests']['Row'],
   'max_score' | 'completed_at' | 'created_at' | 'updated_at'
 > & {
   classId: string;
-  testDate: string; // ISO date string
+  testDate: string; // Calendar date in yyyy-MM-dd format
   testTime: string | null; // ISO time string
   testType: TestType;
   maxScore: number | null;
@@ -231,7 +231,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
       classId,
       title,
       description: options.description || '',
-      testDate: format(testDate, 'yyyy-MM-dd'),
+      testDate: formatCalendarDate(testDate),
       testTime: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : null,
       testType,
       maxScore: null,
@@ -252,7 +252,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
       const testData = {
         title,
         description: options.description || '',
-        test_date: format(addDays(testDate, 1), 'yyyy-MM-dd'),
+        test_date: formatCalendarDate(testDate),
         test_time: options.testTime ? options.testTime.toISOString().split('T')[1].split('.')[0] : null,
         test_type: testType,
         weight: options.weight,
@@ -302,7 +302,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
       const dbUpdates: Record<string, any> = {
         title: updateData.title,
         description: updateData.description,
-        test_date: updateData.testDate ? new Date(updateData.testDate).toISOString().split('T')[0] : undefined,
+        test_date: updateData.testDate ? formatCalendarDate(updateData.testDate) : undefined,
         test_time: updateData.testTime || undefined,
         test_type: updateData.testType,
         weight: updateData.weight,
@@ -340,7 +340,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
   const updateTestDueDate = async (testId: string, newDueDate: Date) => {
     if (!user) throw new Error('User not authenticated');
     try {
-      const formattedDate = format(newDueDate, 'yyyy-MM-dd');
+      const formattedDate = formatCalendarDate(newDueDate);
       await db.updateTest(testId, { test_date: formattedDate });
       setTests(prev => prev.map(test => test.id === testId ? { ...test, testDate: formattedDate } : test));
     } catch (err) {
@@ -362,16 +362,18 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
 
   const getUpcomingTests = (daysAhead: number = 30): Test[] => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const futureDate = new Date();
+    futureDate.setHours(0, 0, 0, 0);
     futureDate.setDate(today.getDate() + daysAhead);
     return tests.filter(test => {
-      const testDate = new Date(test.testDate);
+      const testDate = parseCalendarDate(test.testDate);
       return testDate >= today && testDate <= futureDate && test.status === 'upcoming';
-    }).sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
+    }).sort((a, b) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime());
   };
 
   const getTestsByClass = (classId: string): Test[] => {
-    return tests.filter(test => test.classId === classId).sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
+    return tests.filter(test => test.classId === classId).sort((a, b) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime());
   };
 
   const updateTestStatus = async (id: string, status: TestStatus) => {

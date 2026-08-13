@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { getClassIcon } from '@/lib/icon-map';
 import { Test, Class } from '@/context/ClassContext';
-import { getDueDateLabel } from '@/lib/dateUtils';
+import { getDueDateLabel, parseCalendarDate } from '@/lib/dateUtils';
 import Link from 'next/link';
 import { LinkCard } from './LinkCard';
 
@@ -55,7 +55,7 @@ export const TestDetailModal = ({
     const TypeIcon = config.icon;
     const classIconName = classInfo ? getClassIcon(classInfo.icon) : 'BookOpen';
 
-    const dueDateLabel = getDueDateLabel(new Date(test.testDate), true);
+    const dueDateLabel = getDueDateLabel(parseCalendarDate(test.testDate), true);
     const hasScore = test.grade || (test.score !== null && test.maxScore !== null);
     const displayScore = test.grade || (test.score !== null ? `${test.score}/${test.maxScore}` : '');
 

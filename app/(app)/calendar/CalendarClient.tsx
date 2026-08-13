@@ -25,6 +25,7 @@ import { getClassIcon } from '@/lib/icon-map';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 // Touch device detection
 const isTouchDevice = () => {
@@ -185,7 +186,7 @@ export default function CalendarClient() {
     });
     tests.forEach((test: Test) => {
       try {
-        const date = new Date(test.testDate);
+        const date = parseCalendarDate(test.testDate);
         if (!isNaN(date.getTime())) {
           const dateStr = format(date, 'yyyy-MM-dd');
           if (!testMap[dateStr]) testMap[dateStr] = [];
@@ -267,15 +268,15 @@ export default function CalendarClient() {
 
     const testItems = tests
       .filter((t: Test) => {
-        const d = new Date(t.testDate);
+        const d = parseCalendarDate(t.testDate);
         d.setHours(0, 0, 0, 0);
         return d >= today;
       })
-      .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())
+      .sort((a: Test, b: Test) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime())
       .slice(0, 5)
       .map((t: Test) => {
         const classItem = classes.find((c: Class) => c.id === t.classId);
-        return { id: t.id, title: t.title, date: new Date(t.testDate), type: 'test' as const, className: classItem?.name || '' };
+        return { id: t.id, title: t.title, date: parseCalendarDate(t.testDate), type: 'test' as const, className: classItem?.name || '' };
       });
 
     return [...hwItems, ...testItems].sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 8);
@@ -286,7 +287,7 @@ export default function CalendarClient() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const hwCount = homeworks.filter((hw: Homework) => { const d = new Date(hw.dueDate); d.setHours(0, 0, 0, 0); return d >= today; }).length;
-    const testCount = tests.filter((t: Test) => { const d = new Date(t.testDate); d.setHours(0, 0, 0, 0); return d >= today; }).length;
+    const testCount = tests.filter((t: Test) => parseCalendarDate(t.testDate) >= today).length;
     const eventCount = days.filter(d => d.events.length > 0 && d.isCurrentMonth).length;
     return { hwCount, testCount, eventCount };
   }, [homeworks, tests, days]);

@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { schoolYear2026_2027, getEventsForDate } from '@/data/schoolEvents';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 export const MiniCalendar = () => {
     const [currentMonth, setCurrentMonth] = React.useState(new Date());
@@ -62,7 +63,7 @@ export const MiniCalendar = () => {
 
         tests.forEach((test: Test) => {
             try {
-                const date = new Date(test.testDate);
+                const date = parseCalendarDate(test.testDate);
                 if (!isNaN(date.getTime())) {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     if (!testMap[dateStr]) testMap[dateStr] = [];

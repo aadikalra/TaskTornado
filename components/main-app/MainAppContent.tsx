@@ -99,6 +99,7 @@ import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useTestContext } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 
 import { useMainApp } from '@/context/MainAppContext';
@@ -574,7 +575,7 @@ export const MainAppContent = () => {
   const processedClasses = useMemo(() => {
     return classes.map((cls: any, index: number) => {
       const classTests = tests.filter((t: any) => {
-        const testDate = new Date(t.testDate);
+        const testDate = parseCalendarDate(t.testDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return t.classId === cls.id && t.status !== 'taken' && t.status !== 'completed' && testDate >= today;
@@ -658,10 +659,10 @@ export const MainAppContent = () => {
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
     const next = tests
-      .filter((test: Test) => test.status !== 'taken' && new Date(test.testDate) >= todayStart)
-      .sort((a: Test, b: Test) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0] || null;
+      .filter((test: Test) => test.status !== 'taken' && parseCalendarDate(test.testDate) >= todayStart)
+      .sort((a: Test, b: Test) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime())[0] || null;
     const days = next
-      ? Math.ceil((new Date(next.testDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      ? Math.ceil((parseCalendarDate(next.testDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       : null;
     return { nextUpcomingTest: next, daysUntilNextTest: days };
   }, [tests]);
@@ -672,12 +673,12 @@ export const MainAppContent = () => {
 
     return [...tests]
       .filter((test: Test) => {
-        const testDate = new Date(`${test.testDate}T00:00:00`);
+        const testDate = parseCalendarDate(test.testDate);
         const status = test.status?.toLowerCase();
         return testDate >= today && status !== 'taken' && status !== 'completed';
       })
       .sort((left: Test, right: Test) =>
-        new Date(left.testDate).getTime() - new Date(right.testDate).getTime()
+        parseCalendarDate(left.testDate).getTime() - parseCalendarDate(right.testDate).getTime()
       )
       .slice(0, 4);
   }, [tests]);
@@ -1322,7 +1323,7 @@ export const MainAppContent = () => {
                                 </span>
                               </span>
                               <span className="text-[10px] font-bold text-sky-500/50 shrink-0">
-                                {new Date(`${nextClassTest.testDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                {parseCalendarDate(nextClassTest.testDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
                             </button>
                           )}

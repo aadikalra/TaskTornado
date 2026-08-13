@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Test, Class } from '@/context/ClassContext';
-import { getDueDateLabel, getDueDateIcon } from '@/lib/dateUtils';
+import { getDueDateLabel, getDueDateIcon, parseCalendarDate } from '@/lib/dateUtils';
 import { HugeIcon } from '@/lib/huge-icon-map';
 
 type EnhancedTestCardProps = {
@@ -95,8 +95,9 @@ const EnhancedTestCard = ({
   }, [test.testType]);
 
   const TestTypeIcon = testTypeConfig.icon;
-  const DueIcon = getDueDateIcon(new Date(test.testDate), true);
-  const dueDateLabel = getDueDateLabel(new Date(test.testDate), true);
+  const parsedTestDate = parseCalendarDate(test.testDate);
+  const DueIcon = getDueDateIcon(parsedTestDate, true);
+  const dueDateLabel = getDueDateLabel(parsedTestDate, true);
 
   // Render logic for grade/score
   const hasScore = test.grade || (test.score !== null && test.maxScore !== null);

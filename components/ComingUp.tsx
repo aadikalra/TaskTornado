@@ -7,6 +7,7 @@ import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
 import { useTestContext, type Test } from '@/context/TestContext';
 import { schoolYear2026_2027 } from '@/data/schoolEvents';
 import { HugeIcon } from '@/lib/huge-icon-map';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 type UpcomingItem = {
     id: string;
@@ -52,7 +53,7 @@ export const useUpcomingItems = () => {
         tests.forEach((test: Test) => {
             if (test.status !== 'upcoming') return;
             try {
-                const date = new Date(test.testDate);
+                const date = parseCalendarDate(test.testDate);
                 if (!isNaN(date.getTime()) && date >= today) {
                     const classItem = classes.find(c => c.id === test.classId);
                     items.push({

@@ -21,6 +21,7 @@ import {
   type SearchSection,
 } from '@/lib/search/site-search';
 import { Button } from '@/components/animate-ui/components/buttons/button';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 interface FlashcardDeckSearchItem {
   id: string;
@@ -281,7 +282,7 @@ export function SearchResults() {
 
     const testItems: SearchItem[] = tests.map(testItem => {
       const classItem = classById.get(testItem.classId);
-      const testDate = formatDate(testItem.testDate);
+      const testDate = formatDate(parseCalendarDate(testItem.testDate));
       return {
         id: `test:${testItem.id}`,
         title: testItem.title,

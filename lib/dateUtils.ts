@@ -1,4 +1,4 @@
-import { format, isPast, isToday, isTomorrow, differenceInDays } from 'date-fns';
+import { format, isPast, isToday, isTomorrow, differenceInCalendarDays } from 'date-fns';
 import {
   AlertCircle,
   AlertTriangle,
@@ -8,6 +8,27 @@ import {
 } from 'lucide-react';
 
 export type DueDateStatus = 'overdue' | 'today' | 'tomorrow' | 'upcoming' | 'no-date';
+
+/**
+ * Parse a calendar date without applying a timezone offset.
+ *
+ * Supabase `DATE` columns arrive as `yyyy-MM-dd`. Passing that value directly
+ * to `new Date()` interprets it as UTC, so users west of UTC see the previous
+ * day. Test dates are calendar dates, not instants, and must stay on the day
+ * the user selected.
+ */
+export const parseCalendarDate = (value: string | Date): Date => {
+  if (value instanceof Date) return new Date(value.getTime());
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) return new Date(Number.NaN);
+
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
+export const formatCalendarDate = (value: string | Date): string =>
+  format(parseCalendarDate(value), 'yyyy-MM-dd');
 
 export const getDueDateStatus = (dueDate: Date): DueDateStatus => {
   if (!dueDate) return 'no-date';
@@ -39,7 +60,7 @@ export const getDueDateLabel = (dueDate: Date, isTest: boolean = false): string 
     case 'overdue':
       return `Completed: ${formattedDate}`;
     case 'upcoming':
-      const daysUntil = differenceInDays(dueDate, new Date());
+      const daysUntil = differenceInCalendarDays(dueDate, new Date());
       return `${daysUntil} ${daysUntil === 1 ? 'day' : 'days'}, ${formattedDate}`;
     default:
       return formattedDate;

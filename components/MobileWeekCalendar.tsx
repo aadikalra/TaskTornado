@@ -16,6 +16,7 @@ import { useTestContext, type Test } from '@/context/TestContext';
 import { cn } from '@/lib/utils';
 import { getEventsForDate, schoolYear2026_2027 } from '@/data/schoolEvents';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 export const MobileWeekCalendar = () => {
     const [viewDate, setViewDate] = React.useState(new Date());
@@ -58,7 +59,7 @@ export const MobileWeekCalendar = () => {
 
         tests.forEach((test: Test) => {
             try {
-                const date = new Date(test.testDate);
+                const date = parseCalendarDate(test.testDate);
                 if (!isNaN(date.getTime())) {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     if (!testMap[dateStr]) testMap[dateStr] = [];

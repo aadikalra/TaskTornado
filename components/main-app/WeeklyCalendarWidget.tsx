@@ -18,6 +18,7 @@ import { getEventsForDate, schoolYear2026_2027 } from '@/data/schoolEvents';
 import { getClassIcon } from '@/lib/icon-map';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { cn } from '@/lib/utils';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 type DayItems = {
   homeworks: Homework[];
@@ -65,7 +66,7 @@ export const WeeklyCalendarWidget = () => {
 
     tests.forEach(test => {
       if (!test.testDate) return;
-      const date = new Date(test.testDate);
+      const date = parseCalendarDate(test.testDate);
       if (Number.isNaN(date.getTime())) return;
       map[format(date, 'yyyy-MM-dd')]?.tests.push(test);
     });

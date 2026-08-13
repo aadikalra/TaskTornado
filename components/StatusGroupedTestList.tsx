@@ -6,6 +6,7 @@ import { useClassContext } from '@/context/ClassContext';
 import type { Test as TestType } from '@/context/ClassContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { TestDetailModal } from './TestDetailModal';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 type StatusGroupedTestListProps = {
   tests: TestType[];
@@ -58,7 +59,7 @@ const StatusGroupedTestList = ({
   }, [classIndexMap]);
 
   const sortedTests = useMemo(() => {
-    return [...tests].sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime());
+    return [...tests].sort((a, b) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime());
   }, [tests]);
 
   const groupedTests = useMemo(() => {
@@ -68,8 +69,7 @@ const StatusGroupedTestList = ({
     const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     sortedTests.forEach(test => {
-      // Parse ISO date string (YYYY-MM-DD) precisely to avoid UTC shifts
-      const tDate = new Date(test.testDate + 'T00:00:00');
+      const tDate = parseCalendarDate(test.testDate);
       
       if (tDate < localToday || test.status?.toLowerCase() === 'completed') {
         groups.taken.push(test);
@@ -125,10 +125,10 @@ const StatusGroupedTestList = ({
     const classInfo = classesById.get(test.classId);
     const color = getColorForClass(test.classId);
     const TypeIcon = getTestTypeIcon(test.testType);
-    const dueDate = new Date(`${test.testDate}T00:00:00`);
+    const dueDate = parseCalendarDate(test.testDate);
     const dueDateLabel = getDueDateLabel(dueDate);
     const badgeClasses = getTestTypeBadgeClasses(test.testType);
-    const isPast = new Date(test.testDate + 'T00:00:00') < new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) || test.status?.toLowerCase() === 'completed';
+    const isPast = dueDate < new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) || test.status?.toLowerCase() === 'completed';
     const isToday = dueDateLabel === 'Today';
     const isTomorrow = dueDateLabel === 'Tomorrow';
     const exactDateLabel = dueDate.toLocaleDateString('en-US', {

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { parseCalendarDate } from '@/lib/dateUtils';
 import { Calendar as CalendarIcon, X, Save, ArrowLeft, Loader2, GraduationCap, Plus, Link as LinkIcon } from 'lucide-react';
 import {
   Popover,
@@ -77,7 +78,7 @@ export default function EditTestPage() {
     if (test) {
       setTitle(test.title);
       setClassId(test.classId);
-      setTestDate(new Date(test.testDate));
+      setTestDate(parseCalendarDate(test.testDate));
       setTestTime(test.testTime || '');
       setTestType(test.testType || 'Quiz');
       setDescription(test.description || '');

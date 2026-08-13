@@ -6,6 +6,7 @@ import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useTestContext } from '@/context/TestContext';
 import { useClassContext } from '@/context/ClassContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 export const NeedsAttentionStrip = () => {
   const { homeworks = [] } = useHomeworkContext() || {};
@@ -30,9 +31,9 @@ export const NeedsAttentionStrip = () => {
     const nextTest = [...tests]
       .filter(test => {
         const status = test.status?.toLowerCase();
-        return status !== 'taken' && status !== 'completed' && new Date(`${test.testDate}T00:00:00`) >= today;
+        return status !== 'taken' && status !== 'completed' && parseCalendarDate(test.testDate) >= today;
       })
-      .sort((left, right) => new Date(left.testDate).getTime() - new Date(right.testDate).getTime())[0];
+      .sort((left, right) => parseCalendarDate(left.testDate).getTime() - parseCalendarDate(right.testDate).getTime())[0];
 
     const items: Array<{
       key: string;
@@ -70,7 +71,7 @@ export const NeedsAttentionStrip = () => {
 
     if (nextTest) {
       const className = classes.find(classItem => classItem.id === nextTest.classId)?.name;
-      const date = new Date(`${nextTest.testDate}T00:00:00`);
+      const date = parseCalendarDate(nextTest.testDate);
       items.push({
         key: 'test',
         href: '/tests',

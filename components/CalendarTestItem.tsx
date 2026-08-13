@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Test, Class } from '@/context/ClassContext';
-import { getDueDateLabel } from '@/lib/dateUtils';
+import { getDueDateLabel, parseCalendarDate } from '@/lib/dateUtils';
 import {
   Target,
   Zap,
@@ -121,7 +121,7 @@ const CalendarTestItem = ({
                 // Create a proper drag event for handleDragStart
                 const dragEvent = e as unknown as React.DragEvent;
                 // Normalize the source date to start of day
-                const normalizedSourceDate = new Date(new Date(test.testDate).getFullYear(), new Date(test.testDate).getMonth(), new Date(test.testDate).getDate());
+                const normalizedSourceDate = parseCalendarDate(test.testDate);
                 handleDragStart(dragEvent, test.id, 'test', normalizedSourceDate);
               }
             } : undefined}
@@ -149,7 +149,7 @@ const CalendarTestItem = ({
             )}
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
               <Calendar className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
-              <span>{getDueDateLabel(new Date(test.testDate), true)}</span>
+              <span>{getDueDateLabel(parseCalendarDate(test.testDate), true)}</span>
             </div>
             {test.testTime && (
               <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">

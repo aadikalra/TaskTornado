@@ -17,6 +17,7 @@ import {
     Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type NotificationType = 'urgent' | 'warning' | 'info' | 'success';
@@ -143,7 +144,7 @@ export function useNotifications() {
         const activeTests = tests.filter(t => t.status !== 'taken' && t.status !== 'completed' && t.status !== 'cancelled');
 
         for (const test of activeTests) {
-            const testDay = new Date(test.testDate);
+            const testDay = parseCalendarDate(test.testDate);
             const testDayOnly = new Date(testDay.getFullYear(), testDay.getMonth(), testDay.getDate());
             const className = getClassName(test.classId);
             const daysUntil = Math.ceil((testDayOnly.getTime() - today.getTime()) / 86400000);

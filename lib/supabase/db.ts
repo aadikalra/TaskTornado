@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { Database } from '@/types/database.types';
+import { formatCalendarDate } from '@/lib/dateUtils';
 
 type Tables = Database['public']['Tables'];
 type ClassInsert = Tables['classes']['Insert'];
@@ -216,11 +217,11 @@ export const db = {
     }
 
     if (filters.testDateAfter) {
-      query = query.gte('test_date', filters.testDateAfter.toISOString().split('T')[0]);
+      query = query.gte('test_date', formatCalendarDate(filters.testDateAfter));
     }
 
     if (filters.testDateBefore) {
-      query = query.lte('test_date', filters.testDateBefore.toISOString().split('T')[0]);
+      query = query.lte('test_date', formatCalendarDate(filters.testDateBefore));
     }
 
     query = query.order('test_date', { ascending: true });

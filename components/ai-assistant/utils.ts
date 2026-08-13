@@ -1,5 +1,6 @@
 import { AIChecklistData, InteractiveButton, Message } from './types';
 import { Class, Homework, Test } from '@/context/ClassContext';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 export function parseInteractiveButtons(content: string): { content: string; buttons: InteractiveButton[] } {
   const buttonRegex = /```interactive_buttons\n([\s\S]*?)\n```/g;
@@ -129,13 +130,13 @@ export const generateDataContext = (
     .slice(0, 10);
 
   const upcomingTests = tests
-    .filter((test) => new Date(test.testDate) >= now)
-    .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())
+    .filter((test) => parseCalendarDate(test.testDate) >= now)
+    .sort((a, b) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime())
     .slice(0, 10);
 
   const pastTests = tests
-    .filter((test) => new Date(test.testDate) < now)
-    .sort((a, b) => new Date(b.testDate).getTime() - new Date(a.testDate).getTime())
+    .filter((test) => parseCalendarDate(test.testDate) < now)
+    .sort((a, b) => parseCalendarDate(b.testDate).getTime() - parseCalendarDate(a.testDate).getTime())
     .slice(0, 10);
 
   let context = 'SCHOOL DATA CONTEXT:\n\n';
@@ -181,7 +182,7 @@ export const generateDataContext = (
 
   const formatTest = (test: Test) => {
     const cls = getClassById(test.classId);
-    const testDate = new Date(test.testDate);
+    const testDate = parseCalendarDate(test.testDate);
     const dateString = testDate.toLocaleDateString();
     let when = '';
 

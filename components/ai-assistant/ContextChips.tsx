@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useTestContext } from '@/context/TestContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
+import { parseCalendarDate } from '@/lib/dateUtils';
 
 interface ContextChipProps {
   onChipClick: (prompt: string) => void;
@@ -39,8 +40,8 @@ export const ContextChips = ({ onChipClick, className = '' }: ContextChipProps) 
     }
 
     const nextTest = tests
-      .filter(t => t.status !== 'taken' && new Date(t.testDate) >= new Date(new Date().setHours(0, 0, 0, 0)))
-      .sort((a, b) => new Date(a.testDate).getTime() - new Date(b.testDate).getTime())[0];
+      .filter(t => t.status !== 'taken' && parseCalendarDate(t.testDate) >= new Date(new Date().setHours(0, 0, 0, 0)))
+      .sort((a, b) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime())[0];
 
     if (nextTest) {
       priorityChips.push({
