@@ -697,7 +697,7 @@ export const MainAppContent = () => {
       case 'classes':
         const effectivelyShowClasses = showTestsInClassCards || showClasses;
         return (
-          <div key="classes" className="order-3 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="classes">
+          <div key="classes" className="order-2 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="classes">
             <div>
               <div
                 className={`mb-3 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
@@ -1448,7 +1448,7 @@ export const MainAppContent = () => {
 
       case 'tests':
         return (
-          <div key="tests" className="order-2 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="tests">
+          <div key="tests" className="order-3 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="tests">
             <div>
               <div
                 className={`mb-3 group cursor-pointer`}

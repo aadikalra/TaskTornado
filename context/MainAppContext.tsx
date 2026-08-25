@@ -75,6 +75,9 @@ interface MainAppContextType {
   showTests: boolean;
   setShowTests: (show: boolean) => void;
   toggleShowTests: () => void;
+  showCalendarWidget: boolean;
+  setShowCalendarWidget: (show: boolean) => void;
+  toggleShowCalendarWidget: () => void;
   showTestsInClassCards: boolean;
   setShowTestsInClassCards: (show: boolean) => void;
   toggleShowTestsInClassCards: () => void;
@@ -131,6 +134,11 @@ export const MainAppProvider = ({ children }: { children: ReactNode }) => {
     return saved !== null ? saved === 'true' : true;
   });
 
+  const [showCalendarWidget, setShowCalendarWidgetState] = useState(() => {
+    const saved = getCookie('showCalendarWidget');
+    return saved !== null ? saved === 'true' : true;
+  });
+
   const [showTestsInClassCards, setShowTestsInClassCardsState] = useState(() => {
     const saved = getCookie('showTestsInClassCards');
     return saved !== null ? saved === 'true' : false;
@@ -166,6 +174,14 @@ export const MainAppProvider = ({ children }: { children: ReactNode }) => {
     setShowTestsState(prev => {
       const next = !prev;
       setCookie('showTests', next.toString());
+      return next;
+    });
+  }, []);
+
+  const toggleShowCalendarWidget = useCallback(() => {
+    setShowCalendarWidgetState(prev => {
+      const next = !prev;
+      setCookie('showCalendarWidget', next.toString());
       return next;
     });
   }, []);
@@ -220,6 +236,7 @@ export const MainAppProvider = ({ children }: { children: ReactNode }) => {
     showPinnedHomeworks, setShowPinnedHomeworks: setShowPinnedHomeworksState, toggleShowPinnedHomeworks,
     showClasses, setShowClasses: setShowClassesState, toggleShowClasses,
     showTests, setShowTests: setShowTestsState, toggleShowTests,
+    showCalendarWidget, setShowCalendarWidget: setShowCalendarWidgetState, toggleShowCalendarWidget,
     showTestsInClassCards, setShowTestsInClassCards: setShowTestsInClassCardsState, toggleShowTestsInClassCards,
     expandedClasses, setExpandedClasses: setExpandedClassesState, toggleExpandedClass,
     showArchivedForClass, setShowArchivedForClass: setShowArchivedForClassState, toggleShowArchivedForClass,

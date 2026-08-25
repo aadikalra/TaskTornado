@@ -1,6 +1,6 @@
 'use client';
 
-import { Brain, Check, Maximize2, BookOpen, Crown, FlaskConical, Sparkles, Compass, GraduationCap } from 'lucide-react';
+import { Brain, Check, Maximize2, BookOpen, CalendarDays, Crown, FlaskConical, Sparkles, Compass, GraduationCap } from 'lucide-react';
 import { Switch } from '@/components/animate-ui/components/base/switch';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -16,6 +16,8 @@ interface PreferencesSectionProps {
   onPersonalityChange: (value: AIPersonality) => void;
   useWideLayout: boolean;
   onToggleWideLayout: (checked: boolean) => void;
+  showCalendarWidget: boolean;
+  onToggleCalendarWidget: (checked: boolean) => void;
   showTestsInClassCards: boolean;
   onToggleTestsInClassCards: (checked: boolean) => void;
   advancedAIMode: boolean;
@@ -27,6 +29,8 @@ export default function PreferencesSection({
   onPersonalityChange,
   useWideLayout,
   onToggleWideLayout,
+  showCalendarWidget,
+  onToggleCalendarWidget,
   showTestsInClassCards,
   onToggleTestsInClassCards,
   advancedAIMode,
@@ -108,6 +112,24 @@ export default function PreferencesSection({
         <Switch
           checked={useWideLayout}
           onCheckedChange={onToggleWideLayout}
+        />
+      </div>
+
+      <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
+        <div className="flex items-center gap-3">
+          <CalendarDays className="h-[18px] w-[18px] text-sky-500/50" />
+          <div className="flex flex-col">
+            <span className="text-[14px] font-medium text-sky-900 dark:text-sky-100">
+              Calendar Widget
+            </span>
+            <span className="text-[11px] text-sky-600/40 dark:text-sky-400/40">
+              Show the weekly calendar on your dashboard
+            </span>
+          </div>
+        </div>
+        <Switch
+          checked={showCalendarWidget}
+          onCheckedChange={onToggleCalendarWidget}
         />
       </div>
 

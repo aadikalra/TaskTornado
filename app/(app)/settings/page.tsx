@@ -61,6 +61,19 @@ export default function SettingsPage() {
   const { isDark } = useDarkMode();
   const { useWideLayout: isWideLayout, toggleWideLayout } = useWideLayout();
 
+  const [showCalendarWidget, setShowCalendarWidget] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getCookie('showCalendarWidget');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  const handleToggleCalendarWidget = (checked: boolean) => {
+    setShowCalendarWidget(checked);
+    setCookie('showCalendarWidget', checked.toString());
+  };
+
   const [useDyslexicFont, setUseDyslexicFont] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = getCookie('useDyslexicFont');
@@ -346,6 +359,8 @@ export default function SettingsPage() {
                 onPersonalityChange={handlePersonalityChange}
                 useWideLayout={isWideLayout}
                 onToggleWideLayout={toggleWideLayout}
+                showCalendarWidget={showCalendarWidget}
+                onToggleCalendarWidget={handleToggleCalendarWidget}
                 showTestsInClassCards={showTestsInClassCards}
                 onToggleTestsInClassCards={handleToggleTestsInClassCards}
                 advancedAIMode={advancedAIMode}
