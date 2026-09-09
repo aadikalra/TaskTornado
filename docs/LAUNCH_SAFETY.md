@@ -19,9 +19,9 @@ checklist, not legal advice.
   `AI_FEATURES_ENABLED=true`.
 - AI context is bounded, school-data access is read-only, and web search is
   not enabled.
-- Gmail and Google Classroom fail closed independently unless their
+- Gmail, Google Classroom, and Google Calendar fail closed independently unless their
   service-specific flags are enabled. The legacy
-  `GOOGLE_INTEGRATIONS_ENABLED=true` flag enables both and should not be used
+  `GOOGLE_INTEGRATIONS_ENABLED=true` flag enables all three and should not be used
   when only one integration has completed review.
 - Upload, discussion board, study group, invitation, and group-chat entry
   points are disabled.
@@ -50,7 +50,8 @@ disclosure.
 ## Never enable Google integrations publicly from configuration alone
 
 Before setting `GMAIL_INTEGRATION_ENABLED=true`,
-`GOOGLE_CLASSROOM_INTEGRATION_ENABLED=true`, or the legacy combined flag in a
+`GOOGLE_CLASSROOM_INTEGRATION_ENABLED=true`,
+`GOOGLE_CALENDAR_INTEGRATION_ENABLED=true`, or the legacy combined flag in a
 public environment:
 
 1. Use a dedicated, random `GOOGLE_TOKEN_ENCRYPTION_KEY`.

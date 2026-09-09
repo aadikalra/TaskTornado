@@ -372,7 +372,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
               selectedItems.has(item.id) && "ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900"
             )}
           >
-            <div className="flex items-center space-x-2">
+            <div className="flex items-start space-x-2">
               {!isSelectionMode && (
                 <Checkbox
                   checked={item.completed}
@@ -409,9 +409,9 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                   />
                 </div>
               )}
-              <div className="relative inline-block flex-1 group">
-                <div className="flex justify-between items-start w-full">
-                  <div className="flex items-center gap-2">
+              <div className="relative inline-block min-w-0 flex-1 group">
+                <div className="flex items-start justify-between gap-2 w-full">
+                  <div className="flex min-w-0 flex-1 items-start gap-2">
                     {/* Selection Checkbox - removed from here as it's now conditionally at the left */}
 
                     {!item.completed && (
@@ -441,7 +441,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                         )}
                       </div>
                     )}
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-1 flex-col">
                       <label
                         htmlFor={`checkbox-${item.id}`}
                         onClick={(e) => {
@@ -481,7 +481,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                         {item.links && item.links.length > 0 && !item.completed && (
                           <>
                             {!item.completed && <span className="text-sky-300 dark:text-sky-700/60 font-bold">•</span>}
-                            <div className="flex flex-wrap items-center gap-1">
+                            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
                               {item.links.map((link, index) => (
                                 <LinkCard
                                   key={link.id || `link-${index}`}
@@ -496,7 +496,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                     </div>
                   </div>
                   {!item.completed && item.onDelete && !isGoogleClassroomAssignment(item) && (
-                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover/hw:opacity-100 transition-opacity duration-200">
+                    <div className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover/hw:opacity-100 transition-opacity duration-200">
                       <Link href={`/homework/edit/${item.id}`}>
                         <button
                           className="h-8 w-8 flex items-center justify-center rounded-lg text-sky-400/40 hover:text-sky-500 hover:bg-sky-500/4 transition-colors"

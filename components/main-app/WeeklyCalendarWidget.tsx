@@ -327,6 +327,7 @@ export const WeeklyCalendarWidget = () => {
         <div className="grid grid-cols-5 gap-1.5" role="tablist" aria-label="Choose a school day">
           {weekDays.map((day, index) => {
             const isSelected = selectedMobileDay === index;
+            const isToday = isDateToday(day);
             const dayItems = itemsByDate[format(day, 'yyyy-MM-dd')];
             const count = getCalendarItems(dayItems).length;
 
@@ -344,6 +345,16 @@ export const WeeklyCalendarWidget = () => {
                     : 'bg-white/55 dark:bg-white/[0.04] text-sky-700 dark:text-sky-300 border-sky-100 dark:border-sky-500/10',
                 )}
               >
+                {isToday && (
+                  <span className={cn(
+                    'rounded-full px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wide leading-none',
+                    isSelected
+                      ? 'bg-[#ebf6b5] text-sky-900'
+                      : 'bg-sky-500/10 text-sky-700 dark:bg-sky-400/20 dark:text-sky-200',
+                  )}>
+                    Today
+                  </span>
+                )}
                 <span className="text-[9px] font-extrabold uppercase tracking-wide">
                   {format(day, 'EEE')}
                 </span>
@@ -424,12 +435,19 @@ export const WeeklyCalendarWidget = () => {
                       ? 'bg-sky-100/65 dark:bg-sky-500/12'
                       : 'bg-sky-500/[0.04] dark:bg-white/[0.025]',
                   )}>
-                    <p className={cn(
-                      'min-w-0 truncate text-sm font-bold uppercase tracking-tight sm:text-base',
-                      isToday ? 'text-sky-700 dark:text-sky-300' : 'text-sky-900 dark:text-sky-100',
-                    )}>
-                      {format(day, 'EEE d')}
-                    </p>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <p className={cn(
+                        'min-w-0 truncate text-sm font-bold uppercase tracking-tight sm:text-base',
+                        isToday ? 'text-sky-700 dark:text-sky-300' : 'text-sky-900 dark:text-sky-100',
+                      )}>
+                        {format(day, 'EEE d')}
+                      </p>
+                      {isToday && (
+                        <span className="shrink-0 rounded-full bg-[#ebf6b5] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide leading-none text-sky-900">
+                          Today
+                        </span>
+                      )}
+                    </div>
                     {count > 0 && (
                       <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/10 px-1 text-[9px] font-bold tabular-nums text-sky-600 dark:text-sky-300">
                         {count > 9 ? '9+' : count}

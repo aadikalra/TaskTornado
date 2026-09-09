@@ -1016,39 +1016,56 @@ export const MainAppContent = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="w-56 rounded-2xl border-sky-100 bg-white/95 p-1.5 shadow-xl backdrop-blur-xl dark:border-sky-500/10 dark:bg-gray-900/95"
+                        sideOffset={8}
+                        className="w-60 rounded-2xl border border-sky-200/70 bg-[#f5f9fc]/95 p-2 text-sky-950 shadow-[0_18px_45px_-18px_rgba(14,116,144,0.35)] backdrop-blur-xl dark:border-sky-400/15 dark:bg-slate-900/95 dark:text-sky-50"
                       >
-                        <DropdownMenuItem onSelect={() => setShowAddClass(true)} className="rounded-xl py-2">
-                          <HugeIcon name="Course" size={15} />
+                        <DropdownMenuItem
+                          onSelect={() => setShowAddClass(true)}
+                          className="cursor-pointer rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-sky-200/70 hover:text-sky-950 focus:bg-sky-200/70 focus:text-sky-950 dark:hover:bg-sky-400/15 dark:hover:text-sky-50 dark:focus:bg-sky-400/15 dark:focus:text-sky-50"
+                        >
+                          <HugeIcon name="Course" size={16} className="text-sky-700 dark:text-sky-300" />
                           Add class
                         </DropdownMenuItem>
                         {homeworks.length > 0 && (
-                          <DropdownMenuItem onSelect={handleToggleSelectionMode} className="rounded-xl py-2">
-                            <HugeIcon name="CheckmarkCircle02" size={15} />
+                          <DropdownMenuItem
+                            onSelect={handleToggleSelectionMode}
+                            className="cursor-pointer rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-sky-200/70 hover:text-sky-950 focus:bg-sky-200/70 focus:text-sky-950 dark:hover:bg-sky-400/15 dark:hover:text-sky-50 dark:focus:bg-sky-400/15 dark:focus:text-sky-50"
+                          >
+                            <HugeIcon name="CheckmarkCircle02" size={16} className="text-sky-700 dark:text-sky-300" />
                             {isSelectionMode ? 'Finish selecting' : 'Select assignments'}
                           </DropdownMenuItem>
                         )}
 
                         {homeworks.length > 0 && (
                           <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuLabel className="text-xs font-medium text-sky-700/45 dark:text-sky-300/40">
+                            <DropdownMenuSeparator className="-mx-2 my-1.5 bg-sky-200/70 dark:bg-sky-400/15" />
+                            <DropdownMenuLabel className="px-3 pb-1 pt-1.5 text-[11px] font-bold uppercase tracking-wider text-sky-700/55 dark:text-sky-300/50">
                               Show homework
                             </DropdownMenuLabel>
                             <DropdownMenuRadioGroup value={homeworkFilter} onValueChange={setHomeworkFilter}>
-                              <DropdownMenuRadioItem value="all" className="rounded-xl">All</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="incomplete" className="rounded-xl">Incomplete</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="completed" className="rounded-xl">Completed</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="pinned" className="rounded-xl">Pinned</DropdownMenuRadioItem>
+                              {[
+                                ['all', 'All'],
+                                ['incomplete', 'Incomplete'],
+                                ['completed', 'Completed'],
+                                ['pinned', 'Pinned'],
+                              ].map(([value, label]) => (
+                                <DropdownMenuRadioItem
+                                  key={value}
+                                  value={value}
+                                  className="cursor-pointer rounded-xl py-2 pl-8 pr-3 text-sm font-medium transition-colors hover:bg-sky-200/70 hover:text-sky-950 focus:bg-sky-200/70 focus:text-sky-950 data-[state=checked]:bg-sky-100/80 data-[state=checked]:text-sky-950 dark:hover:bg-sky-400/15 dark:hover:text-sky-50 dark:focus:bg-sky-400/15 dark:focus:text-sky-50 dark:data-[state=checked]:bg-sky-400/10 dark:data-[state=checked]:text-sky-50"
+                                >
+                                  {label}
+                                </DropdownMenuRadioItem>
+                              ))}
                             </DropdownMenuRadioGroup>
-                            <DropdownMenuSeparator />
+                            <DropdownMenuSeparator className="-mx-2 my-1.5 bg-sky-200/70 dark:bg-sky-400/15" />
                             <DropdownMenuItem
                               variant="destructive"
                               disabled={isClearingAll}
                               onSelect={handleClearAllHWsAndTests}
-                              className="rounded-xl py-2"
+                              className="cursor-pointer rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-red-100 hover:text-red-600 focus:bg-red-100 focus:text-red-600 dark:hover:bg-red-500/15 dark:hover:text-red-400 dark:focus:bg-red-500/15 dark:focus:text-red-400"
                             >
-                              <HugeIcon name="Delete02" size={15} />
+                              <HugeIcon name="Delete02" size={16} />
                               Clear homework and tests
                             </DropdownMenuItem>
                           </>
@@ -1166,6 +1183,7 @@ export const MainAppContent = () => {
                           : savedGrade >= 70
                             ? 'border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
                             : 'border-red-400/30 bg-red-500/10 text-red-700 dark:text-red-300';
+                    const gradeGoal = cls.target_grade || classGradeGoals[cls.id] || null;
 
                     return (
                       <motion.div
@@ -1214,15 +1232,15 @@ export const MainAppContent = () => {
                                     {savedGrade.toFixed(1)}%
                                     <span className="hidden sm:inline"> · {savedGradeLetter}</span>
                                   </span>
-                                ) : (
+                                ) : gradeGoal ? (
                                   <button
                                     onClick={(e) => handleCycleGradeGoal(cls.id, e)}
                                     className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold border border-sky-300/40 dark:border-sky-500/30 bg-white/40 dark:bg-black/20 text-sky-800 dark:text-sky-200 hover:bg-white/70 dark:hover:bg-black/40 transition-all cursor-pointer flex items-center gap-1"
                                     title="Click to cycle target grade goal"
                                   >
-                                    <span>Goal: {cls.target_grade || classGradeGoals[cls.id] || 'A'}</span>
+                                    <span>Goal: {gradeGoal}</span>
                                   </button>
-                                )}
+                                ) : null}
                               </div>
 
 

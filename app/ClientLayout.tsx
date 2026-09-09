@@ -126,9 +126,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     setDictionaryWord(null);
   };
 
-  // Presentation routes intentionally skip every piece of site chrome so the
-  // content can occupy the entire display (for example, a wall-mounted TV).
-  if (pathname === '/publiccalendar/tv') {
+  // Presentation routes and isolated design explorations intentionally skip
+  // every piece of site chrome so their content can occupy the full display.
+  if (pathname === '/publiccalendar/tv' || pathname === '/newhome') {
     return <>{children}</>;
   }
 

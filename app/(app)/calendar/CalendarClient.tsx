@@ -26,6 +26,8 @@ import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { parseCalendarDate } from '@/lib/dateUtils';
+import { GoogleCalendarIcon } from '@/components/BrandIcons';
+import { useToast } from '@/context/ToastContext';
 
 // Touch device detection
 const isTouchDevice = () => {
@@ -121,11 +123,91 @@ export default function CalendarClient() {
   const { homeworks, updateHomeworkDueDate } = useHomeworkContext();
   const { tests, updateTestDueDate, deleteTest } = useTestContext();
   const { user } = useAuth();
+  const {
+    success: showSuccessToast,
+    error: showErrorToast,
+    info: showInfoToast,
+  } = useToast();
   const { getContainerClass } = useWideLayout();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [expandedDay, setExpandedDay] = useState<Date | null>(null);
+  const [calendarConnection, setCalendarConnection] = useState<{
+    authenticated: boolean;
+    enabled: boolean;
+    email?: string | null;
+  } | null>(null);
+  const [isCalendarSyncing, setIsCalendarSyncing] = useState(false);
+
+  const loadCalendarConnection = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/calendar-session');
+      const data = await response.json();
+      setCalendarConnection({
+        authenticated: Boolean(data.authenticated),
+        enabled: data.enabled !== false,
+        email: data.user?.email || null,
+      });
+    } catch {
+      setCalendarConnection({ authenticated: false, enabled: true });
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCalendarConnection();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'calendar_authorized') {
+      showSuccessToast('Google Calendar connected', 'Use Sync to add your assignments and tests.');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('error') === 'calendar_auth_failed') {
+      showErrorToast('Could not connect Google Calendar', 'Please try again.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [loadCalendarConnection, showErrorToast, showSuccessToast]);
+
+  const handleCalendarSync = useCallback(async () => {
+    if (!calendarConnection?.enabled) {
+      showInfoToast('Google Calendar is not enabled', 'Enable it in the server configuration first.');
+      return;
+    }
+
+    setIsCalendarSyncing(true);
+    try {
+      if (!calendarConnection?.authenticated) {
+        const response = await fetch('/api/auth/google-calendar-init');
+        const data = await response.json();
+        if (!response.ok || !data.authUrl) {
+          throw new Error(data.error || 'Could not start Google authorization.');
+        }
+        window.location.assign(data.authUrl);
+        return;
+      }
+
+      const response = await fetch('/api/calendar/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Calendar sync failed.');
+
+      showSuccessToast(
+        'Google Calendar synced',
+        `${data.total} items synced (${data.created} new, ${data.updated} refreshed${data.removed ? `, ${data.removed} removed` : ''}).`
+      );
+    } catch (error) {
+      showErrorToast(
+        'Google Calendar sync failed',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    } finally {
+      setIsCalendarSyncing(false);
+    }
+  }, [calendarConnection, showErrorToast, showInfoToast, showSuccessToast]);
 
   // Process recurring homework when calendar loads
   useEffect(() => {
@@ -347,7 +429,26 @@ export default function CalendarClient() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleCalendarSync}
+                disabled={isCalendarSyncing || calendarConnection === null}
+                title={calendarConnection?.email ? `Connected as ${calendarConnection.email}` : undefined}
+                className="inline-flex items-center gap-2 h-10 px-4 bg-white dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-sm font-bold text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-500/20 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-wait"
+              >
+                {isCalendarSyncing ? (
+                  <span className="h-4 w-4 border-2 border-sky-300 border-t-sky-600 rounded-full animate-spin" />
+                ) : (
+                  <GoogleCalendarIcon className="h-4 w-4" />
+                )}
+                <span>
+                  {isCalendarSyncing
+                    ? 'Syncing…'
+                    : calendarConnection?.authenticated
+                      ? 'Sync Google Calendar'
+                      : 'Connect Google Calendar'}
+                </span>
+              </button>
               <button
                 onClick={prevMonth}
                 className="inline-flex items-center gap-1.5 h-10 px-4 bg-[#f5f9fc] dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/30 rounded-full text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-[#ebf6b5]/60 dark:hover:bg-sky-500/20 transition-all active:scale-95"

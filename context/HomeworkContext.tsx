@@ -59,7 +59,7 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
 
   const needsHomeworkData = useCallback(() => {
     if (typeof window === 'undefined') return false;
-    const routes = ['/homework', '/classes', '/dashboard', '/calendar', '/settings', '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'];
+    const routes = ['/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome', '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'];
     return routes.some(route => pathname.startsWith(route));
   }, [pathname]);
 

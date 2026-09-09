@@ -73,7 +73,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
   const needsTestData = useCallback(() => {
     if (typeof window === 'undefined') return false;
     const routesThatNeedData = [
-      '/homework', '/classes', '/dashboard', '/calendar', '/settings',
+      '/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome',
       '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'
     ];
     return routesThatNeedData.some(route => pathname.startsWith(route));

@@ -8,7 +8,7 @@ import { google } from 'googleapis';
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
-export type GoogleOAuthService = 'gmail' | 'classroom';
+export type GoogleOAuthService = 'gmail' | 'classroom' | 'calendar';
 
 export function googleIntegrationsEnabled(service?: GoogleOAuthService) {
   const serviceFlag =
@@ -16,6 +16,8 @@ export function googleIntegrationsEnabled(service?: GoogleOAuthService) {
       ? process.env.GMAIL_INTEGRATION_ENABLED
       : service === 'classroom'
         ? process.env.GOOGLE_CLASSROOM_INTEGRATION_ENABLED
+        : service === 'calendar'
+          ? process.env.GOOGLE_CALENDAR_INTEGRATION_ENABLED
         : undefined;
 
   if (serviceFlag !== undefined) {

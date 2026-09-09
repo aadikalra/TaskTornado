@@ -575,6 +575,17 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
+        "title": "Newhome",
+        "href": "/newhome",
+        "description": "Open the Newhome page",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "newhome",
+            "about"
+        ]
+    },
+    {
         "title": "Parental Consent",
         "href": "/parental-consent",
         "description": "Open the Parental Consent page",
