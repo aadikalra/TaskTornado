@@ -17,7 +17,7 @@ const payload = {
 
 async function testHook() {
   const url = 'http://localhost:3000/api/auth/send-email';
-  console.log(`🚀 Sending test request to local hook: ${url}...`);
+  console.log(`Sending test request to local hook: ${url}...`);
 
   try {
     const res = await fetch(url, {
@@ -34,7 +34,7 @@ async function testHook() {
     const data = await res.json();
     console.log('Response:', data);
   } catch (error) {
-    console.error('❌ Error hitting local route:', error.message);
+    console.error('Error hitting local route:', error.message);
   }
 }
 

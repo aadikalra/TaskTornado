@@ -183,8 +183,7 @@ export const GamificationProvider = ({ children, homeworks = [], classes = [] }:
           xpReward += 10;
         }
 
-        // For now, let's skip the early completion bonus since date handling might be complex
-        // TODO: Add back early completion bonus when date handling is confirmed working
+        // Early completion XP is disabled until due-date handling is verified.
 
         totalEarnedXP += xpReward;
       }
@@ -260,8 +259,7 @@ export const GamificationProvider = ({ children, homeworks = [], classes = [] }:
 
     // Update subject mastery if class info provided
     if (classId && className) {
-      // Note: This would need actual homework data to calculate properly
-      // For now, we'll increment the counters
+      // Update mastery from the reported completion amount.
       updateSubjectMastery(classId, className, 1, 1, amount);
     }
   }, [calculateLevel, updateSubjectMastery]);
@@ -271,8 +269,7 @@ export const GamificationProvider = ({ children, homeworks = [], classes = [] }:
   }, [data.subjectMastery]);
 
   const refreshData = React.useCallback(() => {
-    // This would recalculate all mastery data based on current homework state
-    // For now, it's a placeholder for future enhancement
+    // Record the refresh time until mastery recalculation is implemented.
     setData(prev => ({ ...prev, lastUpdated: new Date().toISOString() }));
   }, []);
 

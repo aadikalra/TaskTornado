@@ -59,19 +59,19 @@ export async function getAllAuthUsers() {
 
 // Function to print user profiles
 export async function printAllUserProfiles() {
-  console.log('🔍 Fetching all user profiles from Supabase Auth...\n');
+  console.log('Fetching all user profiles from Supabase Auth...\n');
   
   const users = await getAllAuthUsers();
   
   if (!users) {
-    console.log('❌ Failed to fetch users');
+    console.log('Failed to fetch users');
     return;
   }
   
-  console.log(`✅ Found ${users.length} user(s):\n`);
+  console.log(`Found ${users.length} user(s):\n`);
   
   users.forEach((user, index) => {
-    console.log(`👤 User ${index + 1}:`);
+    console.log(`User ${index + 1}:`);
     console.log(`   ID: ${user.id}`);
     console.log(`   Email: ${user.email}`);
     console.log(`   Created: ${user.created_at}`);
@@ -83,7 +83,7 @@ export async function printAllUserProfiles() {
     console.log('---');
   });
   
-  console.log(`\n📊 Summary:`);
+  console.log(`\nSummary:`);
   console.log(`   Total Users: ${users.length}`);
   console.log(`   Confirmed Emails: ${users.filter(u => u.email_confirmed_at).length}`);
   console.log(`   Users with Last Sign In: ${users.filter(u => u.last_sign_in_at).length}`);

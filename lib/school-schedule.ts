@@ -115,21 +115,13 @@ export function isDuringSchoolHours(currentTime: Date = new Date()): boolean {
     return SCHOOL_SCHEDULES.lateStart.isActive(currentTime);
   }
 
-  // For now, assume regular schedule for other days
-  // TODO: Add logic to detect minimum days
+  // Minimum days require a calendar signal; use the regular schedule otherwise.
   return SCHOOL_SCHEDULES.regular.isActive(currentTime);
 }
 
 // Check if current time allows app usage (only during allowed periods)
 export function isAppUsageAllowed(currentTime: Date = new Date()): boolean {
   const dayOfWeek = currentTime.getDay();
-
-  // TEMPORARY: For testing purposes, mark current time as NOT allowed
-  // This will trigger the school warning so you can see it in action
-  if (currentTime.getHours() === new Date().getHours() && currentTime.getMinutes() === new Date().getMinutes()) {
-    console.log('🧪 TEST MODE: Current time marked as NOT ALLOWED for testing');
-    return false;
-  }
 
   if (!isDuringSchoolHours(currentTime)) {
     return true; // Allow usage outside school hours
@@ -258,8 +250,6 @@ export function getTimeUntilSchoolEnds(currentTime: Date = new Date()): string {
 // Check if it's currently school time and return appropriate warning
 export function checkSchoolTimeWarning(): { showWarning: boolean; message: string } {
   const isSchoolTime = isDuringSchoolHours();
-  const isAppAllowed = isAppUsageAllowed();
-
   if (!isSchoolTime) {
     return { showWarning: false, message: "" };
   }

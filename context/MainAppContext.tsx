@@ -36,6 +36,8 @@ interface MainAppContextType {
   setShowAddClass: (show: boolean) => void;
   showAddHomework: boolean;
   setShowAddHomework: (show: boolean) => void;
+  classIdForAddHomework: string | undefined;
+  setClassIdForAddHomework: (id: string | undefined) => void;
   showAddTest: boolean;
   setShowAddTest: (show: boolean) => void;
   classIdForAddTest: string | undefined;
@@ -99,6 +101,7 @@ export const MainAppProvider = ({ children }: { children: ReactNode }) => {
   // Modals
   const [showAddClass, setShowAddClass] = useState(false);
   const [showAddHomework, setShowAddHomework] = useState(false);
+  const [classIdForAddHomework, setClassIdForAddHomework] = useState<string | undefined>(undefined);
   const [showAddTest, setShowAddTest] = useState(false);
   const [classIdForAddTest, setClassIdForAddTest] = useState<string | undefined>(undefined);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
@@ -218,6 +221,7 @@ export const MainAppProvider = ({ children }: { children: ReactNode }) => {
   const value: MainAppContextType = {
     showAddClass, setShowAddClass,
     showAddHomework, setShowAddHomework,
+    classIdForAddHomework, setClassIdForAddHomework,
     showAddTest, setShowAddTest,
     classIdForAddTest, setClassIdForAddTest,
     selectedTest, setSelectedTest,

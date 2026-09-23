@@ -198,7 +198,7 @@ export class RecurringHomeworkService {
       updated_at: new Date().toISOString()
     };
 
-    console.log('🔍 [createNextInstance] Creating instance:', {
+    console.log('[createNextInstance] Creating instance:', {
       title: newInstance.title,
       class_id: newInstance.class_id,
       master_class_id: masterRecord.class_id,
@@ -239,36 +239,36 @@ export class RecurringHomeworkService {
    */
   static async processRecurringHomework(userId: string): Promise<void> {
     try {
-      console.log('🔄 [RecurringHomeworkService] Processing recurring homework for user:', userId);
+      console.log('[RecurringHomeworkService] Processing recurring homework for user:', userId);
       // Get all active recurring homework
       const activeRecurring = await this.getActiveRecurringHomework(userId);
-      console.log('📋 [RecurringHomeworkService] Found active recurring homework:', activeRecurring.length);
+      console.log('[RecurringHomeworkService] Found active recurring homework:', activeRecurring.length);
 
       for (const masterRecord of activeRecurring) {
-        console.log('🔍 [RecurringHomeworkService] Processing master record:', masterRecord.title, masterRecord.recurring_id);
+        console.log('[RecurringHomeworkService] Processing master record:', masterRecord.title, masterRecord.recurring_id);
         if (!masterRecord.recurring_id) {
           console.warn('⚠️ [RecurringHomeworkService] Skipping recurring homework with null recurring_id', masterRecord);
           continue;
         }
         // Get existing instances
         const existingInstances = await this.getRecurringInstances(masterRecord.recurring_id, userId);
-        console.log('📝 [RecurringHomeworkService] Found existing instances:', existingInstances.length);
+        console.log('[RecurringHomeworkService] Found existing instances:', existingInstances.length);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         // Use all existing instances to check limits
         const shouldCreateNew = this.shouldCreateNewInstance(masterRecord, existingInstances);
-        console.log('🤔 [RecurringHomeworkService] Should create new instance?', shouldCreateNew);
+        console.log('[RecurringHomeworkService] Should create new instance?', shouldCreateNew);
 
         if (shouldCreateNew) {
-          console.log('✨ [RecurringHomeworkService] Creating new instance for:', masterRecord.title);
+          console.log('[RecurringHomeworkService] Creating new instance for:', masterRecord.title);
           await this.createNextInstance(masterRecord, userId);
         }
       }
-      console.log('✅ [RecurringHomeworkService] Processing completed successfully');
+      console.log('[RecurringHomeworkService] Processing completed successfully');
     } catch (error) {
-      console.error('❌ [RecurringHomeworkService] Error processing recurring homework:', error);
+      console.error('[RecurringHomeworkService] Error processing recurring homework:', error);
       throw error;
     }
   }
@@ -292,20 +292,20 @@ export class RecurringHomeworkService {
 
     // 1. Check max occurrences
     if (config.maxOccurrences && existingInstances.length >= config.maxOccurrences) {
-      console.log('❌ [shouldCreateNewInstance] Max occurrences reached');
+      console.log('[shouldCreateNewInstance] Max occurrences reached');
       return false;
     }
 
     // 2. Check end date
     if (config.endDate && today > config.endDate) {
-      console.log('❌ [shouldCreateNewInstance] End date passed');
+      console.log('[shouldCreateNewInstance] End date passed');
       return false;
     }
 
     // 3. Prevent flooding: Stop adding if there are too many uncompleted instances
     const uncompletedCount = existingInstances.filter(hw => !hw.completed).length;
     if (uncompletedCount >= 3) {
-      console.log('❌ [shouldCreateNewInstance] Too many uncompleted instances (>=3). Complete some first!');
+      console.log('[shouldCreateNewInstance] Too many uncompleted instances (>=3). Complete some first!');
       return false;
     }
 
@@ -317,7 +317,7 @@ export class RecurringHomeworkService {
     });
 
     if (futureInstances.length >= 2) {
-      console.log('❌ [shouldCreateNewInstance] Already have 2 future instances');
+      console.log('[shouldCreateNewInstance] Already have 2 future instances');
       return false;
     }
 
@@ -338,7 +338,7 @@ export class RecurringHomeworkService {
       });
 
       if (alreadyExists) {
-        console.log('❌ [shouldCreateNewInstance] Instance for next due date already exists');
+        console.log('[shouldCreateNewInstance] Instance for next due date already exists');
         return false;
       }
     }

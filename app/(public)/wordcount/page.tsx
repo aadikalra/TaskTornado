@@ -65,7 +65,6 @@ export default function WordCounterPage() {
                     }
                     if (!inParagraph) {
                         paragraphs++;
-                        inParagraph = false; // We just set it, but wait, it should stay true until newline
                         inParagraph = true;
                     }
 

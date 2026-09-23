@@ -25,7 +25,7 @@ interface AIChecklistProps {
 
 export function AIChecklist({ initialTitle, initialItems, onComplete }: AIChecklistProps) {
     const { addClass } = useClassContext();
-  const { addHomework } = useHomeworkContext();
+    const { addHomework } = useHomeworkContext();
     const { handlePlanLimitError } = useUpgrade();
     const [title, setTitle] = useState(initialTitle);
     const [items, setItems] = useState<ChecklistItem[]>(
@@ -35,69 +35,21 @@ export function AIChecklist({ initialTitle, initialItems, onComplete }: AICheckl
     const [isHovered, setIsHovered] = useState(false);
 
     const handleFinish = async () => {
-        setStatus('accepted');
-
         try {
-            // 1. Create the class
-            // Use a default icon since we can't easily ask for one here, or infer? 
-            // 'BookOpen' is a safe default for a generic study plan.
-            const className = title;
-
-            // Check if class already exists to avoid duplicates? 
-            // For now, let's just create it as requested.
-            // But adding a class is async. We assume it creates a new ID.
-            // Wait, addClass doesn't return the ID... it returns Promise<void>.
-            // The context handles optimistic updates with a temp ID.
-            // Refetching the class list to find the one we just added is tricky with the temp ID logic.
-            // However, addClass implementation generates a temp ID and swaps it.
-            // Without the ID returned, I can't immediately add homework to it reliably in the same tick if I need the *real* ID.
-            // But typically optimistic ID works if the context handles it.
-            // Actually, looking at ClassContext, addClass is void. 
-            // But I can try to find the class by name after adding it.
-            // This is a race condition risk. 
-            // HACK: I will modify ClassContext later if needed, but for now I'll try to find it.
-
-            await addClass(className, 'BookOpen');
-
-            // We need to wait for the state to update to get the new class ID.
-            // Since we can't easily wait for the *exact* new class ID from a void function without a refetch or return value,
-            // I'll assume I can find it by name immediately if the optimistic update works.
-
-            // Small delay to allow optimistic update to propagate to 'classes' state? 
-            // Actually, 'classes' comes from context props.
-            // Let's assume we can't reliably get it immediately without a return.
-            // I'll check ClassContext again. It uses setClasses(prev => [...prev, optimisticClass]).
-            // So the local 'classes' array in THIS component won't update until next render.
-
-            // Ideally I should update ClassContext to return the ID. 
-            // But I can't do that easily without ensuring I don't break other things (though I can just change return type).
-            // Let's check ClassContext lines 630-677. It returns Promise<void>.
-            // It DOES create a tempId.
-
-            // PLAN B: Use the `useClasses` context to get the *latest* classes, but I can't await state updates.
-            // I'll rely on a finding strategy or...
-            // Let's modify ClassContext to return the ID. It is safer.
-
-        } catch (e) {
-            console.error("Failed to create class/homework", e);
-            // Revert status on error?
+            onComplete?.();
+            const classId = await addClass(title, 'BookOpen');
+            const today = new Date();
+            for (const item of items) {
+                await addHomework(classId, item.text, today, 'medium', [], '', item.checked);
+            }
+            setStatus('accepted');
+        } catch (error) {
+            if (!handlePlanLimitError(error)) {
+                console.error('Failed to add checklist', error);
+            }
             setStatus('pending');
         }
     };
-
-    // Wait, I can't modify ClassContext easily in this step without re-reading it all or doing a rigorous edit.
-    // Actually, I can use a known trick: pass a pre-generated ID? No, addClass generates it.
-
-    // Let's pause and think.
-    // If I can't get the ID, I can't add homework.
-    // I WILL MODIFY ClassContext to return the class ID. It's a small change.
-    // wait, I can just do a multi-file edit strategy.
-
-    // For now, let's write the component assuming `addClass` returns the ID (I will ensure I allow for it).
-    // If it doesn't, I'll update ClassContext in the next step.
-    // Actually, I'll do the ClassContext update FIRST or essentially now.
-
-    // Let's update the component to handle the logic. 
 
     const handleAddItem = () => {
         setItems([...items, { id: `item-${Date.now()}`, text: '', checked: true }]);
@@ -272,45 +224,7 @@ export function AIChecklist({ initialTitle, initialItems, onComplete }: AICheckl
                 </Button>
                 <Button
                     size="sm"
-                    onClick={async () => {
-                        setStatus('accepted');
-                        try {
-                            // Logic to be injected via prop or context modification
-                            // Since I can't easily access the modified context return value here without updating context first,
-                            // I will pass the logic up or assume context is updated.
-                            // Actually, I can create a custom handler in AIAssistant that manages this logic?
-                            // No, `useClasses` is best used here.
-
-                            // Optimistic: using a random ID or assuming addClass returns ID.
-                            // For now, I'll disable the actual call or use a callback prop to let parent handle it?
-                            // Parent (AIAssistant) handling it is cleaner if I don't want to touch Context file.
-                            // But ChecklistWidget needs access to context.
-
-                            if (onComplete) onComplete();
-
-                            // Proposed Context Change Pattern:
-                            // const newClassId = await addClass(title, 'BookOpen');
-                            // items.filter(i => i.checked).forEach(i => addHomework(newClassId, i.text, new Date(), 'medium'));
-
-                            // For this specific step, I'll allow the error (it won't return ID yet)
-                            // and I will FIX ClassContext in the next tool call IMMEDIATELY.
-
-                            const newClassId = await addClass(title, 'BookOpen');
-
-                            if (newClassId) {
-                                const today = new Date();
-                                // Add items sequentially to preserve order
-                                for (const item of items) {
-                                    await addHomework(newClassId, item.text, today, 'medium', [], '', item.checked);
-                                }
-                            }
-
-                        } catch (e: any) {
-                            if (!handlePlanLimitError(e)) {
-                                console.error(e);
-                            }
-                        }
-                    }}
+                    onClick={handleFinish}
                     className="bg-[#165df9] hover:bg-[#165df9]/90 text-white shadow-md shadow-[#165df9]/20 rounded-lg"
                 >
                     Finish & Add

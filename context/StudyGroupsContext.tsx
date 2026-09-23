@@ -479,7 +479,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     });
 
     const handleNewMessage = (payload: any) => {
-      console.log('🎉 RECEIVED REAL-TIME MESSAGE:', payload.new);
+      console.log('RECEIVED REAL-TIME MESSAGE:', payload.new);
       setMessages(prevMessages => {
         if (prevMessages.some(msg => msg.id === payload.new.id)) {
           return prevMessages;
@@ -495,7 +495,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     };
 
     const handleNewLink = (payload: any) => {
-      console.log('🔗 RECEIVED REAL-TIME LINK:', payload.new);
+      console.log('RECEIVED REAL-TIME LINK:', payload.new);
       setLinks(prevLinks => {
         if (prevLinks.some(link => link.id === payload.new.id)) {
           return prevLinks;
@@ -515,11 +515,11 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_links', filter: `group_id=eq.${currentGroup.id}` }, handleNewLink)
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to channel: ${channelName}`);
+          console.log(`Subscribed to channel: ${channelName}`);
           setConnectionStatus('connected');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           if (err) {
-            console.error('❌ Subscription error:', err);
+            console.error('Subscription error:', err);
           } else {
             console.warn(`⚠️ Realtime subscription status: ${status}`);
           }
@@ -528,7 +528,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
       });
 
     return () => {
-      console.log(`🧹 Unsubscribing from channel: ${channelName}`);
+      console.log(`Unsubscribing from channel: ${channelName}`);
       supabase.removeChannel(channel);
     };
   }, [currentGroup?.id, user?.id]);

@@ -70,28 +70,28 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
             exit={{ opacity: 0, y: -10, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="space-y-2.5 p-3.5 bg-sky-50/50 dark:bg-gray-800/50 rounded-2xl border border-sky-100/60 dark:border-gray-700/50">
+            <div className="space-y-2.5 p-3 bg-sky-50/50 dark:bg-gray-800/50 rounded-xl border border-sky-100/80 dark:border-gray-700/60">
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="url"
                   value={newLink}
                   onChange={(e) => setNewLink(e.target.value)}
                   placeholder="Paste URL..."
-                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
+                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-lg focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
                 />
                 <Input
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Label (e.g. Canvas)"
-                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
+                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-lg focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleAddLink}
                 disabled={!newLink.trim()}
-                className="w-full h-9 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-[#ebf6b5] dark:bg-[#ebf6b5]/20 hover:bg-[#d4e88e] dark:hover:bg-[#ebf6b5]/30 border border-[#d4e88e]/50 dark:border-[#ebf6b5]/30 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-lime-900/5"
+                className="w-full h-9 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-[#ebf6b5] dark:bg-[#ebf6b5]/20 hover:bg-[#d4e88e] dark:hover:bg-[#ebf6b5]/30 border border-[#d4e88e]/50 dark:border-[#ebf6b5]/30 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
               >
                 Attach Link
               </button>
@@ -108,7 +108,7 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="group flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl shadow-sm hover:border-sky-300 dark:hover:border-sky-500 transition-all max-w-[200px]"
+              className="group flex items-center gap-1.5 pl-3 pr-1.5 py-1 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-full shadow-xs hover:border-sky-300 dark:hover:border-sky-500 transition-all max-w-[200px]"
             >
               <HugeIcon name="Link" size={14} className="h-3.5 w-3.5 text-sky-500 flex-shrink-0" />
               <span className="text-[11px] font-medium text-sky-700 dark:text-sky-300 truncate">

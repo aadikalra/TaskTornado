@@ -4,17 +4,18 @@ import { useParams } from 'next/navigation';
 import { useClassContext, type Class } from '@/context/ClassContext';
 import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Calendar, Edit, BookOpen, Link as LinkIcon, Repeat, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Calendar, Edit, BookOpen, Link as LinkIcon, Repeat, ExternalLink, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
+import { triggerCompletionConfetti } from '@/lib/confetti';
 
 const CLASS_COLORS = ['#DC2626', '#2563EB', '#D97706', '#16A34A', '#7C3AED', '#DB2777', '#0D9488', '#475569'];
 
 export default function HomeworkDetailPage() {
   const { id } = useParams() as { id: string };
   const { classes } = useClassContext();
-  const { homeworks } = useHomeworkContext();
+  const { homeworks, toggleHomework } = useHomeworkContext();
   const [homework, setHomework] = useState<Homework | null>(null);
   const [classItem, setClassItem] = useState<Class | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,20 @@ export default function HomeworkDetailPage() {
   const classIndex = classItem ? classes.findIndex(c => c.id === classItem.id) : -1;
   const accentColor = classIndex >= 0 ? CLASS_COLORS[classIndex % CLASS_COLORS.length] : '#0ea5e9';
 
+  const handleToggleComplete = async () => {
+    if (!homework) return;
+    const nextCompleted = !homework.completed;
+    if (nextCompleted) {
+      triggerCompletionConfetti(accentColor);
+    }
+    setHomework(prev => prev ? { ...prev, completed: nextCompleted } : null);
+    try {
+      await toggleHomework(homework.id);
+    } catch {
+      setHomework(prev => prev ? { ...prev, completed: !nextCompleted } : null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex items-center justify-center">
@@ -52,11 +67,11 @@ export default function HomeworkDetailPage() {
         <h1 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">Homework not found</h1>
         <p className="text-sky-600/60 dark:text-gray-400 text-sm mb-6">This assignment may have been deleted or doesn't exist.</p>
         <Link
-          href="/dashboard"
+          href="/newhome"
           className="inline-flex items-center gap-2 h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Dashboard
+          Back to Overview
         </Link>
       </div>
     );
@@ -81,14 +96,14 @@ export default function HomeworkDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans text-[#111827] dark:text-gray-100">
-      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-12">
+      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-12">
         {/* Back link */}
         <Link
-          href="/dashboard"
+          href="/newhome"
           className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
+          Back to Overview
         </Link>
 
         {/* Header */}
@@ -97,7 +112,7 @@ export default function HomeworkDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div
                 className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
@@ -114,6 +129,19 @@ export default function HomeworkDetailPage() {
                 )}
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleToggleComplete}
+              className={`inline-flex items-center justify-center gap-2 h-10 px-5 rounded-full text-[13px] font-semibold transition-all shadow-xs cursor-pointer shrink-0 ${
+                homework.completed
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/25'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md hover:scale-[1.02]'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{homework.completed ? 'Completed ✓' : 'Finish Homework'}</span>
+            </button>
           </div>
         </motion.div>
 
@@ -127,13 +155,20 @@ export default function HomeworkDetailPage() {
           <div className="p-6 sm:p-8 space-y-5">
             {/* Status chips row */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Completion status */}
-              <span className={`inline-flex items-center text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${homework.completed
-                  ? 'bg-[#ebf6b5]/60 text-sky-700 dark:bg-[#ebf6b5]/10 dark:text-sky-300 border-[#d4e88e]/50 dark:border-[#d4e88e]/20'
-                  : 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400 border-sky-200 dark:border-sky-500/20'
-                }`}>
-                {homework.completed ? '✅ Completed' : '📌 In Progress'}
-              </span>
+              {/* Completion status toggle */}
+              <button
+                type="button"
+                onClick={handleToggleComplete}
+                title="Toggle homework completion"
+                className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer hover:scale-105 ${
+                  homework.completed
+                    ? 'bg-[#ebf6b5]/60 text-sky-700 dark:bg-[#ebf6b5]/10 dark:text-sky-300 border-[#d4e88e]/50 dark:border-[#d4e88e]/20'
+                    : 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400 border-sky-200 dark:border-sky-500/20 hover:border-sky-400'
+                }`}
+              >
+                <CheckCircle2 className={`h-3.5 w-3.5 ${homework.completed ? 'text-emerald-600 dark:text-emerald-400' : 'text-sky-400'}`} />
+                <span>{homework.completed ? '✅ Completed' : '📌 In Progress (Click to finish)'}</span>
+              </button>
 
               {/* Priority */}
               <span className={`inline-flex items-center text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${priority.classes}`}>
@@ -211,27 +246,41 @@ export default function HomeworkDetailPage() {
           </div>
 
           {/* Footer with actions */}
-          <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-            <Link href="/dashboard">
+          <div className="flex items-center justify-between flex-wrap gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
+            <Link href="/newhome">
               <button
                 type="button"
                 className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Dashboard
+                  Overview
                 </span>
               </button>
             </Link>
-            <Link href={`/homework/edit/${homework.id}`}>
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
-                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors inline-flex items-center gap-2"
+                onClick={handleToggleComplete}
+                className={`h-10 px-5 text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-2 shadow-xs cursor-pointer ${
+                  homework.completed
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/25'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md hover:scale-[1.02]'
+                }`}
               >
-                <Edit className="h-3.5 w-3.5" />
-                Edit Homework
+                <CheckCircle2 className="h-4 w-4" />
+                <span>{homework.completed ? 'Completed ✓' : 'Finish Homework'}</span>
               </button>
-            </Link>
+              <Link href={`/homework/edit/${homework.id}`}>
+                <button
+                  type="button"
+                  className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors inline-flex items-center gap-2"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  Edit Homework
+                </button>
+              </Link>
+            </div>
           </div>
         </motion.div>
       </main>

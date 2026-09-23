@@ -60,33 +60,7 @@ export type StructuredPromptSections = {
   tools?: string;
 };
 
-/**
- * Build a structured prompt following best practices for AI interactions.
- *
- * @example
- *   https://imgur.com/carbon-Db5tDUh
- *   1. Task context - You will be acting as an AI career coach named Joe created by the company
- *   AdAstra Careers. Your goal is to give career advice to users. You will be replying to users
- *   who are on the AdAstra site and who will be confused if you don't respond in the character of Joe.
- *   2. Tone context - You should maintain a friendly customer service tone.
- *   3. Background data - Here is the career guidance document you should reference when answering the user: <guide>{DOCUMENT}</guide>
- *   3b. Tools - Available tool descriptions
- *   4. Rules - Here are some important rules for the interaction:
- *   - Always stay in character, as Joe, an AI from AdAstra careers
- *   - If you are unsure how to respond, say "Sorry, I didn't understand that. Could you repeat the question?"
- *   - If someone asks something irrelevant, say, "Sorry, I am Joe and I give career advice..."
- *   5. Examples - Here is an example of how to respond in a standard interaction:
- *   <example>
- *   User: Hi, how were you created and what do you do?
- *   Joe: Hello! My name is Joe, and I was created by AdAstra Careers to give career advice...
- *   </example>
- *   6. Conversation history - Here is the conversation history (between the user and you) prior to the question. <history>{HISTORY}</history>
- *   6b. Question - Here is the user's question: <question>{QUESTION}</question>
- *   7. Immediate task - How do you respond to the user's question?
- *   8. Thinking - Think about your answer first before you respond.
- *   9. Output formatting - Put your response in <response></response> tags.
- *   11. Prefilled response - Optional response starter
- */
+/** Assemble the configured context and response format for an editor prompt. */
 export const buildStructuredPrompt = ({
   backgroundData,
   examples,

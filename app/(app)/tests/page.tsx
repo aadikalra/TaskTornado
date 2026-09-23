@@ -56,7 +56,7 @@ export default function TestsPage() {
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
-      <main className={getContainerClass('max-w-7xl') + ' pt-28 pb-12'}>
+      <div className={getContainerClass('max-w-7xl') + ' pt-8 sm:pt-10 lg:pt-12 pb-12'}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -123,7 +123,7 @@ export default function TestsPage() {
             onDeleteTest={deleteTest}
           />
         </motion.div>
-      </main>
+      </div>
 
       {/* Route Intro Popup */}
       <RouteIntroPopup

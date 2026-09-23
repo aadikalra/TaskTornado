@@ -28,7 +28,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing required environment variables');
+  console.error('Missing required environment variables');
   process.exit(1);
 }
 
@@ -46,12 +46,12 @@ const supabaseAdmin = createClient(
 
 // Test function to verify Google user detection
 async function testGoogleUserDetection() {
-  console.log('🧪 Testing Google user detection logic...\n');
+  console.log('Testing Google user detection logic...\n');
   
   const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
   
   if (error) {
-    console.error('❌ Error fetching users:', error);
+    console.error('Error fetching users:', error);
     return;
   }
   
@@ -60,15 +60,15 @@ async function testGoogleUserDetection() {
     return;
   }
   
-  console.log(`📊 Testing ${users.length} user(s):\n`);
+  console.log(`Testing ${users.length} user(s):\n`);
   
   users.forEach((user, index) => {
-    console.log(`👤 User ${index + 1}: ${user.email}`);
+    console.log(`User ${index + 1}: ${user.email}`);
     
     // Test the same logic used in AuthContext
     const isGoogleUser = user.app_metadata?.provider === 'google';
     
-    console.log(`   Google User: ${isGoogleUser ? '✅ Yes' : '❌ No'}`);
+    console.log(`   Google User: ${isGoogleUser ? 'Yes' : 'No'}`);
     console.log(`   Provider (app_metadata): ${user.app_metadata?.provider || 'None'}`);
     console.log(`   Provider (user_metadata): ${user.user_metadata?.provider || 'None'}`);
     console.log(`   Email domain: ${user.email?.split('@')[1] || 'Unknown'}`);
@@ -76,8 +76,8 @@ async function testGoogleUserDetection() {
     console.log('---');
   });
   
-  console.log('\n✅ Google user detection test completed!');
-  console.log('📝 The authentication system now uses Supabase Auth instead of profiles table');
+  console.log('\nGoogle user detection test completed!');
+  console.log('The authentication system now uses Supabase Auth instead of profiles table');
 }
 
 // Run the test

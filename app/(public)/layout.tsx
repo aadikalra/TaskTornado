@@ -9,8 +9,13 @@ import { TestProvider } from '@/context/TestContext';
 import { UpgradeProvider } from '@/context/UpgradeContext';
 import { WebSavesProvider } from '@/context/WebSavesContext';
 import { ClientLayout } from '../ClientLayout';
+import { cookies } from 'next/headers';
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const sidebarCookie = cookieStore.get('tasktornado_newhome_sidebar_collapsed');
+  const initialSidebarCollapsed = sidebarCookie ? sidebarCookie.value === 'true' : false;
+
   return (
     <ClassProvider>
       <HomeworkProvider>
@@ -21,7 +26,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 <WebSavesProvider>
                   <StudyGroupsProvider>
                     <UpgradeProvider>
-                      <ClientLayout>{children}</ClientLayout>
+                      <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}>{children}</ClientLayout>
                     </UpgradeProvider>
                   </StudyGroupsProvider>
                 </WebSavesProvider>

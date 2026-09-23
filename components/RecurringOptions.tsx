@@ -53,15 +53,15 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
           Frequency
         </Label>
         <Select value={recurring.frequency} onValueChange={handleFrequencyChange}>
-          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
             <SelectValue placeholder="Frequency" />
           </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+          <SelectContent className="bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-[var(--radix-select-trigger-width)]" position="popper" sideOffset={4}>
             {frequencyOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
-                className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm text-sky-900 dark:text-white rounded-lg"
+                className="text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 focus:text-sky-950 dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none"
               >
                 {option.label}
               </SelectItem>
@@ -79,19 +79,19 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal h-10 bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 hover:bg-[#ebf6b5]/10 hover:border-[#d4e88e] rounded-xl transition-all"
+                className="w-full justify-start text-left font-normal h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 rounded-xl transition-all outline-none"
               >
-                <HugeIcon name="CalendarRemove01" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500" />
+                <HugeIcon name="CalendarRemove01" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500 shrink-0" />
                 <span className="text-left truncate">{recurring.endDate ? format(recurring.endDate, 'MMM d, yyyy') : "Pick date"}</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5">
+            <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 overflow-hidden" align="end" sideOffset={4}>
               <Calendar
                 mode="single"
                 selected={recurring.endDate}
                 onSelect={handleEndDateChange}
                 initialFocus
-                className="text-sky-900 dark:text-white rounded-2xl"
+                className="text-sky-900 dark:text-white rounded-xl"
                 classNames={{
                   today: "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-md data-[selected=true]:rounded-none",
                   weekday: "text-sky-500 dark:text-sky-400 rounded-md flex-1 font-medium text-[0.8rem] select-none",
@@ -115,7 +115,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
             value={recurring.maxOccurrences || ''}
             onChange={(e) => handleMaxOccurrencesChange(e.target.value)}
             placeholder="No limit"
-            className="w-full h-10 bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 placeholder:text-sky-200 dark:placeholder:text-sky-700 rounded-xl focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none"
+            className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-xl hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none"
           />
         </div>
       </div>

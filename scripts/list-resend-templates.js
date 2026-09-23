@@ -1,7 +1,13 @@
-const apiKey = 're_CJtffQ9z_KGSnphwAw5KSAiBV2AXSX5gK';
+const apiKey = process.env.RESEND_API_KEY;
 
 async function listTemplates() {
-  console.log('🔍 Listing Resend templates...');
+  if (!apiKey) {
+    console.error('RESEND_API_KEY is required.');
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log('Listing Resend templates...');
   try {
     const res = await fetch('https://api.resend.com/templates', {
       method: 'GET',

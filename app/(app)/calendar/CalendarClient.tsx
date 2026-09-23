@@ -405,7 +405,7 @@ export default function CalendarClient() {
         <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-[#ebf6b5]/20 dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
       </div>
 
-      <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-28 pb-16">
+      <div className="relative z-10 w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-8 sm:pt-10 lg:pt-12 pb-16">
 
         {/* Loading indicator */}
         {loading && (
