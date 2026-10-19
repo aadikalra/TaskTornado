@@ -5,6 +5,7 @@ import { format, addDays } from 'date-fns';
 import { Button } from '@/components/animate-ui/components/buttons/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useDarkMode } from '@/context/DarkModeContext';
+import { getDashboardClassIconColor } from '@/lib/class-display-colors';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -260,116 +261,61 @@ export const MainAppContent = () => {
     setCookie('expandedClasses', JSON.stringify(newState));
   };
 
-  // Show toast notifications for overdue assignments - ONLY ON FIRST LOAD
+  // Show ONE condensed toast for overdue / due-soon assignments - ONLY ON FIRST LOAD
   React.useEffect(() => {
     // Only run this effect once on initial load, not every time homeworks changes
     if (loading || homeworks.length === 0 || hasShownInitialNotifications) return;
 
     // Delay toast notifications so the page UI can settle first (dock, animations, etc.)
     const delayTimer = setTimeout(() => {
-      const overdueAssignments = homeworks.filter((hw: Homework) => {
-        const dueDate = new Date(hw.dueDate);
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0); // Start of today (midnight)
-        return !hw.completed && dueDate < todayStart;
-      });
-
-      if (overdueAssignments.length > 0) {
-        // Group by class for better messaging
-        const overdueByClass = overdueAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
-          const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
-          if (!acc[className]) acc[className] = [];
-          acc[className].push(hw);
-          return acc;
-        }, {} as Record<string, any[]>);
-
-        Object.entries(overdueByClass).forEach(([className, assignments]: [string, any]) => {
-          if (assignments.length === 1) {
-            warning(
-              `${assignments[0].title} is overdue!`,
-              `Due date was ${new Date(assignments[0].dueDate).toLocaleDateString()}`
-            );
-          } else {
-            warning(
-              `${assignments.length} assignments overdue in ${className}`,
-              `Check your ${className} assignments`
-            );
-          }
-        });
-
-        // Mark that we've shown initial notifications
-        setHasShownInitialNotifications(true);
-      }
-    }, 1500);
-
-    return () => clearTimeout(delayTimer);
-  }, [loading, homeworks.length, classes, hasShownInitialNotifications, warning]); // Only run once on initial load
-
-  // Show toast notifications for assignments due soon - ONLY ON FIRST LOAD
-  React.useEffect(() => {
-    // Only run this effect once on initial load, not every time homeworks changes
-    if (loading || homeworks.length === 0 || hasShownInitialNotifications) return;
-
-    // Delay toast notifications so the page UI can settle first
-    const delayTimer = setTimeout(() => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
-
       const tomorrowStart = new Date(todayStart);
       tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
+      const dayAfterTomorrow = new Date(todayStart);
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
       const threeDaysFromNow = new Date(todayStart);
       threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 
-      const dueSoonAssignments = homeworks.filter((hw: Homework) => {
-        const dueDate = new Date(hw.dueDate);
-        return !hw.completed && dueDate >= todayStart && dueDate <= threeDaysFromNow;
-      });
-
-      if (dueSoonAssignments.length > 0) {
-        // Group by class for better messaging
-        const dueSoonByClass = dueSoonAssignments.reduce((acc: Record<string, any[]>, hw: Homework) => {
-          const className = classes.find((cls: Class) => cls.id === hw.classId)?.name || 'Unknown Class';
-          if (!acc[className]) acc[className] = [];
-          acc[className].push(hw);
-          return acc;
-        }, {} as Record<string, any[]>);
-
-        Object.entries(dueSoonByClass).forEach(([className, assignments]: [string, any]) => {
-          if (assignments.length === 1) {
-            const hw = assignments[0];
-            const dueDate = new Date(hw.dueDate);
-            const todayStart = new Date();
-            todayStart.setHours(0, 0, 0, 0);
-
-            const tomorrowStart = new Date(todayStart);
-            tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
-            let timePhrase = '';
-            if (dueDate >= todayStart && dueDate < tomorrowStart) {
-              timePhrase = 'today';
-            } else if (dueDate >= tomorrowStart && dueDate < new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000)) {
-              timePhrase = 'tomorrow';
-            } else {
-              const daysUntilDue = Math.ceil((dueDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
-              timePhrase = `in ${daysUntilDue} days`;
-            }
-
-            warning(
-              `${hw.title} is due ${timePhrase}!`,
-              `Due on ${dueDate.toLocaleDateString()}`
-            );
-          } else {
-            warning(
-              `${assignments.length} assignments due soon in ${className}`,
-              `Check your ${className} assignments`
-            );
-          }
-        });
-
-        // Mark that we've shown initial notifications
-        setHasShownInitialNotifications(true);
+      const incomplete = homeworks.filter((hw: Homework) => !hw.completed);
+      const overdue = incomplete.filter((hw: Homework) => new Date(hw.dueDate) < todayStart);
+      const dueToday: Homework[] = [];
+      const dueTomorrow: Homework[] = [];
+      const dueLater: Homework[] = [];
+      for (const hw of incomplete) {
+        const due = new Date(hw.dueDate);
+        if (due < todayStart || due > threeDaysFromNow) continue;
+        if (due < tomorrowStart) dueToday.push(hw);
+        else if (due < dayAfterTomorrow) dueTomorrow.push(hw);
+        else dueLater.push(hw);
       }
+
+      const total = overdue.length + dueToday.length + dueTomorrow.length + dueLater.length;
+      if (total === 0) return;
+
+      if (total === 1) {
+        const hw = overdue[0] || dueToday[0] || dueTomorrow[0] || dueLater[0];
+        const due = new Date(hw.dueDate);
+        const phrase = overdue.length ? 'overdue' : dueToday.length ? 'due today' : dueTomorrow.length ? 'due tomorrow' : `due on ${due.toLocaleDateString()}`;
+        warning(`${hw.title} is ${phrase}!`, `Due on ${due.toLocaleDateString()}`);
+      } else {
+        const parts: string[] = [];
+        if (overdue.length) parts.push(`${overdue.length} overdue`);
+        if (dueToday.length) parts.push(`${dueToday.length} due today`);
+        if (dueTomorrow.length) parts.push(`${dueTomorrow.length} due tomorrow`);
+        if (dueLater.length) parts.push(`${dueLater.length} due in the next 3 days`);
+
+        const classCount = new Set(
+          [...overdue, ...dueToday, ...dueTomorrow, ...dueLater].map((hw: Homework) => hw.classId)
+        ).size;
+        warning(
+          `${total} assignments need your attention`,
+          `${parts.join(' · ')} across ${classCount} ${classCount === 1 ? 'class' : 'classes'}`
+        );
+      }
+
+      // Mark that we've shown initial notifications
+      setHasShownInitialNotifications(true);
     }, 1500);
 
     return () => clearTimeout(delayTimer);
@@ -493,28 +439,6 @@ export const MainAppContent = () => {
     gray: '#CBD5E1'     // pastel slate
   };
 
-  const headerColors = {
-    red: '#DC2626',     // red-600
-    blue: '#2563EB',    // blue-600
-    yellow: '#D97706',  // amber-600
-    green: '#16A34A',   // green-600
-    purple: '#7C3AED',  // purple-600
-    pink: '#DB2777',    // pink-600
-    teal: '#0D9488',    // teal-600
-    gray: '#475569'     // slate-600
-  };
-
-  const darkHeaderColors = {
-    red: '#F87171',     // red-400 (vibrant high-contrast on dark)
-    blue: '#60A5FA',    // blue-400
-    yellow: '#FBBF24',  // amber-400
-    green: '#34D399',   // emerald-400
-    purple: '#C084FC',  // purple-400
-    pink: '#F472B6',    // pink-400
-    teal: '#2DD4BF',    // teal-400
-    gray: '#CBD5E1'     // slate-300
-  };
-
   // Get initials from class name
   const getInitials = (name: string) => {
     return name
@@ -532,8 +456,7 @@ export const MainAppContent = () => {
   }, []);
 
   const getHeaderColor = useCallback((index: number) => {
-    const colors = Object.values(isDark ? darkHeaderColors : headerColors);
-    return colors[index % colors.length];
+    return getDashboardClassIconColor(index, isDark);
   }, [isDark]);
 
   // Memoized: homework filtering logic

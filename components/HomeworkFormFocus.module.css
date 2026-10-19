@@ -1,0 +1,10 @@
+.scope :focus-visible {
+  outline: none !important;
+  border-color: #d4e88e !important;
+  box-shadow: 0 0 0 2px rgb(235 246 181 / 40%) !important;
+}
+
+.scope [role='option']:focus {
+  background-color: rgb(212 232 142 / 20%) !important;
+  box-shadow: none !important;
+}

@@ -16,6 +16,7 @@ import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
 import { useTestContext, type Test } from '@/context/TestContext';
 import { useMainApp } from '@/context/MainAppContext';
 import { triggerCompletionConfetti } from '@/lib/confetti';
+import { getNewHomeClassColor } from '@/lib/class-display-colors';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,17 +27,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-const CLASS_PALETTE = [
-  { background: '#e0f2fe', accent: '#0284c7' }, // Sky
-  { background: '#ede9fe', accent: '#7c3aed' }, // Purple
-  { background: '#fef3c7', accent: '#d97706' }, // Amber
-  { background: '#dcfce7', accent: '#16a34a' }, // Emerald
-  { background: '#fce7f3', accent: '#db2777' }, // Pink
-  { background: '#ffedd5', accent: '#ea580c' }, // Orange
-  { background: '#e0e7ff', accent: '#4f46e5' }, // Indigo
-  { background: '#ccfbf1', accent: '#0d9488' }, // Teal
-];
 
 const hexToRgba = (hex: string, alpha: number) => {
   const clean = hex.replace('#', '').trim();
@@ -170,8 +160,7 @@ export default function NewHomeClassesSection({
   // Process and filter classes
   const processedClasses = useMemo(() => {
     return classes.map((cls, index) => {
-      const palette = CLASS_PALETTE[index % CLASS_PALETTE.length];
-      const classColor = cls.color || palette.accent;
+      const classColor = getNewHomeClassColor(cls, index);
 
       // Filter homeworks for this class
       const classAllHw = homeworks.filter(
@@ -489,7 +478,7 @@ export default function NewHomeClassesSection({
                           </span>
                           <div className="flex min-w-0 flex-1 items-center gap-2">
                             <h3
-                              className="truncate text-sm font-bold uppercase tracking-tight sm:text-base"
+                              className="truncate text-sm font-semibold tracking-tight sm:text-base"
                               style={{ color: classColor }}
                               title={cls.name}
                             >
@@ -696,7 +685,7 @@ export default function NewHomeClassesSection({
                             </button>
                           ) : (
                             <div className="mt-2 rounded-xl border border-dashed border-[#dce8f2] dark:border-gray-800 bg-[#f8fafc]/50 dark:bg-gray-900/40 p-2.5">
-                              <div className="flex items-center justify-between border-b border-[#edf1f4] dark:border-gray-800 pb-1.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                              <div className="flex items-center justify-between border-b border-[#edf1f4] dark:border-gray-800 pb-1.5 mb-1.5 text-xs font-medium text-gray-400">
                                 <span className="flex items-center gap-1 text-[#275085] dark:text-sky-300">
                                   <HugeIcon name="Archive" size={12} /> Archived ({archivedHomeworks.length})
                                 </span>
@@ -769,8 +758,8 @@ export default function NewHomeClassesSection({
                         <HugeIcon name="TestTube" size={13} />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-300">
-                          Next Test
+                        <span className="block text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                          Next test
                         </span>
                         <span className="block truncate text-xs font-semibold text-[#1e2027] dark:text-emerald-100">
                           {nextTest.title}

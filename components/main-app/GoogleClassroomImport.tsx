@@ -28,7 +28,7 @@ export const GoogleClassroomImport = ({ onImport }: GoogleClassroomImportProps) 
     if (!parsed.recognized) {
       setParsedAssignment(undefined);
       setApplicationResult(undefined);
-      setParseError('No assignment details were confidently detected. Make sure you copied the individual assignment page, then try again.');
+      setParseError('No assignment found. Copy the individual assignment page and try again.');
       return;
     }
 
@@ -69,25 +69,14 @@ export const GoogleClassroomImport = ({ onImport }: GoogleClassroomImportProps) 
 
   return (
     <div className="space-y-3">
-      <div className="flex items-start gap-3">
-        <span className="h-9 w-9 rounded-xl bg-[#ebf6b5]/70 dark:bg-[#ebf6b5]/10 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
-          <HugeIcon name="School01" size={18} className="h-[18px] w-[18px]" />
-        </span>
-        <div>
-          <h3 className="text-sm font-bold text-sky-900 dark:text-white">Import from Google Classroom</h3>
-          <p className="mt-0.5 text-xs leading-5 text-sky-600/70 dark:text-sky-400/70">
-            Copy an assignment page and we’ll fill in the homework details. No Google sign-in needed.
-          </p>
-        </div>
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-sky-900 dark:text-white">Google Classroom</h3>
+        <p className="text-xs leading-5 text-sky-600/70 dark:text-sky-400/70">
+          Open an assignment, select all, copy, and paste below.
+        </p>
       </div>
 
-      <div className="p-3 bg-sky-50/40 dark:bg-gray-800/35 border border-sky-100 dark:border-gray-700 rounded-2xl space-y-3">
-        <ol className="text-[11px] leading-5 text-sky-700/75 dark:text-sky-300/75 list-decimal pl-4">
-          <li>Open the individual assignment in Google Classroom.</li>
-          <li>Press <kbd className="font-semibold">Cmd+A</kbd>, then <kbd className="font-semibold">Cmd+C</kbd>.</li>
-          <li>Paste the copied page below.</li>
-        </ol>
-
+      <div className="space-y-3">
         <textarea
           value={rawText}
           onPaste={handlePaste}
@@ -100,8 +89,8 @@ export const GoogleClassroomImport = ({ onImport }: GoogleClassroomImportProps) 
           }}
           aria-label="Google Classroom assignment page content"
           placeholder="Paste the copied Classroom page here..."
-          rows={4}
-          className="w-full px-3 py-2.5 bg-white/70 dark:bg-gray-800/60 border border-sky-100 dark:border-gray-700 rounded-xl text-xs leading-relaxed text-sky-800 dark:text-sky-100 placeholder:text-sky-300 dark:placeholder:text-sky-600 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] resize-none"
+          rows={3}
+          className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-xl text-sm leading-relaxed text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] resize-none"
         />
 
         <button
@@ -128,8 +117,8 @@ export const GoogleClassroomImport = ({ onImport }: GoogleClassroomImportProps) 
                 <HugeIcon name="CheckmarkCircle02" size={13} className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <p className="text-[11px] leading-4 font-semibold text-emerald-800 dark:text-emerald-200">
                   {applicationResult.populatedFields.length > 0
-                    ? `Filled ${applicationResult.populatedFields.join(', ')}. Review the fields below before saving.`
-                    : 'Assignment details detected. Review and complete the fields below.'}
+                    ? `Filled ${applicationResult.populatedFields.join(', ')}. Review before saving.`
+                    : 'Assignment found. Review the details.'}
                 </p>
               </div>
               {detectedDetails.length > 0 && (
@@ -139,7 +128,7 @@ export const GoogleClassroomImport = ({ onImport }: GoogleClassroomImportProps) 
               )}
               {parsedAssignment.course && !applicationResult.matchedClassName && (
                 <p className="pl-5 text-[10px] leading-4 text-amber-700 dark:text-amber-300">
-                  “{parsedAssignment.course}” did not match an existing TaskTornado class. Choose the class manually below.
+                  “{parsedAssignment.course}” wasn’t matched. Choose a class manually.
                 </p>
               )}
             </div>

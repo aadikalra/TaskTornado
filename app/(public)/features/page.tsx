@@ -33,9 +33,7 @@ function FeaturesHero() {
                         Built for the way you learn.
                     </h1>
                     <p className="text-base md:text-lg text-sky-900/60 dark:text-sky-400/60 max-w-2xl mx-auto leading-relaxed font-medium">
-                        Core tools for organizing schoolwork in one place. AI,
-                        social, and Google integrations remain unavailable
-                        pending their respective reviews.
+                        12+ tools designed to help students organize, study, and succeed — all in one place, all completely free.
                     </p>
                 </motion.div>
             </div>
@@ -169,21 +167,21 @@ function AuroraSection() {
                         viewport={{ once: true }}
                     >
                         <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-rose-600 dark:text-rose-400 bg-rose-600/5 dark:bg-rose-400/5 border border-rose-600/10 dark:border-rose-400/10 rounded-full mb-4">
-                            Aurora — provider update
+                            Meet Aurora
                         </span>
                         <h2 className="text-3xl md:text-5xl font-semibold text-rose-500 dark:text-rose-400 tracking-tight leading-[1.15] mb-5">
-                            Student-appropriate AI study tools are planned.
+                            Your AI study partner that actually gets school.
                         </h2>
                         <p className="text-base text-rose-900/60 dark:text-rose-400/60 leading-relaxed mb-8 max-w-lg">
-                            These features are temporarily unavailable while we select a provider whose terms support student-facing applications and finish the required safety controls.
+                            Aurora teaches, organizes, quizzes, and supports you — all from one conversation. Socratic-style, so you actually learn.
                         </p>
 
                         <div className="space-y-3">
                             {[
-                                { icon: Brain, label: 'Planned: Guided Learning', desc: 'Step-by-step educational explanations' },
-                                { icon: Zap, label: 'Planned: Study Commands', desc: 'Shortcuts for educational workflows' },
-                                { icon: BookOpen, label: 'Planned: Flashcards', desc: 'Practice material from a topic' },
-                                { icon: Heart, label: 'Clear Boundaries', desc: 'Not therapy, medical advice, or emergency support' },
+                                { icon: Brain, label: 'Socratic Method', desc: 'Guides you step-by-step, never gives answers' },
+                                { icon: Zap, label: '7 @Commands', desc: 'One shortcut for every workflow' },
+                                { icon: BookOpen, label: 'Instant Flashcards', desc: 'AI-generated from any topic' },
+                                { icon: Heart, label: 'Stress Support', desc: 'A safe space when school gets heavy' },
                             ].map((item, i) => (
                                 <motion.div
                                     key={i}
@@ -731,9 +729,7 @@ function FinalCTA() {
                         Ready to try all of this?
                     </h2>
                     <p className="text-base md:text-lg text-sky-900/60 dark:text-sky-400/60 max-w-lg mx-auto leading-relaxed font-medium mb-8">
-                        Core access is free during pre-launch. U.S. users age 13
-                        and older can register; minors need parent or guardian
-                        approval.
+                        Sign up in 30 seconds. Free forever, no credit card needed. Every feature from day one.
                     </p>
                     <Link
                         href="/signup"

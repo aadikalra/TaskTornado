@@ -2,12 +2,12 @@ import { Metadata } from 'next';
 import LandingClient from './LandingClient';
 
 export const metadata: Metadata = {
-    title: 'TaskTornado | Pre-Launch Student Organizer',
-    description: 'TaskTornado is a pre-launch academic hub for U.S. students age 13+. Manage homework, classes, and study schedules, with student-appropriate AI tutoring planned.',
+    title: 'TaskTornado | The Ultimate AI-Powered Student Organizer',
+    description: 'TaskTornado is an all-in-one academic hub for students. Manage homework, classes, and study schedules with our built-in Aurora AI tutor. Free forever, built for students.',
     keywords: ['TaskTornado', 'student organizer', 'AI tutor', 'homework tracker', 'academic planner', 'study assistant', 'free student tools'],
     openGraph: {
-        title: 'TaskTornado | Pre-Launch Student Organizer',
-        description: 'A pre-launch hub for homework, classes, and study schedules, with AI study tools planned.',
+        title: 'TaskTornado | AI-Powered Student Organizer',
+        description: 'The all-in-one hub for your academic life. Homework, classes, and AI tutoring in one place.',
         type: 'website',
         url: 'https://tasktornado.com',
         images: [
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'TaskTornado | Pre-Launch Student Organizer',
-        description: 'A U.S.-only, age-13+ hub for organizing academic work.',
+        title: 'TaskTornado | AI-Powered Student Organizer',
+        description: 'The all-in-one hub for your academic life. Free forever.',
         images: ['https://tasktornado.com/2.svg'],
     },
     alternates: {

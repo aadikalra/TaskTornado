@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import focusStyles from '@/components/HomeworkFormFocus.module.css';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -49,14 +50,14 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
   return (
     <div className="space-y-4">
       <div>
-        <Label className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5">
+        <Label className="block text-xs font-medium text-sky-700 dark:text-sky-300 ml-1 mb-1.5">
           Frequency
         </Label>
         <Select value={recurring.frequency} onValueChange={handleFrequencyChange}>
           <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
             <SelectValue placeholder="Frequency" />
           </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-[var(--radix-select-trigger-width)]" position="popper" sideOffset={4}>
+          <SelectContent className={`${focusStyles.scope} bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-[var(--radix-select-trigger-width)]`} position="popper" sideOffset={4}>
             {frequencyOptions.map((option) => (
               <SelectItem
                 key={option.value}
@@ -72,8 +73,8 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="endDate" className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5">
-            End Date
+          <Label htmlFor="endDate" className="block text-xs font-medium text-sky-700 dark:text-sky-300 ml-1 mb-1.5">
+            End date
           </Label>
           <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
             <PopoverTrigger asChild>
@@ -85,7 +86,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
                 <span className="text-left truncate">{recurring.endDate ? format(recurring.endDate, 'MMM d, yyyy') : "Pick date"}</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 overflow-hidden" align="end" sideOffset={4}>
+            <PopoverContent className={`${focusStyles.scope} w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 overflow-hidden`} align="end" sideOffset={4}>
               <Calendar
                 mode="single"
                 selected={recurring.endDate}
@@ -105,7 +106,7 @@ export function RecurringOptions({ recurring, onChange }: RecurringOptionsProps)
         </div>
 
         <div>
-          <Label htmlFor="maxOccurrences" className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1 mb-1.5">
+          <Label htmlFor="maxOccurrences" className="block text-xs font-medium text-sky-700 dark:text-sky-300 ml-1 mb-1.5">
             Occurrences
           </Label>
           <Input

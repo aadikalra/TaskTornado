@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useMainApp } from '@/context/MainAppContext';
-import { PixelCat } from '@/components/PixelCat';
+import Image from 'next/image';
 
 import { useCatFriendship, feedCatTreat } from '@/lib/catTreats';
 
@@ -153,10 +153,10 @@ export const MainAppHeader = () => {
     prevCompletionCountRef.current = completionCount;
   }, [completionCount, totalHomeworkCount, playPartyAnimation, playVictoryAnimation]);
 
-  const completionRate = useMemo(() => {
-    if (homeworks.length === 0) return 0;
-    return Math.round((homeworks.filter((hw: any) => hw.completed).length / homeworks.length) * 100);
-  }, [homeworks]);
+  const isNight = useMemo(() => {
+    const hour = new Date().getHours();
+    return hour >= 20 || hour < 6;
+  }, []);
 
   return (
     <motion.div
@@ -167,11 +167,14 @@ export const MainAppHeader = () => {
       <div className="flex items-center gap-2.5 sm:gap-4">
         {/* Cat Avatar */}
         <div className="relative shrink-0 flex items-center" ref={facehashRef}>
-          <div className="relative flex items-center">
-            <PixelCat
-              name={(full_name?.split(' ')[0]) || user?.email || 'Student'}
-              size="clamp(44px, 12vw, 60px)"
-              is100PercentDone={completionRate === 100 && homeworks.length > 0}
+          <div className="flex size-[clamp(44px,12vw,60px)] items-center justify-center rounded-full bg-[#f5f0e8] dark:bg-[#1b2532]">
+            <Image
+              src={isNight ? '/cuteCatSleeping.svg' : '/cuteCat.svg'}
+              alt={isNight ? 'Your cat is resting' : 'Your study companion'}
+              width={90}
+              height={80}
+              className="h-[90%] w-full object-contain"
+              priority
             />
           </div>
         </div>

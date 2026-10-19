@@ -91,9 +91,10 @@ const handwritingCharVariants = {
 interface AIAssistantProps {
   isOpen?: boolean;
   onClose?: () => void;
+  isCentered?: boolean;
 }
 
-export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = {}) {
+export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }: AIAssistantProps = {}) {
   /* ---------------------------------------------------------------------- */
   /* Cookie Helper Functions                 */
   /* ---------------------------------------------------------------------- */
@@ -1363,38 +1364,52 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
               height: window.innerWidth < 768
                 ? '100vh'
                 : isAISidebarMode ? '100vh' : `${panelSize.height}px`,
+              maxHeight: isCentered ? 'min(calc(100vh - 48px), 760px)' : undefined,
+              maxWidth: isCentered ? 'min(calc(100vw - 48px), 640px)' : undefined,
             }}
             className={cn(
               'fixed z-50 pointer-events-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]',
               // Mobile (full-screen)
               'inset-0 rounded-none',
               // Desktop
-              isAISidebarMode
+              isCentered
+                ? 'md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:right-auto md:bottom-auto md:rounded-[36px]'
+                : isAISidebarMode
                 ? 'md:right-0 md:top-0 md:bottom-0 md:rounded-none md:left-auto'
                 : 'md:right-6 md:bottom-6 md:rounded-[36px] md:left-auto md:top-auto',
             )}
           >
             <motion.div
               initial={{
-                clipPath: isAISidebarMode
+                clipPath: isCentered
+                  ? 'inset(0% 0% 0% 0% round 36px)'
+                  : isAISidebarMode
                   ? 'inset(0% 0% 0% 100% round 0px)'
                   : 'inset(100% 0% 0% 100% round 36px)',
-                filter: 'blur(12px)',
+                filter: isCentered ? 'blur(0px)' : 'blur(12px)',
+                opacity: isCentered ? 0 : 1,
+                scale: isCentered ? 0.94 : 1,
               }}
               animate={{
                 clipPath: isAISidebarMode
                   ? 'inset(0% 0% 0% 0% round 0px)'
                   : 'inset(0% 0% 0% 0% round 36px)',
                 filter: 'blur(0px)',
+                opacity: 1,
+                scale: 1,
               }}
               exit={{
-                clipPath: isAISidebarMode
+                clipPath: isCentered
+                  ? 'inset(0% 0% 0% 0% round 36px)'
+                  : isAISidebarMode
                   ? 'inset(0% 0% 0% 100% round 0px)'
                   : 'inset(100% 0% 0% 100% round 36px)',
-                filter: 'blur(12px)',
+                filter: isCentered ? 'blur(0px)' : 'blur(12px)',
+                opacity: isCentered ? 0 : 1,
+                scale: isCentered ? 0.94 : 1,
               }}
               transition={{
-                duration: 0.5,
+                duration: isCentered ? 0.25 : 0.5,
                 ease: [0.16, 1, 0.3, 1],
               }}
               data-ai-chat="true"
@@ -1408,8 +1423,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
                   : 'md:rounded-[36px]',
               )}
             >
-            {/* Resize handles - only on desktop, not in sidebar mode */}
-            {!isAISidebarMode && (
+            {/* Resize handles - only on desktop, not in sidebar mode or centered mode */}
+            {!isAISidebarMode && !isCentered && (
               <div className="hidden md:block">
                 {/* Top edge */}
                 <div
@@ -1512,18 +1527,22 @@ export function AIAssistant({ isOpen: propIsOpen, onClose }: AIAssistantProps = 
                   </>
                 )}
 
-                {/* Sidebar toggle — desktop only */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setAISidebarMode(!isAISidebarMode)}
-                  className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800"
-                  title={isAISidebarMode ? 'Floating panel' : 'Sidebar mode'}
-                >
-                  <PanelRight className="w-4 h-4" />
-                </motion.button>
+                {/* Sidebar toggle — desktop only (hidden in centered mode) */}
+                {!isCentered && (
+                  <>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setAISidebarMode(!isAISidebarMode)}
+                      className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800"
+                      title={isAISidebarMode ? 'Floating panel' : 'Sidebar mode'}
+                    >
+                      <PanelRight className="w-4 h-4" />
+                    </motion.button>
 
-                <div className="hidden md:block w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
+                    <div className="hidden md:block w-[1px] h-4 bg-sky-100 dark:bg-gray-800 mx-0.5" />
+                  </>
+                )}
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}

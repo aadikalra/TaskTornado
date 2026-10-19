@@ -96,7 +96,7 @@ export default function HomeworkDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans text-[#111827] dark:text-gray-100">
-      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-12">
+      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-12">
         {/* Back link */}
         <Link
           href="/newhome"

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, addDays } from 'date-fns';
+import focusStyles from '@/components/HomeworkFormFocus.module.css';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/animate-ui/components/buttons/button';
@@ -12,12 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HugeIcon } from '@/lib/huge-icon-map';
+import { getPriorityIndicator } from '@/components/HomeworkPriorityIndicator';
 
 import { useClassContext } from '@/context/ClassContext';
+import { useDarkMode } from '@/context/DarkModeContext';
+import { usePathname } from 'next/navigation';
+import { getDashboardClassIconColor, getNewHomeClassColor } from '@/lib/class-display-colors';
 import { useHomeworkContext, RecurringHomework } from '@/context/HomeworkContext';
 import { useToast } from '@/context/ToastContext';
 import { useMainApp } from '@/context/MainAppContext';
 import { HomeworkLinkInput } from '@/components/HomeworkLinkInput';
+import { QuickFillInput } from '@/components/main-app/QuickFillInput';
 import { RecurringOptions } from '@/components/RecurringOptions';
 import {
   GoogleClassroomImport,
@@ -29,6 +35,11 @@ import {
 } from '@/lib/google-classroom-import';
 
 type Priority = 'low' | 'medium' | 'high';
+const priorityOptions = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+] as const;
 type HomeworkEntryMode = 'normal' | 'quick-fill' | 'classroom';
 type HomeworkLink = {
   id: string;
@@ -57,6 +68,8 @@ type AutoFillResponse = {
 export const AddHomeworkModal = () => {
   const { showAddHomework, setShowAddHomework, classIdForAddHomework, setClassIdForAddHomework } = useMainApp();
   const { classes } = useClassContext();
+  const { isDark } = useDarkMode();
+  const pathname = usePathname();
   const { addHomework, addRecurringHomework } = useHomeworkContext();
   const { success } = useToast();
 
@@ -77,6 +90,30 @@ export const AddHomeworkModal = () => {
   const [autoFillText, setAutoFillText] = useState('');
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [entryMode, setEntryMode] = useState<HomeworkEntryMode>('normal');
+  const [dueDatePopoverOpen, setDueDatePopoverOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [modalTop, setModalTop] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (!showAddHomework) {
+      setModalTop(null);
+      return;
+    }
+
+    // Center the opening height once; later content changes grow downward.
+    const openingHeight = modalRef.current?.offsetHeight || 0;
+    const updatePosition = () => {
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      setModalTop(Math.max(16, (viewportHeight - Math.min(openingHeight, viewportHeight - 32)) / 2));
+    };
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.visualViewport?.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.visualViewport?.removeEventListener('resize', updatePosition);
+    };
+  }, [showAddHomework]);
 
   // Initialize classId when modal opens or classes load
   useEffect(() => {
@@ -89,8 +126,8 @@ export const AddHomeworkModal = () => {
     }
   }, [showAddHomework, classIdForAddHomework, classes, newHomework.classId]);
 
-  const handleAutoFill = useCallback(async () => {
-    if (!autoFillText.trim() || isAutoFilling) return;
+  const handleAutoFill = useCallback(async (inputText: string) => {
+    if (!inputText.trim() || isAutoFilling) return;
     setIsAutoFilling(true);
     try {
       const classNames = classes.map(c => c.name).join(', ');
@@ -119,7 +156,7 @@ Date reference (use these exact dates): ${dateRef}
 Available classes: ${classNames}
 Priority options: low, medium, high
 
-The student typed: "${autoFillText}"
+The student wrote or dictated: "${inputText}"
 
 Return ONLY a JSON object with whichever fields you can determine:
 - "title": string (the homework title/name)
@@ -136,27 +173,34 @@ Return ONLY valid JSON, no explanation, no markdown.`,
         })
       });
 
+      if (!response.ok) throw new Error('Quick Fill request failed.');
       const reader = response.body?.getReader();
+      if (!reader) throw new Error('Quick Fill returned no response.');
+      const decoder = new TextDecoder();
       let text = '';
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6)) as { response?: unknown };
-                if (typeof data.response === 'string') text += data.response;
-              } catch { }
-            }
-          }
+      let pending = '';
+      const readLine = (line: string) => {
+        if (!line.startsWith('data: ')) return;
+        try {
+          const data = JSON.parse(line.slice(6)) as { response?: unknown };
+          if (typeof data.response === 'string') text += data.response;
+        } catch { }
+      };
+      while (true) {
+        const { done, value } = await reader.read();
+        pending += done ? decoder.decode() : decoder.decode(value, { stream: true });
+        const lines = pending.split('\n');
+        pending = lines.pop() || '';
+        lines.forEach(readLine);
+        if (done) {
+          if (pending) readLine(pending);
+          break;
         }
       }
 
       // Extract JSON from response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Quick Fill returned no homework details.');
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]) as AutoFillResponse;
         const updates: Partial<HomeworkDraft> = {};
@@ -190,14 +234,17 @@ Return ONLY valid JSON, no explanation, no markdown.`,
           setNewHomework(prev => ({ ...prev, ...updates }));
           setAutoFillText('');
           setEntryMode('normal');
+        } else {
+          throw new Error('No homework details found.');
         }
       }
     } catch (error) {
       console.error('Autofill error:', error);
+      throw error;
     } finally {
       setIsAutoFilling(false);
     }
-  }, [autoFillText, isAutoFilling, classes]);
+  }, [isAutoFilling, classes]);
 
   const handleClassroomImport = useCallback((assignment: ParsedGoogleClassroomAssignment): ClassroomImportApplicationResult => {
     const matchedClass = matchGoogleClassroomCourse(assignment, classes);
@@ -301,89 +348,63 @@ Return ONLY valid JSON, no explanation, no markdown.`,
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100] fixed-padding-adjust">
+      <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-start justify-center px-4 pb-4 z-[100] fixed-padding-adjust" style={{ paddingTop: modalTop ?? 16 }}>
         <motion.div
+          ref={modalRef}
+          style={modalTop === null ? undefined : { maxHeight: `calc(100dvh - ${modalTop + 16}px)` }}
           initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 20 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-950/10 dark:shadow-black/60 w-full max-w-md relative border border-sky-100 dark:border-gray-800 flex flex-col max-h-[90vh] overflow-hidden"
+          className={`${focusStyles.scope} bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl shadow-sky-950/10 dark:shadow-black/60 w-full max-w-md relative border border-sky-100 dark:border-gray-800 flex flex-col max-h-[90dvh] overflow-hidden origin-top`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-sky-100/80 dark:border-gray-800 shrink-0 bg-white dark:bg-gray-900">
-            <h2 className="text-base font-bold text-sky-900 dark:text-white">
-              Add New Homework
-            </h2>
-            <button
-              onClick={() => {
-                setShowAddHomework(false);
-                setIsRecurringEnabled(false);
-                setRecurringConfig({ frequency: 'weekly' });
-                setEntryMode('normal');
-              }}
-              aria-label="Close add homework modal"
-              className="h-8 w-8 flex items-center justify-center text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
-            >
-              <HugeIcon name="Cancel01" size={16} className="h-4 w-4" />
-            </button>
-          </div>
-
           <Tabs
             value={entryMode}
             onValueChange={(value) => setEntryMode(value as HomeworkEntryMode)}
             className="flex flex-col flex-1 min-h-0 gap-0"
           >
-            <div className="px-6 pt-3 pb-1 shrink-0 bg-white dark:bg-gray-900">
-              <TabsList className="grid h-10 w-full grid-cols-3 rounded-xl bg-sky-50/90 dark:bg-gray-800/80 p-1 text-sky-500 dark:text-sky-400">
-                <TabsTrigger
-                  value="normal"
-                  className="relative h-full min-w-0 rounded-lg text-[11px] font-semibold transition-[color,background-color,box-shadow] duration-200 data-[state=active]:!bg-transparent data-[state=active]:text-sky-900 dark:data-[state=active]:!bg-transparent dark:data-[state=active]:text-white"
-                >
-                  {entryMode === 'normal' && (
-                    <motion.span
-                      layoutId="homework-active-tab"
-                      transition={{ type: 'spring', stiffness: 500, damping: 34, mass: 0.7 }}
-                      className="absolute inset-0 rounded-lg bg-white shadow-[0_2px_8px_rgba(14,116,144,0.12)] dark:bg-gray-900"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span className="relative z-10">Normal</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="quick-fill"
-                  className="relative h-full min-w-0 rounded-lg text-[11px] font-semibold transition-[color,background-color,box-shadow] duration-200 data-[state=active]:!bg-transparent data-[state=active]:text-sky-900 dark:data-[state=active]:!bg-transparent dark:data-[state=active]:text-white"
-                >
-                  {entryMode === 'quick-fill' && (
-                    <motion.span
-                      layoutId="homework-active-tab"
-                      transition={{ type: 'spring', stiffness: 500, damping: 34, mass: 0.7 }}
-                      className="absolute inset-0 rounded-lg bg-white shadow-[0_2px_8px_rgba(14,116,144,0.12)] dark:bg-gray-900"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span className="relative z-10 inline-flex items-center gap-1.5">
-                    <HugeIcon name="AiMagic" size={15} className="h-4 w-4 shrink-0" />
-                    Quick Fill
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="classroom"
-                  className="relative h-full min-w-0 rounded-lg text-[11px] font-semibold transition-[color,background-color,box-shadow] duration-200 data-[state=active]:!bg-transparent data-[state=active]:text-sky-900 dark:data-[state=active]:!bg-transparent dark:data-[state=active]:text-white"
-                >
-                  {entryMode === 'classroom' && (
-                    <motion.span
-                      layoutId="homework-active-tab"
-                      transition={{ type: 'spring', stiffness: 500, damping: 34, mass: 0.7 }}
-                      className="absolute inset-0 rounded-lg bg-white shadow-[0_2px_8px_rgba(14,116,144,0.12)] dark:bg-gray-900"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span className="relative z-10 inline-flex items-center gap-1.5">
-                    <HugeIcon name="School01" size={15} className="h-4 w-4 shrink-0" />
-                    Classroom
-                  </span>
-                </TabsTrigger>
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-sky-100/80 dark:border-gray-800 shrink-0 bg-white dark:bg-gray-900">
+              <h2 className="flex-1 min-w-0 text-base font-bold text-sky-900 dark:text-white">
+                Add New Homework
+              </h2>
+              <TabsList aria-label="Homework entry mode" className="flex h-9 shrink-0 gap-0.5 rounded-lg bg-sky-50/90 dark:bg-gray-800/80 p-0.5 text-sky-500 dark:text-sky-400">
+                {([
+                  { value: 'normal', label: 'Manual entry', icon: 'PencilEdit01' },
+                  { value: 'quick-fill', label: 'Quick Fill', icon: 'Zap' },
+                  { value: 'classroom', label: 'Google Classroom', icon: 'School01' },
+                ] as const).map(({ value, label, icon }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    aria-label={label}
+                    title={label}
+                    className="relative size-8 flex-none rounded-md p-0 text-sky-900 dark:text-sky-100 opacity-40 transition-[opacity,background-color] hover:opacity-70 focus-visible:opacity-100 data-[state=active]:opacity-100 data-[state=active]:!bg-transparent data-[state=active]:shadow-none data-[state=active]:text-sky-900 dark:data-[state=active]:!bg-transparent dark:data-[state=active]:text-sky-100"
+                  >
+                    {entryMode === value && (
+                      <motion.span
+                        layoutId="homework-active-tab"
+                        transition={{ type: 'spring', stiffness: 500, damping: 34, mass: 0.7 }}
+                        className="absolute inset-0 rounded-md bg-white dark:bg-gray-900"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <HugeIcon name={icon} size={16} className="relative z-10 size-4" aria-hidden="true" />
+                  </TabsTrigger>
+                ))}
               </TabsList>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddHomework(false);
+                  setIsRecurringEnabled(false);
+                  setRecurringConfig({ frequency: 'weekly' });
+                  setEntryMode('normal');
+                }}
+                aria-label="Close add homework modal"
+                className="size-8 shrink-0 flex items-center justify-center text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
+              >
+                <HugeIcon name="Cancel01" size={16} className="size-4" />
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-contain">
@@ -393,50 +414,20 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <div className="mb-4 flex items-start gap-2.5">
-                    <span className="h-9 w-9 rounded-xl bg-[#ebf6b5]/70 dark:bg-[#ebf6b5]/10 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
-                      <HugeIcon name="AiMagic" size={18} className="h-4.5 w-4.5" />
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-bold text-sky-900 dark:text-white">Describe it in one line</h3>
-                      <p className="mt-0.5 text-xs leading-5 text-sky-600/70 dark:text-sky-400/70">
-                        We’ll turn the details you provide into a homework draft for you to review.
-                      </p>
-                    </div>
+                  <div className="mb-3 space-y-1">
+                    <h3 className="text-sm font-semibold text-sky-900 dark:text-white">Quick Fill</h3>
+                    <p className="text-xs leading-5 text-sky-600/70 dark:text-sky-400/70">
+                      Describe your homework. We’ll fill in the details.
+                    </p>
                   </div>
 
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={autoFillText}
-                      onChange={(e) => setAutoFillText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && autoFillText.trim()) {
-                          e.preventDefault();
-                          handleAutoFill();
-                        }
-                      }}
-                      placeholder='e.g., "Math ch5 exercises due friday high priority"'
-                      autoFocus
-                      aria-label="Describe homework for Quick Fill"
-                      className="w-full h-11 pl-3.5 pr-12 text-sm bg-sky-50/50 dark:bg-gray-800 border border-sky-200/60 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400/50 dark:placeholder-sky-500/50 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] focus:bg-white dark:focus:bg-gray-900 transition-colors"
-                    />
-                    <button
-                      onClick={handleAutoFill}
-                      disabled={!autoFillText.trim() || isAutoFilling}
-                      className="absolute right-1.5 top-1.5 h-8 w-8 flex items-center justify-center rounded-lg bg-[#ebf6b5] dark:bg-[#ebf6b5]/15 text-sky-700 dark:text-sky-300 hover:bg-[#dff09b] dark:hover:bg-[#ebf6b5]/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      title="Fill fields with AI"
-                    >
-                      {isAutoFilling ? (
-                        <HugeIcon name="LoaderPinwheel" size={14} className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <HugeIcon name="ArrowUp02" size={14} className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </div>
-                  <p className="mt-2 px-1 text-[10px] leading-4 text-sky-500/60 dark:text-sky-400/60">
-                    Include a title, class, due date, and priority for the best result.
-                  </p>
+                  <QuickFillInput
+                    value={autoFillText}
+                    onChange={setAutoFillText}
+                    onFill={handleAutoFill}
+                    isFilling={isAutoFilling}
+                  />
+
                 </motion.div>
               </TabsContent>
 
@@ -459,7 +450,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   <div className="space-y-4">
                     {/* Title Input - Large & Prominent */}
                     <div className="space-y-1.5">
-                      <Label htmlFor="homeworkTitle" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                      <Label htmlFor="homeworkTitle" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
                         Title<span className="text-red-500 ml-0.5">*</span>
                       </Label>
                       <Input
@@ -467,7 +458,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         type="text"
                         value={newHomework.title}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHomework({ ...newHomework, title: e.target.value })}
-                        placeholder="Homework title..."
+                        placeholder="Name this side quest..."
                         className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sm text-sky-900 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-xl hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all font-normal outline-none"
                       />
                     </div>
@@ -475,24 +466,29 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     {/* Metadata Grid - Compact & Efficient */}
                     <div className="grid grid-cols-12 gap-2.5">
                       <div className="col-span-4 space-y-1.5">
-                        <Label htmlFor="class" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                        <Label htmlFor="class" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
                           Class<span className="text-red-500 ml-0.5">*</span>
                         </Label>
                         <Select
                           value={newHomework.classId}
                           onValueChange={(value) => setNewHomework({ ...newHomework, classId: value })}
                         >
-                          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
-                            <SelectValue placeholder="Class" />
+                          <SelectTrigger hideIcon={Boolean(newHomework.classId)} className="[&_svg:not([class*='text-'])]:!text-sky-500 w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+                            <SelectValue placeholder="Class" className="min-w-0" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-[var(--radix-select-trigger-width)]" position="popper" sideOffset={4}>
-                            {classes.map(cls => (
+                          <SelectContent className={`${focusStyles.scope} [&_svg:not([class*='text-'])]:!text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-48 max-w-[calc(100vw-2rem)]`} position="popper" sideOffset={4}>
+                            {classes.map((cls, index) => (
                               <SelectItem
                                 key={cls.id}
                                 value={cls.id}
                                 className="text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 focus:text-sky-950 dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none"
                               >
-                                {cls.name}
+                                <span className="inline-flex max-w-full min-w-0 items-center gap-1.5" title={cls.name}>
+                                  <span className="flex shrink-0 items-center" style={{ color: pathname?.startsWith('/newhome') ? getNewHomeClassColor(cls, index) : getDashboardClassIconColor(index, isDark) }} aria-hidden="true">
+                                    <HugeIcon name={cls.icon || 'School'} size={16} className="size-4 text-inherit" />
+                                  </span>
+                                  <span className="truncate">{cls.name}</span>
+                                </span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -500,41 +496,46 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       </div>
 
                       <div className="col-span-4 space-y-1.5">
-                        <Label htmlFor="priority" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                        <Label htmlFor="priority" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
                           Priority
                         </Label>
                         <Select
                           value={newHomework.priority}
                           onValueChange={(value) => setNewHomework({ ...newHomework, priority: value as Priority })}
                         >
-                          <SelectTrigger className="w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
-                            <SelectValue placeholder="Priority" />
+                          <SelectTrigger hideIcon={Boolean(newHomework.priority)} className="[&_svg:not([class*='text-'])]:!text-sky-500 w-full h-10 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-[#ebf6b5]/40 focus-visible:border-[#d4e88e] transition-all outline-none">
+                            <SelectValue placeholder="Priority" className="min-w-0" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-[var(--radix-select-trigger-width)]" position="popper" sideOffset={4}>
-                            <SelectItem value="low" className="text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 focus:text-sky-950 dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none">Low</SelectItem>
-                            <SelectItem value="medium" className="text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 focus:text-sky-950 dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none">Medium</SelectItem>
-                            <SelectItem value="high" className="text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 focus:text-sky-950 dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none">High</SelectItem>
+                          <SelectContent className={`${focusStyles.scope} [&_svg:not([class*='text-'])]:!text-sky-500 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 p-1 min-w-[var(--radix-select-trigger-width)]`} position="popper" sideOffset={4}>
+                            {priorityOptions.map(({ value, label }) => (
+                              <SelectItem key={value} value={value} className="text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 focus:text-sky-950 dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none">
+                                <span className="inline-flex max-w-full min-w-0 items-center gap-1.5" title={label}>
+                                  <span className="flex size-4 shrink-0 items-center justify-center" aria-hidden="true">{getPriorityIndicator(value, false)}</span>
+                                  <span className="truncate">{label}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="col-span-4 space-y-1.5">
-                        <Label htmlFor="dueDate" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
-                          Due Date<span className="text-red-500 ml-0.5">*</span>
+                        <Label htmlFor="dueDate" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
+                          Due date<span className="text-red-500 ml-0.5">*</span>
                         </Label>
-                        <Popover>
+                        <Popover open={dueDatePopoverOpen} onOpenChange={setDueDatePopoverOpen}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               hoverScale={1}
                               tapScale={1}
-                              className="w-full justify-start px-3 font-normal h-10 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 rounded-xl transition-all outline-none"
+                              className="w-full justify-start px-3 font-normal h-9 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 rounded-xl transition-all outline-none"
                             >
                               <HugeIcon name="Calendar02" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500 shrink-0" />
                               <span className="text-left truncate">{format(newHomework.dueDate, 'MMM d')}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 overflow-hidden" align="end" sideOffset={4}>
+                          <PopoverContent className={`${focusStyles.scope} w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 overflow-hidden`} align="end" sideOffset={4}>
                             <Calendar
                               mode="single"
                               selected={newHomework.dueDate}
@@ -542,30 +543,49 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                               initialFocus
                               className="text-sky-900 dark:text-white rounded-xl"
                             />
+                            <div className="flex gap-2 border-t border-sky-100 dark:border-gray-800 p-3">
+                              {[
+                                { label: 'Today', days: 0 },
+                                { label: 'Tomorrow', days: 1 },
+                                { label: 'Next week', days: 7 },
+                              ].map(({ label, days }) => (
+                                <button
+                                  key={label}
+                                  type="button"
+                                  onClick={() => {
+                                    setNewHomework(previous => ({ ...previous, dueDate: addDays(new Date(), days) }));
+                                    setDueDatePopoverOpen(false);
+                                  }}
+                                  className="h-8 rounded-lg bg-sky-50 dark:bg-gray-800 px-3 text-xs font-medium text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
                     </div>
 
-                    <HomeworkLinkInput
-                      links={newHomework.links}
-                      onChange={(links) => setNewHomework({ ...newHomework, links })}
-                    />
-
                     {/* Description Input */}
                     <div className="space-y-1.5">
-                      <Label htmlFor="homeworkDescription" className="text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+                      <Label htmlFor="homeworkDescription" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
                         Description
                       </Label>
                       <textarea
                         id="homeworkDescription"
                         value={newHomework.description}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewHomework({ ...newHomework, description: e.target.value })}
-                        placeholder="Add some details..."
+                        placeholder="Drop the lore"
                         rows={2}
                         className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 hover:border-sky-200 dark:hover:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ebf6b5]/30 focus:border-[#d4e88e] text-sm resize-none transition-all"
                       />
                     </div>
+
+                    <HomeworkLinkInput
+                      links={newHomework.links}
+                      onChange={(links) => setNewHomework({ ...newHomework, links })}
+                    />
 
                     {/* Recurring Section */}
                     <div className="pt-1 space-y-3">
@@ -578,7 +598,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         />
                         <Label
                           htmlFor="recurringHomework"
-                          className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest cursor-pointer select-none"
+                          className="text-xs font-medium text-sky-700 dark:text-sky-300 cursor-pointer select-none"
                         >
                           Make this recurring
                         </Label>

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const SHARE_URL = 'https://tasktornado.com';
-const SHARE_TEXT = 'Check out TaskTornado — a pre-launch student organizer for homework, grades, and study schedules. AI and Google Classroom integrations are planned.';
+const SHARE_TEXT = 'Check out TaskTornado — a free AI-powered student organizer for homework, grades, and study help!';
 
 function ShareSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [copied, setCopied] = useState(false);
@@ -233,10 +233,7 @@ export default function TeachersFinalCTA() {
                         </h2>
 
                         <p className="text-base md:text-lg text-orange-900/60 dark:text-orange-400/60 max-w-lg leading-relaxed font-medium mb-8">
-                            Students can use TaskTornado&apos;s core organization
-                            tools today. Google Classroom and AI integrations
-                            will launch only after their respective reviews are
-                            complete.
+                            Students sign up in seconds, Google Classroom connects seamlessly, and you get to watch your classroom transform — one prepared student at a time.
                         </p>
 
                         {/* CTAs */}
@@ -273,10 +270,10 @@ export default function TeachersFinalCTA() {
                         {/* Trust badges */}
                         <div className="flex flex-wrap items-start gap-x-5 gap-y-2">
                             {[
-                                'Google sync planned',
-                                'Free core access',
+                                'Google Classroom sync',
+                                'Free forever',
                                 'No data selling',
-                                'AI currently paused',
+                                'Socratic AI only',
                             ].map((badge, i) => (
                                 <span key={i} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-900/40 dark:text-orange-400/40">
                                     <svg className="w-3 h-3 text-[#8bc34a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>

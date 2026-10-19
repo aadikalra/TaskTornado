@@ -7,9 +7,9 @@ import Image from 'next/image';
 const SAFE_LIST = [
     'No ads — ever',
     'No student data sold to third parties',
-    'Clear limits: not therapy or emergency support',
+    'Built-in crisis support & mental health resources',
     'No social feeds or distractions',
-    'AI study tools paused during our provider update',
+    'AI teaches concepts, never gives raw answers',
     'No budget approval needed — it\'s free',
     'No credit card required for students',
 ];

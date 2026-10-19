@@ -20,6 +20,7 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
   const [newLink, setNewLink] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const inputId = React.useId();
 
   const handleAddLink = () => {
     if (!newLink.trim()) return;
@@ -43,13 +44,15 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <label className="block text-[10px] font-bold text-sky-500/60 dark:text-sky-400/60 uppercase tracking-widest ml-1">
+        <label className="block text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
           Links
         </label>
         <button
           type="button"
           onClick={() => setIsAdding(!isAdding)}
-          className={`text-[11px] font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all ${
+          aria-expanded={isAdding}
+          aria-controls={`${inputId}-editor`}
+          className={`text-xs font-medium flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors ${
             isAdding 
               ? 'bg-red-50 text-red-500 dark:bg-red-500/10' 
               : 'text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10'
@@ -65,36 +68,48 @@ export const HomeworkLinkInput: React.FC<HomeworkLinkInputProps> = ({ links = []
       <AnimatePresence>
         {isAdding && (
           <motion.div
+            id={`${inputId}-editor`}
             initial={{ opacity: 0, y: -10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="space-y-2.5 p-3 bg-sky-50/50 dark:bg-gray-800/50 rounded-xl border border-sky-100/80 dark:border-gray-700/60">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-3 p-3 bg-sky-50/30 dark:bg-gray-800/30 rounded-xl border border-sky-100 dark:border-gray-700">
+              <div className="space-y-1.5">
+                <label htmlFor={`${inputId}-url`} className="block text-xs font-medium text-sky-700 dark:text-sky-300">URL</label>
                 <Input
+                  id={`${inputId}-url`}
                   type="url"
                   value={newLink}
                   onChange={(e) => setNewLink(e.target.value)}
-                  placeholder="Paste URL..."
-                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-lg focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
-                />
-                <Input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="Label (e.g. Canvas)"
-                  className="h-9 px-3 text-xs bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-lg focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
+                  placeholder="https://…"
+                  autoFocus
+                  onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); handleAddLink(); } }}
+                  className="h-9 px-3 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-lg focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
                 />
               </div>
-              <button
-                type="button"
-                onClick={handleAddLink}
-                disabled={!newLink.trim()}
-                className="w-full h-9 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-[#ebf6b5] dark:bg-[#ebf6b5]/20 hover:bg-[#d4e88e] dark:hover:bg-[#ebf6b5]/30 border border-[#d4e88e]/50 dark:border-[#ebf6b5]/30 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
-              >
-                Attach Link
-              </button>
+              <div className="flex items-end gap-2.5">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <label htmlFor={`${inputId}-label`} className="block text-xs font-medium text-sky-700 dark:text-sky-300">Label <span className="font-normal text-sky-500/70 dark:text-sky-400/70">(optional)</span></label>
+                  <Input
+                    id={`${inputId}-label`}
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g. Worksheet"
+                    onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); handleAddLink(); } }}
+                    className="h-9 px-3 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-100 placeholder:text-sky-400/50 dark:placeholder:text-sky-500/50 rounded-lg focus:ring-2 focus:ring-[#ebf6b5]/40 focus:border-[#d4e88e] outline-none transition-all"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddLink}
+                  disabled={!newLink.trim()}
+                  className="h-9 shrink-0 px-3 text-xs font-medium text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/15 hover:bg-[#ebf6b5] dark:hover:bg-[#ebf6b5]/25 border border-[#d4e88e]/50 dark:border-[#ebf6b5]/20 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Attach Link
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
