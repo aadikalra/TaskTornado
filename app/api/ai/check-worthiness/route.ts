@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { authorizeAiAction } from '@/lib/ai/http';
 import { completeWithFallback } from '@/lib/ai/groq';
-import { recordAiUsage } from '@/lib/ai/quota';
+import { recordRequestAiUsage, aiProviderErrorResponse } from '@/lib/ai/http';
 
 const resultSchema = z.object({
   worthy: z.boolean(),
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await completeWithFallback({
+      credentials: access.credentials,
       action: 'quick',
       messages: [
         {
@@ -49,14 +50,17 @@ Approve a reasonable study break or reward; gently deny obvious procrastination.
       signal: request.signal,
     });
     const parsed = resultSchema.parse(extractObject(result.content));
-    await recordAiUsage(
+    await recordRequestAiUsage(
+      access,
       'quick',
       result.model,
       result.usage.prompt_tokens,
       result.usage.completion_tokens
     );
     return NextResponse.json(parsed);
-  } catch {
+  } catch (error) {
+    const providerError = aiProviderErrorResponse(error);
+    if (providerError) return providerError;
     return NextResponse.json(
       { worthy: false, reason: 'AI service unavailable.' },
       { status: 500 }

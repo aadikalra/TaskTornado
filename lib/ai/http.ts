@@ -1,33 +1,41 @@
 import { NextResponse } from 'next/server';
 
-import type { AiAction, ServerPlanTier } from '@/lib/ai/config';
-import { reserveAiBurst, reserveAiQuota } from '@/lib/ai/quota';
+import type { AiAction } from '@/lib/ai/config';
+import { recordAiUsage, reserveAiBurst, reserveAiQuota } from '@/lib/ai/quota';
 import { guardAiRequest } from '@/lib/api/request-guard';
 
-function getServerPlanTier(value: unknown): ServerPlanTier {
-  return value === 'pro' || value === 'family' ? value : 'free';
+import { getAiConnection } from '@/lib/ai/byok';
+import type { AiCredentials } from '@/lib/ai/providers';
+import { ProviderRequestError } from '@/lib/ai/provider-client';
+
+export function aiProviderErrorResponse(error: unknown) {
+  return error instanceof ProviderRequestError
+    ? NextResponse.json({ error: error.message, code: 'personal_provider_error' }, { status: error.status })
+    : null;
+}
+
+export async function recordRequestAiUsage(
+  access: { accessToken?: string; credentials?: AiCredentials },
+  action: AiAction, model: string, promptTokens = 0, completionTokens = 0
+) {
+  if (!access.credentials) await recordAiUsage(action, model, promptTokens, completionTokens, access.accessToken);
 }
 
 export async function authorizeAiAction(
   request: Request,
   action: AiAction,
-  requiredTier?: ServerPlanTier
+  purpose: 'chat' | 'transcription' = 'chat'
 ) {
   const access = await guardAiRequest(request);
   if (!access.ok) return access;
 
-  // Paid access is read only from server-managed auth metadata. The temporary
-  // client plan cookie may change the preview UI, but cannot raise API quotas.
-  const tier = getServerPlanTier(access.user.app_metadata?.plan_tier);
-  if (requiredTier && tier !== requiredTier) {
-    return {
-      ok: false as const,
-      response: NextResponse.json(
-        { error: `${requiredTier} plan required.` },
-        { status: 403 }
-      ),
-    };
+  let credentials: AiCredentials | undefined;
+  try {
+    ({ credentials } = await getAiConnection(access.user.id, purpose));
+  } catch (error) {
+    return { ok: false as const, response: NextResponse.json({ error: (error as Error).message }, { status: 503 }) };
   }
+  const tier = 'free' as const;
 
   const burst = await reserveAiBurst(access.user.id, access.accessToken);
   if (!burst.allowed) {
@@ -50,7 +58,7 @@ export async function authorizeAiAction(
     };
   }
 
-  const quota = await reserveAiQuota(
+  const quota = credentials ? { allowed: true as const, remaining: null, source: 'personal-key' as const } : await reserveAiQuota(
     access.user.id,
     action,
     tier,
@@ -69,7 +77,7 @@ export async function authorizeAiAction(
     };
   }
 
-  return { ...access, quota, tier };
+  return { ...access, quota, tier, credentials };
 }
 
 export function createSseResponse(

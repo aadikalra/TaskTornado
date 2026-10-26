@@ -2,7 +2,7 @@
 
 ![TaskTornado Logo](public/2.svg)
 
-A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study planning. Aurora uses Groq for bounded educational AI; social features, uploads, web search, and Google integrations remain disabled.
+A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study planning. Aurora includes free Groq AI and optional personal keys for OpenRouter, Together AI, Fireworks AI, and Groq; social features, uploads, web search, and Google integrations remain disabled.
 
 ## 🚀 Features
 
@@ -14,7 +14,7 @@ A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study
 - **Recurring Homework**: Support for repeating assignments
 
 ### 🤖 Aurora AI
-- Groq-only model routing with approved fallbacks; no Google AI and no web search.
+- Free Groq model routing with approved fallbacks, or your own OpenRouter, Together AI, Fireworks AI, or Groq key. No web search.
 - AI endpoints require an eligible, authenticated account. Users age 13–17 also need the current parent or guardian approval.
 - Server-side daily quotas, short-burst rate limiting, input/output safety checks, bounded context, and read-only school-data retrieval.
 - The database stores usage counts and token totals, not prompt text, in quota records.
@@ -83,6 +83,8 @@ GOOGLE_CALENDAR_INTEGRATION_ENABLED=false
 # Aurora AI
 GROQ_API_KEY=your_server_only_groq_api_key
 AI_FEATURES_ENABLED=true
+# Optional BYOK: dedicated 32-byte encryption key, encoded as 64 hex characters
+AI_KEY_ENCRYPTION_KEY=generate_a_dedicated_64_character_hex_secret
 
 # Parent or guardian approval emails
 RESEND_API_KEY=your_resend_api_key
@@ -140,6 +142,47 @@ the Groq key through a `NEXT_PUBLIC_` variable.
 1. Click the timer icon to start a study session
 2. Choose your preferred session length (Pomodoro-style)
 3. Take breaks and track your productivity
+
+## Personal AI keys (BYOK)
+
+TaskTornado has one free plan. Existing free assignment, test, flashcard, and
+saved-link limits remain in place. Hosted AI keeps the free per-feature limits
+and 25 combined actions per UTC day. Personal-key requests skip daily AI quota
+reservation and hosted usage metrics; all requests retain authentication,
+account eligibility, feature flags, input/output bounds, and four requests per minute.
+
+1. Apply `supabase/migrations/20261018000000_add_personal_ai_keys.sql`.
+   The existing `20260728000000_add_atomic_ai_usage_quotas.sql` migration is also
+   required for production burst limits and hosted allowances. Review pending
+   migrations before running a blanket `supabase db push`; the linked project
+   may have other unapplied changes.
+2. Set a dedicated `AI_KEY_ENCRYPTION_KEY` on the server. Generate 32 random bytes
+   as 64 hex characters, for example with `openssl rand -hex 32`. Never use a
+   `NEXT_PUBLIC_` variable or commit the secret. Keep the same secret across
+   deployments; changing it requires users to save their personal keys again.
+3. Open **Settings → AI Connection**, choose a provider and a chat model with
+   tool calling and JSON support, enter its key, and save. An optional connection
+   test sends a short request billed by the provider.
+4. Switch between hosted AI and your saved key, or remove the key, at any time.
+
+Keys use AES-256-GCM encryption bound to the account and provider. The table is
+accessible only through authenticated server routes using the service role;
+responses contain only provider/model, status, and the last four key characters.
+API keys are never persisted in browser storage. A provider failure never
+silently switches to hosted AI or consumes the hosted allowance.
+
+Aurora, translation, grading, grade parsing, study-set generation, and writing
+requests use the selected connection. Ramblr uses a personal Groq key when Groq
+is active; other providers continue to use the free hosted speech allowance.
+Personal-key requests remain subject to provider billing and limits. BYOK does
+not enable the separately disabled Google or social features.
+
+Provider API references: [OpenRouter](https://openrouter.ai/docs/api/reference/overview),
+[Together AI](https://docs.together.ai/docs/inference/openai-compatibility),
+[Fireworks AI](https://docs.fireworks.ai/tools-sdks/openai-compatibility), and
+[Groq](https://console.groq.com/docs/openai).
+
+Run the AI regression checks with `npm run test:ai`.
 
 ## Key Components
 

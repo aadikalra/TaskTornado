@@ -4,6 +4,7 @@ import React from 'react';
 import { MainAppHeader } from './main-app/MainAppHeader';
 import { MainAppDashboard } from './main-app/MainAppDashboard';
 import { MainAppContent } from './main-app/MainAppContent';
+import { DashboardIntroProvider } from './main-app/DashboardIntro';
 import dynamic from 'next/dynamic';
 
 const AddClassModal = dynamic(() => import('./main-app/AddClassModal').then(mod => mod.AddClassModal), { ssr: false });
@@ -32,8 +33,8 @@ export const MainApp = () => {
     showBracket, setShowBracket,
   } = useMainApp();
 
-  const { homeworks } = useHomeworkContext();
-  const { deleteTest } = useTestContext();
+  const { homeworks, loading: homeworkLoading } = useHomeworkContext();
+  const { deleteTest, loading: testsLoading } = useTestContext();
   const { user, isGuardian } = useAuth();
   const { classes, loading: classesLoading } = useClassContext();
 
@@ -103,6 +104,7 @@ export const MainApp = () => {
   };
 
   return (
+    <DashboardIntroProvider ready={!classesLoading && !homeworkLoading && !testsLoading && !showOnboarding && !showWelcomeLetter}>
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 overflow-x-hidden font-sans text-[#111827] dark:text-gray-100">
       <main className="w-full mx-auto px-3.5 sm:px-6 md:px-12 lg:px-16 pt-[4.5rem] sm:pt-28 pb-24 sm:pb-8">
         <MainAppHeader />
@@ -156,6 +158,7 @@ export const MainApp = () => {
         />
       </main>
     </div>
+    </DashboardIntroProvider>
   );
 };
 

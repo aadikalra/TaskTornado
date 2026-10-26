@@ -10,11 +10,11 @@ import {
   completeWithFallback,
   normalizeGroqMessages,
 } from '@/lib/ai/groq';
-import { recordAiUsage } from '@/lib/ai/quota';
+import { recordRequestAiUsage, aiProviderErrorResponse } from '@/lib/ai/http';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
-  const access = await authorizeAiAction(req, 'guardian', 'family');
+  const access = await authorizeAiAction(req, 'guardian');
   if (!access.ok) return access.response;
 
   try {
@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await completeWithFallback({
+      credentials: access.credentials,
       action: 'guardian',
       messages: [
         {
@@ -141,14 +142,17 @@ mental-health advice.`,
       );
     }
 
-    await recordAiUsage(
+    await recordRequestAiUsage(
+      access,
       'guardian',
       result.model,
       result.usage.prompt_tokens,
       result.usage.completion_tokens
     );
     return createSseResponse(textEvents(result.content));
-  } catch {
+  } catch (error) {
+    const providerError = aiProviderErrorResponse(error);
+    if (providerError) return providerError;
     console.error('Guardian AI request failed.');
     return NextResponse.json(
       { error: 'Guardian AI service unavailable.' },

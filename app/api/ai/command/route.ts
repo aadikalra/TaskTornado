@@ -18,7 +18,7 @@ import {
   checkTeenSafety,
   completeWithFallback,
 } from '@/lib/ai/groq';
-import { recordAiUsage } from '@/lib/ai/quota';
+import { recordRequestAiUsage, aiProviderErrorResponse } from '@/lib/ai/http';
 
 import {
   getChooseToolPrompt,
@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
         messages: messagesRaw as ChatMessage[],
       });
       const choice = await completeWithFallback({
+      credentials: access.credentials,
         action: 'quick',
         messages: [
           {
@@ -116,6 +117,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await completeWithFallback({
+      credentials: access.credentials,
       action: toolName === 'comment' ? 'grader' : 'copilot',
       messages: [
         {
@@ -142,7 +144,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await recordAiUsage(
+    await recordRequestAiUsage(
+      access,
       'copilot',
       result.model,
       result.usage.prompt_tokens,
@@ -190,7 +193,9 @@ export async function POST(req: NextRequest) {
     });
 
     return createUIMessageStreamResponse({ stream });
-  } catch {
+  } catch (error) {
+    const providerError = aiProviderErrorResponse(error);
+    if (providerError) return providerError;
     console.error('Editor AI request failed.');
     return NextResponse.json(
       { error: 'Failed to process editor AI request.' },

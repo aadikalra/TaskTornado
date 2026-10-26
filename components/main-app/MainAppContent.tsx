@@ -104,6 +104,7 @@ import { parseCalendarDate } from '@/lib/dateUtils';
 
 
 import { useMainApp } from '@/context/MainAppContext';
+import { DashboardFloat } from './DashboardIntro';
 type Priority = 'low' | 'medium' | 'high';
 
 export const MainAppContent = () => {
@@ -621,7 +622,7 @@ export const MainAppContent = () => {
         const effectivelyShowClasses = showTestsInClassCards || showClasses;
         return (
           <div key="classes" className="order-2 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="classes">
-            <div>
+            <DashboardFloat delayMs={330} kind="heading">
               <div
                 className={`mb-3 group ${!showTestsInClassCards ? 'cursor-pointer' : 'cursor-default'}`}
                 onClick={!showTestsInClassCards ? () => handleToggleClasses(!showClasses) : undefined}
@@ -1017,12 +1018,12 @@ export const MainAppContent = () => {
                   }`}
               >
               </div>
-            </div>
+            </DashboardFloat>
 
             <div
-              className={`overflow-hidden transition-all duration-400 ease-in-out ${effectivelyShowClasses
-                ? 'max-h-[5000px] opacity-100'
-                : 'max-h-0 opacity-0'
+              className={`transition-[max-height,opacity] duration-400 ease-in-out ${effectivelyShowClasses
+                ? 'overflow-visible max-h-[5000px] opacity-100'
+                : 'overflow-hidden max-h-0 opacity-0'
                 }`}
             >
               {classes.length === 0 ? (
@@ -1061,7 +1062,7 @@ export const MainAppContent = () => {
                   </div>
                 </motion.div>
               ) : (
-                <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-px-1 px-1 pb-2 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-px-1 px-1 pb-2 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
 
 
@@ -1109,14 +1110,11 @@ export const MainAppContent = () => {
                     const gradeGoal = cls.target_grade || classGradeGoals[cls.id] || null;
 
                     return (
-                      <motion.div
+                      <DashboardFloat
                         key={cls.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.3,
-                          delay: index * 0.05,
-                        }}
+                        delayMs={420 + index * 75}
+                        tilt={(index % 3 - 1) * 0.8}
+                        kind="card"
                         className={`w-[86vw] max-w-[360px] shrink-0 snap-start sm:w-auto sm:max-w-none sm:shrink rounded-[22px] sm:rounded-[28px] ${isEmptyClass ? 'p-3 sm:p-4' : 'p-3 sm:p-5'} shadow-2xs hover:shadow-md hover:shadow-sky-500/[0.04] transition-all duration-500 border bg-[#f5f9fc] dark:bg-sky-500/[0.03] ${showFrowny && hasOverdueHomework
                           ? 'border-red-300 dark:border-red-500/40 shadow-red-100 dark:shadow-red-900/20 shadow-xs'
                           : 'border-sky-100 dark:border-sky-500/10'
@@ -1378,7 +1376,7 @@ export const MainAppContent = () => {
                             )}
                           </AnimatePresence>
                         </div>
-                      </motion.div>
+                      </DashboardFloat>
                     );
                   })}
                 </div>
@@ -1389,7 +1387,7 @@ export const MainAppContent = () => {
 
       case 'tests':
         return (
-          <div key="tests" className="order-3 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="tests">
+          <DashboardFloat key="tests" delayMs={580} tilt={-0.25} className="order-3 mt-5 mb-6 sm:mt-8 sm:mb-10" data-tour="tests">
             <div>
               <div
                 className={`mb-3 group cursor-pointer`}
@@ -1520,7 +1518,7 @@ export const MainAppContent = () => {
                 )}
               </div>
             </div>
-          </div>
+          </DashboardFloat>
         );
 
       default:

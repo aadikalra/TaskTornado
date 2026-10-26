@@ -3,16 +3,11 @@ import { google } from 'googleapis';
 
 import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
 import { getGoogleClientForUser } from '@/lib/google-oauth';
-import { TIER_LIMITS, type PlanTier } from '@/lib/planTier';
+import { TIER_LIMITS, getPlanTier } from '@/lib/planTier';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const FOLLOW_UP_CLASS_NAME = 'Email Follow-ups';
 const VALID_DAYS = new Set([2, 3]);
-
-function getPlanTier(request: NextRequest): PlanTier {
-  const value = request.cookies.get('taskTornadoPlanTier')?.value;
-  return value === 'pro' || value === 'family' ? value : 'free';
-}
 
 function cleanSubject(subject: string) {
   const normalized = subject.replace(/\s+/g, ' ').trim();
@@ -76,7 +71,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const tier = getPlanTier(request);
+    const tier = getPlanTier();
     const homeworkLimit = TIER_LIMITS[tier].homeworkEntries;
     if (homeworkLimit !== Infinity) {
       const { count, error: countError } = await supabaseAdmin

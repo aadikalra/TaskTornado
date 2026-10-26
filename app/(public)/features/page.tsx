@@ -27,7 +27,7 @@ function FeaturesHero() {
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center">
                     <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-sky-600 dark:text-sky-400 bg-sky-600/5 dark:bg-sky-400/5 border border-sky-600/10 dark:border-sky-400/10 rounded-full mb-5">
-                        Everything Included · Free Forever
+                        One Free Plan · Optional AI Keys
                     </span>
                     <h1 className="text-4xl md:text-6xl font-semibold text-sky-500 dark:text-sky-400 tracking-tight leading-[1.1] mb-5 max-w-3xl mx-auto">
                         Built for the way you learn.
@@ -298,7 +298,7 @@ function FlashcardsSection() {
                         </div>
                         <h3 className="text-xl font-bold text-violet-600 dark:text-violet-400 mb-2">Flashcards</h3>
                         <p className="text-sm text-violet-900/50 dark:text-violet-400/40 leading-relaxed">
-                            Create unlimited decks organized by class. Flip through them in study mode or let AI generate them from your notes with a single @command.
+                            Create decks organized by class within the free storage allowance. Flip through them in study mode or let AI generate them from your notes with a single @command.
                         </p>
                     </motion.div>
                     <motion.div
@@ -729,7 +729,7 @@ function FinalCTA() {
                         Ready to try all of this?
                     </h2>
                     <p className="text-base md:text-lg text-sky-900/60 dark:text-sky-400/60 max-w-lg mx-auto leading-relaxed font-medium mb-8">
-                        Sign up in 30 seconds. Free forever, no credit card needed. Every feature from day one.
+                        Start free with included allowances. Connect your own AI key whenever you need more AI usage.
                     </p>
                     <Link
                         href="/signup"

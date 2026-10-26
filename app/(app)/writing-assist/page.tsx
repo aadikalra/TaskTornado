@@ -7,6 +7,7 @@ import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
+import { useAiConnection } from '@/hooks/use-ai-connection';
 import { useUpgrade } from '@/context/UpgradeContext';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -20,9 +21,11 @@ const WritingAssistPage = () => {
 
   const tier = getPlanTier();
   const limits = TIER_LIMITS[tier];
+  const { usingOwnKey, loading } = useAiConnection();
+  if (loading) return <p className="p-12" role="status">Loading AI connection…</p>;
 
-  // ─── Family-only gate ──────────────────────────────────────────────
-  if (!limits.writingAssist) {
+  // ─── Personal AI connection ──────────────────────────────────────────────
+  if (!limits.writingAssist && !usingOwnKey) {
     return (
       <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex items-center justify-center px-4">
         <motion.div
@@ -39,7 +42,7 @@ const WritingAssistPage = () => {
           {/* Heading */}
           <div className="space-y-3">
             <h1 className="text-2xl font-bold text-sky-900 dark:text-white">
-              Writing Assist is a Family feature
+              Connect your AI key for Writing Assist
             </h1>
             <p className="text-sm text-sky-600/60 dark:text-sky-400/50 leading-relaxed max-w-sm mx-auto">
               Get the full AI writing experience — rich text editor, intelligent autocomplete,
@@ -71,15 +74,15 @@ const WritingAssistPage = () => {
 
           {/* CTA */}
           <button
-            onClick={() => router.push('/pricing')}
+            onClick={() => router.push('/settings#ai')}
             style={{ background: '#8b5cf6' }}
             className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
-            Upgrade to Family
+            Connect your own key
           </button>
 
           <p className="text-xs text-sky-600/30 dark:text-sky-400/20">
-            Writing Assist requires the Family plan due to high AI usage costs.
+            Writing Assist uses your own AI provider. Provider charges and limits apply.
           </p>
         </motion.div>
       </div>

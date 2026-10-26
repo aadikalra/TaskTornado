@@ -31,7 +31,7 @@ export default function TermsOfService() {
             Terms of Service
           </h1>
           <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
-            Last updated: July 28, 2026
+            Last updated: October 18, 2026
           </p>
         </motion.div>
 
@@ -117,7 +117,7 @@ export default function TermsOfService() {
               {[
                 { icon: BookOpen, label: 'Assignment Tracking', desc: 'Keep track of homework, projects, and test dates with smart reminders' },
                 { icon: Target, label: 'Grade Management', desc: 'Monitor your academic progress and identify areas for improvement' },
-                { icon: Shield, label: 'AI Aurora', desc: 'Educational study help powered by Groq, with no web search and daily usage limits' },
+                { icon: Shield, label: 'AI Aurora', desc: 'Educational study help with free daily allowances or your own AI key; personal-provider charges and limits apply' },
                 { icon: Gamepad2, label: 'Study Break Games', desc: 'Unlock brain-training games when you keep up with your homework' },
               ].map((item, i) => {
                 const Icon = item.icon;

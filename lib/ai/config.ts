@@ -7,7 +7,10 @@ export type AiAction =
   | 'grader'
   | 'copilot';
 
-export type ServerPlanTier = 'free' | 'pro' | 'family';
+export type ServerPlanTier = 'free';
+
+// Temporary demo switch. Set true to restore the normal daily allowances.
+export const AI_DAILY_ALLOWANCE_ENABLED = false;
 
 export const AI_PLAN_LIMITS = {
   free: {
@@ -19,27 +22,7 @@ export const AI_PLAN_LIMITS = {
     grader: 8,
     copilot: 20,
     combined: 25,
-  },
-  pro: {
-    quick: 25,
-    tutor: 10,
-    bulk_generation: 5,
-    guardian: 0,
-    translation: 30,
-    grader: 10,
-    copilot: 25,
-    combined: 30,
-  },
-  family: {
-    quick: 50,
-    tutor: 20,
-    bulk_generation: 10,
-    guardian: 10,
-    translation: 50,
-    grader: 20,
-    copilot: 50,
-    combined: 60,
-  },
+  }
 } as const;
 
 export const AI_MODEL_ROUTES: Record<AiAction, readonly string[]> = {
@@ -66,9 +49,10 @@ export const AI_MODEL_ROUTES: Record<AiAction, readonly string[]> = {
     'llama-3.1-8b-instant',
   ],
   translation: [
-    'qwen/qwen3.6-27b',
     'openai/gpt-oss-20b',
+    'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
+    'qwen/qwen3.6-27b',
   ],
   grader: [
     'openai/gpt-oss-20b',

@@ -11,7 +11,8 @@ const sections = [
     items: [
       { label: 'Account Information', desc: 'Name, email address, account type, date of birth, country, and—when the user is under 18—a parent or guardian email and approval record. The approval record includes the guardian name, consent version, time, IP address, and browser user agent. Passwords are managed by our authentication provider; TaskTornado does not store raw passwords.' },
       { label: 'Academic Information', desc: 'Classes, assignments, test dates, grades, flashcard decks, quiz data, web saves you create or import from Google Classroom, and email follow-up homework you explicitly create from Gmail.' },
-      { label: 'AI Interaction Data', desc: 'When you use Aurora, TaskTornado sends your prompt, a short recent conversation history, and only the limited school-organizer records needed for the request to Groq for model inference. We do not send passwords, guardian contact details, Google OAuth tokens, Gmail contents, or your entire database. Web search is not enabled.' },
+      { label: 'AI Interaction Data', desc: 'When you use Aurora, TaskTornado sends your prompt, a short recent conversation history, and only the limited school-organizer records needed for the request to Groq for included AI, or to OpenRouter, Together AI, Fireworks AI, or Groq when you enable your own key. We do not send passwords, guardian contact details, Google OAuth tokens, Gmail contents, or your entire database. Web search is not enabled.' },
+      { label: 'Personal AI Keys', desc: 'If you connect your own AI provider, we store the provider, model, an encrypted API key, and its last four characters. The key is used only by our server to authorize your requests to that provider. You can switch back to included AI or remove the key in Settings.' },
       { label: 'Social and Collaborative Data', desc: 'Discussion boards, study groups, invitations, and group chat are currently disabled.' },
       { label: 'Guardian-Linked Data', desc: 'If you link a guardian account, your guardian can view your homework, tests, grades, and class information through a read-only dashboard.' },
     ],
@@ -61,6 +62,7 @@ const retentionItems = [
   'Google OAuth credentials: Retained in encrypted server storage until you disconnect the Google service or delete your account',
   'Parental approval records: Retained with the student account to document approval and removed when the account is deleted, subject to provider backup and legal-retention periods',
   'AI assistant conversations: Stored in your TaskTornado account until you delete them or delete your account. Prompts and responses sent to Groq may be kept in temporary abuse-monitoring logs for up to 30 days unless Zero Data Retention is enabled for the Groq account. TaskTornado stores daily usage counts and token totals, but not prompt text, in its quota records',
+  'Personal AI keys: Retained in encrypted server storage until you remove the key or delete your account. Requests sent with a personal key follow your selected provider and downstream model providers’ retention policies',
   'Analytics data: Handled by Vercel Analytics according to their retention schedule',
 ];
 
@@ -83,7 +85,7 @@ const thirdPartyServices = [
   {
     name: 'Supabase',
     role: 'Database and authentication',
-    data: 'Account data, academic records, parental approval records, encrypted Google connection records, and guardian links',
+    data: 'Account data, academic records, parental approval records, encrypted Google connection records, encrypted personal AI keys, and guardian links',
     link: 'https://supabase.com/privacy',
   },
   {
@@ -91,6 +93,12 @@ const thirdPartyServices = [
     role: 'AI model inference and safety classification for Aurora',
     data: 'Your prompt, a short recent conversation history, and limited relevant class, homework, or test information. Groq may also process service metadata such as token counts and IP address. TaskTornado does not enable web search or send Gmail contents, Google OAuth tokens, guardian contact details, or passwords to Groq.',
     link: 'https://groq.com/privacy-policy/',
+  },
+  {
+    name: 'Your selected AI provider',
+    role: 'Optional personal-key AI through OpenRouter, Together AI, Fireworks AI, or Groq',
+    data: 'When you enable your own key, your selected provider receives your AI requests, limited relevant school context, and the API key used to authenticate those requests. Routers may forward model requests to downstream providers. Provider charges, processing terms, and retention policies apply. You can disable or remove the connection in Settings.',
+    link: '/settings#ai',
   },
   {
     name: 'Google OAuth',
@@ -157,7 +165,7 @@ export default function PrivacyPolicy() {
             Privacy Policy
           </h1>
           <p className="text-sky-600/50 dark:text-sky-400/50 text-base">
-            Last updated: August 9, 2026
+            Last updated: October 18, 2026
           </p>
         </motion.div>
 
@@ -178,7 +186,7 @@ export default function PrivacyPolicy() {
             <div className="space-y-2.5">
               {[
                 { bold: 'Your data stays yours:', rest: 'Your academic data persists until you manually delete it or delete your account' },
-                { bold: 'AI is limited and protected:', rest: 'Aurora uses Groq for study help, has no web search, receives only bounded context, and is protected by age, consent, safety, and usage controls' },
+                { bold: 'AI is limited and protected:', rest: 'Aurora uses included Groq AI or your selected personal-key provider for study help, has no web search, receives only bounded context, and is protected by age, consent, safety, and usage controls' },
                 { bold: 'Guardian visibility:', rest: 'If you link a guardian, they can view your homework, tests, and grades through a read-only dashboard' },
                 { bold: 'No ads, no data selling:', rest: 'We use Vercel Analytics for basic page-view metrics — no advertising trackers or data brokers' },
               ].map((item, i) => (

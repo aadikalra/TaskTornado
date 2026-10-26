@@ -5,14 +5,14 @@ import { authorizeAiAction, createSseResponse, textEvents } from '@/lib/ai/http'
 import {
   checkTeenSafety,
   completeWithFallback,
+  GroqRequestError,
 } from '@/lib/ai/groq';
-import { recordAiUsage } from '@/lib/ai/quota';
+import { recordRequestAiUsage, aiProviderErrorResponse } from '@/lib/ai/http';
 
 export async function POST(req: NextRequest) {
-  const access = await authorizeAiAction(req, 'translation');
-  if (!access.ok) return access.response;
-
   try {
+    const access = await authorizeAiAction(req, 'translation');
+    if (!access.ok) return access.response;
     const { text, sourceLanguage, targetLanguage } = await req.json();
     if (
       typeof text !== 'string' ||
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await completeWithFallback({
+      credentials: access.credentials,
       action: 'translation',
       messages: [
         {
@@ -82,14 +83,37 @@ brief English explanation of important nuance.`,
       );
     }
 
-    await recordAiUsage(
+    if (!result.content.trim()) {
+      return NextResponse.json(
+        { error: 'The translation service returned an empty result. Please try again.' },
+        { status: 502 }
+      );
+    }
+
+    await recordRequestAiUsage(
+      access,
       'translation',
       result.model,
       result.usage.prompt_tokens,
       result.usage.completion_tokens
     );
     return createSseResponse(textEvents(result.content, 'translation'));
-  } catch {
+  } catch (error) {
+    const providerError = aiProviderErrorResponse(error);
+    if (providerError) return providerError;
+    if (error instanceof GroqRequestError) {
+      return NextResponse.json(
+        { error: error.status === 429
+          ? 'The translation service is busy. Please try again shortly.'
+          : error.status === 401 || error.status === 403
+            ? 'The translation service’s AI connection needs attention.'
+            : error.status === 503
+              ? 'The translation service is not available right now. Please try again shortly.'
+              : 'The translation model is temporarily unavailable. Please try again.' },
+        { status: error.status === 429 ? 429 : 503,
+          headers: error.retryAfter ? { 'Retry-After': error.retryAfter } : undefined }
+      );
+    }
     console.error('Translation request failed.');
     return NextResponse.json(
       { error: 'Translation service unavailable.' },

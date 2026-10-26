@@ -16,11 +16,15 @@ import {
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import type { AiAction, ServerPlanTier } from '@/lib/ai/config';
+import Link from 'next/link';
+import { AI_PROVIDERS, type AiConnectionSummary } from '@/lib/ai/providers';
+import { AI_DAILY_ALLOWANCE_ENABLED, type AiAction, type ServerPlanTier } from '@/lib/ai/config';
 import { cn } from '@/lib/utils';
 
 export type AIUsageSummary = {
   tier: ServerPlanTier;
+  dailyAllowanceEnabled?: boolean;
+  connection?: AiConnectionSummary;
   limits: Record<AiAction | 'combined', number>;
   usage: {
     combined: number;
@@ -38,7 +42,7 @@ type Props = {
   summary: AIUsageSummary | null;
   loading: boolean;
   selectedAction: 'quick' | 'tutor';
-  onUpgrade: () => void;
+
 };
 
 const ACTIONS: Array<{
@@ -147,8 +151,10 @@ export function AIQuotaPopover({
   summary,
   loading,
   selectedAction,
-  onUpgrade,
 }: Props) {
+  if (!AI_DAILY_ALLOWANCE_ENABLED || summary?.dailyAllowanceEnabled === false) return null;
+  const ownKey = Boolean(summary?.connection?.enabled);
+  const provider = summary?.connection?.provider;
   const combinedLimit = summary?.limits.combined || 0;
   const combinedUsed = summary?.usage.combined || 0;
   const combinedLeft = remaining(combinedUsed, combinedLimit);
@@ -174,7 +180,7 @@ export function AIQuotaPopover({
         >
           <Gauge className="h-4 w-4 shrink-0" />
           <span className="text-[13px] font-medium tabular-nums">
-            {loading || !summary ? '...' : combinedLeft}
+            {loading || !summary ? '...' : ownKey ? 'BYOK' : combinedLeft}
           </span>
         </button>
       </DialogTrigger>
@@ -186,10 +192,10 @@ export function AIQuotaPopover({
         <div className="flex items-center justify-between border-b border-sky-100/50 bg-sky-50/50 px-5 py-3.5 dark:border-sky-500/10 dark:bg-sky-500/5">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-              {summary?.tier || 'Free'} Plan
+              {ownKey && provider ? AI_PROVIDERS[provider].name : 'Free Plan'}
             </p>
             <h3 className="text-sm font-semibold text-sky-950 dark:text-sky-100">
-              AI Allowance
+              {ownKey ? 'Your own API key' : 'AI Allowance'}
             </h3>
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-sky-100/50 bg-white px-2.5 py-1 text-[11px] font-medium text-sky-600 shadow-sm dark:border-sky-500/10 dark:bg-gray-800 dark:text-sky-400">
@@ -198,6 +204,12 @@ export function AIQuotaPopover({
           </div>
         </div>
 
+        {ownKey && (
+          <div className="border-b border-sky-100 px-5 py-4 text-sm text-sky-700 dark:border-sky-900 dark:text-sky-300">
+            <p className="font-semibold">{summary?.connection?.model}</p>
+            <p className="mt-2 text-xs leading-relaxed">Personal-key requests do not use the free allowance shown below. Provider charges and rate limits apply. Ramblr uses your key with Groq; otherwise it uses the free speech allowance.</p>
+          </div>
+        )}
         <div className="px-5 py-5">
           <div className="mb-3 flex items-end justify-between">
             <div>
@@ -295,15 +307,7 @@ export function AIQuotaPopover({
             <Gauge className="h-3.5 w-3.5" />
             Up to {summary?.burst.limit || 4} req / min
           </div>
-          {summary?.tier === 'free' && (
-            <button
-              type="button"
-              onClick={onUpgrade}
-              className="text-[11px] font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 transition-colors"
-            >
-              Compare plans
-            </button>
-          )}
+          <Link href="/settings#ai" className="text-[11px] font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400">{ownKey ? 'Manage key' : 'Use your own key'}</Link>
         </div>
       </DialogContent>
     </Dialog>

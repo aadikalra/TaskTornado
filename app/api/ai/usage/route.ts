@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { guardAuthenticatedRequest } from '@/lib/api/request-guard';
 import {
+  AI_DAILY_ALLOWANCE_ENABLED,
   AI_PLAN_LIMITS,
   type AiAction,
-  type ServerPlanTier,
 } from '@/lib/ai/config';
 import { getFallbackAiUsage } from '@/lib/ai/quota';
+import { readAiSettings, summarizeAiSettings } from '@/lib/ai/byok';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const ACTIONS: AiAction[] = [
@@ -18,10 +19,6 @@ const ACTIONS: AiAction[] = [
   'grader',
   'copilot',
 ];
-
-function getServerPlanTier(value: unknown): ServerPlanTier {
-  return value === 'pro' || value === 'family' ? value : 'free';
-}
 
 function getNextUtcMidnight() {
   const reset = new Date();
@@ -38,7 +35,14 @@ export async function GET(request: NextRequest) {
   });
   if (!access.ok) return access.response;
 
-  const tier = getServerPlanTier(access.user.app_metadata?.plan_tier);
+  const tier = 'free' as const;
+  let connection;
+  try {
+    const { available, row } = await readAiSettings(access.user.id);
+    connection = summarizeAiSettings(available, row);
+  } catch {
+    return NextResponse.json({ error: 'AI settings could not be loaded.' }, { status: 503 });
+  }
   const limits = AI_PLAN_LIMITS[tier];
   const today = new Date().toISOString().slice(0, 10);
 
@@ -85,6 +89,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     tier,
+    dailyAllowanceEnabled: AI_DAILY_ALLOWANCE_ENABLED,
+    connection,
     limits,
     usage: {
       combined: Math.max(
@@ -99,5 +105,5 @@ export async function GET(request: NextRequest) {
     },
     resetAt: getNextUtcMidnight(),
     source: missingMigration ? 'local-fallback' : 'database',
-  });
+  }, { headers: { 'Cache-Control': 'no-store' } });
 }

@@ -90,12 +90,12 @@ export const WebSavesProvider = ({ children }: { children: React.ReactNode }) =>
     const tier = getPlanTier();
     const limits = TIER_LIMITS[tier];
     if (limits.webSaves !== Infinity && saves.length >= limits.webSaves) {
-      throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.webSaves} saved links — upgrade to Pro for unlimited.`);
+      throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.webSaves} saved links.`);
     }
 
-    // ─── Plan tier: folders are Pro+ only ───────────────────────────────
+    // Folder availability is shared by creation, saving, and moving links.
     if (folderId && !limits.webSaveFolders) {
-      throw new Error('PLAN_LIMIT:Organizing saves into folders is a Pro feature — upgrade to unlock.');
+      throw new Error('PLAN_LIMIT:Saved-link folders are currently unavailable.');
     }
 
     try {
@@ -126,12 +126,12 @@ export const WebSavesProvider = ({ children }: { children: React.ReactNode }) =>
   const updateSave = async (id: string, updates: { title?: string; url?: string; folder_id?: string | null }) => {
     if (!user) throw new Error('User not authenticated');
 
-    // ─── Plan tier: moving to folders is Pro+ only ─────────────────────
+    // Use the same folder availability setting when moving existing links.
     if (updates.folder_id) {
       const tier = getPlanTier();
       const limits = TIER_LIMITS[tier];
       if (!limits.webSaveFolders) {
-        throw new Error('PLAN_LIMIT:Organizing saves into folders is a Pro feature — upgrade to unlock.');
+        throw new Error('PLAN_LIMIT:Saved-link folders are currently unavailable.');
       }
     }
 
@@ -178,11 +178,11 @@ export const WebSavesProvider = ({ children }: { children: React.ReactNode }) =>
   const createFolder = async (name: string) => {
     if (!user) throw new Error('User not authenticated');
 
-    // ─── Plan tier: folders are Pro+ only ───────────────────────────────
+    // Folders are included in the current plan.
     const tier = getPlanTier();
     const limits = TIER_LIMITS[tier];
     if (!limits.webSaveFolders) {
-      throw new Error('PLAN_LIMIT:Organizing saves into folders is a Pro feature — upgrade to unlock.');
+      throw new Error('PLAN_LIMIT:Saved-link folders are currently unavailable.');
     }
 
     try {

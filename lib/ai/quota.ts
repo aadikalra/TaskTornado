@@ -1,4 +1,5 @@
 import {
+  AI_DAILY_ALLOWANCE_ENABLED,
   AI_PLAN_LIMITS,
   type AiAction,
   type ServerPlanTier,
@@ -24,7 +25,7 @@ export function getFallbackAiUsage(userId: string) {
 }
 
 export type QuotaResult =
-  | { allowed: true; remaining: number | null; source: 'database' | 'fallback' }
+  | { allowed: true; remaining: number | null; source: 'database' | 'fallback' | 'demo' }
   | {
       allowed: false;
       remaining: 0;
@@ -143,6 +144,9 @@ export async function reserveAiQuota(
   tier: ServerPlanTier = 'free',
   accessToken?: string
 ): Promise<QuotaResult> {
+  if (!AI_DAILY_ALLOWANCE_ENABLED) {
+    return { allowed: true, remaining: null, source: 'demo' };
+  }
   const limits = AI_PLAN_LIMITS[tier];
   const supabase = await createClient(accessToken);
   const { data, error } = await supabase.rpc('reserve_ai_quota' as never, {

@@ -39,6 +39,17 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
+        "title": "Aurora",
+        "href": "/aurora",
+        "description": "Open the Aurora page",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "aurora",
+            "about"
+        ]
+    },
+    {
         "title": "Blog",
         "href": "/blog",
         "description": "TaskTornado stories, guides, and updates",
@@ -337,6 +348,17 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
             "command center",
             "classes",
             "homework"
+        ]
+    },
+    {
+        "title": "Demo",
+        "href": "/demo",
+        "description": "Open the Demo page",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "demo",
+            "about"
         ]
     },
     {

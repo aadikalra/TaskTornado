@@ -238,7 +238,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     const tier = getPlanTier();
     const limits = TIER_LIMITS[tier];
     if (!limits.canCreateStudyGroups) {
-      throw new Error('PLAN_LIMIT:Creating study groups is a Pro feature — upgrade to start your own group.');
+      throw new Error('PLAN_LIMIT:Creating study groups is currently unavailable.');
     }
 
     try {
@@ -280,7 +280,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     const limits = TIER_LIMITS[tier];
     if (limits.studyGroupsJoin !== Infinity) {
       if (groups.length >= limits.studyGroupsJoin) {
-        throw new Error(`PLAN_LIMIT:The free plan lets you join ${limits.studyGroupsJoin} study group — upgrade to Pro for unlimited.`);
+        throw new Error(`PLAN_LIMIT:The free plan lets you join ${limits.studyGroupsJoin} study group.`);
       }
     }
 
@@ -291,7 +291,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         .select('*', { count: 'exact', head: true })
         .eq('group_id', groupId);
       if ((count ?? 0) >= limits.studyGroupMemberCap) {
-        throw new Error(`PLAN_LIMIT:This group has reached its ${limits.studyGroupMemberCap}-member cap. The group creator needs to upgrade for more seats.`);
+        throw new Error(`PLAN_LIMIT:This group has reached its ${limits.studyGroupMemberCap}-member cap. No more members can join this group.`);
       }
     }
 
@@ -396,7 +396,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
         .eq('user_id', user.id)
         .gte('created_at', todayStart.toISOString());
       if ((count ?? 0) >= limits.studyGroupMessagesPerDay) {
-        throw new Error(`PLAN_LIMIT:The free plan includes ${limits.studyGroupMessagesPerDay} messages per day — upgrade to Pro for unlimited.`);
+        throw new Error(`PLAN_LIMIT:The free plan includes ${limits.studyGroupMessagesPerDay} messages per day.`);
       }
     }
 
@@ -429,7 +429,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     const tier = getPlanTier();
     const limits = TIER_LIMITS[tier];
     if (!limits.studyGroupFileSharing) {
-      throw new Error('PLAN_LIMIT:Sharing files and links in study groups is a Pro feature — upgrade to unlock.');
+      throw new Error('PLAN_LIMIT:Sharing files and links in study groups is currently unavailable.');
     }
 
     try {

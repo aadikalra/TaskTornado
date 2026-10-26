@@ -25,6 +25,7 @@ interface MessageItemProps {
   setExpandedUserMessages: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   handleInteractiveButtonClick: (button: InteractiveButton) => void;
   onRetry?: (msg: Message) => void;
+  isSending?: boolean;
 }
 
 export const MessageItem = ({
@@ -39,9 +40,11 @@ export const MessageItem = ({
   expandedUserMessages,
   setExpandedUserMessages,
   handleInteractiveButtonClick,
-  onRetry
+  onRetry,
+  isSending = false
 }: MessageItemProps) => {
   const [isCopied, setIsCopied] = React.useState(false);
+  const [sentFromComposer] = React.useState(isSending);
 
   const handleCopy = async () => {
     if (!msg.content) return;
@@ -61,7 +64,8 @@ export const MessageItem = ({
   return (
     <div
       className={cn(
-        'group flex flex-col gap-1.5 animate-in fade-in duration-300 slide-in-from-bottom-2 relative',
+        'group flex flex-col gap-1.5 relative',
+        !sentFromComposer && !isSending && 'animate-in fade-in duration-300 slide-in-from-bottom-2',
         msg.role === 'user' ? 'items-end' : 'items-start'
       )}
     >
@@ -84,7 +88,7 @@ export const MessageItem = ({
                   <span>
                     {msg.isLoading && !msg.content
                       ? (msg.toolCall
-                        ? (msg.toolCall === 'start_flashcards' ? 'Opening flashcards...' : msg.toolCall === 'start_quiz' ? 'Starting quiz...' : 'Checking schedule...')
+                        ? (msg.toolCall === 'start_flashcards' ? 'Opening flashcards...' : msg.toolCall === 'start_quiz' ? 'Starting quiz...' : msg.toolCall === 'manage_assignments' ? 'Updating assignments...' : 'Checking schedule...')
                         : 'Thinking...')
                       : 'Show thinking'}
                   </span>
@@ -140,6 +144,7 @@ export const MessageItem = ({
                                 else if (toolName === 'start_quiz') displayLabel = 'Start Quiz';
                                 else if (toolName === 'calculate_expression') displayLabel = 'Calculate Expression';
                                 else if (toolName === 'add_homework') displayLabel = 'Add Homework';
+                                else if (toolName === 'manage_assignments') displayLabel = 'Edit / Delete Assignments';
                                 else if (toolName === 'add_test') displayLabel = 'Add Test';
                                 else if (toolName === 'show_homeworks') displayLabel = 'Show Homework';
                                 else if (toolName === 'delete_homework') displayLabel = 'Delete Homework';
@@ -444,13 +449,14 @@ export const MessageItem = ({
         </div>
       )}
       <div
+        data-aurora-user-message={msg.role === 'user' ? msg.id : undefined}
         onClick={() => {
           if (msg.role === 'user' && msg.content.length > 120) {
             setExpandedUserMessages(prev => ({ ...prev, [msg.id]: !prev[msg.id] }));
           }
         }}
         className={cn(
-          'transition-all duration-300',
+          'transition-[transform,filter,box-shadow] duration-300',
           msg.role === 'user'
             ? 'max-w-[85%] rounded-[24px] px-4 py-2.5 text-sm text-white shadow-lg shadow-[#8A9AFF]/15 font-medium leading-relaxed'
             : cn('bg-transparent text-sky-900 dark:text-sky-100 text-[14.5px] leading-[1.6] px-1', (msg.bulkAddDisplay || msg.checklist) ? 'w-full max-w-full' : 'max-w-[90%]'),
@@ -458,9 +464,12 @@ export const MessageItem = ({
           msg.isError &&
           'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-[24px] px-4 py-2.5'
         )}
-        style={msg.role === 'user' && !msg.isError ? {
-          background: 'linear-gradient(135deg, #94A2FF 0%, #7B8DFE 100%)'
-        } : {}}
+        style={{
+          ...(msg.role === 'user' && !msg.isError ? {
+            background: 'linear-gradient(135deg, #94A2FF 0%, #7B8DFE 100%)'
+          } : {}),
+          visibility: isSending ? 'hidden' : undefined,
+        }}
       >
         <div className="flex-1 min-w-0">
           {msg.images && msg.images.length > 0 && (
@@ -510,6 +519,17 @@ export const MessageItem = ({
                 ? msg.content.slice(0, 120) + '...'
                 : msg.content}
             </Markdown>
+          )}
+
+          {msg.isError && onRetry && (
+            <button
+              type="button"
+              onClick={() => onRetry(msg)}
+              className="mt-3 flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-sky-700 transition-colors hover:bg-white dark:bg-white/10 dark:text-sky-200 dark:hover:bg-white/15"
+            >
+              <HugeIcon name="Reload" size={14} />
+              Try again
+            </button>
           )}
 
           {/* Inline Checklist */}
@@ -565,7 +585,7 @@ export const MessageItem = ({
           )}
 
           {/* Hover Toolbar for Assistant Messages (Icon-only, aligned left to AI text) */}
-          {msg.role === 'assistant' && !msg.isLoading && (
+          {msg.role === 'assistant' && !msg.isLoading && !msg.isError && (
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 mt-1 pl-0 select-none">
               <button
                 type="button"

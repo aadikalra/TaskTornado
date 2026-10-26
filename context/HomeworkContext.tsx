@@ -215,7 +215,7 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
     if (limits.homeworkEntries !== Infinity) {
       const activeCount = homeworks.filter(hw => !hw.completed).length;
       if (activeCount >= limits.homeworkEntries) {
-        throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.homeworkEntries} active assignments — upgrade to Pro for unlimited.`);
+        throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.homeworkEntries} active assignments.`);
       }
     }
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

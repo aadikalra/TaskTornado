@@ -1,0 +1,37 @@
+.float {
+  transform-origin: 50% 70%;
+  animation: dashboard-float-in 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--float-delay, 0ms);
+}
+
+.float[data-intro-started='false'] {
+  animation-play-state: paused;
+}
+
+@keyframes dashboard-float-in {
+  0% {
+    opacity: 0;
+    transform: perspective(1400px)
+      translate3d(var(--float-x), var(--float-y), var(--float-depth))
+      rotateX(var(--float-rotate-x)) rotateY(var(--float-rotate-y))
+      rotateZ(var(--float-rotate-z)) scale(0.94);
+  }
+  65% {
+    opacity: 1;
+  }
+  80% {
+    transform: perspective(1400px) translate3d(0, -3px, 8px)
+      rotateX(-0.5deg) rotateY(0deg) rotateZ(0deg) scale(1.003);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float {
+    animation: none;
+    transform: none;
+  }
+}

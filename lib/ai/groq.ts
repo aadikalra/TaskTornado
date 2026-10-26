@@ -1,3 +1,5 @@
+import { completeWithPersonalKey } from '@/lib/ai/provider-client';
+import type { AiCredentials } from '@/lib/ai/providers';
 import {
   AI_MODEL_ROUTES,
   AI_OUTPUT_LIMITS,
@@ -47,6 +49,7 @@ export type GroqCompletion = {
 };
 
 type CompleteOptions = {
+  credentials?: AiCredentials;
   action: AiAction;
   messages: GroqMessage[];
   tools?: GroqTool[];
@@ -61,7 +64,8 @@ export class GroqRequestError extends Error {
   constructor(
     message: string,
     readonly status: number,
-    readonly retryAfter?: string
+    readonly retryAfter?: string,
+    readonly code?: string
   ) {
     super(message);
     this.name = 'GroqRequestError';
@@ -105,7 +109,7 @@ async function requestCompletion(
             tool_choice: options.toolChoice ?? 'auto',
             parallel_tool_calls: false,
           }
-        : {}),
+        : { tool_choice: 'none' }),
       ...(options.jsonMode
         ? { response_format: { type: 'json_object' } }
         : {}),
@@ -120,7 +124,8 @@ async function requestCompletion(
     throw new GroqRequestError(
       safeErrorMessage(responseBody),
       response.status,
-      response.headers.get('retry-after') || undefined
+      response.headers.get('retry-after') || undefined,
+      typeof responseBody?.error?.code === 'string' ? responseBody.error.code : undefined
     );
   }
 
@@ -141,6 +146,8 @@ async function requestCompletion(
 export async function completeWithFallback(
   options: CompleteOptions
 ): Promise<GroqCompletion> {
+  if (options.credentials) return completeWithPersonalKey({ ...options, credentials: options.credentials,
+    maxTokens: options.maxTokens ?? AI_OUTPUT_LIMITS[options.action] });
   const models = AI_MODEL_ROUTES[options.action];
   let lastError: unknown;
 
@@ -153,13 +160,30 @@ export async function completeWithFallback(
       });
     } catch (error) {
       lastError = error;
+      if (error instanceof GroqRequestError) {
+        // Keep status/model diagnostics without recording prompts, tool
+        // arguments, credentials, or provider response bodies.
+        console.warn('Aurora provider attempt failed', {
+          model,
+          status: error.status,
+          code: error.code,
+          toolCount: options.tools?.length || 0,
+          toolChoice: options.tools?.length ? options.toolChoice ?? 'auto' : 'none',
+        });
+      }
       const isFailedGeneration =
-        error instanceof Error &&
-        (error.message.includes('failed_generation') ||
-          error.message.includes('Failed to call a function'));
+        error instanceof GroqRequestError &&
+        (error.code === 'tool_use_failed' ||
+          error.message.includes('failed_generation') ||
+          /failed to (?:call a function|parse tool call arguments)|tool choice is none, but model called a tool/i.test(error.message));
+      const isUnavailableModel = error instanceof GroqRequestError && (
+        error.status === 404 ||
+        error.code === 'model_not_found' ||
+        error.code === 'model_decommissioned'
+      );
       if (
         !(error instanceof GroqRequestError) ||
-        (!isFailedGeneration && error.status !== 429 && error.status < 500)
+        (!isFailedGeneration && !isUnavailableModel && error.status !== 429 && error.status < 500)
       ) {
         throw error;
       }

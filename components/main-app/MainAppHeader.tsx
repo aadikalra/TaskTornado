@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
+import { useAnimationControls } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useMainApp } from '@/context/MainAppContext';
 import Image from 'next/image';
+import { DashboardFloat } from './DashboardIntro';
 
 import { useCatFriendship, feedCatTreat } from '@/lib/catTreats';
 
@@ -159,9 +160,10 @@ export const MainAppHeader = () => {
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+    <DashboardFloat
+      delayMs={60}
+      kind="heading"
+      tilt={-0.3}
       className="mb-3 sm:mb-3.5"
     >
       <div className="flex items-center gap-2.5 sm:gap-4">
@@ -185,6 +187,6 @@ export const MainAppHeader = () => {
           </h1>
         </div>
       </div>
-    </motion.div>
+    </DashboardFloat>
   );
 };

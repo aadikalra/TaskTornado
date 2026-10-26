@@ -11,7 +11,8 @@
     "prebuild:analyze": "npm run search:index",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:ai": "node --experimental-strip-types --experimental-vm-modules --test lib/ai/byok.test.ts lib/ai/request-flow.test.mjs lib/ai/transcription.test.ts lib/ai/assignment-management.test.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.43",

@@ -13,9 +13,9 @@ checklist, not legal advice.
   U.S., age, and guardian-approval checks pass.
 - Direct Google account sign-in is disabled. Registration uses TaskTornado
   email/password so the age and consent flow cannot be skipped through the UI.
-- Aurora uses Groq only. AI endpoints require authentication and eligibility,
+- Hosted Aurora uses Groq. Optional personal keys support OpenRouter, Together AI, Fireworks AI, and Groq. AI endpoints require authentication and eligibility,
   require the current guardian approval for users age 13–17, enforce
-  server-side daily quotas and short-burst limits, and fail closed unless
+  server-side daily quotas for hosted AI and short-burst limits for all AI requests, and fail closed unless
   `AI_FEATURES_ENABLED=true`.
 - AI context is bounded, school-data access is read-only, and web search is
   not enabled.
@@ -25,13 +25,13 @@ checklist, not legal advice.
   when only one integration has completed review.
 - Upload, discussion board, study group, invitation, and group-chat entry
   points are disabled.
-- Paid plans are previews only. Checkout is not enabled.
+- There is one free plan. Personal AI keys bypass daily AI quotas, with provider billing and limits; storage limits stay unchanged.
 
 ## Aurora release requirements
 
 The code now covers:
 
-1. Groq-only model inference with an approved fallback list.
+1. Hosted Groq inference with approved fallbacks, plus encrypted user-selected AI connections.
 2. Input and output safety classification for a teen educational product.
 3. Bounded prompts and read-only retrieval of only relevant classes, homework,
    and tests.
@@ -77,3 +77,13 @@ public environment:
   and deletion procedures that a real operator can consistently perform.
 - Run a security review and resolve the repository's existing dependency audit
   findings and unrelated TypeScript failures.
+
+## Personal-key deployment
+
+Apply `20261018000000_add_personal_ai_keys.sql` and configure a dedicated,
+server-only `AI_KEY_ENCRYPTION_KEY` (64 hex characters). Keys are encrypted with
+AES-256-GCM, bound to user/provider, and stored in a service-role-only table.
+The settings API returns no plaintext keys or encrypted payloads. Users can
+switch back to hosted AI or delete their key. Personal-provider errors do not
+trigger hosted fallback. Chat and related school context go to the chosen
+provider; the settings UI discloses this before connection.

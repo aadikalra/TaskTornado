@@ -16,6 +16,7 @@ interface ChatInputProps {
   hasWiped: boolean;
   setHasWiped: (val: boolean) => void;
   isAILoading: boolean;
+  isSendingMessage?: boolean;
   handleStopResponse: (e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedModel: string;
   quickLimit: number;
@@ -41,6 +42,7 @@ export const ChatInput = ({
   hasWiped,
   setHasWiped,
   isAILoading,
+  isSendingMessage = false,
   handleStopResponse,
   selectedModel,
   quickLimit,
@@ -211,6 +213,7 @@ export const ChatInput = ({
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.97 }}
                   type="button"
+                  disabled={isAILoading}
                   onClick={() => onSelectQuestionOption?.(option)}
                   className="flex-1 min-w-[120px] rounded-xl border border-sky-200/80 bg-sky-50/90 px-3.5 py-2.5 text-xs font-medium text-sky-950 shadow-sm backdrop-blur-md transition-all hover:border-sky-400 hover:bg-sky-100 hover:shadow-sky-500/10 dark:border-sky-800/60 dark:bg-sky-950/60 dark:text-sky-100 dark:hover:border-sky-500 dark:hover:bg-sky-900/80"
                 >
@@ -265,7 +268,7 @@ export const ChatInput = ({
                     setInput(value);
                   }}
                   placeholder={
-                    combinedLimitReached
+                    isSendingMessage ? '' : combinedLimitReached
                       ? 'Daily AI allowance reached — resets tomorrow'
                       : isLimitReached
                       ? `Daily limit reached for ${isQuick ? 'Quick' : 'Deep'} mode - try again tomorrow`

@@ -7,7 +7,7 @@ import {
   completeWithFallback,
   normalizeGroqMessages,
 } from '@/lib/ai/groq';
-import { recordAiUsage } from '@/lib/ai/quota';
+import { recordRequestAiUsage, aiProviderErrorResponse } from '@/lib/ai/http';
 
 export async function POST(req: NextRequest) {
   const access = await authorizeAiAction(req, 'copilot');
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: prompt },
     ]);
     const result = await completeWithFallback({
+      credentials: access.credentials,
       action: 'copilot',
       messages,
       temperature: 0.4,
@@ -57,7 +58,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await recordAiUsage(
+    await recordRequestAiUsage(
+      access,
       'copilot',
       result.model,
       result.usage.prompt_tokens,
@@ -65,6 +67,8 @@ export async function POST(req: NextRequest) {
     );
     return NextResponse.json({ text: result.content });
   } catch (error) {
+    const providerError = aiProviderErrorResponse(error);
+    if (providerError) return providerError;
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(null, { status: 408 });
     }

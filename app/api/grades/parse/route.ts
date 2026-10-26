@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { authorizeAiAction } from '@/lib/ai/http';
 import { completeWithFallback } from '@/lib/ai/groq';
-import { recordAiUsage } from '@/lib/ai/quota';
+import { recordRequestAiUsage, aiProviderErrorResponse } from '@/lib/ai/http';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await completeWithFallback({
+      credentials: access.credentials,
       action: 'quick',
       messages: [
         {
@@ -59,7 +60,8 @@ percentages to points out of 100. Skip exempt/excluded/-- items.`,
     });
 
     const parsed = gradeDataSchema.parse(extractObject(result.content));
-    await recordAiUsage(
+    await recordRequestAiUsage(
+      access,
       'quick',
       result.model,
       result.usage.prompt_tokens,
@@ -68,7 +70,9 @@ percentages to points out of 100. Skip exempt/excluded/-- items.`,
     return new Response(JSON.stringify(parsed), {
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
     });
-  } catch {
+  } catch (error) {
+    const providerError = aiProviderErrorResponse(error);
+    if (providerError) return providerError;
     console.error('Grade parser request failed.');
     return Response.json(
       { error: 'Failed to parse grade data.' },

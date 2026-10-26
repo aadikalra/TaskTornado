@@ -9,7 +9,7 @@ interface UpgradePromptOptions {
 }
 
 interface UpgradeContextType {
-    /** Open the upgrade modal with optional context */
+    /** Open the free-limit information dialog with optional context */
     promptUpgrade: (opts?: UpgradePromptOptions) => void;
     /** Check a PLAN_LIMIT error and open the modal automatically. Returns true if it was a plan limit. */
     handlePlanLimitError: (error: any) => boolean;

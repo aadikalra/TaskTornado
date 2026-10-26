@@ -189,7 +189,7 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
         const tier = getPlanTier();
         const limits = TIER_LIMITS[tier];
         if (!limits.canCreateBoards) {
-            throw new Error('PLAN_LIMIT:Creating discussion boards is a Pro feature — upgrade to start your own board.');
+            throw new Error('PLAN_LIMIT:Creating discussion boards is currently unavailable.');
         }
 
         const { data, error } = await supabase
@@ -225,7 +225,7 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
         if (limits.discussionBoardsJoin !== Infinity) {
             const joinedCount = boards.filter(b => b.is_member).length;
             if (joinedCount >= limits.discussionBoardsJoin) {
-                throw new Error(`PLAN_LIMIT:The free plan lets you join up to ${limits.discussionBoardsJoin} boards — upgrade to Pro for unlimited.`);
+                throw new Error(`PLAN_LIMIT:The free plan lets you join up to ${limits.discussionBoardsJoin} boards.`);
             }
         }
 
@@ -511,7 +511,7 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
                 .eq('user_id', user.id)
                 .gte('created_at', todayStart.toISOString());
             if ((count ?? 0) >= limits.discussionPostsPerDay) {
-                throw new Error(`PLAN_LIMIT:The free plan includes ${limits.discussionPostsPerDay} threads per day — upgrade to Pro for unlimited.`);
+                throw new Error(`PLAN_LIMIT:The free plan includes ${limits.discussionPostsPerDay} threads per day.`);
             }
         }
 
@@ -593,7 +593,7 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
                 .eq('user_id', user.id)
                 .gte('created_at', todayStart.toISOString());
             if ((count ?? 0) >= limits.discussionRepliesPerDay) {
-                throw new Error(`PLAN_LIMIT:The free plan includes ${limits.discussionRepliesPerDay} replies per day — upgrade to Pro for unlimited.`);
+                throw new Error(`PLAN_LIMIT:The free plan includes ${limits.discussionRepliesPerDay} replies per day.`);
             }
         }
 
@@ -701,7 +701,7 @@ export function DiscussionBoardsProvider({ children }: { children: React.ReactNo
         const limits = TIER_LIMITS[tier];
         if (!limits.canCreateBoards) {
             // canCreateBoards doubles as the "share resources" gate
-            throw new Error('PLAN_LIMIT:Sharing resources in discussion boards is a Pro feature — upgrade to unlock.');
+            throw new Error('PLAN_LIMIT:Sharing resources in discussion boards is currently unavailable.');
         }
 
         const { error } = await supabase

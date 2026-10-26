@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>TaskTornado — Dashboard Film</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #fafbfc; }
+    body { height: 100vh; overflow: hidden; }
+    body.scroll-mode { height: 340vh; overflow-y: auto; scrollbar-width: none; }
+    body::-webkit-scrollbar { display: none; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 2px solid #0ea5e9; outline-offset: 4px; }
+    .stage {
+      position: fixed; inset: 0; overflow: hidden; perspective: 2200px;
+      perspective-origin: 50% 44%;
+      background: radial-gradient(ellipse at 50% 46%, #fff 0%, #fff 43%, #f0f3f7 100%);
+    }
+    .ground {
+      position: absolute; left: 23%; right: 23%; top: 77%; height: 10%;
+      background: #223d6626; border-radius: 50%; filter: blur(42px);
+      pointer-events: none; opacity: 0;
+    }
+    .fit {
+      position: absolute; left: 50%; top: 50%; width: 1604px; height: 1044px;
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%) scale(var(--fit, .6));
+    }
+    .window {
+      position: absolute; inset: 0; transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+    }
+    .backplate {
+      position: absolute; inset: 0; background: #dedfe3; border-radius: 24px;
+      transform: translate3d(5px, 7px, -12px);
+      box-shadow: 0 60px 110px -35px #14274940, 0 8px 24px #14274914;
+    }
+    .paper {
+      position: absolute; inset: 0; border-radius: 24px; background: #fffaf4;
+      border: 1px solid #ffffffeb;
+      box-shadow: 0 0 0 1px #33435b14;
+      transform: translateZ(0);
+    }
+    .chrome {
+      position: absolute; top: 0; left: 0; right: 0; height: 44px;
+      border-radius: 24px 24px 0 0; background: #f6f6f7;
+      border-bottom: 1px solid #1f29370c; transform: translateZ(2px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dots { position: absolute; left: 21px; display: flex; gap: 9px; }
+    .dots i { width: 11px; height: 11px; border-radius: 50%; background: #bfc2c7; }
+    .address {
+      color: #697486; font-size: 11px; letter-spacing: .02em;
+      padding: 5px 80px; border: 1px solid #e9eaed; border-radius: 7px;
+      background: #ffffffc4;
+    }
+    .layer {
+      position: absolute; overflow: hidden; transform-origin: 50% 50%;
+      backface-visibility: hidden; opacity: 0;
+      will-change: transform, opacity, box-shadow;
+      pointer-events: none;
+    }
+    .layer img {
+      position: absolute; width: 1604px; height: 1000px; max-width: none;
+      user-select: none; -webkit-user-drag: none; pointer-events: none;
+    }
+    .toolbar {
+      position: fixed; z-index: 10; bottom: 22px; left: 50%;
+      transform: translateX(-50%); width: min(620px, calc(100% - 32px));
+      padding: 12px 15px 10px; border: 1px solid #ffffffd9;
+      border-radius: 20px; background: #ffffffe8; backdrop-filter: blur(18px);
+      box-shadow: 0 8px 30px #24375413;
+      transition: opacity .2s, transform .2s;
+    }
+    .controls { display: flex; align-items: center; gap: 8px; }
+    .toolbar button {
+      padding: 8px 12px; border: 0; border-radius: 10px;
+      background: #eff3f8; color: #275085; font-size: 12px; font-weight: 600;
+    }
+    .toolbar .primary { background: #275085; color: white; min-width: 70px; }
+    .toolbar button[aria-pressed="true"] { background: #dceefc; color: #1d6798; }
+    .toolbar input { flex: 1; min-width: 45px; accent-color: #275085; cursor: pointer; }
+    .time { font-size: 11px; color: #66758a; font-variant-numeric: tabular-nums; min-width: 38px; text-align: right; }
+    .help { margin-top: 8px; text-align: center; font-size: 10px; color: #8893a2; letter-spacing: .02em; }
+    .help kbd { font: inherit; color: #4a5b70; }
+    .clean .toolbar { opacity: 0; pointer-events: none; transform: translate(-50%, 12px); }
+    .clean, .clean * { cursor: none !important; }
+    .loading {
+      position: fixed; inset: 0; display: grid; place-content: center;
+      font-size: 13px; color: #718197; background: #fafbfc; z-index: 20;
+    }
+    .loading[hidden] { display: none; }
+    @media (max-width: 600px) {
+      .toolbar { bottom: 12px; padding: 10px; }
+      .toolbar button { padding: 8px; font-size: 11px; }
+      .help { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="A tilted TaskTornado window assembling from floating dashboard sections">
+    <div class="ground" aria-hidden="true"></div>
+    <div class="fit">
+      <div class="window" id="window">
+        <div class="backplate"></div>
+        <div class="paper"></div>
+        <div class="chrome" aria-hidden="true">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="address">tasktornado.app</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div class="toolbar" aria-label="Recording controls">
+    <div class="controls">
+      <button class="primary" id="play" type="button">Play</button>
+      <button id="replay" type="button">Replay</button>
+      <button id="scroll" type="button" aria-pressed="false">Scroll</button>
+      <input id="scrub" type="range" min="0" max="2000" step="1" value="0" aria-label="Animation position">
+      <span class="time" id="time">0.00s</span>
+      <button id="clean" type="button" title="Hide controls (C)">Clean</button>
+    </div>
+    <div class="help"><kbd>R</kbd> replay · <kbd>Space</kbd> pause · <kbd>C</kbd> hide controls · <kbd>F</kbd> fullscreen</div>
+  </div>
+  <div class="loading" id="loading" role="status">Preparing the window…</div>
+  <script>
+    (() => {
+      'use strict';
+      const WIDTH = 1604;
+      const HEIGHT = 1044;
+      const DURATION = 2000;
+      const source = './dashboard-source.png';
+      const board = document.getElementById('window');
+      const scrub = document.getElementById('scrub');
+      const playButton = document.getElementById('play');
+      const scrollButton = document.getElementById('scroll');
+      const timeLabel = document.getElementById('time');
+      const ground = document.querySelector('.ground');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const options = new URLSearchParams(location.search);
+      if (options.get('clean') === '1') document.body.classList.add('clean');
+
+      // Each rectangle is a separate plane cut from the supplied dashboard.
+      // The original pixels, type, colors, and layout remain unchanged.
+      const parts = [
+        { name: 'Navigation', x: 0, y: 0, w: 1604, h: 88, start: 90, dx: -50, dy: -90, depth: 320, ry: -8, rz: -3 },
+        { name: 'Greeting', x: 50, y: 105, w: 860, h: 76, start: 160, dx: -110, dy: -80, depth: 440, ry: -10, rz: -4 },
+        { name: 'Your day', x: 60, y: 188, w: 1482, h: 73, start: 230, dx: 80, dy: -60, depth: 360, ry: 7, rz: 2 },
+        { name: 'Calendar', x: 60, y: 280, w: 1482, h: 122, start: 300, dx: 70, dy: -90, depth: 480, ry: 9, rz: 3, radius: 28 },
+        { name: 'Class controls', x: 60, y: 447, w: 1482, h: 51, start: 390, dx: -75, dy: -50, depth: 330, ry: -5, rz: -2 },
+        { name: 'Yearbook', x: 60, y: 504, w: 478, h: 205, start: 450, dx: -150, dy: -70, depth: 600, ry: -13, rz: -5, radius: 28 },
+        { name: 'English', x: 562, y: 504, w: 479, h: 205, start: 520, dx: 0, dy: -130, depth: 680, ry: 6, rz: 3, radius: 28 },
+        { name: 'Precalc', x: 1064, y: 504, w: 478, h: 205, start: 590, dx: 150, dy: -70, depth: 600, ry: 13, rz: 5, radius: 28 },
+        { name: 'Geography', x: 60, y: 731, w: 478, h: 206, start: 660, dx: -130, dy: 95, depth: 570, ry: -12, rz: -4, radius: 28 },
+        { name: 'Biology', x: 562, y: 731, w: 479, h: 206, start: 730, dx: 0, dy: 130, depth: 650, ry: -5, rz: -3, radius: 28 },
+        { name: 'Spanish', x: 1064, y: 731, w: 478, h: 206, start: 800, dx: 130, dy: 95, depth: 570, ry: 12, rz: 4, radius: 28 },
+      ];
+
+      for (const part of parts) {
+        const element = document.createElement('div');
+        element.className = 'layer';
+        element.setAttribute('aria-label', part.name);
+        Object.assign(element.style, {
+          left: part.x + 'px', top: (44 + part.y) + 'px',
+          width: part.w + 'px', height: part.h + 'px',
+          borderRadius: (part.radius || 0) + 'px',
+        });
+        const texture = document.createElement('img');
+        texture.src = source;
+        texture.alt = '';
+        texture.draggable = false;
+        texture.style.left = -part.x + 'px';
+        texture.style.top = -part.y + 'px';
+        element.append(texture);
+        board.append(element);
+        part.element = element;
+      }
+
+      const clamp = n => Math.min(1, Math.max(0, n));
+      const ease = t => 1 - Math.pow(1 - clamp(t), 4);
+      const smooth = t => { const x = clamp(t); return x * x * (3 - 2 * x); };
+      let currentTime = 0;
+      let playing = false;
+      let frameId = 0;
+      let startTime = 0;
+      let scrollMode = false;
+      let ready = false;
+
+      function fit() {
+        const margin = Math.min(innerWidth, innerHeight) * 0.035;
+        const size = Math.min((innerWidth - margin * 2) / WIDTH, (innerHeight - margin * 2) / HEIGHT);
+        document.querySelector('.fit').style.setProperty('--fit', size);
+      }
+
+      function render(milliseconds) {
+        currentTime = Math.max(0, Math.min(DURATION, milliseconds));
+        const camera = smooth(currentTime / 660);
+        const zoom = 1.025 - camera * 0.15;
+        board.style.transform = `translate3d(0, ${-camera * 12}px, 0) rotateX(${camera * 18}deg) rotateY(${-camera * 11}deg) rotateZ(${-camera * 12}deg) scale(${zoom})`;
+        ground.style.opacity = String(camera * 0.8);
+        for (const part of parts) {
+          const local = clamp((currentTime - part.start) / 950);
+          const approach = 1 - ease(local);
+          const depth = 3 + part.depth * approach;
+          part.element.style.opacity = String(smooth(local / 0.28));
+          part.element.style.transform = `translate3d(${part.dx * approach}px, ${part.dy * approach}px, ${depth}px) rotateX(${-14 * approach}deg) rotateY(${part.ry * approach}deg) rotateZ(${part.rz * approach}deg)`;
+          part.element.style.boxShadow = part.radius
+            ? `0 ${8 + approach * 38}px ${18 + approach * 55}px ${-8 + approach * 3}px rgba(25, 45, 75, ${approach * 0.23})`
+            : 'none';
+        }
+        scrub.value = String(Math.round(currentTime));
+        timeLabel.textContent = (currentTime / 1000).toFixed(2) + 's';
+      }
+
+      function pause() {
+        playing = false;
+        cancelAnimationFrame(frameId);
+        playButton.textContent = 'Play';
+      }
+
+      function setScrollMode(enabled) {
+        scrollMode = enabled;
+        document.body.classList.toggle('scroll-mode', enabled);
+        scrollButton.setAttribute('aria-pressed', String(enabled));
+        if (enabled) {
+          pause();
+          render(0);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+      }
+
+      function tick(now) {
+        if (!playing) return;
+        render(now - startTime);
+        if (currentTime >= DURATION) { pause(); return; }
+        frameId = requestAnimationFrame(tick);
+      }
+
+      function play(restart = false) {
+        if (!ready) return;
+        if (scrollMode) setScrollMode(false);
+        pause();
+        if (restart || currentTime >= DURATION) render(0);
+        startTime = performance.now() - currentTime;
+        playing = true;
+        playButton.textContent = 'Pause';
+        frameId = requestAnimationFrame(tick);
+      }
+
+      function replay() { play(true); }
+      function togglePlayback() { playing ? pause() : play(); }
+      function toggleClean() { document.body.classList.toggle('clean'); }
+      async function fullscreen() {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch { /* Windowed playback remains available. */ }
+      }
+
+      playButton.addEventListener('click', togglePlayback);
+      document.getElementById('replay').addEventListener('click', replay);
+      document.getElementById('clean').addEventListener('click', toggleClean);
+      scrollButton.addEventListener('click', () => setScrollMode(!scrollMode));
+      scrub.addEventListener('input', () => {
+        pause();
+        if (scrollMode) setScrollMode(false);
+        render(Number(scrub.value));
+      });
+      window.addEventListener('scroll', () => {
+        if (!scrollMode) return;
+        const travel = document.documentElement.scrollHeight - innerHeight;
+        render(travel > 0 ? window.scrollY / travel * DURATION : 0);
+      }, { passive: true });
+      window.addEventListener('resize', fit);
+      window.addEventListener('keydown', event => {
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (event.target instanceof HTMLInputElement && !['Escape', 'c', 'C'].includes(event.key)) return;
+        if (event.code === 'Space') { event.preventDefault(); togglePlayback(); }
+        if (event.key.toLowerCase() === 'r') replay();
+        if (event.key.toLowerCase() === 'c') toggleClean();
+        if (event.key.toLowerCase() === 'f') void fullscreen();
+        if (event.key === 'Escape') document.body.classList.remove('clean');
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+          event.preventDefault(); pause();
+          if (scrollMode) setScrollMode(false);
+          render(currentTime + (event.key === 'ArrowRight' ? 100 : -100));
+        }
+      });
+      reducedMotion.addEventListener('change', event => {
+        if (event.matches) { pause(); render(DURATION); }
+      });
+
+      fit();
+      render(0);
+      const preload = new Image();
+      preload.src = source;
+      preload.decode().then(() => {
+        ready = true;
+        document.getElementById('loading').hidden = true;
+        if (reducedMotion.matches) render(DURATION);
+        else if (options.get('autoplay') !== '0') setTimeout(() => play(true), 350);
+      }).catch(() => {
+        document.getElementById('loading').textContent = 'The dashboard image could not load. Refresh to try again.';
+      });
+    })();
+  </script>
+</body>
+</html>

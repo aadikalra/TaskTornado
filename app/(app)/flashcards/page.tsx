@@ -92,8 +92,8 @@ export default function FlashcardsPage() {
           const remaining = Math.max(0, limits.flashcardStorage - currentCount);
           promptUpgrade({
             limitMessage: remaining === 0
-              ? `The free plan includes up to ${limits.flashcardStorage} flashcards — upgrade to Pro for unlimited.`
-              : `You have ${remaining} card${remaining !== 1 ? 's' : ''} left on the free plan (${currentCount}/${limits.flashcardStorage} used). Upgrade for unlimited.`
+              ? `The free plan includes up to ${limits.flashcardStorage} flashcards.`
+              : `You have ${remaining} card${remaining !== 1 ? 's' : ''} left on the free plan (${currentCount}/${limits.flashcardStorage} used). Remove cards you no longer need to make room.`
           });
           return;
         }

@@ -3,12 +3,56 @@
 import * as React from 'react';
 
 import { normalizeNodeId } from 'platejs';
-import { Plate, usePlateEditor } from 'platejs/react';
+import { Plate, useEditorRef, usePlateEditor, usePluginOption } from 'platejs/react';
 
 import { EditorKit } from '@/components/editor/editor-kit';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { discussionPlugin, type TDiscussion } from './plugins/discussion-kit';
+
+const DISCUSSIONS_STORAGE_KEY = 'plate-editor-discussions';
+
+function DiscussionPersistence() {
+  const editor = useEditorRef();
+  const discussions = usePluginOption(discussionPlugin, 'discussions');
+  const [hydrated, setHydrated] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DISCUSSIONS_STORAGE_KEY);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const restored = parsed.filter((item): item is TDiscussion =>
+            item && typeof item.id === 'string' && Array.isArray(item.comments)
+          ).map(item => ({
+            ...item,
+            createdAt: new Date(item.createdAt),
+            comments: item.comments.map(comment => ({ ...comment, createdAt: new Date(comment.createdAt) })),
+          }));
+          editor.setOption(discussionPlugin, 'discussions', restored);
+        }
+      }
+    } catch {
+      console.warn('Saved editor discussions could not be restored.');
+    }
+    setHydrated(true);
+  }, [editor]);
+
+  React.useEffect(() => {
+    if (!hydrated) return;
+    try {
+      // Store the threads with their matching marks, not the highlighted text alone.
+      localStorage.setItem(DISCUSSIONS_STORAGE_KEY, JSON.stringify(discussions));
+      localStorage.setItem('plate-editor-content', JSON.stringify(editor.children));
+    } catch {
+      console.warn('Editor discussions could not be saved.');
+    }
+  }, [discussions, editor, hydrated]);
+
+  return null;
+}
 
 export function PlateEditor({ editor: externalEditor }: { editor?: any }) {
   const STORAGE_KEY = 'plate-editor-content';
@@ -61,6 +105,7 @@ export function PlateEditor({ editor: externalEditor }: { editor?: any }) {
   return (
     <TooltipProvider>
       <Plate editor={editor} onChange={({ value }) => handleChange(value)}>
+        <DiscussionPersistence />
         <EditorContainer>
           <Editor variant="demo" />
         </EditorContainer>

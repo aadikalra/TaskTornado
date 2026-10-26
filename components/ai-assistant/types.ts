@@ -32,7 +32,7 @@ export interface Message {
   chunks?: string[];
   toolCall?: string;
   toolArgs?: any;
-  toolCalls?: Array<{ name: string; args?: any; status?: 'loading' | 'success' | 'error'; error?: string }>;
+  toolCalls?: Array<{ id?: string; name: string; args?: any; status?: 'loading' | 'success' | 'error'; error?: string }>;
   thought?: string;
   groundingMetadata?: {
     searchEntryPoint?: {

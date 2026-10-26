@@ -48,11 +48,15 @@ import { AuraVideoIcon } from './ai-assistant/AuraVideoIcon';
 import { ChatInput } from './ai-assistant/ChatInput';
 import { ContextChips } from './ai-assistant/ContextChips';
 import { MessageItem } from './ai-assistant/MessageItem';
+import { MessageSendMotion, captureMessageSend, type MessageSendTransfer } from './ai-assistant/MessageSendMotion';
 import {
   AIQuotaPopover,
   type AIUsageSummary,
 } from './ai-assistant/AIQuotaPopover';
-import { AI_PLAN_LIMITS } from '@/lib/ai/config';
+import { AI_CONNECTION_EVENT, useAiConnection } from '@/hooks/use-ai-connection';
+import { AI_DAILY_ALLOWANCE_ENABLED, AI_PLAN_LIMITS } from '@/lib/ai/config';
+import { readChatEvents } from '@/lib/ai/chat-stream';
+import { executeAssignmentManagement, summarizeAssignmentManagement } from '@/lib/ai/assignment-management';
 
 /* -------------------------------------------------------------------------- */
 /* Animation variants                          */
@@ -191,6 +195,9 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
   // Refs
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messageScrollRef = useRef<HTMLDivElement>(null);
+  const [sendTransfer, setSendTransfer] = useState<MessageSendTransfer | null>(null);
+  const finishSendTransfer = useCallback(() => setSendTransfer(null), []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null); // Added abortControllerRef
 
@@ -198,7 +205,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
   const { chat, error: aiError, setError: setAIError = () => { }, setAIInput, isAISidebarMode, setAISidebarMode } = aiContext || {};
 
   const { classes = [] } = classContext || {};
-  const { homeworks = [], addHomework = async () => { } } = homeworkContext || {};
+  const { homeworks = [], addHomework = async () => { }, updateHomework, deleteHomework } = homeworkContext;
   const { tests = [], addTest = async () => { } } = testContext || {};
 
   const parseDueDate = (dateStr?: string): Date => {
@@ -243,16 +250,18 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
   // Dark mode
   const { isDark } = useDarkMode();
-  const { handlePlanLimitError, promptUpgrade } = useUpgrade();
+  const { handlePlanLimitError } = useUpgrade();
 
-  // The server-managed plan and atomic quota are authoritative. Keep free-tier
+  // The server connection and atomic free quota are authoritative. Keep free-tier
   // values only as a brief loading fallback.
-  const quickLimit =
+  const { usingOwnKey } = useAiConnection();
+  const dailyAllowanceEnabled = AI_DAILY_ALLOWANCE_ENABLED && quotaSummary?.dailyAllowanceEnabled !== false;
+  const quickLimit = usingOwnKey || !dailyAllowanceEnabled ? Infinity :
     quotaSummary?.limits.quick ?? AI_PLAN_LIMITS.free.quick;
-  const deepLimit =
+  const deepLimit = usingOwnKey || !dailyAllowanceEnabled ? Infinity :
     quotaSummary?.limits.tutor ?? AI_PLAN_LIMITS.free.tutor;
   const combinedLimitReached = Boolean(
-    quotaSummary &&
+    dailyAllowanceEnabled && !usingOwnKey && quotaSummary &&
     quotaSummary.usage.combined >= quotaSummary.limits.combined
   );
 
@@ -303,6 +312,9 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
 
   const clearConversation = () => {
+    finishSendTransfer();
+    abortControllerRef.current?.abort();
+    setActiveClarificationQuestion(null);
     setMessages([]);
     setFlashcards([]);
     setQuizQuestions([]);
@@ -391,8 +403,13 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
   // Auto-scroll to bottom
   useEffect(() => {
+    if (sendTransfer) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, sendTransfer]);
+
+  useEffect(() => {
+    if (!isOpen) finishSendTransfer();
+  }, [isOpen, finishSendTransfer]);
 
   // Handle keyboard shortcuts for interactive buttons
   useEffect(() => {
@@ -447,6 +464,12 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
       if (showLoading) setQuotaLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    const changed = () => { void loadQuotaSummary(); };
+    window.addEventListener(AI_CONNECTION_EVENT, changed);
+    return () => window.removeEventListener(AI_CONNECTION_EVENT, changed);
+  }, [loadQuotaSummary]);
 
   // Refresh when Aurora opens and periodically while it stays open. This keeps
   // usage from the grader, translator, and other AI tools reflected here too.
@@ -586,7 +609,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
     await triggerAIResponse(button.prompt);
   };
 
-  const triggerAIResponse = async (userInput: string) => {
+  const triggerAIResponse = async (userInput: string, animateFromComposer = false, history: Message[] = messages) => {
 
     if (combinedLimitReached) {
       try {
@@ -606,12 +629,13 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
     if (maxLimit !== Infinity && currentCounter >= maxLimit) {
       try {
-        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'quick' ? 'Quick' : 'Deep'} messages for today — upgrade for more.`);
+        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'quick' ? 'Quick' : 'Deep'} messages for today — connect your own key in AI settings to continue.`);
       } catch (err: any) { handlePlanLimitError(err); }
       return;
     }
 
     // Set loading state
+    setActiveClarificationQuestion(null);
     setIsAILoading(true);
 
     // Create user and loading messages
@@ -631,6 +655,11 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
       chunks: []
     };
 
+    if (animateFromComposer) {
+      setSendTransfer(captureMessageSend(userMessage.id, userInput, inputRef.current));
+      setInput('');
+    }
+
     // Add both messages to state simultaneously (preserves Aurora morph animation)
     setMessages(prev => [...prev, userMessage, loadingMsg]);
 
@@ -638,11 +667,17 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
     if (abortControllerRef.current) {
       abortControllerRef.current.abort(); // Abort any previous pending request
     }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const signal = controller.signal;
+    let timedOut = false;
+    const requestTimeout = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 90_000);
 
     try {
-      const chatMessages = messages.concat({
+      const chatMessages = history.filter(message => !message.isLoading && !message.isError).concat({
         id: Date.now(),
         role: 'user',
         content: userInput,
@@ -660,6 +695,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
         },
         body: JSON.stringify({
           model: selectedModel,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           messages: chatMessages,
         }),
         signal, // Pass the abort signal to the fetch request
@@ -704,451 +740,473 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
         };
       });
 
-      // Handle streaming response (simplified version)
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
       let accumulatedResponse = '';
-      let eventBuffer = '';
-      const accumulatedToolCalls: { name: string, args: any, status?: 'loading' | 'success' | 'error', error?: string }[] = [];
+      let didComplete = false;
+      const accumulatedToolCalls: { id?: string, name: string, args: any, status?: 'loading' | 'success' | 'error', error?: string }[] = [];
+      const assignmentSummaries: string[] = [];
+      const executedAssignmentCalls = new Set<string>();
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      for await (const data of readChatEvents(response)) {
+        if (data.error || data.type === 'error') {
+          throw new Error(data.details || data.error || data.message || 'Aurora couldn’t finish this reply. Please try again.');
+        }
+        const content = data.response || data.message?.content || data.delta?.content || '';
 
-          eventBuffer += decoder.decode(value, { stream: true });
-          const frames = eventBuffer.split('\n\n');
-          eventBuffer = frames.pop() || '';
+        if (content) {
+          accumulatedResponse += content;
 
-          for (const frame of frames) {
-            const line = frame
-              .split('\n')
-              .find((candidate) => candidate.startsWith('data: '));
-            if (line) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                const content = data.response || data.message?.content || data.delta?.content || '';
+          // Update the loading message
+          setMessages(prev => {
+            const copy = [...prev];
+            const idx = copy.findIndex(m => m.id === loadingMsg.id);
+            if (idx !== -1) {
+              copy[idx] = {
+                ...copy[idx],
+                content: accumulatedResponse,
+                chunks: [...(copy[idx].chunks || []), content],
+                isLoading: true,
+              };
+            }
+            return copy;
+          });
+        }
 
-                if (content) {
-                  accumulatedResponse += content;
+        if (data.groundingMetadata) {
+          setMessages(prev => {
+            const copy = [...prev];
+            const idx = copy.findIndex(m => m.id === loadingMsg.id);
+            if (idx !== -1) {
+              copy[idx] = {
+                ...copy[idx],
+                groundingMetadata: data.groundingMetadata,
+              };
+            }
+            return copy;
+          });
+        }
 
-                  // Update the loading message
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    const idx = copy.findIndex(m => m.isLoading);
-                    if (idx !== -1) {
-                      copy[idx] = {
-                        ...copy[idx],
-                        content: accumulatedResponse,
-                        chunks: [...(copy[idx].chunks || []), content],
-                        isLoading: true,
-                      };
-                    }
-                    return copy;
-                  });
+        if (data.usage) {
+          setMessages(prev => {
+            const copy = [...prev];
+            const idx = copy.findIndex(m => m.id === loadingMsg.id);
+            if (idx !== -1) {
+              copy[idx] = {
+                ...copy[idx],
+                usage: data.usage,
+              };
+            }
+            return copy;
+          });
+        }
+
+        if (data.toolCall) {
+          if (data.toolCall === 'ask_user_question' && data.toolArgs?.question && Array.isArray(data.toolArgs?.options)) {
+            setActiveClarificationQuestion({
+              question: data.toolArgs.question,
+              options: data.toolArgs.options,
+            });
+          }
+          const initialStatus: 'loading' | 'success' = (data.toolCall === 'add_homework' || data.toolCall === 'add_multiple_homeworks' || data.toolCall === 'add_test' || data.toolCall === 'manage_assignments') ? 'loading' : 'success';
+          const matchesToolCall = (tc: { id?: string; name: string }) => data.toolCallId
+            ? tc.id === data.toolCallId
+            : tc.name === data.toolCall;
+          const exists = accumulatedToolCalls.some(matchesToolCall);
+          if (exists) {
+            const target = accumulatedToolCalls.find(matchesToolCall);
+            if (target) target.args = data.toolArgs || target.args;
+          } else {
+            accumulatedToolCalls.push({ id: data.toolCallId, name: data.toolCall, args: data.toolArgs, status: initialStatus });
+          }
+
+          setMessages(prev => {
+            const copy = [...prev];
+            const idx = copy.findIndex(m => m.id === loadingMsg.id);
+            if (idx !== -1) {
+              const currentCalls = copy[idx].toolCalls || [];
+              const existsInState = currentCalls.some(matchesToolCall);
+              const updatedCalls = existsInState
+                ? currentCalls.map(tc => matchesToolCall(tc) ? { ...tc, args: data.toolArgs || tc.args } : tc)
+                : [...currentCalls, { id: data.toolCallId, name: data.toolCall as string, args: data.toolArgs, status: initialStatus }];
+
+              copy[idx] = {
+                ...copy[idx],
+                toolCall: data.toolCall,
+                toolArgs: data.toolArgs || copy[idx].toolArgs,
+                toolCalls: updatedCalls
+              };
+            }
+            return copy;
+          });
+        }
+
+        if (data.thought) {
+          setMessages(prev => {
+            const copy = [...prev];
+            const idx = copy.findIndex(m => m.id === loadingMsg.id);
+            if (idx !== -1) {
+              copy[idx] = {
+                ...copy[idx],
+                thought: (copy[idx].thought || '') + data.thought,
+              };
+            }
+            return copy;
+          });
+        }
+
+        if (data.done && !didComplete) {
+          didComplete = true;
+          // Final update - parse buttons and remove loading
+          const { content: cleanContent, buttons } = parseInteractiveButtons(accumulatedResponse);
+          const { content: finalCleanContent, checklist } = parseChecklist(cleanContent);
+
+          let messageIdToUpdate: number | undefined = loadingMsg.id;
+
+          setMessages(prev => {
+            const copy = [...prev];
+            const idx = copy.findIndex(m => m.id === loadingMsg.id);
+            if (idx !== -1) {
+              const finalMsg = {
+                ...copy[idx],
+                content: finalCleanContent,
+                interactiveButtons: buttons,
+                checklist: checklist,
+                isLoading: false,
+                timestamp: new Date(),
+              };
+              copy[idx] = finalMsg;
+
+              // Handle tools that need UI triggers
+              if (finalMsg.toolCall === 'start_flashcards' && finalMsg.toolArgs?.flashcards) {
+                const topic = finalMsg.toolArgs.topic || 'Flashcards';
+                const cards = finalMsg.toolArgs.flashcards.map((card: any, index: number) => ({
+                  id: `card-${Date.now()}-${index}`,
+                  question: card.front || card.question || `Question ${index + 1}`,
+                  answer: card.back || card.answer || 'No answer provided',
+                  topic: topic,
+                  createdAt: new Date()
+                }));
+
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('currentFlashcards', JSON.stringify(cards));
                 }
 
-                if (data.groundingMetadata) {
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    const idx = copy.findIndex(m => m.isLoading);
-                    if (idx !== -1) {
-                      copy[idx] = {
-                        ...copy[idx],
-                        groundingMetadata: data.groundingMetadata,
-                      };
-                    }
-                    return copy;
-                  });
+                finalMsg.content = `# 🗂️ Flashcard Set: ${topic}\n\nI've created ${cards.length} flashcards for you to study. \n\n[Open Flashcards](/flashcards?t=${Date.now()}) to start reviewing them!\n\n*The flashcards will be saved for this session. You can access them later from the navigation menu.*`;
+              }
+
+              // Handle start_quiz tool
+              if (finalMsg.toolCall === 'start_quiz' && finalMsg.toolArgs?.questions) {
+                const topic = finalMsg.toolArgs.topic || 'Quiz';
+                const questions = finalMsg.toolArgs.questions.map((q: any, index: number) => {
+                  const options = q.options || ['Option A', 'Option B', 'Option C', 'Option D'];
+                  const correctIndex = Array.isArray(options) ? options.indexOf(q.correctAnswer) : 0;
+                  return {
+                    id: `question-${Date.now()}-${index}`,
+                    question: q.question || `Question ${index + 1}`,
+                    options: options,
+                    correctAnswer: correctIndex === -1 ? 0 : correctIndex,
+                    explanation: q.explanation || '',
+                    topic: topic
+                  };
+                });
+
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('currentQuiz', JSON.stringify(questions));
                 }
 
-                if (data.usage) {
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    const idx = copy.findIndex(m => m.isLoading);
-                    if (idx !== -1) {
-                      copy[idx] = {
-                        ...copy[idx],
-                        usage: data.usage,
-                      };
-                    }
-                    return copy;
-                  });
-                }
-
-                if (data.toolCall) {
-                  if (data.toolCall === 'ask_user_question' && data.toolArgs?.question && Array.isArray(data.toolArgs?.options)) {
-                    setActiveClarificationQuestion({
-                      question: data.toolArgs.question,
-                      options: data.toolArgs.options,
-                    });
-                  }
-                  const initialStatus: 'loading' | 'success' = (data.toolCall === 'add_homework' || data.toolCall === 'add_multiple_homeworks' || data.toolCall === 'add_test') ? 'loading' : 'success';
-                  const exists = accumulatedToolCalls.some(tc => tc.name === data.toolCall);
-                  if (exists) {
-                    const target = accumulatedToolCalls.find(tc => tc.name === data.toolCall);
-                    if (target) target.args = data.toolArgs || target.args;
-                  } else {
-                    accumulatedToolCalls.push({ name: data.toolCall, args: data.toolArgs, status: initialStatus });
-                  }
-
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    const idx = copy.findIndex(m => m.isLoading);
-                    if (idx !== -1) {
-                      const currentCalls = copy[idx].toolCalls || [];
-                      const existsInState = currentCalls.some(tc => tc.name === data.toolCall);
-                      const updatedCalls = existsInState
-                        ? currentCalls.map(tc => tc.name === data.toolCall ? { ...tc, args: data.toolArgs || tc.args } : tc)
-                        : [...currentCalls, { name: data.toolCall as string, args: data.toolArgs, status: initialStatus }];
-
-                      copy[idx] = {
-                        ...copy[idx],
-                        toolCall: data.toolCall,
-                        toolArgs: data.toolArgs || copy[idx].toolArgs,
-                        toolCalls: updatedCalls
-                      };
-                    }
-                    return copy;
-                  });
-                }
-
-                if (data.thought) {
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    const idx = copy.findIndex(m => m.isLoading);
-                    if (idx !== -1) {
-                      copy[idx] = {
-                        ...copy[idx],
-                        thought: (copy[idx].thought || '') + data.thought,
-                      };
-                    }
-                    return copy;
-                  });
-                }
-
-                if (data.done) {
-                  // Final update - parse buttons and remove loading
-                  const { content: cleanContent, buttons } = parseInteractiveButtons(accumulatedResponse);
-                  const { content: finalCleanContent, checklist } = parseChecklist(cleanContent);
-
-                  let messageIdToUpdate: number | undefined = loadingMsg.id;
-
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    const idx = copy.findIndex(m => m.isLoading);
-                    if (idx !== -1) {
-                      const finalMsg = {
-                        ...copy[idx],
-                        content: finalCleanContent,
-                        interactiveButtons: buttons,
-                        checklist: checklist,
-                        isLoading: false,
-                        timestamp: new Date(),
-                      };
-                      copy[idx] = finalMsg;
-
-                      // Handle tools that need UI triggers
-                      if (finalMsg.toolCall === 'start_flashcards' && finalMsg.toolArgs?.flashcards) {
-                        const topic = finalMsg.toolArgs.topic || 'Flashcards';
-                        const cards = finalMsg.toolArgs.flashcards.map((card: any, index: number) => ({
-                          id: `card-${Date.now()}-${index}`,
-                          question: card.front || card.question || `Question ${index + 1}`,
-                          answer: card.back || card.answer || 'No answer provided',
-                          topic: topic,
-                          createdAt: new Date()
-                        }));
-
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('currentFlashcards', JSON.stringify(cards));
-                        }
-
-                        finalMsg.content = `# 🗂️ Flashcard Set: ${topic}\n\nI've created ${cards.length} flashcards for you to study. \n\n[Open Flashcards](/flashcards?t=${Date.now()}) to start reviewing them!\n\n*The flashcards will be saved for this session. You can access them later from the navigation menu.*`;
-                      }
-
-                      // Handle start_quiz tool
-                      if (finalMsg.toolCall === 'start_quiz' && finalMsg.toolArgs?.questions) {
-                        const topic = finalMsg.toolArgs.topic || 'Quiz';
-                        const questions = finalMsg.toolArgs.questions.map((q: any, index: number) => {
-                          const options = q.options || ['Option A', 'Option B', 'Option C', 'Option D'];
-                          const correctIndex = Array.isArray(options) ? options.indexOf(q.correctAnswer) : 0;
-                          return {
-                            id: `question-${Date.now()}-${index}`,
-                            question: q.question || `Question ${index + 1}`,
-                            options: options,
-                            correctAnswer: correctIndex === -1 ? 0 : correctIndex,
-                            explanation: q.explanation || '',
-                            topic: topic
-                          };
-                        });
-
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('currentQuiz', JSON.stringify(questions));
-                        }
-
-                        finalMsg.content = `# 📝 Quiz: ${topic}\n\nI've created ${questions.length} multiple-choice questions for you to test your knowledge.\n\n[Start Quiz](/quiz?t=${Date.now()}) to begin!\n\n*The quiz will be saved for this session. Good luck!*`;
-                      }
-                    }
-                    return copy;
-                  });
-
-                  // Execute state-modifying database updates completely outside of the render cycle
-                  for (const tc of accumulatedToolCalls) {
-                    const toolCall = tc.name;
-                    const toolArgs = tc.args;
-
-                    setTimeout(async () => {
-                      if (toolCall === 'add_homework' && toolArgs) {
-                        const itemsToAdd: Array<{
-                          className?: string;
-                          title?: string;
-                          dueDate?: string;
-                          priority?: string;
-                          description?: string;
-                          links?: string[];
-                        }> = Array.isArray(toolArgs.assignments) && toolArgs.assignments.length > 0
-                          ? toolArgs.assignments
-                          : (toolArgs.title ? [toolArgs] : []);
-
-                        if (itemsToAdd.length > 0) {
-                          const addedHomeworks: any[] = [];
-                          const usedClasses: any[] = [];
-                          const usedClassIds = new Set<string>();
-
-                          for (const item of itemsToAdd) {
-                            const { className, title, dueDate, priority, description, links } = item;
-                            if (!title) continue;
-                            const matchedClass = classes.find((c: any) => {
-                              const cName = (c.name || '').toLowerCase();
-                              const reqName = (className || '').toLowerCase();
-                              if (!cName || !reqName) return false;
-                              return (
-                                cName === reqName ||
-                                cName.includes(reqName) ||
-                                reqName.includes(cName) ||
-                                (reqName.includes('math') && (cName.includes('calc') || cName.includes('algebra') || cName.includes('geom') || cName.includes('math') || cName.includes('trig'))) ||
-                                (reqName.includes('english') && (cName.includes('english') || cName.includes('lit') || cName.includes('lang') || cName.includes('ela'))) ||
-                                (reqName.includes('science') && (cName.includes('bio') || cName.includes('chem') || cName.includes('phys') || cName.includes('sci')))
-                              );
-                            });
-
-                            if (matchedClass) {
-                              const parsedDate = parseDueDate(dueDate);
-                              const formattedLinks = Array.isArray(links)
-                                ? links.map((l: any) =>
-                                    typeof l === 'string'
-                                      ? { id: `link-${Math.random().toString(36).substring(2, 9)}`, title: 'Reference Link', url: l }
-                                      : { id: l.id || `link-${Math.random().toString(36).substring(2, 9)}`, title: l.title || 'Reference Link', url: l.url || '' }
-                                  ).filter((l: any) => Boolean(l.url))
-                                : [];
-                              try {
-                                await addHomework(matchedClass.id, title, parsedDate, (priority as any) || 'medium', formattedLinks, description || '');
-                                addedHomeworks.push({
-                                  id: `temp-${Math.random()}`,
-                                  title,
-                                  dueDate: parsedDate.toISOString(),
-                                  priority: priority || 'medium',
-                                  description: description || '',
-                                  links: formattedLinks,
-                                  classId: matchedClass.id,
-                                  className: matchedClass.name,
-                                  pinned: false,
-                                  completed: false,
-                                });
-                                if (!usedClassIds.has(matchedClass.id)) {
-                                  usedClassIds.add(matchedClass.id);
-                                  usedClasses.push(matchedClass);
-                                }
-                              } catch (err: any) {
-                                console.error('Error adding homework from AI:', err);
-                              }
-                            }
-                          }
-
-                          if (addedHomeworks.length > 0 && messageIdToUpdate !== undefined) {
-                            setMessages(prev => {
-                              const copy = [...prev];
-                              const idx = copy.findIndex(m => m.id === messageIdToUpdate);
-                              if (idx !== -1) {
-                                const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
-                                  tc.name === 'add_homework' ? { ...tc, status: 'success' as const } : tc
-                                );
-                                copy[idx] = {
-                                  ...copy[idx],
-                                  toolCalls: updatedCalls,
-                                  bulkAddDisplay: {
-                                    homeworks: addedHomeworks,
-                                    classes: usedClasses,
-                                  },
-                                };
-                              }
-                              return copy;
-                            });
-                          }
-                        }
-                      }
-
-                      if (toolCall === 'add_multiple_homeworks' && toolArgs?.homeworks) {
-                        const homeworksToAdd = toolArgs.homeworks;
-                        const addedHomeworks: Homework[] = [];
-                        const matchedClassesSet = new Set<Class>();
-                        let hasFailures = false;
-                        let lastErrorMessage = '';
-
-                        for (const hw of homeworksToAdd) {
-                          const { className, title, dueDate, priority, description } = hw;
-                          const matchedClass = classes.find((c: any) => c.name.toLowerCase() === className?.toLowerCase());
-                          if (matchedClass) {
-                            const parsedDate = dueDate ? new Date(dueDate + 'T12:00:00') : new Date();
-                            try {
-                              await addHomework(matchedClass.id, title, parsedDate, priority || 'medium', [], description || '');
-                              
-                              addedHomeworks.push({
-                                id: `hw-${Date.now()}-${Math.random()}`,
-                                title,
-                                dueDate: dueDate || new Date().toISOString(),
-                                priority: priority || 'medium',
-                                description: description || '',
-                                links: [],
-                                className: matchedClass.name,
-                                classId: matchedClass.id
-                              } as any);
-                              matchedClassesSet.add(matchedClass);
-                            } catch (err: any) {
-                              console.error('Error adding multiple homework item:', err);
-                              hasFailures = true;
-                              lastErrorMessage = err.message || `Failed to add "${title}"`;
-                            }
-                          } else {
-                            hasFailures = true;
-                            lastErrorMessage = `Class "${className}" not found for "${title}"`;
-                          }
-                        }
-
-                        if (messageIdToUpdate !== undefined) {
-                          setMessages(prev => {
-                            const copy = [...prev];
-                            const idx = copy.findIndex(m => m.id === messageIdToUpdate);
-                            if (idx !== -1) {
-                              const updatedCalls = (copy[idx].toolCalls || []).map(tc => {
-                                if (tc.name === 'add_multiple_homeworks') {
-                                  if (hasFailures && addedHomeworks.length === 0) {
-                                    return { ...tc, status: 'error' as const, error: lastErrorMessage };
-                                  } else if (hasFailures) {
-                                    return { ...tc, status: 'success' as const, error: `Partially added: ${lastErrorMessage}` };
-                                  } else {
-                                    return { ...tc, status: 'success' as const };
-                                  }
-                                }
-                                return tc;
-                              });
-
-                              copy[idx] = {
-                                ...copy[idx],
-                                toolCalls: updatedCalls,
-                                bulkAddDisplay: addedHomeworks.length > 0 ? {
-                                  homeworks: addedHomeworks,
-                                  classes: Array.from(matchedClassesSet)
-                                } : copy[idx].bulkAddDisplay
-                              };
-                            }
-                            return copy;
-                          });
-                        }
-                      }
-
-                      if (toolCall === 'add_test' && toolArgs) {
-                        const itemsToAdd = Array.isArray(toolArgs.tests)
-                          ? toolArgs.tests
-                          : toolArgs.title
-                          ? [toolArgs]
-                          : [];
-
-                        const addedTests: any[] = [];
-                        const usedClasses: any[] = [];
-                        const usedClassIds = new Set<string>();
-
-                        for (const item of itemsToAdd) {
-                          const { className, title, date, testType, description } = item;
-                          if (!title) continue;
-                          const matchedClass = classes.find((c: any) => {
-                            const cName = (c.name || '').toLowerCase();
-                            const reqName = (className || '').toLowerCase();
-                            if (!cName || !reqName) return false;
-                            return (
-                              cName === reqName ||
-                              cName.includes(reqName) ||
-                              reqName.includes(cName) ||
-                              (reqName.includes('math') && (cName.includes('calc') || cName.includes('algebra') || cName.includes('geom') || cName.includes('math') || cName.includes('trig'))) ||
-                              (reqName.includes('english') && (cName.includes('english') || cName.includes('lit') || cName.includes('lang') || cName.includes('ela'))) ||
-                              (reqName.includes('science') && (cName.includes('bio') || cName.includes('chem') || cName.includes('phys') || cName.includes('sci')))
-                            );
-                          });
-
-                          if (matchedClass) {
-                            const parsedDate = parseDueDate(date);
-                            try {
-                              await addTest(matchedClass.id, title, parsedDate, (testType || 'exam') as any, { description: description || '', priority: 'high' });
-                              addedTests.push({
-                                id: `temp-test-${Math.random()}`,
-                                title,
-                                dueDate: parsedDate.toISOString(),
-                                priority: 'high',
-                                testType: testType || 'exam',
-                                description: description || '',
-                                links: [],
-                                classId: matchedClass.id,
-                                className: matchedClass.name,
-                              });
-                              if (!usedClassIds.has(matchedClass.id)) {
-                                usedClassIds.add(matchedClass.id);
-                                usedClasses.push(matchedClass);
-                              }
-                            } catch (err: any) {
-                              console.error('Error adding test from AI:', err);
-                            }
-                          }
-                        }
-
-                        if (messageIdToUpdate !== undefined) {
-                          setMessages(prev => {
-                            const copy = [...prev];
-                            const idx = copy.findIndex(m => m.id === messageIdToUpdate);
-                            if (idx !== -1) {
-                              const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
-                                tc.name === 'add_test' ? { ...tc, status: 'success' as const } : tc
-                              );
-                              copy[idx] = {
-                                ...copy[idx],
-                                toolCalls: updatedCalls,
-                                bulkAddDisplay: addedTests.length > 0 ? {
-                                  homeworks: addedTests,
-                                  classes: usedClasses,
-                                } : copy[idx].bulkAddDisplay,
-                              };
-                            }
-                            return copy;
-                          });
-                        }
-                      }
-                    }, 0);
-                  }
-                  break;
-                }
-              } catch (error) {
-                console.error('Failed to parse streaming data:', error);
+                finalMsg.content = `# 📝 Quiz: ${topic}\n\nI've created ${questions.length} multiple-choice questions for you to test your knowledge.\n\n[Start Quiz](/quiz?t=${Date.now()}) to begin!\n\n*The quiz will be saved for this session. Good luck!*`;
               }
             }
+            return copy;
+          });
+
+          // Execute state-modifying database updates completely outside of the render cycle
+          for (const tc of accumulatedToolCalls) {
+            const toolCall = tc.name;
+            const toolArgs = tc.args;
+
+            if (toolCall === 'manage_assignments') {
+              const callId = tc.id || toolCall;
+              if (executedAssignmentCalls.has(callId)) continue;
+              executedAssignmentCalls.add(callId);
+              let status: 'success' | 'error' = 'error';
+              let error: string | undefined;
+              let summary: string;
+              try {
+                if (!user) throw new Error('Sign in to edit or delete assignments.');
+                const results = await executeAssignmentManagement(toolArgs, {
+                  userId: user.id,
+                  homeworks,
+                  classIds: classes.map((classItem) => classItem.id),
+                  updateHomework,
+                  deleteHomework,
+                });
+                const failures = results.filter((result) => result.status === 'error');
+                status = failures.length > 0 ? 'error' : 'success';
+                error = failures.map((result) => result.error).join('\n') || undefined;
+                summary = summarizeAssignmentManagement(results);
+              } catch (cause) {
+                error = cause instanceof Error ? cause.message : 'Please try again.';
+                summary = 'I couldn’t apply those assignment changes. Please try again with the assignment title and the changes you want.';
+              }
+              assignmentSummaries.push(summary);
+              setMessages(prev => prev.map(message => message.id === messageIdToUpdate ? {
+                ...message,
+                content: assignmentSummaries.join('\n\n'),
+                toolCalls: message.toolCalls?.map(call => (tc.id ? call.id === tc.id : call.name === toolCall)
+                  ? { ...call, status, error }
+                  : call),
+              } : message));
+              continue;
+            }
+
+            setTimeout(async () => {
+              if (toolCall === 'add_homework' && toolArgs) {
+                const itemsToAdd: Array<{
+                  className?: string;
+                  title?: string;
+                  dueDate?: string;
+                  priority?: string;
+                  description?: string;
+                  links?: string[];
+                }> = Array.isArray(toolArgs.assignments) && toolArgs.assignments.length > 0
+                  ? toolArgs.assignments
+                  : (toolArgs.title ? [toolArgs] : []);
+
+                if (itemsToAdd.length > 0) {
+                  const addedHomeworks: any[] = [];
+                  const usedClasses: any[] = [];
+                  const usedClassIds = new Set<string>();
+
+                  for (const item of itemsToAdd) {
+                    const { className, title, dueDate, priority, description, links } = item;
+                    if (!title) continue;
+                    const matchedClass = classes.find((c: any) => {
+                      const cName = (c.name || '').toLowerCase();
+                      const reqName = (className || '').toLowerCase();
+                      if (!cName || !reqName) return false;
+                      return (
+                        cName === reqName ||
+                        cName.includes(reqName) ||
+                        reqName.includes(cName) ||
+                        (reqName.includes('math') && (cName.includes('calc') || cName.includes('algebra') || cName.includes('geom') || cName.includes('math') || cName.includes('trig'))) ||
+                        (reqName.includes('english') && (cName.includes('english') || cName.includes('lit') || cName.includes('lang') || cName.includes('ela'))) ||
+                        (reqName.includes('science') && (cName.includes('bio') || cName.includes('chem') || cName.includes('phys') || cName.includes('sci')))
+                      );
+                    });
+
+                    if (matchedClass) {
+                      const parsedDate = parseDueDate(dueDate);
+                      const formattedLinks = Array.isArray(links)
+                        ? links.map((l: any) =>
+                            typeof l === 'string'
+                              ? { id: `link-${Math.random().toString(36).substring(2, 9)}`, title: 'Reference Link', url: l }
+                              : { id: l.id || `link-${Math.random().toString(36).substring(2, 9)}`, title: l.title || 'Reference Link', url: l.url || '' }
+                          ).filter((l: any) => Boolean(l.url))
+                        : [];
+                      try {
+                        await addHomework(matchedClass.id, title, parsedDate, (priority as any) || 'medium', formattedLinks, description || '');
+                        addedHomeworks.push({
+                          id: `temp-${Math.random()}`,
+                          title,
+                          dueDate: parsedDate.toISOString(),
+                          priority: priority || 'medium',
+                          description: description || '',
+                          links: formattedLinks,
+                          classId: matchedClass.id,
+                          className: matchedClass.name,
+                          pinned: false,
+                          completed: false,
+                        });
+                        if (!usedClassIds.has(matchedClass.id)) {
+                          usedClassIds.add(matchedClass.id);
+                          usedClasses.push(matchedClass);
+                        }
+                      } catch (err: any) {
+                        console.error('Error adding homework from AI:', err);
+                      }
+                    }
+                  }
+
+                  if (addedHomeworks.length > 0 && messageIdToUpdate !== undefined) {
+                    setMessages(prev => {
+                      const copy = [...prev];
+                      const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                      if (idx !== -1) {
+                        const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                          tc.name === 'add_homework' ? { ...tc, status: 'success' as const } : tc
+                        );
+                        copy[idx] = {
+                          ...copy[idx],
+                          toolCalls: updatedCalls,
+                          bulkAddDisplay: {
+                            homeworks: addedHomeworks,
+                            classes: usedClasses,
+                          },
+                        };
+                      }
+                      return copy;
+                    });
+                  }
+                }
+              }
+
+              if (toolCall === 'add_multiple_homeworks' && toolArgs?.homeworks) {
+                const homeworksToAdd = toolArgs.homeworks;
+                const addedHomeworks: Homework[] = [];
+                const matchedClassesSet = new Set<Class>();
+                let hasFailures = false;
+                let lastErrorMessage = '';
+
+                for (const hw of homeworksToAdd) {
+                  const { className, title, dueDate, priority, description } = hw;
+                  const matchedClass = classes.find((c: any) => c.name.toLowerCase() === className?.toLowerCase());
+                  if (matchedClass) {
+                    const parsedDate = dueDate ? new Date(dueDate + 'T12:00:00') : new Date();
+                    try {
+                      await addHomework(matchedClass.id, title, parsedDate, priority || 'medium', [], description || '');
+                      
+                      addedHomeworks.push({
+                        id: `hw-${Date.now()}-${Math.random()}`,
+                        title,
+                        dueDate: dueDate || new Date().toISOString(),
+                        priority: priority || 'medium',
+                        description: description || '',
+                        links: [],
+                        className: matchedClass.name,
+                        classId: matchedClass.id
+                      } as any);
+                      matchedClassesSet.add(matchedClass);
+                    } catch (err: any) {
+                      console.error('Error adding multiple homework item:', err);
+                      hasFailures = true;
+                      lastErrorMessage = err.message || `Failed to add "${title}"`;
+                    }
+                  } else {
+                    hasFailures = true;
+                    lastErrorMessage = `Class "${className}" not found for "${title}"`;
+                  }
+                }
+
+                if (messageIdToUpdate !== undefined) {
+                  setMessages(prev => {
+                    const copy = [...prev];
+                    const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                    if (idx !== -1) {
+                      const updatedCalls = (copy[idx].toolCalls || []).map(tc => {
+                        if (tc.name === 'add_multiple_homeworks') {
+                          if (hasFailures && addedHomeworks.length === 0) {
+                            return { ...tc, status: 'error' as const, error: lastErrorMessage };
+                          } else if (hasFailures) {
+                            return { ...tc, status: 'success' as const, error: `Partially added: ${lastErrorMessage}` };
+                          } else {
+                            return { ...tc, status: 'success' as const };
+                          }
+                        }
+                        return tc;
+                      });
+
+                      copy[idx] = {
+                        ...copy[idx],
+                        toolCalls: updatedCalls,
+                        bulkAddDisplay: addedHomeworks.length > 0 ? {
+                          homeworks: addedHomeworks,
+                          classes: Array.from(matchedClassesSet)
+                        } : copy[idx].bulkAddDisplay
+                      };
+                    }
+                    return copy;
+                  });
+                }
+              }
+
+              if (toolCall === 'add_test' && toolArgs) {
+                const itemsToAdd = Array.isArray(toolArgs.tests)
+                  ? toolArgs.tests
+                  : toolArgs.title
+                  ? [toolArgs]
+                  : [];
+
+                const addedTests: any[] = [];
+                const usedClasses: any[] = [];
+                const usedClassIds = new Set<string>();
+
+                for (const item of itemsToAdd) {
+                  const { className, title, date, testType, description } = item;
+                  if (!title) continue;
+                  const matchedClass = classes.find((c: any) => {
+                    const cName = (c.name || '').toLowerCase();
+                    const reqName = (className || '').toLowerCase();
+                    if (!cName || !reqName) return false;
+                    return (
+                      cName === reqName ||
+                      cName.includes(reqName) ||
+                      reqName.includes(cName) ||
+                      (reqName.includes('math') && (cName.includes('calc') || cName.includes('algebra') || cName.includes('geom') || cName.includes('math') || cName.includes('trig'))) ||
+                      (reqName.includes('english') && (cName.includes('english') || cName.includes('lit') || cName.includes('lang') || cName.includes('ela'))) ||
+                      (reqName.includes('science') && (cName.includes('bio') || cName.includes('chem') || cName.includes('phys') || cName.includes('sci')))
+                    );
+                  });
+
+                  if (matchedClass) {
+                    const parsedDate = parseDueDate(date);
+                    try {
+                      await addTest(matchedClass.id, title, parsedDate, (testType || 'exam') as any, { description: description || '', priority: 'high' });
+                      addedTests.push({
+                        id: `temp-test-${Math.random()}`,
+                        title,
+                        dueDate: parsedDate.toISOString(),
+                        priority: 'high',
+                        testType: testType || 'exam',
+                        description: description || '',
+                        links: [],
+                        classId: matchedClass.id,
+                        className: matchedClass.name,
+                      });
+                      if (!usedClassIds.has(matchedClass.id)) {
+                        usedClassIds.add(matchedClass.id);
+                        usedClasses.push(matchedClass);
+                      }
+                    } catch (err: any) {
+                      console.error('Error adding test from AI:', err);
+                    }
+                  }
+                }
+
+                if (messageIdToUpdate !== undefined) {
+                  setMessages(prev => {
+                    const copy = [...prev];
+                    const idx = copy.findIndex(m => m.id === messageIdToUpdate);
+                    if (idx !== -1) {
+                      const updatedCalls = (copy[idx].toolCalls || []).map(tc => 
+                        tc.name === 'add_test' ? { ...tc, status: 'success' as const } : tc
+                      );
+                      copy[idx] = {
+                        ...copy[idx],
+                        toolCalls: updatedCalls,
+                        bulkAddDisplay: addedTests.length > 0 ? {
+                          homeworks: addedTests,
+                          classes: usedClasses,
+                        } : copy[idx].bulkAddDisplay,
+                      };
+                    }
+                    return copy;
+                  });
+                }
+              }
+            }, 0);
           }
         }
       }
+      if (!didComplete || (!accumulatedResponse.trim() && accumulatedToolCalls.length === 0)) {
+        throw new Error('Aurora didn’t finish a reply. Please retry your message.');
+      }
     } catch (error: any) {
-      if (error.name === 'AbortError') {
+      if (error.name === 'AbortError' && !timedOut) {
         console.log('Request aborted by user');
         // Update the loading message to indicate stopped
         setMessages(prev => {
           const copy = [...prev];
-          const idx = copy.findIndex(m => m.isLoading);
+          const idx = copy.findIndex(m => m.id === loadingMsg.id);
           if (idx !== -1) {
             copy[idx] = {
               ...copy[idx],
@@ -1159,29 +1217,26 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
           return copy;
         });
       } else {
-        // Expected 4xx responses are presented in the assistant UI. Logging
-        // them as console errors makes Next.js show a development error overlay
-        // even though the app handled the response correctly.
-        if (!error?.status || error.status >= 500) {
-          console.error('Error generating AI response:', error);
-        }
-        setError(error instanceof Error ? error.message : 'An error occurred');
-
-        // Remove loading state from messages on error (not abort)
-        setMessages((prev) => {
-          const copy = [...prev];
-          const idx = copy.findIndex((m) => m.isLoading);
-          if (idx !== -1) {
-            const newMsgs = [...copy];
-            newMsgs.splice(idx, 1);
-            return newMsgs;
-          }
-          return copy;
-        });
+        const message = timedOut
+          ? 'Aurora took too long to reply. Please try again.'
+          : error instanceof Error ? error.message : 'Aurora couldn’t reply. Please try again.';
+        setError(message);
+        // Keep the reply visible, with a retry action, instead of silently
+        // deleting it and leaving only the student's message on screen.
+        setMessages(prev => prev.map(item => item.id === loadingMsg.id ? {
+          ...item,
+          content: message,
+          chunks: undefined,
+          isLoading: false,
+          isError: true,
+        } : item));
       }
     } finally {
-      setIsAILoading(false);
-      abortControllerRef.current = null; // Clear the controller reference
+      window.clearTimeout(requestTimeout);
+      if (abortControllerRef.current === controller) {
+        setIsAILoading(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
@@ -1189,7 +1244,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
     e.preventDefault();
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-      abortControllerRef.current = null;
     }
   };
 
@@ -1197,10 +1251,11 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
     if (isAILoading) return;
     const targetIdx = messages.findIndex(m => m.id === targetMsg.id);
     if (targetIdx !== -1) {
-      const prevUserMsg = messages.slice(0, targetIdx).reverse().find(m => m.role === 'user');
-      if (prevUserMsg) {
-        setMessages(prev => prev.slice(0, targetIdx));
-        triggerAIResponse(prevUserMsg.content);
+      const userIndex = messages.slice(0, targetIdx).findLastIndex(m => m.role === 'user');
+      if (userIndex !== -1) {
+        const retryHistory = messages.slice(0, userIndex);
+        setMessages(retryHistory);
+        void triggerAIResponse(messages[userIndex].content, false, retryHistory);
       }
     }
   };
@@ -1230,23 +1285,10 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
     if (maxLimit !== Infinity && currentCounter >= maxLimit) {
       try {
-        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'quick' ? 'Quick' : 'Deep'} messages for today — upgrade for more.`);
+        throw new Error(`PLAN_LIMIT:You've used all ${maxLimit} ${selectedModel === 'quick' ? 'Quick' : 'Deep'} messages for today — connect your own key in AI settings to continue.`);
       } catch (err: any) { handlePlanLimitError(err); }
       return;
     }
-
-    // --------------------------------------------------------------
-    // Prepare Messages
-    // --------------------------------------------------------------
-    const userMessage: Message = {
-      id: messages.length,
-      role: 'user',
-      content: userInput,
-      timestamp: new Date(),
-    };
-
-    // Reset UI
-    setInput('');
 
     // Clear saved input from localStorage after submission
     if (typeof window !== 'undefined') {
@@ -1254,7 +1296,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
     }
 
     // Regular AI chat — triggerAIResponse handles adding both user and assistant messages
-    await triggerAIResponse(userInput);
+    await triggerAIResponse(userInput, true);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1501,11 +1543,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                   summary={quotaSummary}
                   loading={quotaLoading}
                   selectedAction={selectedModel}
-                  onUpgrade={() =>
-                    promptUpgrade({
-                      featureLabel: 'increase your daily AI allowance',
-                    })
-                  }
                 />
               </div>
 
@@ -1557,6 +1594,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
 
             {/* Messages */}
             <div
+              ref={messageScrollRef}
               onScroll={handleScroll}
               className="flex-1 min-h-0 overflow-y-auto p-4 pt-20 pb-24 space-y-4 scrollbar-thin scrollbar-thumb-sky-200 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scroll-smooth relative"
             >
@@ -1610,7 +1648,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                 ) : (
                   <motion.div
                     key="chat"
-                    initial={{ opacity: 0 }}
+                    initial={sendTransfer ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="space-y-4"
                   >
@@ -1629,6 +1667,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                         setExpandedUserMessages={setExpandedUserMessages}
                         handleInteractiveButtonClick={handleInteractiveButtonClick}
                         onRetry={handleRetryMessage}
+                        isSending={sendTransfer?.messageId === msg.id}
                       />
                     ))}
                     <div ref={messagesEndRef} className="h-4" />
@@ -1637,11 +1676,17 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
               </AnimatePresence>
             </div>
 
+            <MessageSendMotion
+              transfer={sendTransfer}
+              scrollRef={messageScrollRef}
+              onComplete={finishSendTransfer}
+            />
+
             {/* Input */}
             <div className="absolute bottom-0 inset-x-0 z-50 pointer-events-none p-4 bg-gradient-to-t from-[#f8fbfd] via-[#f8fbfd]/80 to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a]/80 dark:to-transparent pt-10 flex flex-col justify-end gap-2">
               {/* Context Chips */}
               <AnimatePresence>
-                {isInputFocused && !input.trim() && (
+                {isInputFocused && !input.trim() && !sendTransfer && !isAILoading && (
                   <motion.div
                     initial={{ opacity: 0, y: 8, height: 0 }}
                     animate={{ opacity: 1, y: 0, height: 'auto' }}
@@ -1668,6 +1713,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                 hasWiped={hasWiped}
                 setHasWiped={setHasWiped}
                 isAILoading={isAILoading}
+                isSendingMessage={sendTransfer !== null}
                 handleStopResponse={handleStopResponse}
                 selectedModel={selectedModel}
                 quickLimit={quickLimit}

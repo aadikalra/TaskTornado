@@ -221,7 +221,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
     if (limits.activeTests !== Infinity) {
       const activeTestCount = tests.filter(t => ['upcoming', 'preparing', 'not_started', 'in_progress'].includes(t.status)).length;
       if (activeTestCount >= limits.activeTests) {
-        throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.activeTests} active tests — upgrade to Pro for unlimited.`);
+        throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.activeTests} active tests.`);
       }
     }
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

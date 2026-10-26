@@ -7,12 +7,16 @@ import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
 import { getFullVersionString } from '@/config/version';
-import { toast } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
+import { useAiConnection } from '@/hooks/use-ai-connection';
+import { AI_DAILY_ALLOWANCE_ENABLED } from '@/lib/ai/config';
 import { useUpgrade } from '@/context/UpgradeContext';
+import { useDarkMode } from '@/context/DarkModeContext';
+import { parseTranslationSections, readTranslationStream } from '@/lib/ai/translation-stream';
 
 // Supported languages for the translation
 const LANGUAGES = [
@@ -163,13 +167,15 @@ function LanguageSelector({ value, onChange, label }: LanguageSelectorProps) {
 export default function TranslatePage() {
     const router = useRouter();
     const { user } = useAuth();
+    const { isDark } = useDarkMode();
     const { getContainerClass } = useWideLayout();
     const { showIntro, dismissIntro } = useRouteIntro('translate');
     const { handlePlanLimitError } = useUpgrade();
 
     // ─── Plan tier limits ───────────────────────────────────────────────
     const tier = getPlanTier();
-    const limits = TIER_LIMITS[tier];
+    const { usingOwnKey } = useAiConnection();
+    const limits = usingOwnKey ? { ...TIER_LIMITS[tier], translationsPerDay: Infinity, translationMaxChars: 10_000, translationContextExplanation: true } : TIER_LIMITS[tier];
     const MAX_CHARS = limits.translationMaxChars;
 
     const [sourceLanguage, setSourceLanguage] = useState('en');
@@ -179,6 +185,7 @@ export default function TranslatePage() {
     const [pronunciation, setPronunciation] = useState('');
     const [explanation, setExplanation] = useState('');
     const [isTranslating, setIsTranslating] = useState(false);
+    const [translationError, setTranslationError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [charCount, setCharCount] = useState(0);
     const [translationsCount, setTranslationsCount] = useState<number>(0);
@@ -198,7 +205,10 @@ export default function TranslatePage() {
     const abortControllerRef = useRef<AbortController | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const abortedRef = useRef(false);
+    useEffect(() => () => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+    }, []);
 
     const handleSourceTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const text = e.target.value;
@@ -209,12 +219,15 @@ export default function TranslatePage() {
     };
 
     const swapLanguages = () => {
+        cancelTranslation();
         setSourceLanguage(targetLanguage);
         setTargetLanguage(sourceLanguage);
         setSourceText(translatedText);
         setTranslatedText(sourceText);
         setPronunciation('');
         setExplanation('');
+        setTranslationError(null);
+        setCharCount(translatedText.length);
     };
 
     const copyToClipboard = async () => {
@@ -268,9 +281,11 @@ export default function TranslatePage() {
             abortControllerRef.current = null;
         }
         setIsTranslating(false);
+        setTranslationError(null);
     };
 
     const translate = useCallback(async () => {
+        if (abortControllerRef.current) return;
         if (!sourceText.trim()) {
             toast.error('Please enter text to translate');
             return;
@@ -278,17 +293,20 @@ export default function TranslatePage() {
 
         if (sourceLanguage === targetLanguage) {
             setTranslatedText(sourceText);
+            setPronunciation('');
+            setExplanation('');
+            setTranslationError(null);
             return;
         }
 
         // ─── Plan tier: daily translation limit for signed-in users ─────
-        if (user) {
+        if (user && AI_DAILY_ALLOWANCE_ENABLED) {
             const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
             const cookieKey = `translate_usage_${today}`;
             const currentCount = parseInt(Cookies.get(cookieKey) || '0', 10);
             if (limits.translationsPerDay !== Infinity && currentCount >= limits.translationsPerDay) {
                 try {
-                    throw new Error(`PLAN_LIMIT:You've used all ${limits.translationsPerDay} translations for today — upgrade for more.`);
+                    throw new Error(`PLAN_LIMIT:You've used all ${limits.translationsPerDay} translations for today — use your own key in AI settings to continue.`);
                 } catch (err: any) {
                     handlePlanLimitError(err);
                     return;
@@ -299,7 +317,7 @@ export default function TranslatePage() {
         // ─── Plan tier: max text length ──────────────────────────────────
         if (sourceText.length > limits.translationMaxChars) {
             try {
-                throw new Error(`PLAN_LIMIT:Your plan supports up to ${limits.translationMaxChars.toLocaleString()} characters — upgrade for longer translations.`);
+                throw new Error(`PLAN_LIMIT:Free translation supports up to ${limits.translationMaxChars.toLocaleString()} characters — connect your own key in AI settings for longer translations.`);
             } catch (err: any) {
                 handlePlanLimitError(err);
                 return;
@@ -325,8 +343,15 @@ export default function TranslatePage() {
         setTranslatedText('');
         setPronunciation('');
         setExplanation('');
+        setTranslationError(null);
 
-        abortControllerRef.current = new AbortController();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        let timedOut = false;
+        const timeout = setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+        }, 60_000);
 
         try {
             const response = await fetch('/api/translate', {
@@ -339,93 +364,51 @@ export default function TranslatePage() {
                     sourceLanguage,
                     targetLanguage,
                 }),
-                signal: abortControllerRef.current.signal,
+                signal: controller.signal,
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || errorData.error || 'Translation failed');
+                const errorData = await response.json().catch(() => null);
+                throw new Error(response.status === 401 ? 'Sign in to translate your text.' :
+                    errorData?.details || errorData?.error || 'Translation failed. Please try again.');
             }
 
-            const reader = response.body?.getReader();
-            if (!reader) throw new Error('No response stream');
+            if (!response.body) throw new Error('The translation response was empty. Please try again.');
+            await readTranslationStream(response.body, text => {
+                if (abortControllerRef.current !== controller) return;
+                const parts = parseTranslationSections(text);
+                setTranslatedText(parts.translation);
+                setPronunciation(parts.pronunciation);
+                setExplanation(parts.explanation);
+            });
+            if (abortControllerRef.current !== controller) return;
 
-            const decoder = new TextDecoder();
-            let accumulatedResponse = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    // Increment daily count for signed-in users
-                    if (user) {
-                        const today = new Date().toISOString().slice(0, 10);
-                        const cookieKey = `translate_usage_${today}`;
-                        const currentCount = parseInt(Cookies.get(cookieKey) || '0', 10);
-                        Cookies.set(cookieKey, (currentCount + 1).toString(), { expires: 1 });
-                        setTranslationsCount(currentCount + 1);
-                    }
-                    // Increment count for guest users on success
-                    if (!user) {
-                        const currentCount = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
-                        const newCount = currentCount + 1;
-                        Cookies.set('translate_usage_guest', newCount.toString(), { expires: 7 });
-                        setTranslationsCount(newCount);
-                    }
-                    break;
-                }
-
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            if (data.translation) {
-                                accumulatedResponse += data.translation;
-
-                                const translationMarker = '[TRANSLATION]';
-                                const pronunciationMarker = '[PRONUNCIATION]';
-                                const explanationMarker = '[EXPLANATION]';
-
-                                const extractBetween = (str: string, startMarker: string, endMarker?: string) => {
-                                    const startIndex = str.indexOf(startMarker);
-                                    if (startIndex === -1) return '';
-                                    const contentStart = startIndex + startMarker.length;
-                                    const contentEnd = endMarker ? str.indexOf(endMarker, contentStart) : str.length;
-                                    return str.substring(contentStart, contentEnd !== -1 ? contentEnd : str.length).trim();
-                                };
-
-                                const t = extractBetween(accumulatedResponse, translationMarker, pronunciationMarker);
-                                const p = extractBetween(accumulatedResponse, pronunciationMarker, explanationMarker);
-                                const e = extractBetween(accumulatedResponse, explanationMarker);
-
-                                if (t) setTranslatedText(t);
-                                if (p) setPronunciation(p);
-                                if (e) setExplanation(e);
-
-                                if (!t && !p && !e && accumulatedResponse && !accumulatedResponse.includes('[')) {
-                                    setTranslatedText(accumulatedResponse.trim());
-                                }
-                            }
-                        } catch {
-                            // Skip invalid JSON chunks
-                        }
-                    }
-                }
+            // Count a translation only after a usable result has arrived.
+            if (user && !usingOwnKey) {
+                const today = new Date().toISOString().slice(0, 10);
+                const cookieKey = `translate_usage_${today}`;
+                const currentCount = parseInt(Cookies.get(cookieKey) || '0', 10);
+                Cookies.set(cookieKey, (currentCount + 1).toString(), { expires: 1 });
+                setTranslationsCount(currentCount + 1);
+            } else if (!user) {
+                const currentCount = parseInt(Cookies.get('translate_usage_guest') || '0', 10);
+                Cookies.set('translate_usage_guest', (currentCount + 1).toString(), { expires: 7 });
+                setTranslationsCount(currentCount + 1);
             }
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-                toast.info('Translation cancelled');
-            } else {
-                console.error('Translation error:', error);
-                toast.error(error.message || 'Translation failed');
-            }
+        } catch (error: unknown) {
+            if (abortControllerRef.current !== controller) return;
+            const message = timedOut
+                ? 'Translation took too long. Please try again.'
+                : error instanceof Error ? error.message : 'Translation failed. Please try again.';
+            setTranslationError(message);
         } finally {
-            setIsTranslating(false);
-            abortControllerRef.current = null;
+            clearTimeout(timeout);
+            if (abortControllerRef.current === controller) {
+                setIsTranslating(false);
+                abortControllerRef.current = null;
+            }
         }
-    }, [sourceText, sourceLanguage, targetLanguage]);
+    }, [sourceText, sourceLanguage, targetLanguage, usingOwnKey, limits.translationsPerDay, limits.translationMaxChars, user, handlePlanLimitError]);
 
     // Handle keyboard shortcut
     useEffect(() => {
@@ -447,6 +430,7 @@ export default function TranslatePage() {
 
     return (
         <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 font-sans relative">
+            <Toaster theme={isDark ? 'dark' : 'light'} position="top-right" richColors />
 
             {/* ── Ambient glows ─────────────────────── */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -563,6 +547,7 @@ export default function TranslatePage() {
                                 {sourceText && (
                                     <button
                                         onClick={() => {
+                                            cancelTranslation();
                                             setSourceText('');
                                             setCharCount(0);
                                             setTranslatedText('');
@@ -616,6 +601,15 @@ export default function TranslatePage() {
                                     <HugeIcon name="LoaderPinwheel" className="h-6 w-6 text-emerald-500/50 animate-spin" />
                                     <span className="text-xs text-sky-700/70 dark:text-sky-400/70">Processing...</span>
                                 </div>
+                            </div>
+                        ) : translationError ? (
+                            <div role="alert" className="flex h-56 sm:h-64 flex-col items-start justify-center gap-3 px-6 pb-6">
+                                <HugeIcon name="AlertCircle" className="h-5 w-5 text-rose-500" />
+                                <p className="text-[15px] font-semibold text-sky-900 dark:text-sky-100">Couldn't translate</p>
+                                <p className="text-sm leading-relaxed text-sky-800/70 dark:text-sky-200/70">{translationError}</p>
+                                <button onClick={translate} className="rounded-xl bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-500/15 dark:text-sky-300">
+                                    Try again
+                                </button>
                             </div>
                         ) : (
                             <>
@@ -692,7 +686,7 @@ export default function TranslatePage() {
                             <button
                                 onClick={() => {
                                     try {
-                                        throw new Error('PLAN_LIMIT:Context explanations are a Pro feature — upgrade to see grammar, nuance, and cultural notes with every translation.');
+                                        throw new Error('PLAN_LIMIT:Connect your own AI key in Settings to see translation context.');
                                     } catch (err: any) {
                                         handlePlanLimitError(err);
                                     }
@@ -703,7 +697,7 @@ export default function TranslatePage() {
                                     Translation Context
                                 </div>
                                 <div className="text-sm text-sky-600/50 dark:text-sky-400/40 group-hover:text-sky-600/70 transition-colors">
-                                    Upgrade to Pro to see grammar, nuance, and cultural context →
+                                    Use your own key for grammar, nuance, and cultural context →
                                 </div>
                             </button>
                         </motion.div>

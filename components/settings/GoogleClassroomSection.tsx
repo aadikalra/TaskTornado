@@ -114,7 +114,7 @@ export default function GoogleClassroomSection() {
     const limits = TIER_LIMITS[tier];
     if (!limits.googleClassroomSync) {
       try {
-        throw new Error('PLAN_LIMIT:Google Classroom sync is a Pro feature — upgrade to connect your classes.');
+        throw new Error('PLAN_LIMIT:Google Classroom sync is currently unavailable.');
       } catch (err: any) {
         handlePlanLimitError(err);
         return;

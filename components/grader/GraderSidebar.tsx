@@ -6,10 +6,9 @@ import { HugeIcon } from '@/lib/huge-icon-map';
 import { Message } from '@/components/ai-assistant/types';
 import { MessageItem } from '@/components/ai-assistant/MessageItem';
 import { ChatInput } from '@/components/ai-assistant/ChatInput';
-import { Node, Text, Range, Transforms } from 'slate';
-import { nanoid } from 'platejs';
-import { getCommentKey } from '@platejs/comment';
-import { discussionPlugin } from '@/components/editor/plugins/discussion-kit';
+import { Text, Transforms } from 'slate';
+import { findDocumentTextRange, getDocumentText, insertAuroraComment } from '@/components/editor/aurora-comments';
+import { commentPlugin } from '@/components/editor/plugins/comment-kit';
 
 export function GraderSidebar({ editor }: { editor: any }) {
   const [input, setInput] = useState('');
@@ -25,62 +24,14 @@ export function GraderSidebar({ editor }: { editor: any }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const findTextRange = (searchText: string): Range | null => {
-    if (!editor || !searchText) return null;
-    const searchTrimmed = searchText.trim();
-    
-    // Exact match
-    for (const [node, path] of Node.texts(editor)) {
-      const index = node.text.indexOf(searchTrimmed);
-      if (index !== -1) {
-        return {
-          anchor: { path, offset: index },
-          focus: { path, offset: index + searchTrimmed.length },
-        };
-      }
-    }
-    
-    // Partial match fallback (if AI included extra punctuation or the text crosses a mark)
-    // We'll just look for a substantial chunk of the text (e.g., first 20 chars)
-    const chunk = searchTrimmed.length > 20 ? searchTrimmed.substring(0, 20) : searchTrimmed;
-    if (chunk.length > 5) {
-      for (const [node, path] of Node.texts(editor)) {
-        const index = node.text.indexOf(chunk);
-        if (index !== -1) {
-          // Highlight the rest of this text node starting from the chunk
-          return {
-            anchor: { path, offset: index },
-            focus: { path, offset: Math.min(node.text.length, index + searchTrimmed.length) },
-          };
-        }
-      }
-    }
-    
-    return null;
-  };
-
-  const extractText = (nodes: any[]): string => {
-    if (!nodes) return '';
-    return nodes.map(n => {
-      if (typeof n.text === 'string') return n.text;
-      if (Array.isArray(n.children)) return extractText(n.children);
-      return '';
-    }).join('\n');
-  };
-
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     setHasWiped(true);
     setTimeout(() => setHasWiped(false), 500);
 
-    let docText = '';
-    if (editor && editor.children) {
-      docText = extractText(editor.children);
-    }
-    
-    console.log("EXTRACTED TEXT:", docText);
+    const docText = editor?.children ? getDocumentText(editor) : '';
 
     const newMessage: Message = {
       id: Date.now(),
@@ -105,11 +56,14 @@ export function GraderSidebar({ editor }: { editor: any }) {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to fetch AI response');
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || 'Could not generate feedback. Please try again.');
+      if (!Array.isArray(data?.actions)) throw new Error('Aurora returned no feedback. Please try again.');
 
       let assistantMessageContent = '';
       const toolCalls: any[] = [];
+      let firstCommentId: string | null = null;
+      let unmatched = 0;
 
       // Process actions
       if (data.actions && Array.isArray(data.actions)) {
@@ -117,63 +71,31 @@ export function GraderSidebar({ editor }: { editor: any }) {
           if (action.action === 'message') {
             assistantMessageContent += (assistantMessageContent ? '\n\n' : '') + action.text;
           } else if (action.action === 'highlight_text') {
+            const range = editor && findDocumentTextRange(editor, action.text);
+            if (!range) { unmatched++; continue; }
+            Transforms.setNodes(editor, { backgroundColor: '#fef08a' } as any, { at: range, match: Text.isText, split: true });
             toolCalls.push({ name: 'highlight_text', args: { textToHighlight: action.text }, status: 'success' });
-            if (editor) {
-              const range = findTextRange(action.text);
-              if (range) {
-                Transforms.select(editor, range);
-                Transforms.setNodes(editor, { backgroundColor: '#fef08a' } as any, { match: Text.isText, split: true });
-                Transforms.collapse(editor, { edge: 'end' });
-              }
-            }
           } else if (action.action === 'add_comment') {
+            const id = editor && insertAuroraComment(editor, {
+              excerpt: action.text,
+              comment: action.comment,
+              suggestedReplacement: action.suggestedReplacement,
+            });
+            if (!id) { unmatched++; continue; }
+            firstCommentId ??= id;
             toolCalls.push({ name: 'add_comment', args: { textToCommentOn: action.text, commentText: action.comment }, status: 'success' });
-            if (editor) {
-              const range = findTextRange(action.text);
-              if (range) {
-                Transforms.select(editor, range);
-                
-                const discussionId = nanoid();
-                
-                Transforms.setNodes(editor, { 
-                  [getCommentKey(discussionId)]: true
-                } as any, { match: Text.isText, split: true });
-                
-                Transforms.collapse(editor, { edge: 'end' });
-                
-                const discussions = editor.getOption(discussionPlugin, 'discussions') || [];
-                const newDiscussion = {
-                  id: discussionId,
-                  comments: [
-                    {
-                      id: nanoid(),
-                      contentRich: [{ type: 'p', children: [{ text: action.comment }] }],
-                      createdAt: new Date(),
-                      discussionId: discussionId,
-                      isEdited: false,
-                      userId: 'aurora',
-                      suggestedReplacement: action.suggestedReplacement
-                    },
-                  ],
-                  createdAt: new Date(),
-                  isResolved: false,
-                  userId: 'aurora',
-                };
-                
-                editor.setOption(discussionPlugin, 'discussions', [
-                  ...discussions,
-                  newDiscussion,
-                ]);
-              }
-            }
           }
         }
+      }
+      if (firstCommentId) editor.setOption(commentPlugin, 'activeId', firstCommentId);
+      if (unmatched) {
+        assistantMessageContent += `\n\n${unmatched} passage${unmatched === 1 ? '' : 's'} could not be matched to the current document. No annotation was added to those passages.`;
       }
 
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'assistant',
-        content: assistantMessageContent || 'Done!',
+        content: assistantMessageContent || (firstCommentId ? 'I added comments to the marked passages. Click a comment mark to read the feedback.' : 'No feedback was added. Please try again.'),
         timestamp: new Date(),
         toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         modelUsed: 'Groq approved model'
@@ -184,7 +106,8 @@ export function GraderSidebar({ editor }: { editor: any }) {
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your request.',
+        content: error instanceof Error ? error.message : 'Could not generate feedback. Please try again.',
+        isError: true,
         timestamp: new Date(),
         modelUsed: 'Groq approved model'
       }]);
