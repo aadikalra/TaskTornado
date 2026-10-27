@@ -9,7 +9,7 @@ export function setPlanTier(_tier: PlanTier): void {
 export const FREE_LIMITS = {
         // Core
         homeworkEntries: 20,
-        activeTests: 5,
+        activeTests: 10,
         flashcardStorage: 20,
         // AI
         aiQuickPerDay: 20,

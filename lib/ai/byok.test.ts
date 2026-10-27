@@ -113,7 +113,7 @@ test('legacy paid cookies cannot change the free plan or storage limits', () => 
   try {
     assert.equal(getPlanTier(), 'free');
     assert.equal(FREE_LIMITS.homeworkEntries, 20);
-    assert.equal(FREE_LIMITS.activeTests, 5);
+    assert.equal(FREE_LIMITS.activeTests, 10);
     assert.equal(FREE_LIMITS.flashcardStorage, 20);
     assert.equal(FREE_LIMITS.webSaves, 5);
     assert.equal(FREE_LIMITS.translationsPerDay, 5);

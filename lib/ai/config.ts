@@ -9,8 +9,8 @@ export type AiAction =
 
 export type ServerPlanTier = 'free';
 
-// Temporary demo switch. Set true to restore the normal daily allowances.
-export const AI_DAILY_ALLOWANCE_ENABLED = false;
+// Enforce daily hosted AI allowances and show usage controls in the app.
+export const AI_DAILY_ALLOWANCE_ENABLED = true;
 
 export const AI_PLAN_LIMITS = {
   free: {
