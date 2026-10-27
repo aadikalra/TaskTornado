@@ -160,9 +160,6 @@ export const WeeklyCalendarWidget = () => {
 
           if (entry.kind === 'test') {
             const classInfo = classes.find(item => item.id === entry.item.classId);
-            const ClassIcon = classInfo
-              ? getClassIcon(classInfo.icon)
-              : () => <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />;
 
             return (
               <motion.div
@@ -173,10 +170,8 @@ export const WeeklyCalendarWidget = () => {
                   'px-3 py-2.5 text-[13px]',
                 )}
               >
-                <div className="h-3.5 w-3.5 shrink-0 flex items-center justify-center">
-                  <ClassIcon />
-                </div>
-                <span className="truncate">{entry.item.title}</span>
+                <HugeIcon name={getClassIcon(classInfo?.icon)} size={14} className="h-3.5 w-3.5 shrink-0" />
+                <span className="min-w-0 truncate">{entry.item.title}</span>
               </motion.div>
             );
           }
@@ -247,9 +242,6 @@ export const WeeklyCalendarWidget = () => {
 
           if (entry.kind === 'test') {
             const classInfo = classes.find(item => item.id === entry.item.classId);
-            const ClassIcon = classInfo
-              ? getClassIcon(classInfo.icon)
-              : () => <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />;
 
             return (
               <div
@@ -257,10 +249,8 @@ export const WeeklyCalendarWidget = () => {
                 title={entry.item.title}
                 className="flex min-w-0 items-center gap-2 rounded-xl bg-rose-100/75 px-2.5 py-2 text-sm font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
               >
-                <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-                  <ClassIcon />
-                </div>
-                <span className="truncate">{entry.item.title}</span>
+                <HugeIcon name={getClassIcon(classInfo?.icon)} size={14} className="h-3.5 w-3.5 shrink-0" />
+                <span className="min-w-0 truncate">{entry.item.title}</span>
               </div>
             );
           }

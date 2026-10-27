@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { differenceInCalendarDays, format } from 'date-fns';
 import { useClassContext } from '@/context/ClassContext';
 import type { Test as TestType } from '@/context/ClassContext';
 import { HugeIcon } from '@/lib/huge-icon-map';
@@ -42,7 +43,7 @@ const StatusGroupedTestList = ({
   };
 
   const classesById = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, (typeof classes)[number]>();
     classes?.forEach((c) => map.set(c.id, c));
     return map;
   }, [classes]);
@@ -71,7 +72,7 @@ const StatusGroupedTestList = ({
     sortedTests.forEach(test => {
       const tDate = parseCalendarDate(test.testDate);
       
-      if (tDate < localToday || test.status?.toLowerCase() === 'completed') {
+      if (tDate < localToday || ['taken', 'completed'].includes(test.status?.toLowerCase())) {
         groups.taken.push(test);
       } else {
         groups.upcoming.push(test);
@@ -81,62 +82,15 @@ const StatusGroupedTestList = ({
     return groups;
   }, [sortedTests]);
 
-  const getTestTypeIcon = useCallback((testType?: string) => {
-    if (!testType) return 'BookOpen';
-    switch (testType.toLowerCase()) {
-      case 'exam': case 'final': case 'midterm': return 'GraduationCap';
-      case 'quiz': return 'FileText';
-      case 'project': return 'BoardMath';
-      case 'alpha': return 'Target01';
-      case 'beta': return 'Zap';
-      default: return 'BookOpen';
-    }
-  }, []);
-
-  const getTestTypeBadgeClasses = useCallback((testType?: string) => {
-    const type = testType?.toLowerCase() || '';
-    switch (type) {
-      case 'alpha': return 'bg-sky-100/70 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300';
-      case 'beta': return 'bg-[#ebf6b5]/70 text-sky-800 dark:bg-[#ebf6b5]/15 dark:text-sky-200';
-      case 'exam': case 'final': case 'midterm': return 'bg-sky-200/60 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200';
-      case 'quiz': return 'bg-sky-100/50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300';
-      case 'project': return 'bg-[#ebf6b5]/50 text-sky-700 dark:bg-[#ebf6b5]/10 dark:text-sky-200';
-      default: return 'bg-sky-50 text-sky-500 dark:bg-sky-500/5 dark:text-sky-400';
-    }
-  }, []);
-
-  const getDueDateLabel = useCallback((testDate: Date) => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const test = new Date(testDate);
-    test.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((test.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return `${Math.abs(diffDays)}d ago`;
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays <= 7) return `${diffDays}d`;
-    return test.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }, []);
-
-  // A compact horizontal card keeps the important information scannable without
-  // turning the dashboard into a wall of equally weighted square tiles.
-  const renderTestCard = useCallback((test: TestType, index: number) => {
+  const renderTestCard = (test: TestType, index: number) => {
     const classInfo = classesById.get(test.classId);
     const color = getColorForClass(test.classId);
-    const TypeIcon = getTestTypeIcon(test.testType);
     const dueDate = parseCalendarDate(test.testDate);
-    const dueDateLabel = getDueDateLabel(dueDate);
-    const badgeClasses = getTestTypeBadgeClasses(test.testType);
-    const isPast = dueDate < new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) || test.status?.toLowerCase() === 'completed';
-    const isToday = dueDateLabel === 'Today';
-    const isTomorrow = dueDateLabel === 'Tomorrow';
-    const exactDateLabel = dueDate.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-    const hasScore = Boolean(test.grade) || (test.score !== null && test.score !== undefined);
+    const daysUntil = differenceInCalendarDays(dueDate, new Date());
+    const isPast = daysUntil < 0 || ['taken', 'completed'].includes(test.status?.toLowerCase());
+    const isPreparing = ['preparing', 'in_progress'].includes(test.status);
+    const exactDateLabel = format(dueDate, 'EEEE, MMMM d, yyyy');
+    const dueLabel = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`;
     const resultLabel = test.grade || (test.score !== null && test.score !== undefined
       ? `${test.score}${test.maxScore ? `/${test.maxScore}` : ''}`
       : 'Completed');
@@ -146,71 +100,69 @@ const StatusGroupedTestList = ({
         type="button"
         key={test.id}
         layoutId={`test-card-${test.id}`}
-        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        whileHover={{ y: -3 }}
-        transition={{ duration: 0.3, delay: index * 0.04, ease: [0.23, 1, 0.32, 1] }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: Math.min(index, 8) * 0.025 }}
         onClick={() => handleTestClick(test)}
-        aria-label={`Open ${test.title}, ${exactDateLabel}`}
-        className={`group relative h-[154px] min-w-[272px] lg:min-w-0 lg:w-full overflow-hidden rounded-[22px] text-left snap-start transition-[box-shadow,background-color,opacity] duration-300 ${
-          isPast
-            ? 'bg-slate-100/55 dark:bg-white/[0.035] opacity-60 hover:bg-slate-100/80 dark:hover:bg-white/[0.055] hover:opacity-100'
-            : 'bg-sky-50/70 dark:bg-white/[0.05] shadow-[0_8px_28px_rgba(3,105,161,0.04)] hover:bg-white dark:hover:bg-white/[0.075] hover:shadow-[0_16px_38px_rgba(3,105,161,0.09)]'
-        }`}
+        aria-label={`Open ${test.title}, ${classInfo?.name || 'Unassigned'}, ${exactDateLabel}`}
+        title={test.title}
+        className="group flex w-full min-w-0 items-stretch gap-4 rounded-2xl border border-sky-100 bg-white/80 p-4 text-left transition-colors hover:border-sky-300 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 dark:border-sky-500/15 dark:bg-white/[0.035] dark:hover:border-sky-500/35 dark:hover:bg-white/[0.06]"
       >
-        <div
-          className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full blur-3xl opacity-[0.12] transition-all duration-500 group-hover:scale-125 group-hover:opacity-20"
-          style={{ backgroundColor: color.header }}
-        />
+        <time
+          dateTime={format(dueDate, 'yyyy-MM-dd')}
+          aria-label={exactDateLabel}
+          className="flex w-12 shrink-0 flex-col items-center justify-center border-r border-sky-100 pr-4 dark:border-sky-500/15"
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-600/70 dark:text-sky-300/60">{format(dueDate, 'MMM')}</span>
+          <span className="mt-0.5 text-2xl font-semibold leading-none tracking-tight text-sky-950 dark:text-sky-50">{format(dueDate, 'd')}</span>
+          <span className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-400">{format(dueDate, 'EEE')}</span>
+        </time>
 
-        <div className="relative z-10 flex h-full flex-col p-4">
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <span
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: `${color.bg}28`, color: color.header }}
-              >
-                <HugeIcon name={TypeIcon} size={15} />
-              </span>
-              <span className="truncate text-[11px] font-medium text-sky-700/50 dark:text-sky-300/45">
-                {classInfo?.name || 'Unassigned'}
-              </span>
-            </div>
-            <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold capitalize ${badgeClasses}`}>
-              {test.testType || 'Test'}
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <span className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color.header }} />
+              <span className="truncate">{classInfo?.name || 'Unassigned'}</span>
+            </span>
+            <span className={`shrink-0 text-[10px] font-medium ${
+              !isPast && daysUntil === 0
+                ? 'text-rose-600 dark:text-rose-300'
+                : !isPast && daysUntil === 1
+                  ? 'text-amber-700 dark:text-amber-300'
+                  : 'text-slate-500 dark:text-slate-400'
+            }`}>
+              {isPast ? resultLabel : dueLabel}
             </span>
           </div>
 
-          <h3 className="mt-3 line-clamp-2 text-[14px] font-bold leading-[1.25] text-sky-950 transition-colors group-hover:text-sky-700 dark:text-sky-50 dark:group-hover:text-sky-200">
+          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight text-sky-950 group-hover:text-sky-700 dark:text-sky-50 dark:group-hover:text-sky-200">
             {test.title}
           </h3>
 
-          <div className="mt-auto flex items-center justify-between gap-2 pt-2.5">
-            <span className="flex min-w-0 items-center gap-1.5 truncate text-[10px] font-semibold text-sky-700/45 dark:text-sky-300/40">
-              <HugeIcon name="Calendar03" size={12} className="shrink-0" />
-              <span className="truncate">{exactDateLabel}</span>
-            </span>
-            <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-extrabold tabular-nums ${
-              isPast
-                ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
-                : isToday
-                  ? 'bg-rose-500/10 text-rose-500'
-                  : isTomorrow
-                    ? 'bg-amber-500/10 text-amber-500'
-                    : 'bg-sky-500/10 text-sky-600 dark:text-sky-300'
-            }`}>
-              {isPast ? (hasScore ? resultLabel : 'Completed') : dueDateLabel}
-            </span>
+          <div className="mt-auto flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+            <span className="capitalize">{test.testType?.toLowerCase() || 'Test'}</span>
+            {isPreparing && !isPast && <>
+              <span aria-hidden="true">·</span>
+              <span className="text-sky-600 dark:text-sky-300">Preparing</span>
+            </>}
+            {test.location && <>
+              <span aria-hidden="true">·</span>
+              <span className="truncate">{test.location}</span>
+            </>}
           </div>
         </div>
       </motion.button>
     );
-  }, [classesById, getColorForClass, getTestTypeIcon, getTestTypeBadgeClasses, getDueDateLabel]);
+  };
+
+  const gridClassName = dashboardPreview
+    ? 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'
+    : 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4';
 
   return (
     <div className="space-y-3">
       {groupedTests.upcoming.length > 0 && (
-        <div className={`flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 ${dashboardPreview ? 'xl:grid-cols-4' : 'xl:grid-cols-6'}`}>
+        <div className={gridClassName}>
           {groupedTests.upcoming.map((test, index) => renderTestCard(test, index))}
         </div>
       )}
@@ -225,7 +177,7 @@ const StatusGroupedTestList = ({
               <span className="h-px flex-1 bg-sky-100 dark:bg-sky-500/10" />
             </div>
           )}
-          <div className={`flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 ${dashboardPreview ? 'xl:grid-cols-4' : 'xl:grid-cols-6'}`}>
+          <div className={gridClassName}>
             {groupedTests.taken.map((test, index) => renderTestCard(test, index + groupedTests.upcoming.length))}
           </div>
         </div>

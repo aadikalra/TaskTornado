@@ -599,12 +599,11 @@ export const MainAppContent = () => {
       .filter((test: Test) => {
         const testDate = parseCalendarDate(test.testDate);
         const status = test.status?.toLowerCase();
-        return testDate >= today && status !== 'taken' && status !== 'completed';
+        return testDate >= today && status !== 'taken' && status !== 'completed' && status !== 'cancelled';
       })
       .sort((left: Test, right: Test) =>
         parseCalendarDate(left.testDate).getTime() - parseCalendarDate(right.testDate).getTime()
-      )
-      .slice(0, 4);
+      );
   }, [tests]);
 
 
@@ -1466,12 +1465,7 @@ export const MainAppContent = () => {
                 </div>
               </div>
 
-              <div
-                className={`overflow-hidden transition-all duration-400 ease-in-out ${showTests
-                  ? 'max-h-[5000px] opacity-100'
-                  : 'max-h-0 opacity-0'
-                  }`}
-              >
+              {showTests && <div>
                 {dashboardUpcomingTests.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.97 }}
@@ -1516,7 +1510,7 @@ export const MainAppContent = () => {
                     dashboardPreview
                   />
                 )}
-              </div>
+              </div>}
             </div>
           </DashboardFloat>
         );

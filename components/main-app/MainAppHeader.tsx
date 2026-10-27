@@ -169,7 +169,7 @@ export const MainAppHeader = () => {
       <div className="flex items-center gap-2.5 sm:gap-4">
         {/* Cat Avatar */}
         <div className="relative shrink-0 flex items-center" ref={facehashRef}>
-          <div className="flex size-[clamp(44px,12vw,60px)] items-center justify-center rounded-full bg-[#f5f0e8] dark:bg-[#1b2532]">
+          <div className="flex size-[clamp(44px,12vw,60px)] items-center justify-center">
             <Image
               src={isNight ? '/cuteCatSleeping.svg' : '/cuteCat.svg'}
               alt={isNight ? 'Your cat is resting' : 'Your study companion'}
