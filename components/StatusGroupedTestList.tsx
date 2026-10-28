@@ -106,7 +106,7 @@ const StatusGroupedTestList = ({
         onClick={() => handleTestClick(test)}
         aria-label={`Open ${test.title}, ${classInfo?.name || 'Unassigned'}, ${exactDateLabel}`}
         title={test.title}
-        className="group flex w-full min-w-0 items-stretch gap-4 rounded-2xl border border-sky-100 bg-white/80 p-4 text-left transition-colors hover:border-sky-300 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 dark:border-sky-500/15 dark:bg-white/[0.035] dark:hover:border-sky-500/35 dark:hover:bg-white/[0.06]"
+        className="group flex w-full min-w-0 items-stretch gap-4 rounded-2xl border border-sky-100 bg-[#f5f9fc] p-4 text-left transition-colors hover:border-sky-300 hover:bg-sky-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 dark:border-sky-500/15 dark:bg-sky-500/[0.03] dark:hover:border-sky-500/35 dark:hover:bg-sky-500/[0.06]"
       >
         <time
           dateTime={format(dueDate, 'yyyy-MM-dd')}
