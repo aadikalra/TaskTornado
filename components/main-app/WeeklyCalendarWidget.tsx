@@ -40,6 +40,7 @@ export const WeeklyCalendarWidget = () => {
     return Math.min(mondayIndex, 4);
   });
   const manuallySelectedDay = useRef(false);
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
   const { homeworks = [], toggleHomework = () => {} } = useHomeworkContext() || {};
   const { tests = [] } = useTestContext() || {};
@@ -106,176 +107,143 @@ export const WeeklyCalendarWidget = () => {
   const prevWeek = () => {
     manuallySelectedDay.current = false;
     setCurrentWeekStart(previous => subWeeks(previous, 1));
+    setExpandedDate(null);
   };
 
   const nextWeek = () => {
     manuallySelectedDay.current = false;
     setCurrentWeekStart(previous => addWeeks(previous, 1));
+    setExpandedDate(null);
   };
 
-  const getCalendarItems = (dayItems: DayItems): CalendarItem[] => [
-    ...dayItems.homeworks.map(item => ({ kind: 'homework' as const, item })),
-    ...dayItems.tests.map(item => ({ kind: 'test' as const, item })),
-    ...dayItems.events.map(item => ({ kind: 'event' as const, item })),
-  ];
+  const getCalendarItems = (dayItems: DayItems): CalendarItem[] => {
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    const pendingHomework = dayItems.homeworks
+      .filter(item => !item.completed)
+      .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || priorityOrder[a.priority] - priorityOrder[b.priority]);
 
-  const renderCalendarItems = (dayItems: DayItems) => {
+    return [
+      ...dayItems.tests.map(item => ({ kind: 'test' as const, item })),
+      ...pendingHomework.map(item => ({ kind: 'homework' as const, item })),
+      ...dayItems.events.map(item => ({ kind: 'event' as const, item })),
+      ...dayItems.homeworks.filter(item => item.completed).map(item => ({ kind: 'homework' as const, item })),
+    ];
+  };
+
+  const renderDaySummary = (dayItems: DayItems) => {
+    const completed = dayItems.homeworks.filter(item => item.completed).length;
+    const due = dayItems.homeworks.length - completed;
+    const counts = [
+      { count: dayItems.tests.length, label: dayItems.tests.length === 1 ? 'test' : 'tests', className: 'text-rose-700 dark:text-rose-300', dotClassName: 'bg-rose-500' },
+      { count: due, label: 'due', className: 'text-sky-700 dark:text-sky-300', dotClassName: 'bg-sky-500' },
+      { count: dayItems.events.length, label: dayItems.events.length === 1 ? 'event' : 'events', className: 'text-emerald-700 dark:text-emerald-300', dotClassName: 'bg-emerald-500' },
+      { count: completed, label: 'done', className: 'text-sky-600/60 dark:text-sky-400/60', dotClassName: 'bg-sky-400/40' },
+    ];
+
+    return (
+      <div className="flex h-4 items-center gap-x-2 overflow-hidden text-[10px] font-semibold leading-4" aria-label="Day summary">
+        {counts.filter(group => group.count > 0).map(group => (
+          <span key={group.label} className={cn('inline-flex shrink-0 items-center gap-1 whitespace-nowrap', group.className)} title={group.label === 'due' ? `${due} unfinished homework assignment${due === 1 ? '' : 's'}` : undefined}>
+            <span aria-hidden="true" className={cn('size-1 shrink-0 rounded-full', group.dotClassName)} />
+            <span className="tabular-nums">{group.count}</span> {group.label}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const renderCalendarItem = (entry: CalendarItem) => {
+    if (entry.kind === 'homework') {
+      return (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.98 }}
+          onClick={() => toggleHomework(entry.item.id)}
+          title={entry.item.title}
+          aria-label={`${entry.item.title}. ${entry.item.completed ? 'Mark incomplete' : 'Mark complete'}`}
+          className={cn(
+            'flex h-9 w-full min-w-0 items-center gap-2 rounded-lg px-2.5 text-left text-[13px] md:h-7 font-medium transition-colors',
+            entry.item.completed
+              ? 'bg-sky-50/50 text-sky-400/55 line-through opacity-70 dark:bg-zinc-900/40 dark:text-sky-500/45'
+              : 'bg-sky-100/75 text-sky-700 hover:bg-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25',
+          )}
+        >
+          <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{entry.item.title}</span>
+        </motion.button>
+      );
+    }
+
+    if (entry.kind === 'test') {
+      const classInfo = classes.find(item => item.id === entry.item.classId);
+
+      return (
+        <Link
+          href={`/tests/${entry.item.id}`}
+          title={`${classInfo?.name ? `${classInfo.name} · ` : ''}${entry.item.title}`}
+          aria-label={`Test: ${entry.item.title}${classInfo?.name ? ` · ${classInfo.name}` : ''}`}
+          className="flex h-9 min-w-0 items-center gap-2 rounded-lg bg-rose-100/75 px-2.5 text-rose-700 md:h-7 transition-colors hover:bg-rose-200/80 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25"
+        >
+          <HugeIcon name={getClassIcon(classInfo?.icon)} size={14} className="h-3.5 w-3.5 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{entry.item.title}</span>
+          {classInfo?.name && (
+            <span className="hidden max-w-16 shrink-0 truncate text-[9px] text-rose-600/75 dark:text-rose-300/70 2xl:block">
+              {classInfo.name}
+            </span>
+          )}
+        </Link>
+      );
+    }
+
+    return (
+      <div
+        title={entry.item.title}
+        className="flex h-9 min-w-0 items-center gap-2 rounded-lg bg-emerald-100/75 px-2.5 text-[13px] md:h-7 font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+      >
+        <HugeIcon name="Calendar02" size={14} className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate">{entry.item.title}</span>
+      </div>
+    );
+  };
+
+  const renderCalendarItems = (dayItems: DayItems, date: string, desktop = false) => {
     const allItems = getCalendarItems(dayItems);
-    const visibleItems = allItems.slice(0, 4);
+    const expanded = expandedDate === date;
+    const previewLimit = 3;
+    const visibleItems = expanded ? allItems : allItems.slice(0, previewLimit);
+    const listId = `week-items-${desktop ? 'desktop' : 'mobile'}-${date}`;
 
     if (allItems.length === 0) {
       return (
-        <div className={cn(
-          'flex min-h-14 flex-1 items-center justify-center text-xs font-medium text-sky-700/45 dark:text-sky-400/45',
-        )}>
-          Nothing due—enjoy the breathing room.
-        </div>
+        <p className="flex min-h-14 items-center justify-center text-xs font-medium text-sky-700/40 dark:text-sky-400/40">
+          Nothing due
+        </p>
       );
     }
 
     return (
       <>
-        {visibleItems.map(entry => {
-          if (entry.kind === 'homework') {
-            return (
-              <motion.button
-                type="button"
-                key={`hw-${entry.item.id}`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => toggleHomework(entry.item.id)}
-                className={cn(
-                  'w-full flex items-center gap-2 rounded-xl font-semibold text-left transition-colors',
-                  'px-3 py-2.5 text-[13px]',
-                  entry.item.completed
-                    ? 'bg-sky-50/50 dark:bg-zinc-900/40 text-sky-400/60 dark:text-sky-500/50 line-through opacity-70'
-                    : 'bg-sky-100/80 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 hover:bg-sky-200/80 dark:hover:bg-sky-500/25',
-                )}
-              >
-                <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{entry.item.title}</span>
-              </motion.button>
-            );
-          }
-
-          if (entry.kind === 'test') {
-            const classInfo = classes.find(item => item.id === entry.item.classId);
-
-            return (
-              <motion.div
-                key={`test-${entry.item.id}`}
-                whileHover={{ scale: 1.02 }}
-                className={cn(
-                  'flex items-center gap-2 rounded-xl font-semibold bg-rose-100/80 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300',
-                  'px-3 py-2.5 text-[13px]',
-                )}
-              >
-                <HugeIcon name={getClassIcon(classInfo?.icon)} size={14} className="h-3.5 w-3.5 shrink-0" />
-                <span className="min-w-0 truncate">{entry.item.title}</span>
-              </motion.div>
-            );
-          }
-
-          return (
-            <motion.div
-              key={`event-${entry.item.id}`}
-              whileHover={{ scale: 1.02 }}
-              className={cn(
-                'flex items-center gap-2 rounded-xl font-semibold bg-emerald-100/80 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-                'px-3 py-2.5 text-[13px]',
-              )}
-            >
-              <HugeIcon name="Calendar02" size={14} className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{entry.item.title}</span>
-            </motion.div>
-          );
-        })}
-
-        {allItems.length > visibleItems.length && (
-          <Link
-            href="/calendar"
-            className="flex items-center justify-center gap-1.5 pt-1 text-xs font-bold text-sky-600 dark:text-sky-400"
+        <ul id={listId} className="space-y-1">
+          {visibleItems.map(entry => (
+            <li key={`${entry.kind}-${entry.item.id}`}>
+              {renderCalendarItem(entry)}
+            </li>
+          ))}
+        </ul>
+        {allItems.length > previewLimit && (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={listId}
+            aria-label={`${expanded ? 'Collapse' : 'Show all'} ${allItems.length} items for ${format(parseCalendarDate(date), 'EEEE, MMMM d')}`}
+            onClick={() => setExpandedDate(expanded ? null : date)}
+            className="mt-1 flex min-h-6 w-full items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold text-sky-600 transition-colors hover:bg-sky-500/5 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-200"
           >
-            +{allItems.length - visibleItems.length} more
-            <HugeIcon name="ArrowRight01" size={12} className="h-3 w-3" />
-          </Link>
+            {expanded ? 'Show less' : `+${allItems.length - previewLimit} more`}
+            <HugeIcon name={expanded ? 'ArrowUp01' : 'ArrowDown01'} size={12} className="size-3" />
+          </button>
         )}
       </>
-    );
-  };
-
-  const renderTableItems = (dayItems: DayItems) => {
-    const allItems = getCalendarItems(dayItems);
-    const visibleItems = allItems.slice(0, 3);
-
-    if (allItems.length === 0) {
-      return (
-        <div className="flex min-h-14 items-center justify-center text-xs font-medium text-sky-700/30 dark:text-sky-400/30">
-          No items
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-1.5">
-        {visibleItems.map(entry => {
-          if (entry.kind === 'homework') {
-            return (
-              <motion.button
-                type="button"
-                key={`table-hw-${entry.item.id}`}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => toggleHomework(entry.item.id)}
-                title={entry.item.title}
-                className={cn(
-                  'flex w-full min-w-0 items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors',
-                  entry.item.completed
-                    ? 'bg-sky-50/50 text-sky-400/55 line-through opacity-70 dark:bg-zinc-900/40 dark:text-sky-500/45'
-                    : 'bg-sky-100/75 text-sky-700 hover:bg-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25',
-                )}
-              >
-                <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{entry.item.title}</span>
-              </motion.button>
-            );
-          }
-
-          if (entry.kind === 'test') {
-            const classInfo = classes.find(item => item.id === entry.item.classId);
-
-            return (
-              <div
-                key={`table-test-${entry.item.id}`}
-                title={entry.item.title}
-                className="flex min-w-0 items-center gap-2 rounded-xl bg-rose-100/75 px-2.5 py-2 text-sm font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
-              >
-                <HugeIcon name={getClassIcon(classInfo?.icon)} size={14} className="h-3.5 w-3.5 shrink-0" />
-                <span className="min-w-0 truncate">{entry.item.title}</span>
-              </div>
-            );
-          }
-
-          return (
-            <div
-              key={`table-event-${entry.item.id}`}
-              title={entry.item.title}
-              className="flex min-w-0 items-center gap-2 rounded-xl bg-emerald-100/75 px-2.5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
-            >
-              <HugeIcon name="Calendar02" size={14} className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{entry.item.title}</span>
-            </div>
-          );
-        })}
-
-        {allItems.length > visibleItems.length && (
-          <Link
-            href="/calendar"
-            className="block px-1 pt-0.5 text-xs font-semibold text-sky-600 hover:text-sky-700 dark:text-sky-400"
-          >
-            +{allItems.length - visibleItems.length} more
-          </Link>
-        )}
-      </div>
     );
   };
 
@@ -380,9 +348,8 @@ export const WeeklyCalendarWidget = () => {
               <HugeIcon name="ArrowRight01" size={11} />
             </Link>
           </div>
-          <div className="space-y-1.5">
-            {renderCalendarItems(selectedItems)}
-          </div>
+          <div className="mb-2">{renderDaySummary(selectedItems)}</div>
+          {renderCalendarItems(selectedItems, selectedDate)}
         </div>
       </div>
 
@@ -414,13 +381,12 @@ export const WeeklyCalendarWidget = () => {
             {weekDays.map(day => {
               const date = format(day, 'yyyy-MM-dd');
               const dayItems = itemsByDate[date] || { homeworks: [], tests: [], events: [] };
-              const count = getCalendarItems(dayItems).length;
               const isToday = isDateToday(day);
 
               return (
-                <section key={date} className="min-w-0">
+                <section key={date} aria-label={format(day, 'EEEE, MMMM d')} className="min-w-0">
                   <div className={cn(
-                    'flex h-10 items-center justify-between gap-2 border-b border-sky-100/90 px-3 dark:border-sky-500/10',
+                    'flex h-9 items-center justify-between gap-2 border-b border-sky-100/90 px-3 dark:border-sky-500/10',
                     isToday
                       ? 'bg-sky-100/65 dark:bg-sky-500/12'
                       : 'bg-sky-500/[0.04] dark:bg-white/[0.025]',
@@ -438,14 +404,10 @@ export const WeeklyCalendarWidget = () => {
                         </span>
                       )}
                     </div>
-                    {count > 0 && (
-                      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/10 px-1 text-[9px] font-bold tabular-nums text-sky-600 dark:text-sky-300">
-                        {count > 9 ? '9+' : count}
-                      </span>
-                    )}
                   </div>
-                  <div className="min-h-16 p-2.5">
-                    {renderTableItems(dayItems)}
+                  <div className="min-h-16 p-2">
+                    <div className="mb-1.5">{renderDaySummary(dayItems)}</div>
+                    {renderCalendarItems(dayItems, date, true)}
                   </div>
                 </section>
               );

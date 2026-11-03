@@ -6,9 +6,6 @@ import { format, addDays } from 'date-fns';
 import focusStyles from '@/components/HomeworkFormFocus.module.css';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/animate-ui/components/buttons/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +21,7 @@ import { useToast } from '@/context/ToastContext';
 import { useMainApp } from '@/context/MainAppContext';
 import { HomeworkLinkInput } from '@/components/HomeworkLinkInput';
 import { QuickFillInput } from '@/components/main-app/QuickFillInput';
+import { HomeworkDueDatePicker } from '@/components/main-app/HomeworkDueDatePicker';
 import { RecurringOptions } from '@/components/RecurringOptions';
 import {
   GoogleClassroomImport,
@@ -90,7 +88,6 @@ export const AddHomeworkModal = () => {
   const [autoFillText, setAutoFillText] = useState('');
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [entryMode, setEntryMode] = useState<HomeworkEntryMode>('normal');
-  const [dueDatePopoverOpen, setDueDatePopoverOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const [modalTop, setModalTop] = useState<number | null>(null);
 
@@ -523,47 +520,10 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                         <Label htmlFor="dueDate" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">
                           Due date<span className="text-red-500 ml-0.5">*</span>
                         </Label>
-                        <Popover open={dueDatePopoverOpen} onOpenChange={setDueDatePopoverOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              hoverScale={1}
-                              tapScale={1}
-                              className="w-full justify-start px-3 font-normal h-9 text-sm bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 hover:bg-sky-50/50 dark:hover:bg-sky-500/5 hover:border-sky-200 dark:hover:border-gray-700 rounded-xl transition-all outline-none"
-                            >
-                              <HugeIcon name="Calendar02" size={14} className="mr-2 h-3.5 w-3.5 text-sky-500 shrink-0" />
-                              <span className="text-left truncate">{format(newHomework.dueDate, 'MMM d')}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className={`${focusStyles.scope} w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-xl shadow-xl shadow-sky-950/8 dark:shadow-black/50 overflow-hidden`} align="end" sideOffset={4}>
-                            <Calendar
-                              mode="single"
-                              selected={newHomework.dueDate}
-                              onSelect={(date) => date && setNewHomework({ ...newHomework, dueDate: date })}
-                              initialFocus
-                              className="text-sky-900 dark:text-white rounded-xl"
-                            />
-                            <div className="flex gap-2 border-t border-sky-100 dark:border-gray-800 p-3">
-                              {[
-                                { label: 'Today', days: 0 },
-                                { label: 'Tomorrow', days: 1 },
-                                { label: 'Next week', days: 7 },
-                              ].map(({ label, days }) => (
-                                <button
-                                  key={label}
-                                  type="button"
-                                  onClick={() => {
-                                    setNewHomework(previous => ({ ...previous, dueDate: addDays(new Date(), days) }));
-                                    setDueDatePopoverOpen(false);
-                                  }}
-                                  className="h-8 rounded-lg bg-sky-50 dark:bg-gray-800 px-3 text-xs font-medium text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-gray-700 transition-colors"
-                                >
-                                  {label}
-                                </button>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                        <HomeworkDueDatePicker
+                          value={newHomework.dueDate}
+                          onChange={(date) => setNewHomework(previous => ({ ...previous, dueDate: date }))}
+                        />
                       </div>
                     </div>
 

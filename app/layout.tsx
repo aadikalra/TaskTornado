@@ -28,7 +28,7 @@ const nunitoSans = Nunito_Sans({
   variable: '--font-nunito-sans',
   subsets: ['latin'],
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  weight: 'variable',
 });
 
 const eduNswActCursive = Edu_NSW_ACT_Cursive({

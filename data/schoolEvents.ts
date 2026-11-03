@@ -361,3 +361,12 @@ export const getEventsForDate = (
     return false;
   });
 };
+
+// Include staff days as well as holidays and every day of a school break.
+export const getNoSchoolEventsForDate = (date: Date): SchoolEvent[] => {
+  return getEventsForDate(date).filter(event =>
+    event.type === 'holiday' ||
+    event.type === 'break' ||
+    event.title.startsWith('No School:')
+  );
+};
