@@ -799,6 +799,7 @@ export type Database = {
           recurring_frequency: string | null
           recurring_id: string | null
           recurring_max_occurrences: number | null
+          subtasks: Json
           title: string
           updated_at: string | null
           user_id: string
@@ -819,6 +820,7 @@ export type Database = {
           recurring_frequency?: string | null
           recurring_id?: string | null
           recurring_max_occurrences?: number | null
+          subtasks?: Json
           title: string
           updated_at?: string | null
           user_id: string
@@ -839,6 +841,7 @@ export type Database = {
           recurring_frequency?: string | null
           recurring_id?: string | null
           recurring_max_occurrences?: number | null
+          subtasks?: Json
           title?: string
           updated_at?: string | null
           user_id?: string
@@ -1289,6 +1292,18 @@ export type Database = {
       }
     }
     Functions: {
+      classroom_create_invite: { Args: { p_class_id: string }; Returns: Json }
+      classroom_preview_invite: { Args: { p_token: string }; Returns: Json }
+      classroom_join: { Args: { p_token: string }; Returns: string }
+      classroom_classes: { Args: {  }; Returns: Json }
+      classroom_tests: { Args: {  }; Returns: Json }
+      classroom_members_list: { Args: { p_class_id: string }; Returns: Json }
+      classroom_remove_member: { Args: { p_class_id: string; p_user_id: string }; Returns: undefined }
+      classroom_revoke_invites: { Args: { p_class_id: string }; Returns: undefined }
+      classroom_delete_or_leave: { Args: { p_class_id: string }; Returns: undefined }
+      classroom_write_test: { Args: { p_id: string | null; p_data: Json; p_delete?: boolean }; Returns: Json }
+      classroom_update_homework: { Args: { p_id: string; p_changes: Json; p_before: Json }; Returns: Json }
+
       approve_parental_consent: {
         Args: {
           p_approval_ip: string

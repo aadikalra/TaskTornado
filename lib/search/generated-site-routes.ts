@@ -525,6 +525,19 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
+        "title": "Join Class",
+        "href": "/join-class",
+        "description": "Open the Join Class page",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "join class",
+            "about",
+            "join",
+            "class"
+        ]
+    },
+    {
         "title": "Privacy",
         "href": "/legal/privacy",
         "description": "Open the Privacy page",

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useClassContext, HomeworkLink } from '@/context/ClassContext';
 import { useHomeworkContext } from '@/context/HomeworkContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Save, Loader2, Calendar as CalendarIcon, BookOpen, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -17,14 +17,18 @@ import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
 import { HomeworkLinkInput } from '@/components/HomeworkLinkInput';
 
+import { SubtaskChecklist } from '@/components/SubtaskChecklist';
+import { type HomeworkSubtask } from '@/lib/homework-subtasks';
+
 export default function EditHomeworkPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { classes } = useClassContext();
-  const { homeworks, updateHomework } = useHomeworkContext();
+  const { homeworks, updateHomework, loading: homeworkLoading } = useHomeworkContext();
 
   const [formData, setFormData] = useState({
     title: '',
+    subtasks: [] as HomeworkSubtask[],
     description: '',
     dueDate: '',
     classId: '',
@@ -34,16 +38,22 @@ export default function EditHomeworkPage() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState('');
+  const initialSubtasks = useRef<HomeworkSubtask[]>([]);
+  const initializedId = useRef<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [date, setDate] = useState<Date>();
   const [openCalendar, setOpenCalendar] = useState(false);
 
   useEffect(() => {
     const homework = homeworks.find(h => h.id === id);
-    if (homework) {
+    if (homework && initializedId.current !== id) {
+      initializedId.current = id;
+      initialSubtasks.current = homework.subtasks ?? [];
       const dueDate = new Date(homework.dueDate);
       setFormData({
         title: homework.title,
+        subtasks: homework.subtasks ?? [],
         description: homework.description || '',
         dueDate: homework.dueDate,
         classId: homework.classId,
@@ -58,18 +68,21 @@ export default function EditHomeworkPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     setSaving(true);
+    setSaveError('');
 
     try {
       await updateHomework(id as string, {
         ...formData,
         dueDate: date ? date.toISOString() : formData.dueDate
-      });
+      }, initialSubtasks.current);
 
       router.push(`/homework/${id}`);
       router.refresh();
     } catch (error) {
       console.error('Failed to update homework:', error);
+      setSaveError(error instanceof Error ? error.message : 'Couldn’t save your changes. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -88,7 +101,7 @@ export default function EditHomeworkPage() {
   const classIndex = classes.findIndex(c => c.id === formData.classId);
   const accentColor = classIndex >= 0 ? classColors[classIndex % classColors.length] : '#0ea5e9';
 
-  if (loading) {
+  if (loading || homeworkLoading) {
     return (
       <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
@@ -192,6 +205,9 @@ export default function EditHomeworkPage() {
                   className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 rounded-xl text-sky-900 dark:text-white placeholder-sky-400 dark:placeholder-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm resize-none"
                 />
               </div>
+
+              <SubtaskChecklist value={formData.subtasks} disabled={saving}
+                onChange={subtasks => handleChange('subtasks', subtasks)} />
 
               {/* Links */}
               <div>
@@ -304,6 +320,7 @@ export default function EditHomeworkPage() {
               </div>
             </div>
 
+            {saveError && <p role="alert" className="px-6 pb-4 text-sm text-red-600 dark:text-red-400">{saveError}</p>}
             {/* Footer */}
             <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
               <Link href={`/homework/${id}`}>

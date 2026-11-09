@@ -32,6 +32,9 @@ import {
   type ParsedGoogleClassroomAssignment,
 } from '@/lib/google-classroom-import';
 
+import { SubtaskChecklist } from '@/components/SubtaskChecklist';
+import { MAX_SUBTASKS, MAX_SUBTASK_TITLE_LENGTH, type HomeworkSubtask } from '@/lib/homework-subtasks';
+
 type Priority = 'low' | 'medium' | 'high';
 const priorityOptions = [
   { value: 'low', label: 'Low' },
@@ -46,6 +49,7 @@ type HomeworkLink = {
 };
 
 type HomeworkDraft = {
+  subtasks: HomeworkSubtask[];
   title: string;
   description: string;
   dueDate: Date;
@@ -68,11 +72,12 @@ export const AddHomeworkModal = () => {
   const { classes } = useClassContext();
   const { isDark } = useDarkMode();
   const pathname = usePathname();
-  const { addHomework, addRecurringHomework } = useHomeworkContext();
+  const { homeworks, addHomework, addRecurringHomework, updateHomework, loading: homeworkLoading } = useHomeworkContext();
   const { success } = useToast();
 
   const [newHomework, setNewHomework] = useState<HomeworkDraft>({
     title: '',
+    subtasks: [],
     description: '',
     dueDate: new Date(),
     priority: 'medium' as Priority,
@@ -80,6 +85,17 @@ export const AddHomeworkModal = () => {
     links: [] as HomeworkLink[],
   });
   
+  const [addType, setAddType] = useState<'homework' | 'subtask'>('homework');
+  const [parentHomeworkId, setParentHomeworkId] = useState('');
+  const [subtaskTitle, setSubtaskTitle] = useState('');
+  const parentHomework = homeworks.find(homework => homework.id === parentHomeworkId);
+  const parentOptions = homeworks
+    .filter(homework => !homework.id.startsWith('temp-') && (homework.is_recurring_instance === true || homework.recurring_id == null))
+    .sort((a, b) => Number(a.completed) - Number(b.completed) || new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const savingRef = useRef(false);
   const [isRecurringEnabled, setIsRecurringEnabled] = useState(false);
   const [recurringConfig, setRecurringConfig] = useState<RecurringHomework>({
     frequency: 'weekly'
@@ -112,16 +128,15 @@ export const AddHomeworkModal = () => {
     };
   }, [showAddHomework]);
 
-  // Initialize classId when modal opens or classes load
   useEffect(() => {
-    if (showAddHomework) {
-      if (classIdForAddHomework) {
-        setNewHomework(prev => ({ ...prev, classId: classIdForAddHomework }));
-      } else if (classes.length > 0 && !newHomework.classId) {
-        setNewHomework(prev => ({ ...prev, classId: classes[0].id }));
-      }
+    if (!showAddHomework || !classes.length) return;
+    if (classIdForAddHomework && classes.some(cls => cls.id === classIdForAddHomework)) {
+      setNewHomework(prev => ({ ...prev, classId: classIdForAddHomework }));
+    } else if (!classes.some(cls => cls.id === newHomework.classId)) {
+      setNewHomework(prev => ({ ...prev, classId: classes[0].id }));
     }
-  }, [showAddHomework, classIdForAddHomework, classes, newHomework.classId]);
+    if (classIdForAddHomework) setClassIdForAddHomework(undefined);
+  }, [showAddHomework, classIdForAddHomework, classes, newHomework.classId, setClassIdForAddHomework]);
 
   const handleAutoFill = useCallback(async (inputText: string) => {
     if (!inputText.trim() || isAutoFilling) return;
@@ -289,9 +304,44 @@ Return ONLY valid JSON, no explanation, no markdown.`,
     };
   }, [classes]);
 
-  const handleAddHomework = async () => {
-    if (!newHomework.title.trim() || !newHomework.classId) return;
+  const closeModal = () => {
+    if (savingRef.current) return;
+    setShowAddHomework(false);
+    setIsRecurringEnabled(false);
+    setRecurringConfig({ frequency: 'weekly' });
+    setEntryMode('normal');
+    setAddType('homework');
+    setParentHomeworkId('');
+    setSubtaskTitle('');
+    setSaveError('');
+  };
 
+  const handleAddSubtask = async () => {
+    const title = subtaskTitle.trim();
+    if (savingRef.current || !title || !parentHomework || homeworkLoading) return;
+    savingRef.current = true;
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      await updateHomework(parentHomework.id, {
+        subtasks: [...(parentHomework.subtasks ?? []), { id: crypto.randomUUID(), title, completed: false }],
+      });
+      success('Subtask added', `Added to ${parentHomework.title}`);
+      savingRef.current = false;
+      closeModal();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Couldn’t add your subtask. Your draft is still here—please try again.');
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddHomework = async () => {
+    if (savingRef.current || !newHomework.title.trim() || !newHomework.classId) return;
+    savingRef.current = true;
+    setIsSaving(true);
+    setSaveError('');
     try {
       if (isRecurringEnabled) {
         await addRecurringHomework(
@@ -301,7 +351,8 @@ Return ONLY valid JSON, no explanation, no markdown.`,
           newHomework.priority as Priority,
           newHomework.links,
           recurringConfig,
-          newHomework.description
+          newHomework.description,
+          newHomework.subtasks
         );
 
         success(
@@ -315,7 +366,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
           newHomework.dueDate,
           newHomework.priority as Priority,
           newHomework.links,
-          newHomework.description
+          newHomework.description,
+          false,
+          newHomework.subtasks
         );
 
         success(
@@ -326,6 +379,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
 
       setNewHomework({
         title: '',
+        subtasks: [],
         description: '',
         dueDate: new Date(),
         priority: 'medium' as Priority,
@@ -336,8 +390,19 @@ Return ONLY valid JSON, no explanation, no markdown.`,
       setRecurringConfig({ frequency: 'weekly' });
       setEntryMode('normal');
       setShowAddHomework(false);
+      setAddType('homework');
+      setParentHomeworkId('');
+      setSubtaskTitle('');
     } catch (error) {
-      console.error('Error adding homework:', error);
+      if (error instanceof Error && error.message.startsWith('PLAN_LIMIT:')) {
+        setSaveError(`${error.message.slice('PLAN_LIMIT:'.length)} Mark an assignment complete to make room. Your draft is still here.`);
+      } else {
+        console.error('Error adding homework:', error);
+        setSaveError('Couldn’t save your homework. Your draft is still here—please try again.');
+      }
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
     }
   };
 
@@ -348,6 +413,9 @@ Return ONLY valid JSON, no explanation, no markdown.`,
       <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-start justify-center px-4 pb-4 z-[100] fixed-padding-adjust" style={{ paddingTop: modalTop ?? 16 }}>
         <motion.div
           ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="homework-modal-title"
           style={modalTop === null ? undefined : { maxHeight: `calc(100dvh - ${modalTop + 16}px)` }}
           initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -361,10 +429,10 @@ Return ONLY valid JSON, no explanation, no markdown.`,
             className="flex flex-col flex-1 min-h-0 gap-0"
           >
             <div className="flex items-center gap-2 px-6 py-4 border-b border-sky-100/80 dark:border-gray-800 shrink-0 bg-white dark:bg-gray-900">
-              <h2 className="flex-1 min-w-0 text-base font-bold text-sky-900 dark:text-white">
-                Add New Homework
+              <h2 id="homework-modal-title" className="flex-1 min-w-0 text-base font-bold text-sky-900 dark:text-white">
+                {addType === 'subtask' ? 'Add Subtask' : 'Add New Homework'}
               </h2>
-              <TabsList aria-label="Homework entry mode" className="flex h-9 shrink-0 gap-0.5 rounded-lg bg-sky-50/90 dark:bg-gray-800/80 p-0.5 text-sky-500 dark:text-sky-400">
+              {addType === 'homework' && <TabsList aria-label="Homework entry mode" className="flex h-9 shrink-0 gap-0.5 rounded-lg bg-sky-50/90 dark:bg-gray-800/80 p-0.5 text-sky-500 dark:text-sky-400">
                 {([
                   { value: 'normal', label: 'Manual entry', icon: 'PencilEdit01' },
                   { value: 'quick-fill', label: 'Quick Fill', icon: 'Zap' },
@@ -388,15 +456,11 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                     <HugeIcon name={icon} size={16} className="relative z-10 size-4" aria-hidden="true" />
                   </TabsTrigger>
                 ))}
-              </TabsList>
+              </TabsList>}
               <button
                 type="button"
-                onClick={() => {
-                  setShowAddHomework(false);
-                  setIsRecurringEnabled(false);
-                  setRecurringConfig({ frequency: 'weekly' });
-                  setEntryMode('normal');
-                }}
+                onClick={closeModal}
+                disabled={isSaving}
                 aria-label="Close add homework modal"
                 className="size-8 shrink-0 flex items-center justify-center text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
               >
@@ -404,7 +468,49 @@ Return ONLY valid JSON, no explanation, no markdown.`,
               </button>
             </div>
 
+            <div className="px-6 pt-4 pb-1 shrink-0">
+              <div role="group" aria-label="What would you like to add?" className="grid grid-cols-2 gap-1 rounded-xl bg-sky-50/90 dark:bg-gray-800/80 p-1">
+                {([{ value: 'homework', label: 'New homework' }, { value: 'subtask', label: 'Subtask' }] as const).map(option => (
+                  <button key={option.value} type="button" aria-pressed={addType === option.value} disabled={isSaving}
+                    onClick={() => { setAddType(option.value); setEntryMode('normal'); setSaveError(''); }}
+                    className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-50 ${addType === option.value ? 'bg-white dark:bg-gray-900 text-sky-900 dark:text-white shadow-xs' : 'text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white'}`}>
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto overscroll-contain">
+              {addType === 'subtask' ? <div className="px-6 py-4 space-y-4">
+                <p className="text-xs leading-5 text-sky-700/75 dark:text-sky-300/70">Add a small step to homework you’ve already created.</p>
+                <div className="space-y-1.5">
+                  <Label id="parent-homework-label" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">Existing homework<span className="text-red-500 ml-0.5">*</span></Label>
+                  <Select value={parentHomeworkId} onValueChange={setParentHomeworkId} disabled={isSaving || homeworkLoading || !parentOptions.length}>
+                    <SelectTrigger aria-labelledby="parent-homework-label" className="w-full h-11 bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 text-sky-900 dark:text-sky-100 text-sm rounded-xl focus-visible:ring-2 focus-visible:ring-sky-400">
+                      <SelectValue placeholder={homeworkLoading ? 'Loading homework…' : 'Choose existing homework'}>{parentHomework?.title}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent position="popper" sideOffset={4} className={`${focusStyles.scope} w-[var(--radix-select-trigger-width)] bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 rounded-xl shadow-xl p-1`}>
+                      {parentOptions.map(homework => <SelectItem key={homework.id} value={homework.id} textValue={homework.title}
+                        disabled={(homework.subtasks?.length ?? 0) >= MAX_SUBTASKS}
+                        className="rounded-lg py-2 text-sky-900 dark:text-sky-100 focus:bg-sky-50 dark:focus:bg-sky-500/15 cursor-pointer">
+                        <span className="block min-w-0 max-w-[300px]">
+                          <span className="block truncate text-sm font-medium">{homework.title}</span>
+                          <span className="block text-[11px] text-sky-600/75 dark:text-sky-400/75">{classes.find(cls => cls.id === homework.classId)?.name ?? 'Homework'}{homework.completed ? ' · Completed' : ''}{(homework.subtasks?.length ?? 0) >= MAX_SUBTASKS ? ' · Subtask limit reached' : ''}</span>
+                        </span>
+                      </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {!homeworkLoading && !parentOptions.length && <p className="px-1 text-xs text-sky-600 dark:text-sky-400">Create a homework first, then add subtasks to it here.</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-subtask-title" className="text-xs font-medium text-sky-700 dark:text-sky-300 ml-1">Subtask<span className="text-red-500 ml-0.5">*</span></Label>
+                  <Input id="new-subtask-title" value={subtaskTitle} onChange={event => setSubtaskTitle(event.target.value)} maxLength={MAX_SUBTASK_TITLE_LENGTH} disabled={isSaving}
+                    onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleAddSubtask(); } }}
+                    placeholder="e.g. Write captions for the spread"
+                    className="w-full h-11 bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-800 text-sky-900 dark:text-white placeholder:text-sky-400/60 rounded-xl focus-visible:ring-2 focus-visible:ring-sky-400" />
+                </div>
+                {parentHomework && <p className="rounded-xl bg-sky-50/70 dark:bg-sky-500/5 px-3 py-2.5 text-xs leading-5 text-sky-700 dark:text-sky-300">This step will appear under <span className="font-semibold">{parentHomework.title}</span>.</p>}
+              </div> : <>
               <TabsContent value="quick-fill" className="m-0 px-6 py-4">
                 <motion.div
                   initial={{ opacity: 0, y: 7 }}
@@ -542,6 +648,12 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                       />
                     </div>
 
+                    <SubtaskChecklist
+                      value={newHomework.subtasks}
+                      onChange={subtasks => setNewHomework(previous => ({ ...previous, subtasks }))}
+                      disabled={isSaving}
+                    />
+
                     <HomeworkLinkInput
                       links={newHomework.links}
                       onChange={(links) => setNewHomework({ ...newHomework, links })}
@@ -581,30 +693,28 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                   </div>
                 </motion.div>
               </TabsContent>
+              </>}
             </div>
           </Tabs>
 
+          {saveError && <p role="alert" className="px-6 pb-3 text-xs text-red-600 dark:text-red-400">{saveError}</p>}
           {/* Footer */}
           <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-sky-100/80 dark:border-gray-800 shrink-0 bg-white dark:bg-gray-900">
             <button
               type="button"
-              onClick={() => {
-                setShowAddHomework(false);
-                setIsRecurringEnabled(false);
-                setRecurringConfig({ frequency: 'weekly' });
-                setEntryMode('normal');
-              }}
+              onClick={closeModal}
+              disabled={isSaving}
               className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
-              onClick={entryMode === 'normal' ? handleAddHomework : () => setEntryMode('normal')}
-              disabled={entryMode === 'normal' && (!newHomework.title.trim() || !newHomework.classId)}
+              onClick={addType === 'subtask' ? handleAddSubtask : entryMode === 'normal' ? handleAddHomework : () => setEntryMode('normal')}
+              disabled={isSaving || (addType === 'subtask' ? homeworkLoading || !parentHomework || !subtaskTitle.trim() || (parentHomework.subtasks?.length ?? 0) >= MAX_SUBTASKS : entryMode === 'normal' && (!newHomework.title.trim() || !newHomework.classId))}
               className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {entryMode === 'normal' ? 'Add Homework' : 'Review details'}
+              {isSaving ? 'Saving…' : addType === 'subtask' ? 'Add Subtask' : entryMode === 'normal' ? 'Add Homework' : 'Review details'}
             </button>
           </div>
         </motion.div>

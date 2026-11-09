@@ -1,3 +1,5 @@
+import { ClassShareButton } from '@/components/ClassShareButton';
+import type { HomeworkSubtask } from '@/lib/homework-subtasks';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Facehash } from 'facehash';
@@ -6,6 +8,7 @@ import { Button } from '@/components/animate-ui/components/buttons/button';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useDarkMode } from '@/context/DarkModeContext';
 import { getDashboardClassIconColor } from '@/lib/class-display-colors';
+import { ClassUpcomingTestBadge } from '@/components/ClassUpcomingTestBadge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -502,8 +505,8 @@ export const MainAppContent = () => {
         const testDate = parseCalendarDate(t.testDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return t.classId === cls.id && t.status !== 'taken' && t.status !== 'completed' && testDate >= today;
-      });
+        return t.classId === cls.id && t.status !== 'taken' && t.status !== 'completed' && t.status !== 'cancelled' && testDate >= today;
+      }).sort((a, b) => parseCalendarDate(a.testDate).getTime() - parseCalendarDate(b.testDate).getTime());
 
       // Get all homeworks for this class
       const allClassHomeworks = filteredHomeworks
@@ -517,6 +520,8 @@ export const MainAppContent = () => {
       const mapHomework = (hw: any) => ({
         id: hw.id,
         text: hw.title,
+        subtasks: hw.subtasks,
+        onSubtasksChange: (subtasks: HomeworkSubtask[]) => updateHomework(hw.id, { subtasks }),
         completed: hw.completed,
         subtext: new Date(hw.dueDate),
         priority: hw.priority || 'medium',
@@ -554,7 +559,7 @@ export const MainAppContent = () => {
         index
       };
     });
-  }, [classes, filteredHomeworks, tests, getClassColor, isHomeworkArchived]);
+  }, [classes, filteredHomeworks, tests, getClassColor, isHomeworkArchived, updateHomework]);
 
   // Memoized: overdue homework count (used in stats section)
   const overdueCount = useMemo(() => {
@@ -1069,11 +1074,10 @@ export const MainAppContent = () => {
                   {processedClasses.map((cls: any) => {
                     const { classHomeworks, classArchivedHomeworks, classTests, index } = cls;
                     const nextClassTest = classTests[0] || null;
-                    const hasTests = Boolean(nextClassTest);
                     const hasHomework = classHomeworks.length > 0;
                     const hasArchivedHomework = classArchivedHomeworks.length > 0;
                     const isShowingArchived = showArchivedForClass[cls.id] || false;
-                    const isEmptyClass = !hasHomework && !hasTests && (!hasArchivedHomework || !isShowingArchived);
+                    const isEmptyClass = !hasHomework && (!hasArchivedHomework || !isShowingArchived);
 
                     // Check if this class has overdue homework
                     const todayStart = new Date();
@@ -1128,7 +1132,7 @@ export const MainAppContent = () => {
                           }}
                         >
                           <div className="flex justify-between items-start">
-                            <div className="flex items-center w-full gap-3">
+                            <div className="flex min-w-0 items-center w-full gap-3">
                               <div className="shrink-0 transition-transform group-hover/header:scale-110 duration-500">
                                 <ClassIconRenderer
                                   iconName={cls.icon}
@@ -1137,13 +1141,20 @@ export const MainAppContent = () => {
                                 />
                               </div>
 
-                              <div className="flex-1 min-w-0 flex items-center gap-2">
+                              <div className="flex-1 min-w-0 flex items-center gap-1">
                                 <h3
                                   className="text-sm sm:text-base font-bold truncate tracking-tight uppercase"
                                   style={{ color: getHeaderColor(index) }}
                                 >
                                   {cls.name}
                                 </h3>
+                                {nextClassTest && (
+                                  <ClassUpcomingTestBadge
+                                    test={nextClassTest}
+                                    subjectName={cls.name}
+                                    onClick={() => handleTestClick(nextClassTest)}
+                                  />
+                                )}
                                 {savedGrade !== null ? (
                                   <span
                                     className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-extrabold border tabular-nums ${savedGradeColor}`}
@@ -1166,16 +1177,17 @@ export const MainAppContent = () => {
 
 
                               <div className="flex flex-row items-center gap-1">
-                                <Link
+                                <ClassShareButton schoolClass={cls} className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 sm:focus-visible:opacity-100" />
+                                {(!cls.is_shared || cls.user_id === user?.id) && <Link
                                   href={`/classes/edit/${cls.id}`}
                                   className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 p-1.5 rounded-md text-gray-400 hover:text-sky-500 dark:text-gray-500 dark:hover:text-sky-400 hover:bg-sky-500/10 dark:hover:bg-sky-500/20 transition-all shrink-0"
                                   onClick={(e) => e.stopPropagation()}
                                   aria-label="Edit class"
                                 >
                                   <HugeIcon name="Pen02" size={16} className="w-4 h-4" />
-                                </Link>
+                                </Link>}
 
-                                <button
+                                {(!cls.is_shared || cls.user_id === user?.id) && <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setClassToDelete({ id: cls.id, name: cls.name });
@@ -1184,7 +1196,7 @@ export const MainAppContent = () => {
                                   aria-label="Delete class"
                                 >
                                   <HugeIcon name="Delete02" size={16} className="w-4 h-4" />
-                                </button>
+                                </button>}
                               </div>
                             </div>
                           </div>
@@ -1242,29 +1254,6 @@ export const MainAppContent = () => {
                               </motion.div>
                             )}
                           </AnimatePresence>
-
-                          {nextClassTest && (
-                            <button
-                              type="button"
-                              onClick={() => handleTestClick(nextClassTest)}
-                              className="flex w-full items-center gap-2.5 mt-3 px-2.5 py-2 rounded-2xl bg-sky-500/[0.045] dark:bg-white/[0.035] text-left group/test lg:rounded-none lg:bg-transparent lg:dark:bg-transparent lg:px-0 lg:pt-3 lg:pb-0 lg:border-t lg:border-sky-100 lg:dark:border-sky-500/10"
-                            >
-                              <span className="h-8 w-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
-                                <HugeIcon name="Quiz04" size={15} />
-                              </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block text-[10px] font-medium text-sky-500/55">
-                                  Next test
-                                </span>
-                                <span className="block truncate text-xs font-bold text-sky-900 dark:text-sky-100 group-hover/test:text-sky-600 dark:group-hover/test:text-sky-300">
-                                  {nextClassTest.title}
-                                </span>
-                              </span>
-                              <span className="text-[10px] font-bold text-sky-500/50 shrink-0">
-                                {parseCalendarDate(nextClassTest.testDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </span>
-                            </button>
-                          )}
 
                           {classHomeworks.length > 2 && (
                             <div className="text-xs text-center text-sky-600/30 dark:text-sky-400/30 pt-1">

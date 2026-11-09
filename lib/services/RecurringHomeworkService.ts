@@ -1,3 +1,4 @@
+import { freshSubtasks, type HomeworkSubtask } from '@/lib/homework-subtasks';
 import { RecurringFrequency, HomeworkLink, RecurringHomework } from '@/context/ClassContext';
 import { db } from '@/lib/supabase/db';
 import { supabase } from '@/lib/supabase/client';
@@ -108,7 +109,8 @@ export class RecurringHomeworkService {
     dueDate: Date,
     priority: string,
     links: HomeworkLink[],
-    recurring: RecurringHomework
+    recurring: RecurringHomework,
+    subtasks: HomeworkSubtask[] = []
   ): Promise<any> {
     // Convert priority to string to match database schema
     const priorityString = String(priority);
@@ -139,11 +141,13 @@ export class RecurringHomeworkService {
       homeworkData.links = links;
     }
 
+    if (subtasks.length) homeworkData.subtasks = freshSubtasks(subtasks);
     const createdMaster = await db.createHomework(homeworkData);
 
     // Create the initial homework instance
     const initialHomework = await db.createHomework({
       ...homeworkData,
+      ...(subtasks.length ? { subtasks: freshSubtasks(subtasks) } : {}),
       parent_recurring_id: recurringId,
       is_recurring_instance: true
     });
@@ -192,6 +196,7 @@ export class RecurringHomeworkService {
       pinned: false,
       completed: false,
       links: masterRecord.links,
+      ...(masterRecord.subtasks ? { subtasks: freshSubtasks(masterRecord.subtasks) } : {}),
       parent_recurring_id: masterRecord.recurring_id,
       is_recurring_instance: true,
       created_at: new Date().toISOString(),

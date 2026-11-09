@@ -10,12 +10,17 @@ import { iconMap } from '@/lib/icon-map';
 import { motion } from 'framer-motion';
 import { triggerCompletionConfetti } from '@/lib/confetti';
 
+import { SubtaskChecklist } from '@/components/SubtaskChecklist';
+import { useToast } from '@/context/ToastContext';
+
 const CLASS_COLORS = ['#DC2626', '#2563EB', '#D97706', '#16A34A', '#7C3AED', '#DB2777', '#0D9488', '#475569'];
 
 export default function HomeworkDetailPage() {
   const { id } = useParams() as { id: string };
   const { classes } = useClassContext();
-  const { homeworks, toggleHomework } = useHomeworkContext();
+  const { homeworks, toggleHomework, updateHomework, loading: homeworkLoading } = useHomeworkContext();
+  const { error: showError } = useToast();
+  const [completing, setCompleting] = useState(false);
   const [homework, setHomework] = useState<Homework | null>(null);
   const [classItem, setClassItem] = useState<Class | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +42,8 @@ export default function HomeworkDetailPage() {
   const accentColor = classIndex >= 0 ? CLASS_COLORS[classIndex % CLASS_COLORS.length] : '#0ea5e9';
 
   const handleToggleComplete = async () => {
-    if (!homework) return;
+    if (!homework || completing) return;
+    setCompleting(true);
     const nextCompleted = !homework.completed;
     if (nextCompleted) {
       triggerCompletionConfetti(accentColor);
@@ -46,11 +52,14 @@ export default function HomeworkDetailPage() {
     try {
       await toggleHomework(homework.id);
     } catch {
+      showError('Couldn’t update homework', 'Please try again.');
       setHomework(prev => prev ? { ...prev, completed: !nextCompleted } : null);
+    } finally {
+      setCompleting(false);
     }
   };
 
-  if (loading) {
+  if (loading || homeworkLoading) {
     return (
       <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 flex items-center justify-center">
         <div className="h-6 w-6 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
@@ -133,6 +142,7 @@ export default function HomeworkDetailPage() {
             <button
               type="button"
               onClick={handleToggleComplete}
+              disabled={completing}
               className={`inline-flex items-center justify-center gap-2 h-10 px-5 rounded-full text-[13px] font-semibold transition-all shadow-xs cursor-pointer shrink-0 ${
                 homework.completed
                   ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/25'
@@ -159,6 +169,7 @@ export default function HomeworkDetailPage() {
               <button
                 type="button"
                 onClick={handleToggleComplete}
+                disabled={completing}
                 title="Toggle homework completion"
                 className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer hover:scale-105 ${
                   homework.completed
@@ -204,6 +215,14 @@ export default function HomeworkDetailPage() {
             ) : (
               <p className="text-sm text-sky-500/40 dark:text-sky-400/30 italic">No description provided.</p>
             )}
+
+            <SubtaskChecklist
+              key={homework.id}
+              value={homework.subtasks}
+              live
+              disabled={completing || homework.id.startsWith('temp-')}
+              onChange={subtasks => updateHomework(homework.id, { subtasks })}
+            />
 
             {/* Links section */}
             {homework.links && homework.links.length > 0 && (
@@ -262,6 +281,7 @@ export default function HomeworkDetailPage() {
               <button
                 type="button"
                 onClick={handleToggleComplete}
+                disabled={completing}
                 className={`h-10 px-5 text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-2 shadow-xs cursor-pointer ${
                   homework.completed
                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/25'

@@ -1,3 +1,4 @@
+import { sharedClasses, refreshClassroomData } from '@/lib/classroom';
 import { supabase } from './client';
 import { Database } from '@/types/database.types';
 import { formatCalendarDate } from '@/lib/dateUtils';
@@ -20,7 +21,9 @@ export const db = {
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    const shared = await sharedClasses();
+    const own = (data || []).map(cls => ({ ...cls, ...shared.find(item => item.id === cls.id), ...cls }));
+    return [...own, ...shared.filter(cls => !own.some(item => item.id === cls.id))];
   },
 
   getClass: async (classId: string, userId: string) => {
@@ -59,37 +62,14 @@ export const db = {
   },
 
   deleteClass: async (id: string, userId: string) => {
-    // First, delete all homework for this class
-    await supabase
-      .from('homework')
-      .delete()
-      .eq('class_id', id)
-      .eq('user_id', userId);
-
-    // Then delete the class
-    const { error } = await supabase
-      .from('classes')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
-
+    const { error } = await supabase.rpc('classroom_delete_or_leave', { p_class_id: id });
     if (error) throw error;
+    refreshClassroomData();
   },
 
   deleteAllClasses: async (userId: string) => {
-    // First, delete all homework for all classes of this user
-    await supabase
-      .from('homework')
-      .delete()
-      .eq('user_id', userId);
-
-    // Then delete all classes for this user
-    const { error } = await supabase
-      .from('classes')
-      .delete()
-      .eq('user_id', userId);
-
-    if (error) throw error;
+    const classes = await db.getClasses(userId);
+    for (const schoolClass of classes) await db.deleteClass(schoolClass.id, userId);
   },
 
   deleteAllHomeworks: async (userId: string) => {
@@ -109,10 +89,9 @@ export const db = {
     dueAfter?: Date;
     dueBefore?: Date;
   } = {}) => {
-    let query = supabase
-      .from('homework')
-      .select('*, classes(*)')
-      .eq('user_id', userId);
+    const shared = await sharedClasses();
+    let query = supabase.from('homework').select('*');
+    query = shared.length ? query.or(`user_id.eq.${userId},class_id.in.(${shared.map(cls => cls.id).join(',')})`) : query.eq('user_id', userId);
 
     if (filters.classId) {
       query = query.eq('class_id', filters.classId);
@@ -161,14 +140,13 @@ export const db = {
     return data;
   },
 
-  updateHomework: async (id: string, updates: HomeworkUpdate) => {
-    const { data, error } = await supabase
-      .from('homework')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
+  updateHomework: async (id: string, updates: HomeworkUpdate, expectedSubtasks?: HomeworkUpdate['subtasks']) => {
+    if (expectedSubtasks !== undefined) {
+      const { data, error } = await supabase.rpc('classroom_update_homework', { p_id: id, p_changes: updates, p_before: expectedSubtasks });
+      if (error) throw error;
+      return data as unknown as Tables['homework']['Row'];
+    }
+    const { data, error } = await supabase.from('homework').update(updates).eq('id', id).select().single();
     if (error) throw error;
     return data;
   },
@@ -177,8 +155,7 @@ export const db = {
     const { error } = await supabase
       .from('homework')
       .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
+      .eq('id', id).select('id').single();
 
     if (error) throw error;
   },
@@ -188,7 +165,6 @@ export const db = {
       .from('homework')
       .update({ completed, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId)
       .select()
       .single();
 
@@ -229,7 +205,15 @@ export const db = {
     const { data, error } = await query;
 
     if (error) throw error;
-    return (data || []) as Database['public']['Tables']['tests']['Row'][]
+    const { data: sharedData, error: sharedError } = await supabase.rpc('classroom_tests');
+    if (sharedError) throw sharedError;
+    const shared = (sharedData ?? []) as unknown as Tables['tests']['Row'][];
+    let result = [...(data || []).filter(test => !shared.some(item => item.id === test.id)), ...shared];
+    if (filters.classId) result = result.filter(test => test.class_id === filters.classId);
+    if (filters.status) result = result.filter(test => test.status === filters.status);
+    if (filters.testDateAfter) result = result.filter(test => test.test_date >= formatCalendarDate(filters.testDateAfter!));
+    if (filters.testDateBefore) result = result.filter(test => test.test_date <= formatCalendarDate(filters.testDateBefore!));
+    return result.sort((a, b) => a.test_date.localeCompare(b.test_date));
   },
 
   getUpcomingTests: async (userId: string, daysAhead = 30) => {
@@ -245,35 +229,19 @@ export const db = {
   },
 
   createTest: async (testData: TestInsert) => {
-    const { data, error } = await supabase
-      .from('tests')
-      .insert([{ ...testData }])
-      .select()
-      .single();
-
+    const { data, error } = await supabase.rpc('classroom_write_test', { p_id: null, p_data: testData });
     if (error) throw error;
-    return data;
+    return data as unknown as Tables['tests']['Row'];
   },
 
   updateTest: async (id: string, updates: TestUpdate) => {
-    const { data, error } = await supabase
-      .from('tests')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
+    const { data, error } = await supabase.rpc('classroom_write_test', { p_id: id, p_data: updates });
     if (error) throw error;
-    return data;
+    return data as unknown as Tables['tests']['Row'];
   },
 
-  deleteTest: async (id: string, userId: string) => {
-    const { error } = await supabase
-      .from('tests')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
-
+  deleteTest: async (id: string, _userId: string) => {
+    const { error } = await supabase.rpc('classroom_write_test', { p_id: id, p_data: {}, p_delete: true });
     if (error) throw error;
   },
 

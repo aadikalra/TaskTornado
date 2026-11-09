@@ -23,8 +23,10 @@ checklist, not legal advice.
   service-specific flags are enabled. The legacy
   `GOOGLE_INTEGRATIONS_ENABLED=true` flag enables all three and should not be used
   when only one integration has completed review.
-- Upload, discussion board, study group, invitation, and group-chat entry
-  points are disabled.
+- Legacy upload, discussion board, study group, group-chat and their invitation
+  entry points remain disabled. Private collaborative-class invitations are
+  available to eligible authenticated accounts, with membership checks,
+  expiring/revocable links and creator-controlled member removal.
 - There is one free plan. Personal AI keys bypass daily AI quotas, with provider billing and limits; storage limits stay unchanged.
 
 ## Aurora release requirements

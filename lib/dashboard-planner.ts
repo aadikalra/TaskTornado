@@ -1,3 +1,4 @@
+import type { HomeworkSubtask } from './homework-subtasks';
 import {
   addDays,
   differenceInCalendarDays,
@@ -19,6 +20,7 @@ export type PlannerItem = {
   id: string;
   kind: "homework" | "test";
   title: string;
+  subtasks?: HomeworkSubtask[];
   className: string;
   classColor: string;
   date: Date | null;

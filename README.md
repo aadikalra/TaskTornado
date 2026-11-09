@@ -2,7 +2,7 @@
 
 ![TaskTornado Logo](public/2.svg)
 
-A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study planning. Aurora includes free Groq AI and optional personal keys for OpenRouter, Together AI, Fireworks AI, and Groq; social features, uploads, web search, and Google integrations remain disabled.
+A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study planning. Aurora includes free Groq AI and optional personal keys for OpenRouter, Together AI, Fireworks AI, and Groq; public social features, uploads, web search, and Google integrations remain disabled.
 
 ## 🚀 Features
 
@@ -12,6 +12,10 @@ A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study
 - **Due Date Tracking**: Smart deadline management with visual cues
 - **Google Classroom Integration**: Implemented behind a fail-closed flag; do not enable publicly before OAuth review
 - **Recurring Homework**: Support for repeating assignments
+
+### 🤝 Collaborative Classes
+
+Hover a class and choose Share to copy an invite link. Members share the same homework, subtasks, completion and test schedules, with live updates; grades stay private. Creators can revoke invite links or remove members. See [Collaborative Classes](docs/COLLABORATIVE_CLASSES.md) for setup and access details.
 
 ### 🤖 Aurora AI
 - Free Groq model routing with approved fallbacks, or your own OpenRouter, Together AI, Fireworks AI, or Groq key. No web search.

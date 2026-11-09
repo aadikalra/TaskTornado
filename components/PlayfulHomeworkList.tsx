@@ -1,3 +1,5 @@
+import { SubtaskDisclosure } from '@/components/SubtaskChecklist';
+import { type HomeworkSubtask } from '@/lib/homework-subtasks';
 import * as React from 'react';
 import { getPriorityIndicator } from './HomeworkPriorityIndicator';
 import { createPortal } from 'react-dom';
@@ -22,6 +24,8 @@ import {
 import confetti from 'canvas-confetti';
 
 export type TodoItem = {
+  subtasks?: HomeworkSubtask[];
+  onSubtasksChange?: (subtasks: HomeworkSubtask[]) => void | Promise<void>;
   id: string;
   text: string;
   completed: boolean;
@@ -200,16 +204,6 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
     onItemToggle(id);
   }, [onItemToggle]);
 
-  const handleItemClick = useCallback((id: string) => {
-    if (isSelectionMode) {
-      // In selection mode, toggle selection
-      handleItemSelect(id, !selectedItems.has(id));
-    } else {
-      // Normal mode, toggle completion
-      handleToggle(id);
-    }
-  }, [isSelectionMode, selectedItems, handleItemSelect, handleToggle]);
-
   const handleBulkMoveToClass = useCallback((classId: string) => {
     onBulkMove?.(Array.from(selectedItems), classId);
     setSelectedItems(new Set());
@@ -342,6 +336,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
               {!isSelectionMode && (
                 <Checkbox
                   checked={item.completed}
+                  aria-label={`Mark ${item.completed ? 'incomplete' : 'complete'}: ${item.text}`}
                   onCheckedChange={() => handleToggle(item.id)}
                   className={cn(
                     item.completed
@@ -408,19 +403,16 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                       </div>
                     )}
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <label
-                        htmlFor={`checkbox-${item.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
+                      <Link
+                        href={`/homework/${item.id}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
                           if (isSelectionMode) {
-                            // In selection mode, toggle selection
+                            event.preventDefault();
                             handleItemSelect(item.id, !selectedItems.has(item.id));
-                          } else {
-                            // Normal mode, toggle completion
-                            handleToggle(item.id);
                           }
                         }}
-                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 ${item.completed ? 'text-sky-900/30 dark:text-sky-400/50' : 'text-sky-900 dark:text-sky-100'
+                        className={`text-sm font-medium cursor-pointer flex items-center gap-1 hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded ${item.completed ? 'text-sky-900/30 dark:text-sky-400/50' : 'text-sky-900 dark:text-sky-100'
                           }`}
                       >
                         {item.text}
@@ -434,7 +426,7 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
                             <HugeIcon name="Repeat" size={12} className="h-3 w-3" />
                           </span>
                         )}
-                      </label>
+                      </Link>
                       <div className="flex items-center flex-wrap mt-0.5 text-xs font-medium text-sky-400 dark:text-sky-500 gap-1.5">
                         {!item.completed && (
                           <>
@@ -539,6 +531,11 @@ export const PlayfulHomeworkList = forwardRef<PlayfulHomeworkListRef, PlayfulHom
 
               </div>
             </div>
+            {item.onSubtasksChange && Boolean(item.subtasks?.length) && !isSelectionMode && <div className="ml-7 mt-0.5">
+              <SubtaskDisclosure title={item.text} value={item.subtasks} accentColor={item.classColor} variant="legacy"
+                disabled={item.id.startsWith('temp-')}
+                onChange={item.onSubtasksChange} />
+            </div>}
           </motion.div>
         ))}
       </AnimatePresence>

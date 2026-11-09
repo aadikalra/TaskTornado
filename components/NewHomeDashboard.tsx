@@ -52,6 +52,7 @@ import {
   type PlannerFilter,
   type PlannerItem,
 } from "@/lib/dashboard-planner";
+import { SubtaskProgress } from "@/components/SubtaskChecklist";
 import styles from "./NewHomeDashboard.module.css";
 
 const FILTERS: { id: PlannerFilter; label: string }[] = [
@@ -106,6 +107,7 @@ function TaskRow({
         {item.className}
         <span aria-hidden="true">·</span>
         {item.kind === "test" ? "Test" : "Homework"}
+        <SubtaskProgress subtasks={item.subtasks} />
       </span>
     </>
   );
@@ -253,6 +255,7 @@ function NewHomeDashboardContent() {
           id: item.id,
           kind: "homework" as const,
           title: item.title,
+          subtasks: item.subtasks,
           ...getClass(item.classId),
           date: parsePlannerDate(item.dueDate),
           pinned: item.pinned,

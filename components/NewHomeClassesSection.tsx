@@ -11,12 +11,16 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { parseCalendarDate } from '@/lib/dateUtils';
+import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
 import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
 import { useTestContext, type Test } from '@/context/TestContext';
 import { useMainApp } from '@/context/MainAppContext';
 import { triggerCompletionConfetti } from '@/lib/confetti';
 import { getNewHomeClassColor } from '@/lib/class-display-colors';
+import { SubtaskDisclosure } from '@/components/SubtaskChecklist';
+import { ClassShareButton } from '@/components/ClassShareButton';
+import { ClassUpcomingTestBadge } from '@/components/ClassUpcomingTestBadge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,12 +72,14 @@ export default function NewHomeClassesSection({
   onAddHomework,
   onAddClass,
 }: NewHomeClassesSectionProps) {
+  const { user: currentUser } = useAuth();
   const { classes } = useClassContext();
   const {
     homeworks,
     toggleHomework,
     deleteHomework,
     togglePinHomework,
+    updateHomework,
   } = useHomeworkContext();
   const { tests } = useTestContext();
   const {
@@ -448,7 +454,6 @@ export default function NewHomeClassesSection({
               const isExpanded = expandedClasses[cls.id] || false;
               const isShowingArchived = showArchivedForClass[cls.id] || false;
               const isEmptyClass = activeHomeworks.length === 0
-                && !nextTest
                 && (!archivedHomeworks.length || !isShowingArchived);
               const visibleHomeworks = isExpanded ? activeHomeworks : activeHomeworks.slice(0, 2);
 
@@ -476,7 +481,7 @@ export default function NewHomeClassesSection({
                           >
                             <HugeIcon name={cls.icon || 'School'} size={24} className="h-6 w-6" />
                           </span>
-                          <div className="flex min-w-0 flex-1 items-center gap-2">
+                          <div className="flex min-w-0 flex-1 items-center gap-1">
                             <h3
                               className="truncate text-sm font-semibold tracking-tight sm:text-base"
                               style={{ color: classColor }}
@@ -484,6 +489,13 @@ export default function NewHomeClassesSection({
                             >
                               {cls.name}
                             </h3>
+                            {nextTest && (
+                              <ClassUpcomingTestBadge
+                                test={nextTest}
+                                subjectName={cls.name}
+                                onClick={(e) => handleOpenTestModal(nextTest, e)}
+                              />
+                            )}
                           </div>
                         </div>
 
@@ -519,18 +531,18 @@ export default function NewHomeClassesSection({
                             <HugeIcon name="PlusSign" size={14} className="h-3.5 w-3.5" />
                           </button>
 
-                          {/* Edit class link */}
-                          <Link
+                          <ClassShareButton schoolClass={cls} className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 sm:focus-visible:opacity-100" />
+                          {(!cls.is_shared || cls.user_id === currentUser?.id) && <Link
                             href={`/classes/edit/${cls.id}`}
                             title="Edit class"
                             aria-label="Edit class"
                             className="hidden sm:grid h-7 w-7 place-items-center rounded-lg text-gray-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                           >
                             <HugeIcon name="Pen02" size={13} className="h-3.5 w-3.5" />
-                          </Link>
+                          </Link>}
 
                           {/* Delete class button */}
-                          <button
+                          {(!cls.is_shared || cls.user_id === currentUser?.id) && <button
                             type="button"
                             onClick={() => setClassToDelete({ id: cls.id, name: cls.name })}
                             title="Delete class"
@@ -538,7 +550,7 @@ export default function NewHomeClassesSection({
                             className="hidden sm:grid h-7 w-7 place-items-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                           >
                             <HugeIcon name="Delete02" size={13} className="h-3.5 w-3.5" />
-                          </button>
+                          </button>}
                         </div>
                       </div>
                     </div>
@@ -561,88 +573,94 @@ export default function NewHomeClassesSection({
                           return (
                             <div
                               key={hw.id}
-                              className={`group/item flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-white dark:hover:bg-gray-700/50 ${
-                                hw.completed ? 'opacity-55' : ''
-                              }`}
+                              className="rounded-xl"
                             >
-                              {/* Interactive Checkbox */}
-                              <button
-                                type="button"
-                                onClick={(e) => handleToggleHomework(hw, classColor, e)}
-                                title={hw.completed ? 'Mark uncompleted' : 'Mark completed'}
-                                aria-label={hw.completed ? 'Mark uncompleted' : 'Mark completed'}
-                                className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-all cursor-pointer ${
-                                  hw.completed
-                                    ? 'border-transparent text-white'
-                                    : 'border-[#cbdceb] dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-emerald-500'
-                                }`}
-                                style={hw.completed ? { backgroundColor: classColor } : undefined}
-                              >
-                                {hw.completed && (
-                                  <HugeIcon name="CheckmarkCircle01" size={13} className="h-3.5 w-3.5 text-white" />
-                                )}
-                              </button>
-
-                              {/* Priority dot indicator if high */}
-                              {hw.priority === 'high' && !hw.completed && (
-                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" title="High priority" />
-                              )}
-
-                              {/* Homework Title (links to detail) */}
-                              <Link
-                                href={`/homework/${hw.id}`}
-                                title={hw.title}
-                                className="min-w-0 flex-1 block"
-                              >
-                                <span
-                                  className={`block truncate text-xs font-medium ${
+                              <div className="group/item flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-white dark:hover:bg-gray-700/50">
+                                {/* Interactive Checkbox */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleToggleHomework(hw, classColor, e)}
+                                  title={hw.completed ? 'Mark uncompleted' : 'Mark completed'}
+                                  aria-label={`${hw.completed ? 'Mark incomplete' : 'Mark complete'}: ${hw.title}`}
+                                  aria-pressed={hw.completed}
+                                  className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-all cursor-pointer ${
                                     hw.completed
-                                      ? 'line-through text-gray-400 dark:text-gray-500'
-                                      : 'text-[#2a2d37] dark:text-gray-100 group-hover/item:text-[#275085] dark:group-hover/item:text-sky-300'
+                                      ? 'border-transparent text-white'
+                                      : 'border-[#cbdceb] dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-emerald-500'
+                                  }`}
+                                  style={hw.completed ? { backgroundColor: classColor } : undefined}
+                                >
+                                  {hw.completed && (
+                                    <HugeIcon name="CheckmarkCircle01" size={13} className="h-3.5 w-3.5 text-white" />
+                                  )}
+                                </button>
+
+                                {/* Priority dot indicator if high */}
+                                {hw.priority === 'high' && !hw.completed && (
+                                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" title="High priority" />
+                                )}
+
+                                {/* Homework Title (links to detail) */}
+                                <Link
+                                  href={`/homework/${hw.id}`}
+                                  title={hw.title}
+                                  className="min-w-0 flex-1 block"
+                                >
+                                  <span
+                                    className={`block truncate text-xs font-medium ${
+                                      hw.completed
+                                        ? 'line-through text-gray-400 dark:text-gray-500'
+                                        : 'text-[#2a2d37] dark:text-gray-100 group-hover/item:text-[#275085] dark:group-hover/item:text-sky-300'
+                                    }`}
+                                  >
+                                    {hw.title}
+                                  </span>
+                                </Link>
+
+                                {/* Due Date Label */}
+                                <span className={`shrink-0 text-[10px] tabular-nums ${dateStyle}`}>
+                                  {dueLabel}
+                                </span>
+
+                                {/* Pin Toggle Button */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    togglePinHomework(hw.id, !hw.pinned);
+                                  }}
+                                  title={hw.pinned ? 'Unpin assignment' : 'Pin assignment'}
+                                  aria-label={hw.pinned ? 'Unpin assignment' : 'Pin assignment'}
+                                  className={`grid h-5 w-5 shrink-0 place-items-center rounded transition-opacity cursor-pointer ${
+                                    hw.pinned
+                                      ? 'opacity-100 text-amber-500'
+                                      : 'opacity-0 group-hover/item:opacity-100 text-gray-300 hover:text-amber-500'
                                   }`}
                                 >
-                                  {hw.title}
-                                </span>
-                              </Link>
+                                  <HugeIcon name="Star" size={13} className={hw.pinned ? 'fill-amber-400 text-amber-500' : ''} />
+                                </button>
 
-                              {/* Due Date Label */}
-                              <span className={`shrink-0 text-[10px] tabular-nums ${dateStyle}`}>
-                                {dueLabel}
-                              </span>
-
-                              {/* Pin Toggle Button */}
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  togglePinHomework(hw.id, !hw.pinned);
-                                }}
-                                title={hw.pinned ? 'Unpin assignment' : 'Pin assignment'}
-                                aria-label={hw.pinned ? 'Unpin assignment' : 'Pin assignment'}
-                                className={`grid h-5 w-5 shrink-0 place-items-center rounded transition-opacity cursor-pointer ${
-                                  hw.pinned
-                                    ? 'opacity-100 text-amber-500'
-                                    : 'opacity-0 group-hover/item:opacity-100 text-gray-300 hover:text-amber-500'
-                                }`}
-                              >
-                                <HugeIcon name="Star" size={13} className={hw.pinned ? 'fill-amber-400 text-amber-500' : ''} />
-                              </button>
-
-                              {/* Delete button on hover */}
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  deleteHomework(hw.id);
-                                }}
-                                title="Delete assignment"
-                                aria-label="Delete assignment"
-                                className="grid h-5 w-5 shrink-0 place-items-center rounded text-gray-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity cursor-pointer"
-                              >
-                                <HugeIcon name="Delete02" size={13} />
-                              </button>
+                                {/* Delete button on hover */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    deleteHomework(hw.id);
+                                  }}
+                                  title="Delete assignment"
+                                  aria-label="Delete assignment"
+                                  className="grid h-5 w-5 shrink-0 place-items-center rounded text-gray-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity cursor-pointer"
+                                >
+                                  <HugeIcon name="Delete02" size={13} />
+                                </button>
+                              </div>
+                              {Boolean(hw.subtasks?.length) && <div className="ml-7 mr-2 pb-1.5">
+                                <SubtaskDisclosure title={hw.title} value={hw.subtasks} accentColor={classColor}
+                                  disabled={hw.id.startsWith('temp-')}
+                                  onChange={subtasks => updateHomework(hw.id, { subtasks })} />
+                              </div>}
                             </div>
                           );
                         })
@@ -712,31 +730,37 @@ export default function NewHomeClassesSection({
                                 {archivedHomeworks.map((hw) => (
                                   <div
                                     key={hw.id}
-                                    className="group/archived flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs opacity-60 hover:opacity-100 transition-opacity"
+                                    className="group/archived rounded-lg px-1.5 py-1 text-xs"
                                   >
-                                    <button
-                                      type="button"
-                                      onClick={(e) => handleToggleHomework(hw, classColor, e)}
-                                      title="Uncomplete and restore to active"
-                                      aria-label="Restore assignment"
-                                      className="grid h-4 w-4 shrink-0 place-items-center rounded bg-gray-400 dark:bg-gray-600 text-white cursor-pointer"
-                                    >
-                                      <HugeIcon name="CheckmarkCircle01" size={11} className="h-3 w-3" />
-                                    </button>
-                                    <Link
-                                      href={`/homework/${hw.id}`}
-                                      className="min-w-0 flex-1 truncate line-through text-gray-500 dark:text-gray-400 hover:text-[#275085]"
-                                    >
-                                      {hw.title}
-                                    </Link>
-                                    <button
-                                      type="button"
-                                      onClick={() => deleteHomework(hw.id)}
-                                      className="grid h-4 w-4 shrink-0 place-items-center text-gray-300 hover:text-red-500 opacity-0 group-hover/archived:opacity-100 transition-opacity cursor-pointer"
-                                      title="Delete permanently"
-                                    >
-                                      <HugeIcon name="Delete02" size={11} />
-                                    </button>
+                                    <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => handleToggleHomework(hw, classColor, e)}
+                                        title="Uncomplete and restore to active"
+                                        aria-label="Restore assignment"
+                                        className="grid h-4 w-4 shrink-0 place-items-center rounded bg-gray-400 dark:bg-gray-600 text-white cursor-pointer"
+                                      >
+                                        <HugeIcon name="CheckmarkCircle01" size={11} className="h-3 w-3" />
+                                      </button>
+                                      <Link
+                                        href={`/homework/${hw.id}`}
+                                        className="min-w-0 flex-1 truncate line-through text-gray-500 dark:text-gray-400 hover:text-[#275085]"
+                                      >
+                                        {hw.title}
+                                      </Link>
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteHomework(hw.id)}
+                                        className="grid h-4 w-4 shrink-0 place-items-center text-gray-300 hover:text-red-500 opacity-0 group-hover/archived:opacity-100 transition-opacity cursor-pointer"
+                                        title="Delete permanently"
+                                      >
+                                        <HugeIcon name="Delete02" size={11} />
+                                      </button>
+                                    </div>
+                                    {Boolean(hw.subtasks?.length) && <div className="ml-6 mt-0.5">
+                                      <SubtaskDisclosure title={hw.title} value={hw.subtasks} accentColor={classColor}
+                                        onChange={subtasks => updateHomework(hw.id, { subtasks })} />
+                                    </div>}
                                   </div>
                                 ))}
                               </div>
@@ -746,30 +770,6 @@ export default function NewHomeClassesSection({
                       )}
                     </div>
                   </div>
-
-                  {/* CARD BOTTOM: Next Test row if available */}
-                  {nextTest && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleOpenTestModal(nextTest, e)}
-                      className="mt-3 flex w-full items-center gap-2 rounded-xl bg-emerald-500/[0.06] dark:bg-emerald-500/10 px-2.5 py-1.5 text-left transition-colors hover:bg-emerald-500/[0.12] cursor-pointer"
-                    >
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                        <HugeIcon name="TestTube" size={13} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                          Next test
-                        </span>
-                        <span className="block truncate text-xs font-semibold text-[#1e2027] dark:text-emerald-100">
-                          {nextTest.title}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
-                        {format(parseCalendarDate(nextTest.testDate), 'MMM d')}
-                      </span>
-                    </button>
-                  )}
                 </div>
               );
             })}

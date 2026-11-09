@@ -10,13 +10,13 @@ import {
   startOfWeek,
   subWeeks,
 } from 'date-fns';
-import { motion } from 'framer-motion';
 import { useHomeworkContext, type Homework } from '@/context/HomeworkContext';
 import { useTestContext, type Test } from '@/context/TestContext';
 import { useClassContext } from '@/context/ClassContext';
 import { getEventsForDate, schoolYear2026_2027 } from '@/data/schoolEvents';
 import { getClassIcon } from '@/lib/icon-map';
 import { HugeIcon } from '@/lib/huge-icon-map';
+import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
 import { parseCalendarDate } from '@/lib/dateUtils';
 
@@ -42,6 +42,8 @@ export const WeeklyCalendarWidget = () => {
   const manuallySelectedDay = useRef(false);
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
+  const [completingHomeworkId, setCompletingHomeworkId] = useState<string | null>(null);
+  const { error: showError } = useToast();
   const { homeworks = [], toggleHomework = () => {} } = useHomeworkContext() || {};
   const { tests = [] } = useTestContext() || {};
   const { classes = [] } = useClassContext() || {};
@@ -155,12 +157,8 @@ export const WeeklyCalendarWidget = () => {
   const renderCalendarItem = (entry: CalendarItem) => {
     if (entry.kind === 'homework') {
       return (
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.98 }}
-          onClick={() => toggleHomework(entry.item.id)}
+        <div
           title={entry.item.title}
-          aria-label={`${entry.item.title}. ${entry.item.completed ? 'Mark incomplete' : 'Mark complete'}`}
           className={cn(
             'flex h-9 w-full min-w-0 items-center gap-2 rounded-lg px-2.5 text-left text-[13px] md:h-7 font-medium transition-colors',
             entry.item.completed
@@ -168,9 +166,26 @@ export const WeeklyCalendarWidget = () => {
               : 'bg-sky-100/75 text-sky-700 hover:bg-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25',
           )}
         >
-          <HugeIcon name="Book03" size={14} className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{entry.item.title}</span>
-        </motion.button>
+          <button type="button" role="checkbox" aria-checked={entry.item.completed}
+            aria-label={`Mark ${entry.item.completed ? 'incomplete' : 'complete'}: ${entry.item.title}`}
+            disabled={Boolean(completingHomeworkId)}
+            onClick={async () => {
+              if (completingHomeworkId) return;
+              setCompletingHomeworkId(entry.item.id);
+              try { await toggleHomework(entry.item.id); }
+              catch { showError('Couldn’t update homework', 'Please try again.'); }
+              finally { setCompletingHomeworkId(null); }
+            }}
+            className="grid size-6 shrink-0 place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-50">
+            <span className={cn('grid size-4 place-items-center rounded border', entry.item.completed ? 'bg-sky-500 border-sky-500 text-white' : 'border-sky-400 dark:border-sky-600 bg-white dark:bg-gray-900')}>
+              {entry.item.completed && <HugeIcon name="CheckmarkCircle01" size={12} />}
+            </span>
+          </button>
+          <Link href={`/homework/${entry.item.id}`} aria-label={`Open ${entry.item.title}`}
+            className="min-w-0 flex-1 truncate rounded hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+            {entry.item.title}
+          </Link>
+        </div>
       );
     }
 

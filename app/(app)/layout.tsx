@@ -1,3 +1,4 @@
+import { PendingClassInvite } from '@/components/PendingClassInvite';
 import { ClassProvider } from '@/context/ClassContext';
 import { HomeworkProvider } from '@/context/HomeworkContext';
 import { TestProvider } from '@/context/TestContext';
@@ -32,7 +33,7 @@ export default async function AppLayout({
                   <StudyGroupsProvider>
                     <UpgradeProvider>
                       <AuthWrapper>
-                        <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}>{children}</ClientLayout>
+                        <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}><PendingClassInvite />{children}</ClientLayout>
                       </AuthWrapper>
                     </UpgradeProvider>
                   </StudyGroupsProvider>

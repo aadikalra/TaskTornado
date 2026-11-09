@@ -1,5 +1,8 @@
 'use client';
 
+import { useClassroomBroadcasts } from '@/hooks/use-classroom-broadcasts';
+import { useSchoolDataSync } from '@/hooks/use-school-data-sync';
+
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
@@ -37,6 +40,9 @@ export type HugeIconName = string;
 
 export type Class = Omit<Database['public']['Tables']['classes']['Row'], 'icon'> & {
   icon: HugeIconName;
+  is_shared?: boolean;
+  shared_owner_id?: string;
+  member_count?: number;
 };
 
 export type Priority = 'low' | 'medium' | 'high';
@@ -57,13 +63,20 @@ export interface ClassContextType {
 
 const ClassContext = createContext<ClassContextType | undefined>(undefined);
 
-export const ClassProvider = ({ children, initialClasses }: { children: React.ReactNode; initialClasses?: Class[] }) => {
+type ClassProviderProps = { children: React.ReactNode; initialClasses?: Class[] };
+export const ClassProvider = (props: ClassProviderProps) => {
+  const parent = useContext(ClassContext);
+  return parent ? <>{props.children}</> : <ClassProviderState {...props} />;
+};
+const ClassProviderState = ({ children, initialClasses }: ClassProviderProps) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const [classes, setClasses] = useState<Class[]>(initialClasses ?? []);
   const [loading, setLoading] = useState(!initialClasses ? true : false);
   const [error, setError] = useState<string | null>(null);
 
+  const accountRef = useRef(user?.id);
+  accountRef.current = user?.id;
   const hasLoaded = useRef<boolean>(!!(initialClasses && initialClasses.length > 0));
 
   const needsClassData = useCallback(() => {
@@ -73,11 +86,12 @@ export const ClassProvider = ({ children, initialClasses }: { children: React.Re
   }, [pathname]);
 
   const fetchData = useCallback(async () => {
-    if (!user || !needsClassData() || hasLoaded.current) return;
-    setLoading(true);
+    if (!user || !needsClassData()) return;
+    if (!hasLoaded.current) setLoading(true);
     setError(null);
     try {
       const classesData = await db.getClasses(user.id);
+      if (accountRef.current !== user.id) return;
       setClasses(classesData as Class[]);
       const colorMap = classesData.reduce((acc, cls) => {
         if (cls.id && cls.color) acc[cls.id] = cls.color;
@@ -87,60 +101,20 @@ export const ClassProvider = ({ children, initialClasses }: { children: React.Re
       hasLoaded.current = true;
       setLoading(false);
     } catch (err) {
+      if (accountRef.current !== user.id) return;
       console.error('Error fetching classes:', err);
       setError('Failed to load classes. Please try again.');
       setLoading(false);
     }
   }, [user, needsClassData]);
 
-  const setupSubscriptions = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { supabase } = await import('@/lib/supabase/client');
-      supabase
-        .channel('classes_changes')
-        .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'classes', filter: `user_id=eq.${user.id}` },
-          (payload: any) => {
-            const eventType = payload.eventType.toLowerCase();
-            if (eventType === 'insert') {
-              const newClass = payload.new as any;
-              setClasses(prev => {
-                if (prev.some(c => c.id === newClass.id)) return prev;
-                return [...prev, { ...newClass, icon: newClass.icon as HugeIconName }];
-              });
-            } else if (eventType === 'update') {
-              const updated = payload.new as any;
-              setClasses(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated, icon: updated.icon as HugeIconName } : c));
-            } else if (eventType === 'delete') {
-              setClasses(prev => prev.filter(c => c.id !== (payload.old as any).id));
-            }
-          }
-        ).subscribe();
-    } catch (err) {
-      console.error('Error setting up subscriptions:', err);
-    }
-  }, [user]);
-
+  useClassroomBroadcasts(classes);
+  useSchoolDataSync('classes', user?.id, needsClassData(), fetchData);
   useEffect(() => {
-    let isMounted = true;
-    const handleVisibilityChange = () => {
-      if (!isMounted) return;
-      if (document.visibilityState === 'visible' && user && !hasLoaded.current && needsClassData()) {
-        fetchData();
-      }
-    };
-    const initialize = async () => {
-      if (!hasLoaded.current) await fetchData();
-      if (needsClassData()) await setupSubscriptions();
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-    };
-    initialize();
-    return () => {
-      isMounted = false;
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user, fetchData, needsClassData, setupSubscriptions]);
+    hasLoaded.current = false;
+    setClasses([]);
+    setError(null);
+  }, [user?.id]);
 
   const addClass = async (name: string, icon: HugeIconName): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
@@ -151,7 +125,7 @@ export const ClassProvider = ({ children, initialClasses }: { children: React.Re
     try {
       setClasses(prev => [...prev, optimisticClass]);
       const createdClass = await db.createClass({ name, icon, color: optimisticClass.color, user_id: user.id });
-      setClasses(prev => prev.map(cls => cls.id === tempId ? { ...createdClass, icon: createdClass.icon as HugeIconName } : cls));
+      setClasses(prev => [...prev.filter(cls => cls.id !== tempId && cls.id !== createdClass.id), { ...createdClass, icon: createdClass.icon as HugeIconName }]);
       return createdClass.id;
     } catch (err) {
       setClasses(prev => prev.filter(cls => cls.id !== tempId));

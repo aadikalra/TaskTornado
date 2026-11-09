@@ -464,9 +464,9 @@ export async function POST(req: NextRequest) {
 
     while (currentStep < MAX_TOOL_CHAIN_STEPS) {
       currentStep++;
-      // Keep the tool schemas for the entire chain. Removing them while the
-      // conversation still requests tool use makes the provider reject calls.
-      const stepTools = tools;
+      const stepTools = allowQuestions
+        ? tools
+        : tools.filter((tool) => tool.function.name !== 'ask_user_question');
       const stepMessages = currentStep >= MAX_TOOL_CHAIN_STEPS - 1
         ? [...conversationHistory, {
             role: 'system' as const,

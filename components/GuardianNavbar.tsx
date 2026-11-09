@@ -61,7 +61,7 @@ export default function GuardianNavbar() {
         <>
 
 
-            <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 pointer-events-none">
+            <nav data-pathname={pathname} className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 pointer-events-none">
                 <div className="pointer-events-auto flex items-center justify-between w-full max-w-7xl mx-auto">
                     {/* Logo */}
                     <button onClick={() => handleNavClick('/guardian/dashboard')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">

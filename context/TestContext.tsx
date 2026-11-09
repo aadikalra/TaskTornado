@@ -1,5 +1,7 @@
 'use client';
 
+import { useSchoolDataSync } from '@/hooks/use-school-data-sync';
+
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
@@ -61,13 +63,20 @@ export interface TestContextType {
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
 
-export const TestProvider = ({ children, initialTests }: { children: React.ReactNode; initialTests?: Test[] }) => {
+type TestProviderProps = { children: React.ReactNode; initialTests?: Test[] };
+export const TestProvider = (props: TestProviderProps) => {
+  const parent = useContext(TestContext);
+  return parent ? <>{props.children}</> : <TestProviderState {...props} />;
+};
+const TestProviderState = ({ children, initialTests }: TestProviderProps) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const [tests, setTests] = useState<Test[]>(initialTests ?? []);
   const [loading, setLoading] = useState(!initialTests ? true : false);
   const [error, setError] = useState<string | null>(null);
 
+  const accountRef = useRef(user?.id);
+  accountRef.current = user?.id;
   const hasLoaded = useRef<boolean>(!!(initialTests && initialTests.length > 0));
   
   const needsTestData = useCallback(() => {
@@ -80,8 +89,8 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
   }, [pathname]);
 
   const fetchData = useCallback(async () => {
-    if (!user || !needsTestData() || hasLoaded.current) return;
-    setLoading(true);
+    if (!user || !needsTestData()) return;
+    if (!hasLoaded.current) setLoading(true);
     setError(null);
     try {
       const testsData = await db.getTests(user.id);
@@ -108,111 +117,24 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
         grade: test.grade,
         notes: test.notes
       }));
+      if (accountRef.current !== user.id) return;
       setTests(transformedTests);
       hasLoaded.current = true;
       setLoading(false);
     } catch (err) {
+      if (accountRef.current !== user.id) return;
       console.error('Error fetching tests:', err);
       setError('Failed to load tests. Please try again.');
       setLoading(false);
     }
   }, [user, needsTestData]);
 
-  const setupSubscriptions = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { supabase } = await import('@/lib/supabase/client');
-      supabase
-        .channel('tests_changes')
-        .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'tests', filter: `user_id=eq.${user.id}` },
-          (payload: any) => {
-            const eventType = payload.eventType.toLowerCase();
-            if (eventType === 'insert') {
-              const newTest = payload.new as any;
-              setTests(prev => {
-                if (prev.some(t => t.id === newTest.id)) return prev;
-                const newT = {
-                  ...newTest,
-                  classId: newTest.class_id,
-                  testDate: newTest.test_date,
-                  testTime: newTest.test_time,
-                  testType: newTest.test_type as TestType,
-                  maxScore: newTest.max_score,
-                  studyMaterials: (newTest.study_materials || []).map((m: any) => {
-                    if (typeof m === 'string' && m.startsWith('{')) {
-                      try { return JSON.parse(m); } catch (e) { return m; }
-                    }
-                    return m;
-                  }),
-                  weight: newTest.weight,
-                  location: newTest.location,
-                  duration: newTest.duration,
-                  priority: (newTest.priority as Priority) || 'medium',
-                  status: newTest.status as TestStatus,
-                  score: newTest.score,
-                  grade: newTest.grade,
-                  notes: newTest.notes
-                };
-                return [...prev, newT];
-              });
-            } else if (eventType === 'update') {
-              const updated = payload.new as any;
-              setTests(prev => prev.map(test => test.id === updated.id ? {
-                ...test,
-                classId: updated.class_id || test.classId,
-                testDate: updated.test_date || test.testDate,
-                testTime: updated.test_time !== undefined ? updated.test_time : test.testTime,
-                testType: updated.test_type ? updated.test_type as TestType : test.testType,
-                maxScore: updated.max_score !== undefined ? updated.max_score : test.maxScore,
-                studyMaterials: updated.study_materials !== undefined 
-                  ? (updated.study_materials as any[]).map((m: any) => {
-                      if (typeof m === 'string' && m.startsWith('{')) {
-                        try { return JSON.parse(m); } catch (e) { return m; }
-                      }
-                      return m;
-                    })
-                  : test.studyMaterials,
-                weight: updated.weight !== undefined ? updated.weight : test.weight,
-                location: updated.location !== undefined ? updated.location : test.location,
-                duration: updated.duration !== undefined ? updated.duration : test.duration,
-                priority: updated.priority !== undefined ? updated.priority : test.priority,
-                status: test.status,
-                score: updated.score !== undefined ? updated.score : test.score,
-                grade: updated.grade !== undefined ? updated.grade : test.grade,
-                notes: updated.notes !== undefined ? updated.notes : test.notes,
-                completed_at: updated.completed_at !== undefined ? updated.completed_at : test.completed_at,
-                created_at: updated.created_at !== undefined ? updated.created_at : test.created_at
-              } : test));
-            } else if (eventType === 'delete') {
-              setTests(prev => prev.filter(test => test.id !== (payload.old as any).id));
-            }
-          }
-        ).subscribe();
-    } catch (err) {
-      console.error('Error setting up subscriptions:', err);
-    }
-  }, [user]);
-
+  useSchoolDataSync('tests', user?.id, needsTestData(), fetchData);
   useEffect(() => {
-    let isMounted = true;
-    const handleVisibilityChange = () => {
-      if (!isMounted) return;
-      if (document.visibilityState === 'visible' && user && !hasLoaded.current && needsTestData()) {
-        fetchData();
-      }
-    };
-    const initialize = async () => {
-      if (!hasLoaded.current) await fetchData();
-      if (needsTestData()) await setupSubscriptions();
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-    };
-    initialize();
-    return () => {
-      isMounted = false;
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user, fetchData, needsTestData, setupSubscriptions]);
+    hasLoaded.current = false;
+    setTests([]);
+    setError(null);
+  }, [user?.id]);
 
   const addTest = async (classId: string, title: string, testDate: Date, testType: TestType, options: any = {}) => {
     if (!user) throw new Error('User not authenticated');
@@ -265,8 +187,8 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
         notes: options.notes
       };
       const createdTest = await db.createTest(testData);
-      setTests(prev => prev.map(test => test.id === tempId ? {
-        ...test,
+      setTests(prev => [...prev.filter(test => test.id !== tempId && test.id !== createdTest.id), {
+        ...optimisticTest,
         ...createdTest,
         id: createdTest.id,
         classId: createdTest.class_id,
@@ -283,7 +205,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
         }),
         created_at: createdTest.created_at,
         status: (createdTest.status as TestStatus) || 'upcoming',
-      } : test));
+      }]);
     } catch (err) {
       setTests(prev => prev.filter(test => test.id !== tempId));
       throw err;
@@ -298,7 +220,7 @@ export const TestProvider = ({ children, initialTests }: { children: React.React
         'not_started': 'upcoming', 'in_progress': 'upcoming', 'completed': 'taken', 'postponed': 'upcoming', 'cancelled': 'upcoming'
       };
       if (updateData.grade && updateData.status !== 'taken') updateData.status = 'taken';
-      const dbStatus = updateData.status ? statusMapping[updateData.status] : 'upcoming';
+      const dbStatus = updateData.status ? (statusMapping[updateData.status] ?? updateData.status) : undefined;
       const dbUpdates: Record<string, any> = {
         title: updateData.title,
         description: updateData.description,

@@ -1,0 +1,13 @@
+/* Keep fixed navigation above Animate UI's page snapshots. */
+:root[data-page-transition]::view-transition-group(*.site-navigation) {
+  animation: none;
+  z-index: 3;
+}
+
+:root[data-page-transition]::view-transition-old(*.site-navigation) {
+  display: none;
+}
+
+:root[data-page-transition]::view-transition-new(*.site-navigation) {
+  animation: none;
+}

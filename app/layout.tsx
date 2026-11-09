@@ -1,9 +1,11 @@
 import { Geist, Geist_Mono, Inter, Nunito_Sans, Edu_NSW_ACT_Cursive } from 'next/font/google';
 
 import './globals.css';
+import '@/components/animate-ui/components/page-transition.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { DarkModeProvider } from '@/context/DarkModeContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { PageTransitionRoot } from '@/components/PageTransitionRoot';
 import React from 'react';
 
 const inter = Inter({
@@ -78,7 +80,7 @@ export default function RootLayout({
         <AuthProvider>
           <DarkModeProvider>
             <ToastProvider>
-              {children}
+              <PageTransitionRoot>{children}</PageTransitionRoot>
             </ToastProvider>
           </DarkModeProvider>
         </AuthProvider>

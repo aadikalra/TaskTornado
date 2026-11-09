@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import ReboundNavbar from '@/components/ReboundNavbar';
 import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
 import AdvancedAIGlow from '@/components/AdvancedAIGlow';
+import { PageTransition } from '@/components/animate-ui/components/page-transition';
 
 // Register custom eye types before any Facehash renders
 patchFacehashFaces();
@@ -138,7 +139,7 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
 
   // Presentation and demo routes intentionally skip every piece of site chrome so their content can occupy the full display.
   if (pathname === '/publiccalendar/tv' || pathname === '/aurora' || pathname === '/demo') {
-    return <>{children}</>;
+    return <PageTransition effect="wipe">{children}</PageTransition>;
   }
 
   return (
@@ -156,23 +157,27 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
             transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {pathname === '/' && (authLoading || user) ? (
-            <div
-              aria-label={user ? 'Opening dashboard' : 'Checking account'}
-              className="flex min-h-screen items-center justify-center"
-            >
-              <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#275085]/20 border-t-[#275085]" />
-            </div>
-          ) : (
-            children
-          )}
+          <PageTransition effect="wipe">
+            {pathname === '/' && (authLoading || user) ? (
+              <div
+                aria-label={user ? 'Opening dashboard' : 'Checking account'}
+                className="flex min-h-screen items-center justify-center"
+              >
+                <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#275085]/20 border-t-[#275085]" />
+              </div>
+            ) : (
+              children
+            )}
+          </PageTransition>
         </main>
         {/* Nav: GuardianNavbar for guardians; AppNavbar for standard student routes; ReboundNavbar for logged-out */}
-        {!authLoading && (
-          user
-            ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />)
-            : <ReboundNavbar />
-        )}
+        <React.ViewTransition name="site-navigation" default="site-navigation">
+          {!authLoading && (
+            user
+              ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />)
+              : <ReboundNavbar />
+          )}
+        </React.ViewTransition>
                 {contextMenu && (
           <CustomContextMenu
             x={contextMenu.x}

@@ -1,5 +1,7 @@
 'use client';
 
+import { useSchoolDataSync } from '@/hooks/use-school-data-sync';
+
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
@@ -9,6 +11,7 @@ import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { HomeworkLink, parseHomeworkLinks } from '@/lib/utils/homework-links';
+import { parseSubtasks, validateSubtasks, type HomeworkSubtask } from '@/lib/homework-subtasks';
 import { awardFishTreat } from '@/lib/catTreats';
 
 export type Priority = 'low' | 'medium' | 'high';
@@ -21,7 +24,8 @@ export type RecurringHomework = {
   parentRecurringId?: string;
 };
 
-export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'links' | 'priority' | 'due_date' | 'class_id' | 'completed'> & {
+export type Homework = Omit<Database['public']['Tables']['homework']['Row'], 'links' | 'priority' | 'due_date' | 'class_id' | 'completed' | 'subtasks'> & {
+  subtasks?: HomeworkSubtask[];
   links: HomeworkLink[];
   priority: Priority;
   classId: string;
@@ -35,26 +39,37 @@ export interface HomeworkContextType {
   homeworks: Homework[];
   loading: boolean;
   error: string | null;
-  addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[], description?: string, completed?: boolean) => Promise<void>;
-  addRecurringHomework: (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description?: string) => Promise<void>;
+  addHomework: (classId: string, title: string, dueDate: Date, priority?: Priority, links?: HomeworkLink[], description?: string, completed?: boolean, subtasks?: HomeworkSubtask[]) => Promise<void>;
+  addRecurringHomework: (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description?: string, subtasks?: HomeworkSubtask[]) => Promise<void>;
   toggleHomework: (id: string) => Promise<void>;
   togglePinHomework: (id: string, pinned: boolean) => Promise<void>;
   deleteHomework: (id: string) => Promise<void>;
   deleteRecurringSeries: (recurringId: string) => Promise<void>;
   updateHomeworkDueDate: (homeworkId: string, newDueDate: Date) => Promise<void>;
-  updateHomework: (id: string, updates: Partial<Homework>) => Promise<void>;
+  updateHomework: (id: string, updates: Partial<Homework>, expectedSubtasks?: HomeworkSubtask[]) => Promise<void>;
   clearAllHomeworks: () => Promise<void>;
 }
 
 const HomeworkContext = createContext<HomeworkContextType | undefined>(undefined);
 
-export const HomeworkProvider = ({ children, initialHomeworks }: { children: React.ReactNode; initialHomeworks?: Homework[] }) => {
+type HomeworkProviderProps = { children: React.ReactNode; initialHomeworks?: Homework[] };
+
+export const HomeworkProvider = (props: HomeworkProviderProps) => {
+  // Dashboard/calendar wrappers must share the app layout's canonical task list.
+  // Otherwise card edits disappear from view when navigating to homework details.
+  const parent = useContext(HomeworkContext);
+  return parent ? <>{props.children}</> : <HomeworkProviderState {...props} />;
+};
+
+const HomeworkProviderState = ({ children, initialHomeworks }: HomeworkProviderProps) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const [homeworks, setHomeworks] = useState<Homework[]>(initialHomeworks ?? []);
   const [loading, setLoading] = useState(!initialHomeworks ? true : false);
   const [error, setError] = useState<string | null>(null);
 
+  const accountRef = useRef(user?.id);
+  accountRef.current = user?.id;
   const hasLoaded = useRef<boolean>(!!(initialHomeworks && initialHomeworks.length > 0));
 
   const needsHomeworkData = useCallback(() => {
@@ -64,13 +79,15 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
   }, [pathname]);
 
   const fetchData = useCallback(async () => {
-    if (!user || !needsHomeworkData() || hasLoaded.current) return;
-    setLoading(true);
+    if (!user || !needsHomeworkData()) return;
+    if (!hasLoaded.current) setLoading(true);
     setError(null);
     try {
+      const processRecurring = !hasLoaded.current;
       const homeworksData = await db.getHomework(user.id);
       const transformedHomeworks = homeworksData.map(hw => ({
         ...hw,
+        subtasks: parseSubtasks(hw.subtasks),
         links: parseHomeworkLinks(hw.links),
         priority: (hw.priority as Priority) || 'medium',
         dueDate: hw.due_date,
@@ -78,26 +95,23 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
         pinned: hw.pinned || false,
         completed: hw.completed || false
       }));
+      if (accountRef.current !== user.id) return;
       setHomeworks(transformedHomeworks);
       hasLoaded.current = true;
       setLoading(false);
 
       // Process recurring homework in the background
-      (async () => {
+      if (processRecurring) (async () => {
         try {
           await RecurringHomeworkService.processRecurringHomework(user.id);
-          const { supabase } = await import('@/lib/supabase/client');
-          const { data: updatedHomeworks } = await supabase
-            .from('homework')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('due_date', { ascending: true });
+          const updatedHomeworks = await db.getHomework(user.id);
 
-          if (updatedHomeworks) {
+          if (updatedHomeworks && accountRef.current === user.id) {
             const updatedTransformedHomeworks = updatedHomeworks.map((hw: any) => ({
               ...hw,
               classId: hw.class_id,
               dueDate: hw.due_date,
+              subtasks: parseSubtasks(hw.subtasks),
               links: parseHomeworkLinks(hw.links),
               priority: (hw.priority as Priority) || 'medium',
               pinned: hw.pinned || false,
@@ -110,77 +124,19 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
         }
       })();
     } catch (err) {
+      if (accountRef.current !== user.id) return;
       console.error('Error fetching homework:', err);
       setError('Failed to load homeworks. Please try again.');
       setLoading(false);
     }
   }, [user, needsHomeworkData]);
 
-  const setupSubscriptions = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { supabase } = await import('@/lib/supabase/client');
-      supabase
-        .channel('homework_changes')
-        .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'homework', filter: `user_id=eq.${user.id}` },
-          (payload: any) => {
-            const eventType = payload.eventType.toLowerCase();
-            if (eventType === 'insert') {
-              const newHomework = payload.new as any;
-              setHomeworks(prev => {
-                if (prev.some(hw => hw.id === newHomework.id)) return prev;
-                const newHw = {
-                  ...newHomework,
-                  classId: newHomework.class_id,
-                  dueDate: newHomework.due_date,
-                  links: parseHomeworkLinks(newHomework.links),
-                  priority: (newHomework.priority as Priority) || 'medium',
-                  pinned: newHomework.pinned || false,
-                  completed: newHomework.completed || false
-                };
-                return [...prev, newHw];
-              });
-            } else if (eventType === 'update') {
-              const updated = payload.new as any;
-              setHomeworks(prev => prev.map(hw => hw.id === updated.id ? {
-                ...hw,
-                ...updated,
-                classId: updated.class_id || hw.classId,
-                dueDate: updated.due_date || hw.dueDate,
-                links: updated.links ? parseHomeworkLinks(updated.links) : (hw.links || []),
-                pinned: updated.pinned !== undefined ? updated.pinned : (hw.pinned || false),
-                completed: updated.completed !== undefined ? updated.completed : (hw.completed || false)
-              } : hw));
-            } else if (eventType === 'delete') {
-              setHomeworks(prev => prev.filter(hw => hw.id !== (payload.old as any).id));
-            }
-          }
-        ).subscribe();
-    } catch (err) {
-      console.error('Error setting up subscriptions:', err);
-    }
-  }, [user]);
-
+  useSchoolDataSync('homework', user?.id, needsHomeworkData(), fetchData);
   useEffect(() => {
-    let isMounted = true;
-    const handleVisibilityChange = () => {
-      if (!isMounted) return;
-      if (document.visibilityState === 'visible' && user && !hasLoaded.current && needsHomeworkData()) {
-        fetchData();
-      }
-    };
-    const initialize = async () => {
-      if (!hasLoaded.current) await fetchData();
-      if (needsHomeworkData()) await setupSubscriptions();
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-    };
-    initialize();
-    return () => {
-      isMounted = false;
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user, fetchData, needsHomeworkData, setupSubscriptions]);
+    hasLoaded.current = false;
+    setHomeworks([]);
+    setError(null);
+  }, [user?.id]);
 
   const clearAllHomeworks = async () => {
     if (!user) throw new Error('User not authenticated');
@@ -208,12 +164,13 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
     }
   };
 
-  const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = [], description: string = '', completed: boolean = false) => {
+  const addHomework = async (classId: string, title: string, dueDate: Date, priority: Priority = 'medium', links: HomeworkLink[] = [], description: string = '', completed: boolean = false, subtasks: HomeworkSubtask[] = []) => {
+    subtasks = validateSubtasks(subtasks);
     if (!user) throw new Error('User not authenticated');
     const tier = getPlanTier();
     const limits = TIER_LIMITS[tier];
-    if (limits.homeworkEntries !== Infinity) {
-      const activeCount = homeworks.filter(hw => !hw.completed).length;
+    if (!completed && limits.homeworkEntries !== Infinity) {
+      const activeCount = homeworks.filter(hw => hw.user_id === user.id && !hw.completed).length;
       if (activeCount >= limits.homeworkEntries) {
         throw new Error(`PLAN_LIMIT:The free plan includes up to ${limits.homeworkEntries} active assignments.`);
       }
@@ -229,6 +186,7 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
       priority,
       completed,
       pinned: false,
+      subtasks,
       links: links || [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -253,24 +211,27 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
         completed,
       };
       if (links && links.length > 0) homeworkData.links = links;
+      if (subtasks.length) homeworkData.subtasks = subtasks;
       
       const createdHomework = await db.createHomework(homeworkData);
-      setHomeworks(prev => prev.map(hw => hw.id === tempId ? {
+      setHomeworks(prev => [...prev.filter(hw => hw.id !== tempId && hw.id !== createdHomework.id), {
         ...createdHomework,
         classId: createdHomework.class_id,
         dueDate: createdHomework.due_date,
+        subtasks: parseSubtasks(createdHomework.subtasks),
         links: parseHomeworkLinks(createdHomework.links),
         priority: (createdHomework.priority as Priority) || 'medium',
         pinned: createdHomework.pinned || false,
         completed: createdHomework.completed || false
-      } : hw));
+      }]);
     } catch (err) {
       setHomeworks(prev => prev.filter(hw => hw.id !== tempId));
       throw err;
     }
   };
 
-  const addRecurringHomework = async (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description: string = '') => {
+  const addRecurringHomework = async (classId: string, title: string, dueDate: Date, priority: Priority, links: HomeworkLink[], recurring: RecurringHomework, description: string = '', subtasks: HomeworkSubtask[] = []) => {
+    subtasks = validateSubtasks(subtasks);
     if (!user) throw new Error('User not authenticated');
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const optimisticHomework: Homework = {
@@ -283,6 +244,7 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
       priority,
       completed: false,
       pinned: false,
+      subtasks,
       links: links || [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -296,14 +258,15 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
     try {
       setHomeworks(prev => [...prev, optimisticHomework]);
       const { masterRecord, initialInstance } = await RecurringHomeworkService.createRecurringHomework(
-        user.id, classId, title, description, dueDate, priority, links, recurring
+        user.id, classId, title, description, dueDate, priority, links, recurring, subtasks
       );
       setHomeworks(prev => {
-        const otherHomeworks = prev.filter(hw => hw.id !== tempId);
+        const otherHomeworks = prev.filter(hw => hw.id !== tempId && hw.id !== masterRecord.id && hw.id !== initialInstance.id);
         const transform = (hw: any): Homework => ({
           ...hw,
           classId: hw.class_id,
           dueDate: hw.due_date,
+          subtasks: parseSubtasks(hw.subtasks),
           links: parseHomeworkLinks(hw.links),
           priority: (hw.priority as Priority) || 'medium',
           pinned: hw.pinned || false,
@@ -344,10 +307,13 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
     }
   };
 
-  const updateHomework = async (id: string, updates: Partial<Homework>) => {
+  const updateHomework = async (id: string, updates: Partial<Homework>, expectedSubtasks?: HomeworkSubtask[]) => {
+    const currentHomework = homeworks.find(hw => hw.id === id);
+    if (updates.subtasks !== undefined) updates = { ...updates, subtasks: validateSubtasks(updates.subtasks) };
     if (!user) throw new Error('User not authenticated');
     try {
       const dbUpdates: Record<string, any> = {
+        subtasks: updates.subtasks,
         title: updates.title,
         description: updates.description,
         due_date: updates.dueDate ? new Date(updates.dueDate).toISOString() : undefined,
@@ -360,8 +326,8 @@ export const HomeworkProvider = ({ children, initialHomeworks }: { children: Rea
       Object.keys(dbUpdates).forEach((key: string) => {
         if (dbUpdates[key] === undefined) delete dbUpdates[key];
       });
-      await db.updateHomework(id, dbUpdates);
-      setHomeworks(prev => prev.map(hw => hw.id === id ? { ...hw, ...updates, updatedAt: new Date().toISOString() } : hw));
+      const saved = await db.updateHomework(id, dbUpdates, updates.subtasks !== undefined ? (expectedSubtasks ?? currentHomework?.subtasks ?? []) : undefined);
+      setHomeworks(prev => prev.map(hw => hw.id === id ? { ...hw, ...updates, subtasks: parseSubtasks(saved.subtasks), updated_at: saved.updated_at } : hw));
     } catch (err) {
       throw err;
     }
