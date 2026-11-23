@@ -47,6 +47,43 @@ function TrustBox() {
     );
 }
 
+function ThemedBadge({
+    href,
+    alt,
+    lightSrc,
+    darkSrc,
+    width,
+    height,
+}: {
+    href: string;
+    alt: string;
+    lightSrc: string;
+    darkSrc: string;
+    width: number;
+    height: number;
+}) {
+    return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="max-w-full">
+            <img
+                src={lightSrc}
+                alt={alt}
+                width={width}
+                height={height}
+                loading="lazy"
+                className="h-auto max-w-full dark:hidden"
+            />
+            <img
+                src={darkSrc}
+                alt={alt}
+                width={width}
+                height={height}
+                loading="lazy"
+                className="hidden h-auto max-w-full dark:block"
+            />
+        </a>
+    );
+}
+
 const badges = [
     {
         name: 'BuiltByIndies',
@@ -63,20 +100,44 @@ const badges = [
         name: 'Trustpilot',
         content: <TrustBox />,
     },
+    {
+        name: 'Boost Domain Rating',
+        content: (
+            <ThemedBadge
+                href="https://boostdomainrating.com/item/tasktornado.app?utm_source=badge"
+                alt="TaskTornado - Domain Rating"
+                lightSrc="https://boostdomainrating.com/api/badge/tasktornado.app?color=light&icon=checkmark&shape=round&textStyle=italic-lowercase&primary=%23265dab"
+                darkSrc="https://boostdomainrating.com/api/badge/tasktornado.app?color=dark&icon=checkmark&shape=round&textStyle=italic-lowercase&primary=%23265dab"
+                width={281}
+                height={54}
+            />
+        ),
+    },
+    {
+        name: 'DevHub',
+        content: (
+            <ThemedBadge
+                href="https://devhub.best/projects/tasktornado?utm_source=badge"
+                alt="Featured on DevHub"
+                lightSrc="https://r2.direasy-multi-tenant.focusapps.app/uploads/616d0b1a-3979-4b8c-94d1-b4f1fedd3ead/1783239702078/53yqmim54zv/featured-on-light.svg"
+                darkSrc="https://r2.direasy-multi-tenant.focusapps.app/uploads/616d0b1a-3979-4b8c-94d1-b4f1fedd3ead/1783239705242/q5ooy1np7e/featured-on-dark.svg"
+                width={150}
+                height={44}
+            />
+        ),
+    },
 ];
 
 export default function HomepageBadges() {
     return (
-        <section aria-label="Featured links" className="bg-[#fffaf4] px-4 py-6 dark:bg-gray-950">
-            <div className="mx-auto max-w-5xl [container-type:inline-size]">
-                <ul className={styles.track} role="list" style={{ '--badge-count': badges.length } as CSSProperties}>
-                    {badges.map(({ name, content }, index) => (
-                        <li key={name} className={styles.badge} style={{ '--badge-index': index } as CSSProperties}>
-                            {content}
-                        </li>
-                    ))}
-                </ul>
-            </div>
+        <section aria-label="Featured links" className="bg-[#fffaf4] py-6 [container-type:inline-size] dark:bg-gray-950">
+            <ul className={styles.track} role="list" style={{ '--badge-count': badges.length } as CSSProperties}>
+                {badges.map(({ name, content }, index) => (
+                    <li key={name} className={styles.badge} style={{ '--badge-index': index } as CSSProperties}>
+                        {content}
+                    </li>
+                ))}
+            </ul>
         </section>
     );
 }

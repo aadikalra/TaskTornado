@@ -1,5 +1,5 @@
 .track {
-    --badge-width: min(224px, 76cqw);
+    --badge-width: min(288px, 76cqw);
     --starting-offset: 0.6;
     display: flex;
     align-items: center;
@@ -7,6 +7,7 @@
     gap: 24px;
     min-height: 72px;
     overflow-x: auto;
+    padding-inline: 16px;
 }
 
 .badge {
@@ -25,12 +26,21 @@
 @media (prefers-reduced-motion: no-preference) {
     :global(body:not(.reduce-motion)) .track:not(:has(:focus-visible)) {
         --badge-interval: 15s;
+        --edge-fade: clamp(32px, 7cqw, 112px);
         --loop-width: max(
             calc(100cqw + var(--badge-width)),
             calc(var(--badge-count) * (var(--badge-width) + 24px))
         );
         position: relative;
         overflow: clip;
+        padding-inline: 0;
+        mask-image: linear-gradient(
+            to right,
+            transparent,
+            black var(--edge-fade),
+            black calc(100% - var(--edge-fade)),
+            transparent
+        );
     }
 
     :global(body:not(.reduce-motion)) .track:not(:has(:focus-visible)) .badge {
