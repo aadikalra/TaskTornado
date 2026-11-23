@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import HeroWaves from './HeroWaves';
-import styles from './Hero.module.css';
 
 import { Brain, CalendarCheck, BookOpen, LayoutGrid, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Bookmark, Gamepad2 } from 'lucide-react';
 
@@ -61,9 +59,7 @@ export default function Hero() {
     }, []);
 
     return (
-        <section className={`${styles.hero} relative min-h-svh flex flex-col justify-center pt-20 pb-24 lg:pb-10 overflow-hidden`}>
-            <HeroWaves />
-
+        <section className="relative min-h-svh flex flex-col justify-center pt-20 pb-10 overflow-hidden bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
             {/* Orbit & word-swap keyframes injected once */}
             <style>{`
                 @keyframes orbit {

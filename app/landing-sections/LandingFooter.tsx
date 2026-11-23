@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { PLANNER_LINKS } from '@/lib/planner-links';
-import { Twitter, Github, Linkedin, Instagram, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { IconBrandFacebook, IconBrandGithub, IconBrandInstagram, IconBrandX } from '@tabler/icons-react';
 
 const footerLinks = [
     {
@@ -43,10 +44,10 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: Github, href: 'https://github.com/aadikalra', label: 'GitHub' },
-    { icon: Linkedin, href: 'https://linkedin.com/in/aadikalra', label: 'LinkedIn' },
-    { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
+    { icon: IconBrandInstagram, href: 'https://www.instagram.com/tasktornado.app', label: 'Instagram' },
+    { icon: IconBrandX, href: 'https://x.com/tasktornadoapp', label: 'X' },
+    { icon: IconBrandFacebook, href: 'https://www.facebook.com/profile.php?id=61591924528198', label: 'Facebook' },
+    { icon: IconBrandGithub, href: 'https://github.com/aadikalra/TaskTornado', label: 'GitHub' },
 ];
 
 export default function LandingFooter() {
@@ -80,7 +81,7 @@ export default function LandingFooter() {
                                     className="p-2.5 rounded-full bg-white dark:bg-zinc-800 border border-[#275085]/12 dark:border-[#4a9cdb]/20 text-[#275085]/80 dark:text-[#8cc8f5] hover:text-[#275085] dark:hover:text-[#b5d565] hover:border-[#b5d565]/40 dark:hover:border-[#b5d565]/40 hover:shadow-md transition-all duration-300"
                                     aria-label={social.label}
                                 >
-                                    <social.icon aria-hidden="true" className="w-4.5 h-4.5" />
+                                    <social.icon aria-hidden="true" size={18} stroke={1.8} />
                                 </Link>
                             ))}
                         </div>

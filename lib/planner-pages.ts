@@ -7,8 +7,14 @@ type PlannerContent = {
     description: string;
     heading: string;
     intro: string;
+    stepsHeading: string;
     steps: { heading: string; detail: string }[];
-    example: { heading: string; intro: string; rows: { label: string; detail: string }[] };
+    example: {
+        heading: string;
+        intro: string;
+        rows: { label: string; detail: string }[];
+        image: { src: string; alt: string };
+    };
     related: RelatedLink[];
 };
 
@@ -18,6 +24,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         description: 'Organize classes, homework, and exams in one free online student planner. See upcoming deadlines and get help making a study plan.',
         heading: 'A student planner for your whole school week',
         intro: 'See what’s due, what’s coming up, and what to work on next. TaskTornado brings your classes, assignments, tests, and study tools together in one free web app.',
+        stepsHeading: 'Plan your week in one place',
         steps: [
             { heading: 'Set up your classes', detail: 'Create a class for each subject. Keep its assignments and test dates together so you can review the whole week or focus on one course.' },
             { heading: 'Add work when you get it', detail: 'Record the assignment, its due date, and its priority. For a bigger project, add subtasks for the pieces you need to finish.' },
@@ -26,6 +33,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         example: {
             heading: 'A week with an essay, a lab, and a quiz',
             intro: 'Start with due dates in the calendar, then pick a first step for the work that will take more than one session.',
+            image: { src: '/recording/dashboard-source.png', alt: 'TaskTornado dashboard showing color-coded classes and assignment due dates' },
             rows: [
                 { label: 'English · Thursday', detail: 'Essay draft. Outline on Monday, write a rough draft on Tuesday, and revise on Wednesday.' },
                 { label: 'Biology · Friday', detail: 'Lab report. Add subtasks for the data table, results, and discussion.' },
@@ -39,6 +47,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         description: 'Plan homework across classes, break projects into subtasks, and set up recurring assignments with TaskTornado’s free homework planner.',
         heading: 'A homework planner for nights with more than one deadline',
         intro: 'Keep each assignment with its class, due date, and priority. Turn long projects into specific steps and set up recurring homework once for work you do every week.',
+        stepsHeading: 'Make a homework plan you can follow',
         steps: [
             { heading: 'Capture the next assignment', detail: 'Record the title and class when it’s assigned. Add the actual due date and enough detail to remember what you need to turn in.' },
             { heading: 'Break down long work', detail: 'Add subtasks to keep research, drafting, and revision visible under the same assignment. Give yourself a first step you can finish in one session.' },
@@ -47,6 +56,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         example: {
             heading: 'When the same week has three deadlines',
             intro: 'A sample plan for a Wednesday reading log, a Thursday problem set, and a Friday presentation.',
+            image: { src: '/progressCard.png', alt: '' },
             rows: [
                 { label: 'Monday', detail: 'Set the reading log to recur. Gather the presentation sources and create a slide outline.' },
                 { label: 'Tuesday', detail: 'Finish the reading log. Start the problem set and mark any questions you need help with.' },
@@ -60,6 +70,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         description: 'Track school assignments by class, due date, and priority. Use completion checkboxes and subtasks to see what still needs work.',
         heading: 'An assignment tracker that shows what’s still open',
         intro: 'Keep a clear list of the work you owe for each class. Give assignments due dates and priorities, pin what you want to keep in view, and mark work complete as you finish it.',
+        stepsHeading: 'See what’s due and what’s done',
         steps: [
             { heading: 'Give each item a useful name', detail: 'Use a deliverable such as “Submit lab worksheet” instead of “Biology.” Assign the class so you can find it later.' },
             { heading: 'Review due dates and priorities', detail: 'Use the due date to see what’s time-sensitive and the priority to flag effort or importance. An essay due Friday may need a start before a quick task due Thursday.' },
@@ -68,6 +79,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         example: {
             heading: 'Triage a short assignment list',
             intro: 'A quick review can show both the next deadline and which projects need a head start.',
+            image: { src: '/progressCard.png', alt: '' },
             rows: [
                 { label: 'Due today', detail: 'Geometry problems 12–24. Finish the remaining questions, then submit the set.' },
                 { label: 'Due Thursday · High priority', detail: 'History source analysis. Pin the assignment and start outlining after geometry.' },
@@ -81,6 +93,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         description: 'Use Aurora in TaskTornado to split homework and test prep into study sessions around your available time and upcoming deadlines.',
         heading: 'Make a study plan with Aurora AI',
         intro: 'Tell Aurora what you’re studying and how much time you have. It can suggest what to start with, break an exam into review sessions, and use relevant assignments or tests from your planner to help prioritize.',
+        stepsHeading: 'Build a study plan with Aurora',
         steps: [
             { heading: 'Start with a real constraint', detail: 'Give Aurora a goal, the time you have, and the topic you’re least confident about. Ask for a short schedule you can actually follow.' },
             { heading: 'Turn the plan into practice', detail: 'Ask for hints, a concept explanation, or practice questions. You can follow up to shorten or rearrange the plan as your week changes.' },
@@ -89,6 +102,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         example: {
             heading: 'Example prompt and study plan',
             intro: '“I have a biology quiz Friday, a history outline due Thursday, and 45 minutes tonight. I’m stuck on cell division. What should I do first?”',
+            image: { src: '/aiCard.png', alt: '' },
             rows: [
                 { label: '15 minutes', detail: 'Draft the history outline and list the evidence you need so Thursday’s assignment has a clear next step.' },
                 { label: '20 minutes', detail: 'Draw the stages of mitosis from memory, then compare the drawing with your class notes.' },
@@ -102,6 +116,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         description: 'Plan around classes, due dates, and exams with TaskTornado’s student calendar. See your school commitments across subjects.',
         heading: 'Plan your class schedule around real deadlines',
         intro: 'See assignments, tests, and events in one school calendar. Group work by subject, look ahead for crowded weeks, and choose when to start studying before deadlines stack up.',
+        stepsHeading: 'Put classes and deadlines on one calendar',
         steps: [
             { heading: 'Create a class for each subject', detail: 'Keep each subject’s coursework together and use class colors to make your schedule easier to scan.' },
             { heading: 'Put assessments on the calendar early', detail: 'Add test dates and assignment deadlines as you learn them. Open an item to review what’s due and what you need to prepare.' },
@@ -110,6 +125,7 @@ export const PLANNER_PAGES: Record<PlannerPageId, PlannerContent> = {
         example: {
             heading: 'A crowded Thursday',
             intro: 'An English essay and a chemistry test on the same day need different preparation.',
+            image: { src: '/calendarCard.png', alt: '' },
             rows: [
                 { label: 'Monday', detail: 'Outline the essay while you have a longer stretch of time.' },
                 { label: 'Tuesday', detail: 'Draft the essay and do one short chemistry problem set.' },
