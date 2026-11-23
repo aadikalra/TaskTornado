@@ -1,4 +1,51 @@
-import { ArrowUpRight } from 'lucide-react';
+'use client';
+
+import Script from 'next/script';
+import { useRef, type CSSProperties } from 'react';
+import styles from './HomepageBadges.module.css';
+
+declare global {
+    interface Window {
+        Trustpilot?: {
+            loadFromElement: (element: HTMLElement) => void;
+        };
+    }
+}
+
+function TrustBox() {
+    const widget = useRef<HTMLDivElement>(null);
+
+    return (
+        <>
+            <div
+                ref={widget}
+                className="trustpilot-widget w-full text-center"
+                data-locale="en-US"
+                data-template-id="56278e9abfbbba0bdcd568bc"
+                data-businessunit-id="6b03ca589898c9d06ed5b473"
+                data-style-height="52px"
+                data-style-width="100%"
+            >
+                <a
+                    href="https://www.trustpilot.com/review/tasktornado.app"
+                    target="_blank"
+                    rel="noopener"
+                    className="text-sm font-semibold text-[#275085] underline underline-offset-4 dark:text-sky-200"
+                >
+                    Trustpilot
+                </a>
+            </div>
+            <Script
+                src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
+                strategy="afterInteractive"
+                async
+                onReady={() => {
+                    if (widget.current) window.Trustpilot?.loadFromElement(widget.current);
+                }}
+            />
+        </>
+    );
+}
 
 const badges = [
     {
@@ -14,44 +61,22 @@ const badges = [
     },
     {
         name: 'Trustpilot',
-        content: (
-            <a
-                href="https://www.trustpilot.com/review/tasktornado.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-[60px] items-center gap-2 rounded-xl border border-[#275085]/20 bg-white px-5 text-sm text-[#275085] hover:border-[#275085] focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-[#4a9cdb]/30 dark:bg-gray-900 dark:text-sky-200 dark:hover:border-sky-200"
-            >
-                <span>Find us on <strong>Trustpilot</strong></span>
-                <ArrowUpRight aria-hidden="true" className="size-4" />
-            </a>
-        ),
+        content: <TrustBox />,
     },
 ];
 
 export default function HomepageBadges() {
     return (
-        <div className="bg-[#fffaf4] px-6 py-6 dark:bg-gray-950">
-            <fieldset>
-                <legend className="sr-only">Choose a TaskTornado badge</legend>
-                <div className="relative flex flex-wrap justify-center gap-2 pb-[72px]">
+        <section aria-label="Featured links" className="bg-[#fffaf4] px-4 py-6 dark:bg-gray-950">
+            <div className="mx-auto max-w-5xl [container-type:inline-size]">
+                <ul className={styles.track} role="list" style={{ '--badge-count': badges.length } as CSSProperties}>
                     {badges.map(({ name, content }, index) => (
-                        <div key={name} className="group">
-                            <label className="inline-flex cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium text-[#275085] hover:bg-[#275085]/10 has-checked:bg-[#275085] has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 dark:text-sky-200 dark:hover:bg-[#4a9cdb]/15 dark:has-checked:bg-sky-200 dark:has-checked:text-gray-950">
-                                <input
-                                    type="radio"
-                                    name="homepage-badge"
-                                    defaultChecked={index === 0}
-                                    className="sr-only"
-                                />
-                                {name}
-                            </label>
-                            <div className="absolute inset-x-0 bottom-0 hidden h-[60px] items-center justify-center group-has-checked:flex">
-                                {content}
-                            </div>
-                        </div>
+                        <li key={name} className={styles.badge} style={{ '--badge-index': index } as CSSProperties}>
+                            {content}
+                        </li>
                     ))}
-                </div>
-            </fieldset>
-        </div>
+                </ul>
+            </div>
+        </section>
     );
 }

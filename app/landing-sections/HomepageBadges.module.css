@@ -1,0 +1,57 @@
+.track {
+    --badge-width: min(224px, 76cqw);
+    --starting-offset: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: safe center;
+    gap: 24px;
+    min-height: 72px;
+    overflow-x: auto;
+}
+
+.badge {
+    display: grid;
+    flex: 0 0 var(--badge-width);
+    place-items: center;
+    width: var(--badge-width);
+}
+
+@container (max-width: 36rem) {
+    .track {
+        --starting-offset: 0.9;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    :global(body:not(.reduce-motion)) .track:not(:has(:focus-visible)) {
+        --badge-interval: 15s;
+        --loop-width: max(
+            calc(100cqw + var(--badge-width)),
+            calc(var(--badge-count) * (var(--badge-width) + 24px))
+        );
+        position: relative;
+        overflow: clip;
+    }
+
+    :global(body:not(.reduce-motion)) .track:not(:has(:focus-visible)) .badge {
+        position: absolute;
+        inset: 0 auto 0 0;
+        animation: scroll-badge calc(var(--badge-count) * var(--badge-interval)) linear infinite;
+        animation-delay: calc((var(--badge-index) - var(--badge-count) + var(--starting-offset)) * var(--badge-interval));
+        animation-play-state: var(--badge-play-state, running);
+    }
+
+    .track:is(:hover, :focus-within) {
+        --badge-play-state: paused;
+    }
+}
+
+@keyframes scroll-badge {
+    from {
+        transform: translateX(calc(var(--loop-width) - var(--badge-width)));
+    }
+
+    to {
+        transform: translateX(calc(-1 * var(--badge-width)));
+    }
+}
