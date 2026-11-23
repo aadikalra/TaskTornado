@@ -1,0 +1,71 @@
+.hero {
+    background:
+        radial-gradient(ellipse at 84% 50%, #ecf6e9, transparent 58%),
+        linear-gradient(145deg, #f3f8e9, #f5f8ef 62%, #edf7e9);
+}
+
+.waves {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.upperWaves,
+.lowerWaves {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    display: block;
+}
+
+.upperWaves {
+    top: 0;
+    height: clamp(9rem, 22vw, 27rem);
+}
+
+.lowerWaves {
+    bottom: 0;
+    height: clamp(5.75rem, 13.2vw, 16rem);
+}
+
+.waveEdge {
+    fill: none;
+    stroke: rgb(255 255 255 / 94%);
+    stroke-width: 2.5px;
+    vector-effect: non-scaling-stroke;
+}
+
+/* The navbar brand sits closer to the edge while its container is still fluid. */
+@media (40rem <= width < 87.5rem) {
+    .upperRibbons {
+        transform: scale(0.64);
+    }
+}
+
+:global(.dark) .hero {
+    background:
+        radial-gradient(ellipse at 78% 51%, #102033, transparent 54%),
+        linear-gradient(145deg, #0b1526, #070d19 62%, #101d2b);
+}
+
+:global(.dark) .waves {
+    --wave-upper-base: #152a3b;
+    --wave-upper-mist: #1d3c54;
+    --wave-upper-fade: #172d43;
+    --wave-upper-glow: #215d95;
+    --wave-upper-glow-mid: #2c638c;
+    --wave-upper-glow-fade: #234762;
+    --wave-ribbon-blue: #1e67aa;
+    --wave-ribbon-fade: #2f6a97;
+    --wave-navy: #0e3c72;
+    --wave-navy-fade: #144982;
+    --wave-lower-mist: #233e52;
+    --wave-lower-mist-mid: #2b5473;
+    --wave-lower-mist-blue: #3778aa;
+    --wave-lower-base: #101b29;
+    --wave-lower-swell: #17538e;
+}
+
+:global(.dark) .waveEdge {
+    stroke: rgb(167 211 248 / 74%);
+}

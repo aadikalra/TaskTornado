@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
+import HeroWaves from './HeroWaves';
+import styles from './Hero.module.css';
 
 import {   Brain, CalendarCheck, BookOpen, LayoutGrid, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Bookmark, Gamepad2 } from 'lucide-react';
 
@@ -70,7 +72,8 @@ export default function Hero() {
     }, []);
 
     return (
-        <section className="relative min-h-screen flex flex-col justify-center pt-20 pb-10 overflow-hidden bg-gradient-to-b from-[#f6fae7] via-[#f6fae7] to-[#FCFDF5] dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
+        <section className={`${styles.hero} relative min-h-svh flex flex-col justify-center pt-20 pb-24 lg:pb-10 overflow-hidden`}>
+            <HeroWaves />
 
             {/* Orbit keyframes injected once */}
             <style>{`
@@ -82,22 +85,22 @@ export default function Hero() {
 
             {/* ── Multi-layer ambient glow ─────────────────────────── */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.04] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.02] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
                 <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
                 <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
             </div>
 
-            <div className="relative z-10 w-full px-4 md:px-8 flex flex-col lg:flex-row items-center justify-between min-h-[85vh] gap-12 lg:gap-0">
+            <div className="relative z-10 w-full px-4 md:px-8 flex flex-col lg:flex-row items-center justify-between gap-3 md:gap-6 lg:gap-0">
                 {/* ── Left Column: Content ─────────────────────────────── */}
-                <div className="text-left py-12 pl-6 md:pl-12 xl:pl-20 lg:w-[50%] xl:w-[55%]">
+                <div className="text-left pt-8 sm:pt-12 lg:py-12 px-2 sm:pl-6 md:pl-12 xl:pl-[4.25vw] lg:w-[50%] xl:w-[55%]">
                     {/* ── Headline with rotating word ──────────────────────── */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.1, duration: 0.6 }}
-                        className="mb-8"
+                        className="mb-5 sm:mb-8"
                     >
-                        <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-[68px] font-bold tracking-tight leading-[1.08]">
+                        <h1 className="text-3xl md:text-5xl lg:text-[clamp(2.5rem,4.25vw,4.75rem)] font-bold tracking-tight leading-[1.08]">
                             <span className="text-[#275085] dark:text-[#4a9cdb]">Everything you need</span>
                             <br />
                             <span className="text-[#275085] dark:text-[#4a9cdb]">to stay </span>
@@ -124,7 +127,7 @@ export default function Hero() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium"
+                        className="text-base sm:text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium"
                     >
                         TaskTornado is a free student planner for tracking homework, classes, and deadlines, with study help from Aurora AI.
                     </motion.p>
@@ -135,10 +138,10 @@ export default function Hero() {
                     ref={orbitRef}
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
-                    className="relative flex items-center justify-center pr-4 md:pr-8 xl:pr-16 lg:w-[45%] xl:w-[40%] h-[500px] lg:h-[700px] overflow-visible"
+                    className="relative flex w-full items-center justify-center lg:pr-8 xl:pr-16 lg:w-[45%] xl:w-[40%] lg:h-[clamp(32rem,72svh,43.75rem)] overflow-visible"
                 >
                     {/* ── Orbit Container ─────────────────────────────────── */}
-                    <div className="relative w-full h-full flex items-center justify-center">
+                    <div className="relative w-full lg:h-full flex flex-col items-center justify-center">
                         {/* ── Continuously orbiting chips (desktop) ─────────── */}
                         <div className="hidden lg:block absolute inset-0 pointer-events-none scale-100 xl:scale-110">
                             {ORBITING_CHIPS.map((chip, i) => (
@@ -178,7 +181,7 @@ export default function Hero() {
                                 style={{ x: logoX, y: logoY }}
                             />
 
-                            <div className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
+                            <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-64 md:h-64 flex items-center justify-center">
                                 <img
                                     src="/2.svg"
                                     alt="TaskTornado"
@@ -193,7 +196,7 @@ export default function Hero() {
                         </motion.div>
 
                         {/* ── Mobile/Tablet chips (stacked, no orbit) ──────────────── */}
-                        <div className="lg:hidden absolute bottom-0 left-0 right-0 flex flex-wrap items-center justify-center gap-2.5 pb-12">
+                        <div className="lg:hidden flex flex-wrap items-center justify-center gap-2.5">
                             {ORBITING_CHIPS.slice(0, 8).map((chip, i) => (
                                 <motion.div
                                     key={i}
