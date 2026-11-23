@@ -158,6 +158,7 @@
     "tailwind-scrollbar-hide": "^4.0.0",
     "tweakpane": "^4.0.5",
     "uuid": "^13.0.0",
+    "voice-glow": "^0.3.0",
     "zod": "^4.1.13"
   },
   "overrides": {

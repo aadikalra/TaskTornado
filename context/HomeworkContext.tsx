@@ -74,7 +74,11 @@ const HomeworkProviderState = ({ children, initialHomeworks }: HomeworkProviderP
 
   const needsHomeworkData = useCallback(() => {
     if (typeof window === 'undefined') return false;
-    const routes = ['/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome', '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'];
+    const routes = [
+      '/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome', '/flashcards',
+      '/study-assistant', '/grade-calculator', '/games', '/color-match', '/math-sprint',
+      '/typing-speed', '/memory-match', '/snake', '/task-tower', '/word-scramble', '/reaction-time',
+    ];
     return routes.some(route => pathname.startsWith(route));
   }, [pathname]);
 

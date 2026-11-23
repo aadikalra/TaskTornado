@@ -267,7 +267,7 @@ export default function WelcomeLetter({ isOpen, onClose }: WelcomeLetterProps) {
                   <p className="mt-3">
                     TaskTornado was built with one simple goal: to help you stay organized, reduce stress,
                     and focus on what really matters — your learning. Whether you're managing homework,
-                    tracking tests, or collaborating with study groups, we've got you covered.
+                    tracking tests, or sharing assignments with classmates, we've got you covered.
                   </p>
                   <p className="mt-3">
                     We believe every student deserves tools that just work. No complicated setups, no

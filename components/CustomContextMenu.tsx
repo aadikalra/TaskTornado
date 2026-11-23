@@ -203,9 +203,7 @@ export const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ x, y, onCl
 
     // Academic Tools
     { label: 'Calendar', icon: 'Calendar02', action: () => router.push('/calendar'), description: 'View your calendar' },
-    { label: 'Discussion Boards', icon: 'Chat', action: () => router.push('/discussions'), description: 'Community forums' },
     { label: 'Flashcards', icon: 'Cards01', action: () => router.push('/flashcards'), description: 'Study with flashcards' },
-    { label: 'Groups', icon: 'UserGroup03', action: () => router.push('/groups'), description: 'Study groups' },
 
     // Tools & Features
     { label: 'Web Saves', icon: 'Bookmark03', action: () => router.push('/web-saves'), description: 'Saved web content' },

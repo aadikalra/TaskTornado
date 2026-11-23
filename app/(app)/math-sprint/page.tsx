@@ -554,8 +554,7 @@ function MathSprintGame({ topics, onBack }: { topics: string[]; onBack: () => vo
 
 export default function MathSprintPage() {
     const { authenticated } = useRequireAuth();
-    if (!authenticated) return null;
-    const { homeworks } = useHomeworkContext();
+    const { homeworks, loading } = useHomeworkContext();
     const totalHomeworks = homeworks ? homeworks.length : 0;
     const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;
 
@@ -574,6 +573,8 @@ export default function MathSprintPage() {
         });
     };
 
+    if (!authenticated) return null;
+
     return (
         <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -589,7 +590,9 @@ export default function MathSprintPage() {
                     </Link>
                 </motion.div>
 
-                {hasEarnedAccess ? (
+                {loading ? (
+                    <p role="status" className="text-sm text-slate-600 dark:text-slate-300">Loading homework progress…</p>
+                ) : hasEarnedAccess ? (
                     <div className="flex flex-col items-center">
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
                             <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">Math Sprint</h1>

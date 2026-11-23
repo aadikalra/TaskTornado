@@ -228,19 +228,6 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
-        "title": "Peer Discussions",
-        "href": "/blog/peer-discussions",
-        "description": "Open the Peer Discussions page",
-        "icon": "Chat",
-        "category": "Blog",
-        "keywords": [
-            "peer discussions",
-            "blog",
-            "peer",
-            "discussions"
-        ]
-    },
-    {
         "title": "Research Hub",
         "href": "/blog/research-hub",
         "description": "Open the Research Hub page",
@@ -264,19 +251,6 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
             "blog",
             "smart",
             "calendar"
-        ]
-    },
-    {
-        "title": "Study Groups",
-        "href": "/blog/study-groups",
-        "description": "Open the Study Groups page",
-        "icon": "UserGroup03",
-        "category": "Blog",
-        "keywords": [
-            "study groups",
-            "blog",
-            "study",
-            "groups"
         ]
     },
     {
@@ -320,19 +294,6 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
             "dates",
             "planner",
             "due"
-        ]
-    },
-    {
-        "title": "Cat Shop",
-        "href": "/cat-shop",
-        "description": "Open the Cat Shop page",
-        "icon": "LayoutGrid",
-        "category": "App",
-        "keywords": [
-            "cat shop",
-            "app",
-            "cat",
-            "shop"
         ]
     },
     {
@@ -411,18 +372,6 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         "keywords": [
             "demo",
             "about"
-        ]
-    },
-    {
-        "title": "Discussion Boards",
-        "href": "/discussions",
-        "description": "Ask questions and share academic resources",
-        "icon": "Chat",
-        "category": "School",
-        "keywords": [
-            "discussion boards",
-            "school",
-            "discussions"
         ]
     },
     {
@@ -516,17 +465,6 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
             "public grade calculator",
             "tools",
             "grades"
-        ]
-    },
-    {
-        "title": "Groups",
-        "href": "/groups",
-        "description": "Collaborate with classmates in study groups",
-        "icon": "UserGroup03",
-        "category": "School",
-        "keywords": [
-            "groups",
-            "school"
         ]
     },
     {
@@ -1033,6 +971,10 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
 ] as const;
 
 export const GENERATED_SEARCH_EXCLUDED_ROUTES = [
+    "/blog/peer-discussions",
+    "/blog/study-groups",
+    "/discussions",
+    "/groups",
     "/hash/eyes",
     "/images",
     "/mail",

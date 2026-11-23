@@ -23,8 +23,6 @@ const CORE_ITEMS = [
 const ALL_EXTRA_ITEMS = [
     { label: 'Grades', href: '/grade-calculator', iconName: 'ChartAnalysis' },
     { label: 'Web Saves', href: '/web-saves', iconName: 'Bookmark03' },
-    { label: 'Groups', href: '/groups', iconName: 'UserGroup03' },
-    { label: 'Discuss', href: '/discussions', iconName: 'Chat' },
     { label: 'Games', href: '/games', iconName: 'Gameboy' },
     { label: 'Blog', href: '/blog', iconName: 'Blogger' },
     { label: 'Tutorials', href: '/tutorials', iconName: 'HelpCircle' },

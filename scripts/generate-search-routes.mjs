@@ -7,14 +7,22 @@ const appDirectory = path.join(projectRoot, 'app');
 const outputFile = path.join(projectRoot, 'lib/search/generated-site-routes.ts');
 
 // These are real routes, but they are intentionally not part of user-facing search.
-const excludedRoutes = ['/hash/eyes', '/images', '/mail', '/signup-old'];
+const excludedRoutes = [
+    '/blog/peer-discussions',
+    '/blog/study-groups',
+    '/discussions',
+    '/groups',
+    '/hash/eyes',
+    '/images',
+    '/mail',
+    '/signup-old',
+];
 
 const titleOverrides = {
     '/': 'Home',
     '/about': 'About TaskTornado',
     '/ai-study-planner': 'AI Study Planner',
     '/ai-guidelines': 'AI Guidelines',
-    '/discussions': 'Discussion Boards',
     '/quiz': 'Interactive Quizzes',
     '/writing-assist': 'Writing Assistant',
     '/hash': 'FaceHash Playground',
@@ -30,8 +38,6 @@ const descriptionOverrides = {
     '/tests': 'View and manage tests and exams',
     '/quiz': 'Create, save, and take practice quizzes',
     '/flashcards': 'Create and study flashcard decks',
-    '/discussions': 'Ask questions and share academic resources',
-    '/groups': 'Collaborate with classmates in study groups',
     '/grade-calculator': 'Calculate and save weighted class grades',
     '/writing-assist': 'Draft, revise, and improve writing',
     '/grader': 'Review writing against a rubric',
@@ -102,11 +108,11 @@ const categoryForRoute = route => {
         route.startsWith('/guardian/link')
     ) return 'Account';
     if (
-        ['/dashboard', '/cat-shop', '/settings'].includes(route) ||
+        ['/dashboard', '/settings'].includes(route) ||
         route.startsWith('/guardian/dashboard')
     ) return 'App';
     if (
-        ['/calendar', '/tests', '/quiz', '/flashcards', '/discussions', '/groups'].includes(route)
+        ['/calendar', '/tests', '/quiz', '/flashcards'].includes(route)
     ) return 'School';
     if (
         ['/grade-calculator', '/grader', '/writing-assist', '/translate', '/web-saves', '/grades', '/publiccalendar', '/wordcount', '/hash'].includes(route)

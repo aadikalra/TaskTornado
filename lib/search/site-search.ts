@@ -8,8 +8,7 @@ export type SearchSection =
     | 'Tests & exams'
     | 'Flashcard decks'
     | 'Quizzes'
-    | 'Web saves'
-    | 'Study groups';
+    | 'Web saves';
 
 export interface SearchItem {
     id: string;

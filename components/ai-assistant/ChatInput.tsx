@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Mic, X } from 'lucide-react';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { Textarea } from '../ui/textarea';
-import { VoiceWaveform } from '@/components/main-app/QuickFillInput';
+import { VoiceGlow } from './VoiceGlow';
 import { QuickFillVoice, type VoiceStatus } from '@/lib/quick-fill-voice';
 
 interface ChatInputProps {
@@ -67,7 +67,7 @@ export const ChatInput = ({
     combinedLimitReached || isQuickLimitReached || isDeepLimitReached;
   const safeInput = input || '';
 
-  // Ramblr dictation: record, show waveform, directly send on finish
+  // Ramblr dictation: record locally and directly send on finish.
   const [voiceStatus, setVoiceStatus] = useState<VoiceStatus>('idle');
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const [voiceError, setVoiceError] = useState('');
@@ -90,6 +90,8 @@ export const ChatInput = ({
 
   const isVoiceActive = voiceStatus !== 'idle';
   const isTranscribing = voiceStatus === 'transcribing';
+  const isVoiceProcessing = voiceStatus === 'stopping' || isTranscribing || isSendingVoice;
+  const isGlowProcessing = isVoiceProcessing || isSendingMessage || isAILoading;
 
   const startVoice = () => {
     setVoiceError('');
@@ -121,9 +123,9 @@ export const ChatInput = ({
         setIsSendingVoice(false);
         setVoiceError('No speech detected. Try again.');
       }
-    } catch (error: any) {
+    } catch (error) {
       setIsSendingVoice(false);
-      setVoiceError(error?.message || 'Could not transcribe speech.');
+      setVoiceError(error instanceof Error ? error.message : 'Could not transcribe speech.');
     }
   };
 
@@ -143,6 +145,11 @@ export const ChatInput = ({
         "border border-sky-100 dark:border-white/5 overflow-hidden"
       )}
     >
+      <VoiceGlow
+        analyser={analyser}
+        active={isVoiceActive || isGlowProcessing}
+        processing={isGlowProcessing}
+      >
       {!hasWiped && (
         <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[20px] overflow-visible z-10">
           <defs>
@@ -235,25 +242,17 @@ export const ChatInput = ({
               <div className="relative">
                 {isVoiceActive && (
                   <div className="absolute inset-y-0 left-3 right-20 z-10 flex items-center pointer-events-none" role="status">
-                    {analyser && voiceStatus === 'listening' ? (
-                      <div className="flex items-center gap-2.5 w-full">
-                        <span className="relative flex h-2 w-2 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <VoiceWaveform analyser={analyser} />
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-sky-500/80 dark:text-sky-400/80 font-medium">
-                        {voiceStatus === 'starting'
-                          ? 'Connecting microphone...'
-                          : isTranscribing || isSendingVoice
-                          ? 'Transcribing and sending...'
-                          : 'Finishing...'}
-                      </span>
-                    )}
+                    <span className="text-sm text-zinc-600 dark:text-zinc-300 font-medium">
+                      {voiceStatus === 'starting'
+                        ? 'Connecting microphone...'
+                        : voiceStatus === 'listening'
+                        ? 'Listening...'
+                        : isTranscribing
+                        ? 'Transcribing...'
+                        : isSendingVoice
+                        ? 'Transcribing and sending...'
+                        : 'Finishing...'}
+                    </span>
                   </div>
                 )}
                 {voiceError && !isVoiceActive && (
@@ -278,9 +277,9 @@ export const ChatInput = ({
                   readOnly={isVoiceActive}
                   className={cn(
                     `min-h-[44px] max-h-[160px] w-full resize-none border-0 bg-transparent dark:bg-transparent p-3 pr-24 focus-visible:ring-0 focus-visible:ring-offset-0 overflow-y-auto`,
-                    isVoiceActive && 'invisible',
-                    isLimitReached && 'opacity-50 cursor-not-allowed',
-                    'text-foreground'
+                    'text-foreground',
+                    isVoiceActive && 'text-transparent caret-transparent placeholder:text-transparent',
+                    isLimitReached && 'opacity-50 cursor-not-allowed'
                   )}
                   rows={(safeInput.length > 80 || safeInput.split('\n').length > 1) ? Math.min(6, Math.max(3, safeInput.split('\n').length)) : 1}
                   onKeyDown={(e) => {
@@ -352,8 +351,8 @@ export const ChatInput = ({
                       type="button"
                       onClick={startVoice}
                       disabled={isLimitReached}
-                      aria-label="Start ramblr microphone"
-                      title="Dictate (Ramblr)"
+                      aria-label="Start voice dictation"
+                      title="Dictate a message"
                       className="p-2 rounded-xl transition-colors text-sky-500 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 disabled:opacity-40"
                     >
                       <Mic className="h-4 w-4" aria-hidden="true" />
@@ -396,6 +395,7 @@ export const ChatInput = ({
           </motion.div>
         )}
       </AnimatePresence>
+      </VoiceGlow>
     </form>
   );
 };

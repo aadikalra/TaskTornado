@@ -49,8 +49,6 @@ export const allNavbarTools: ToolItem[] = [
   { label: 'Writing Assist', href: '/writing-assist', icon: 'AiContentGenerator02', badge: 'AI' },
   { label: 'AI Grader', href: '/grader', icon: 'SchoolReportCard', badge: 'AI' },
   { label: 'Translate', href: '/translate', icon: 'Translate' },
-  { label: 'Study Groups', href: '/groups', icon: 'UserGroup03' },
-  { label: 'Discussions', href: '/discussions', icon: 'Chat' },
   { label: 'Web Saves', href: '/web-saves', icon: 'Bookmark03' },
   { label: 'Mail', href: '/mail', icon: 'MailSend01' },
   { label: 'Mini Games', href: '/games', icon: 'Gameboy' },

@@ -530,8 +530,7 @@ function TaskTowerGame({ pendingHomeworkCount, highCount, mediumCount, lowCount 
 
 export default function TaskTowerPage() {
     const { authenticated } = useRequireAuth();
-    if (!authenticated) return null;
-    const { homeworks } = useHomeworkContext();
+    const { homeworks, loading } = useHomeworkContext();
     const totalHomeworks = homeworks ? homeworks.length : 0;
     const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;
     const pendingHomeworkCount = totalHomeworks - completedHomeworks;
@@ -542,6 +541,8 @@ export default function TaskTowerPage() {
 
     const completionPercentage = totalHomeworks > 0 ? (completedHomeworks / totalHomeworks) * 100 : 0;
     const hasEarnedAccess = completionPercentage >= 80;
+
+    if (!authenticated) return null;
 
     return (
         <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 relative">
@@ -560,7 +561,9 @@ export default function TaskTowerPage() {
                     </Link>
                 </motion.div>
 
-                {hasEarnedAccess ? (
+                {loading ? (
+                    <p role="status" className="text-sm text-slate-600 dark:text-slate-300">Loading homework progress…</p>
+                ) : hasEarnedAccess ? (
                     <div className="flex flex-col items-center">
                         {/* Header */}
                         <motion.div

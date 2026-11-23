@@ -8,7 +8,6 @@ import { useHomeworkContext } from '@/context/HomeworkContext';
 import { useTestContext } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWebSaves } from '@/context/WebSavesContext';
-import { useStudyGroups } from '@/context/StudyGroupsContext';
 import { flashcardService } from '@/lib/supabase/flashcards';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import {
@@ -74,7 +73,6 @@ const sectionIcon: Record<SearchSection, string> = {
   'Flashcard decks': 'Cards01',
   Quizzes: 'Quiz04',
   'Web saves': 'Bookmark03',
-  'Study groups': 'UserGroup03',
 };
 
 const addHighlightMatches = (value: string, term: string, ranges: Array<[number, number]>) => {
@@ -171,7 +169,6 @@ export function SearchResults() {
   const { homeworks } = useHomeworkContext();
   const { tests } = useTestContext();
   const { saves, folders } = useWebSaves();
-  const { groups } = useStudyGroups();
   const { user } = useAuth();
   const router = useRouter();
   const [flashcardDecks, setFlashcardDecks] = useState<FlashcardDeckSearchItem[]>([]);
@@ -371,18 +368,6 @@ export function SearchResults() {
       };
     });
 
-    const groupItems: SearchItem[] = groups.map(group => ({
-      id: `study-group:${group.id}`,
-      title: group.name,
-      subtitle: `${group.member_count || 0} member${group.member_count === 1 ? '' : 's'}`,
-      href: `/groups/${group.id}`,
-      icon: 'UserGroup03',
-      section: 'Study groups',
-      keywords: ['group', 'study group', 'classmates', 'collaboration', 'chat'],
-      badge: 'Group',
-      priority: 80,
-    }));
-
     return [
       ...ROUTE_ITEMS,
       ...classItems,
@@ -392,7 +377,6 @@ export function SearchResults() {
       ...quizItems,
       ...folderItems,
       ...saveItems,
-      ...groupItems,
     ];
   }, [
     classes,
@@ -402,7 +386,6 @@ export function SearchResults() {
     savedQuizzes,
     folders,
     saves,
-    groups,
     classById,
   ]);
 
@@ -568,7 +551,7 @@ export function SearchResults() {
                 Search across all of TaskTornado
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-sky-700/55 dark:text-sky-300/50">
-                Find pages, classes, assignments, tests, decks, quizzes, saved links, folders, and study groups.
+                Find pages, classes, assignments, tests, decks, quizzes, saved links, and folders.
               </p>
             </div>
           </div>

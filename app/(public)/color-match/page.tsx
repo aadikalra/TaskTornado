@@ -262,14 +262,9 @@ function ColorMatchGame({ optionCount }: { optionCount: number }) {
 
 export default function ColorMatchPage() {
     const { authenticated } = useRequireAuth();
-    if (!authenticated) return null;
     const { homeworks } = useHomeworkContext();
-    const totalHomeworks = homeworks ? homeworks.length : 0;
-    const completedHomeworks = homeworks ? homeworks.filter(hw => hw.completed).length : 0;
-    const remainingCount = totalHomeworks - completedHomeworks;
-
-    const completionPercentage = totalHomeworks > 0 ? (completedHomeworks / totalHomeworks) * 100 : 0;
-    const hasEarnedAccess = completionPercentage >= 55;
+    if (!authenticated) return null;
+    const remainingCount = homeworks.filter(homework => !homework.completed).length;
 
     // More remaining homework = more options (harder to pick the right one)
     const optionCount = Math.min(Math.max(3, 3 + Math.floor(remainingCount / 4)), 6);
@@ -289,49 +284,17 @@ export default function ColorMatchPage() {
                     </Link>
                 </motion.div>
 
-                {hasEarnedAccess ? (
-                    <div className="flex flex-col items-center">
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-                            <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">Color Match</h1>
-                            <p className="text-sky-600/50 dark:text-sky-400/50 text-sm max-w-md">
-                                The Stroop effect! {optionCount} choices per round — {remainingCount > 0 ? 'more options with more homework remaining' : 'minimum difficulty — brain teaser mode!'}.
-                            </p>
-                        </motion.div>
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="w-full flex justify-center">
-                            <ColorMatchGame optionCount={optionCount} />
-                        </motion.div>
-                    </div>
-                ) : (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-16">
-                        <div className="w-full max-w-md">
-                            <div className="text-center mb-8">
-                                <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">Color Match</h1>
-                                <p className="text-sky-600/50 dark:text-sky-400/50 text-sm">Complete more homework to unlock this game</p>
-                            </div>
-                            <div className="bg-white/60 dark:bg-gray-900 border border-sky-100 dark:border-gray-800 rounded-2xl p-6">
-                                <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 rounded-xl mb-5">
-                                    <HugeIcon name="AlertCircle" className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">55% homework required</p>
-                                        <p className="text-xs text-amber-600/80 dark:text-amber-400/80">Complete more assignments to unlock Color Match.</p>
-                                    </div>
-                                </div>
-                                <div className="mb-4">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Progress</span>
-                                        <span className="text-sm font-bold text-sky-900 dark:text-white">{completionPercentage.toFixed(0)}%</span>
-                                    </div>
-                                    <div className="w-full bg-sky-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                                        <div className="bg-sky-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${completionPercentage}%` }} />
-                                    </div>
-                                    <p className="text-[11px] text-sky-500/40 dark:text-sky-400/30 mt-2">
-                                        {completedHomeworks} of {totalHomeworks} assignments · {Math.max(0, Math.ceil(totalHomeworks * 0.55) - completedHomeworks)} more to unlock
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                <div className="flex flex-col items-center">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+                        <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">Color Match</h1>
+                        <p className="text-sky-600/50 dark:text-sky-400/50 text-sm max-w-md">
+                            The Stroop effect! {optionCount} choices per round — {remainingCount > 0 ? 'more options with more homework remaining' : 'minimum difficulty — brain teaser mode!'}.
+                        </p>
                     </motion.div>
-                )}
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="w-full flex justify-center">
+                        <ColorMatchGame optionCount={optionCount} />
+                    </motion.div>
+                </div>
             </div>
         </div>
     );

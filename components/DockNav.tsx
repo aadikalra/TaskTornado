@@ -24,13 +24,11 @@ import IconSparkle from './glass-icons/IconSparkle';
 import IconCalendar from './glass-icons/IconCalendar';
 import IconBookOpen from './glass-icons/IconBookOpen';
 import IconPin from './glass-icons/IconPin';
-import IconUsers from './glass-icons/IconUsers';
 import IconFile from './glass-icons/IconFile';
 import IconHouse from './glass-icons/IconHouse';
 import IconGear from './glass-icons/IconGear';
 import IconProgressBar from './glass-icons/IconProgressBar';
 import IconBox from './glass-icons/IconBox';
-import IconMessageSquare from './glass-icons/IconMessageSquare';
 import { useAI } from '@/context/AIContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationPanel, useNotifications } from './NotificationPanel';
@@ -134,24 +132,6 @@ export default function DockNav() {
       label: 'Grades',
       onClick: () => router.push('/grade-calculator'),
       isActive: pathname === '/grade-calculator',
-    },
-    {
-      icon: <IconUsers />,
-      label: 'Groups',
-      onClick: () => {
-        if (!user) { router.push('/login'); return; }
-        router.push('/groups');
-      },
-      isActive: pathname === '/groups',
-    },
-    {
-      icon: <IconMessageSquare />,
-      label: 'Discuss',
-      onClick: () => {
-        if (!user) { router.push('/login'); return; }
-        router.push('/discussions');
-      },
-      isActive: pathname === '/discussions',
     },
     {
       icon: <IconProgressBar />,
