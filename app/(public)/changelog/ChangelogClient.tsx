@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { parseCalendarDate } from '@/lib/dateUtils';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -18,9 +19,11 @@ type Version = {
 
 interface ChangelogClientProps {
   initialVersions?: Version[];
+  initialDate: string;
 }
 
-export default function ChangelogClient({ initialVersions }: ChangelogClientProps) {
+export default function ChangelogClient({ initialVersions, initialDate }: ChangelogClientProps) {
+  const [today, setToday] = useState(() => parseCalendarDate(initialDate));
   const [versions, setVersions] = useState<Version[]>(initialVersions ?? []);
   const [loading, setLoading] = useState(!initialVersions || initialVersions.length === 0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -57,6 +60,7 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
   };
 
   useEffect(() => {
+    setToday(new Date());
     if (!initialVersions || initialVersions.length === 0) {
       fetchVersions();
     }
@@ -71,7 +75,7 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
   );
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
+    const date = new Date(dateStr + 'T00:00:00Z');
     return date.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
@@ -106,10 +110,8 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
   // Generate Git Heatmap Days (last 12 months, complete weeks)
   const gitMapDays = useMemo(() => {
     const days = [];
-    const today = new Date();
-    
-    // Go back 364 days ago (52 weeks)
-    const startDate = new Date();
+    // Go back 364 days ago (52 weeks).
+    const startDate = new Date(today);
     startDate.setDate(today.getDate() - 364);
     
     // Align start to the Sunday of that week
@@ -117,9 +119,8 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
     startDate.setDate(startDate.getDate() - startDayOfWeek);
     
     const temp = new Date(startDate.getTime());
-    const now = new Date();
-    
-    while (temp <= now) {
+
+    while (temp <= today) {
       const yyyy = temp.getFullYear();
       const mm = String(temp.getMonth() + 1).padStart(2, '0');
       const dd = String(temp.getDate()).padStart(2, '0');
@@ -160,7 +161,7 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
     }
     
     return days;
-  }, [versions]);
+  }, [today, versions]);
 
   return (
     <div className="min-h-screen bg-[#fffaf4] dark:bg-gray-950 text-sky-900 dark:text-sky-100 selection:bg-sky-100 dark:selection:bg-sky-900/30 font-sans pb-32 pt-28 px-4 sm:px-6 md:px-12 lg:px-16 relative">
@@ -504,7 +505,7 @@ export default function ChangelogClient({ initialVersions }: ChangelogClientProp
             <HugeIcon name="Calendar02" className="text-sky-500 dark:text-sky-400" size={16} />
           </div>
           <p className="text-sky-600/40 dark:text-sky-400/40 text-[10px] font-bold uppercase tracking-widest">
-            © {new Date().getFullYear()} TaskTornado • Evolving for Students
+            © {today.getFullYear()} TaskTornado • Evolving for Students
           </p>
         </footer>
       </div>

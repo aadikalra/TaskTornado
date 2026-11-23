@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { formatCalendarDate } from '@/lib/dateUtils';
 import { motion } from 'framer-motion';
 import { TutorialArticleTemplate } from '@/components/TutorialArticleTemplate';
 import EnhancedTestCard from '@/components/EnhancedTestCard';
@@ -92,11 +93,18 @@ export default function TestDetailsTutorialPage() {
 
 function PracticeTestCard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sampleDate, setSampleDate] = useState<string | null>(null);
+
+    useEffect(() => {
+        setSampleDate(formatCalendarDate(new Date()));
+    }, []);
+
+    if (!sampleDate) return null;
 
     const sampleTest = {
         id: 'tutorial-test-1',
         title: 'Quantum Physics Final',
-        testDate: new Date().toISOString(),
+        testDate: sampleDate,
         testTime: '10:30 AM',
         testType: 'FINAL',
         description: 'Covers everything from wave-particle duality to Schrödinger\'s cat. Bring a calculator and a pencil.',

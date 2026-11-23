@@ -226,9 +226,12 @@ export function BlogArticleTemplate({
                     <h3 className="text-2xl font-bold text-sky-800 dark:text-sky-200 mb-6">Continue the journey.</h3>
 
                     <div className="flex flex-wrap justify-center gap-4">
-                        <Link href="/blog" className="inline-flex items-center gap-2 px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-sky-500/20">
-                            Browse Journal
+                        <Link href="/" className="inline-flex items-center gap-2 px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-sky-500/20">
+                            Explore TaskTornado
                             <HugeIcon name="ArrowRight01" className="w-4 h-4" />
+                        </Link>
+                        <Link href="/blog" className="inline-flex items-center gap-2 px-8 py-3 bg-[#f5f9fc] dark:bg-zinc-800 text-sky-700 dark:text-sky-300 font-bold rounded-full hover:scale-105 active:scale-95 transition-all border border-sky-200/60 dark:border-sky-800/30">
+                            Browse Journal
                         </Link>
                         <Link href="/tutorials" className="inline-flex items-center gap-2 px-8 py-3 bg-[#f5f9fc] dark:bg-zinc-800 text-sky-700 dark:text-sky-300 font-bold rounded-full hover:scale-105 active:scale-95 transition-all border border-sky-200/60 dark:border-sky-800/30">
                             View Tutorials

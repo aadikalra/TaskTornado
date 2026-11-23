@@ -20,6 +20,9 @@ const footerLinks = [
             { name: 'Changelog', href: '/changelog' },
             { name: 'Tutorials', href: '/tutorials' },
             { name: 'Blog', href: '/blog' },
+            { name: 'Grade Calculator', href: '/grades' },
+            { name: 'Word Counter', href: '/wordcount' },
+            { name: 'School Calendar', href: '/publiccalendar' },
         ],
     },
     {

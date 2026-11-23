@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/smart-calendar' },
     title: 'Smart Calendar: Master Your Schedule with Zero Friction | TaskTornado Journal',
     description: 'Stop manually adding every deadline. Our calendar automatically syncs your assignments and helps you visualize your workload over time.',
 };

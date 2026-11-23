@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/learning-center' },
     title: 'The Learning Center: Becoming a TaskTornado Power User | TaskTornado Journal',
     description: 'Maximize your potential. A guide to the tutorials and resources available to help you master every corner of our platform.',
 };

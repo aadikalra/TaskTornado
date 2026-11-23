@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/grade-calculator' },
     title: 'Precision Planning: Beyond the Letter Grade | TaskTornado Journal',
     description: 'Letter grades provide a great summary, but seeing your exact percentage helps you plan your study sessions with precision. Here is how we built a better way to track your progress.',
 };
@@ -60,10 +61,7 @@ export default function GradeCalculatorArticle() {
 
             <h2>A Collaborative Approach</h2>
             <p>
-                While our AI handles the heavy lifting, we believe you should always be in the driver&apos;s seat.
-            </p>
-            <p>
-                Every assignment the AI parses is fully editable on the results screen. You can rename tasks, adjust scores to see &quot;what-if&quot; scenarios, or swap categories with a single click. The grade recalculates instantly, allowing you to model your path to your target grade in real-time.
+                Every assignment you enter is fully editable on the results screen. You can rename tasks, adjust scores to see &quot;what-if&quot; scenarios, or swap categories with a single click. The grade recalculates instantly, allowing you to model your path to your target grade in real-time.
             </p>
             <p>
                 It&apos;s not about replacing your school&apos;s gradebook — it&apos;s about giving you a personalized dashboard to help you reach your full potential.
@@ -83,7 +81,7 @@ export default function GradeCalculatorArticle() {
             </p>
             <p>
                 Head over to the{' '}
-                <Link href="/grade-calculator" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                <Link href="/grades" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                     Grade Calculator
                 </Link>
                 , paste your recent scores, and get the full picture of your progress in seconds.

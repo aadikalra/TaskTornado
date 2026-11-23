@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/focus-timer' },
     title: 'Mastering Deep Work with the TaskTornado Focus Timer | TaskTornado Journal',
     description: 'Not all study time is created equal. Our timer helps you enter the flow state and stay there.',
 };

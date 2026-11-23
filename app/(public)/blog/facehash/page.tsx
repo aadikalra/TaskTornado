@@ -1,9 +1,14 @@
-'use client';
-
+import type { Metadata } from 'next';
 import React from 'react';
 import { BlogArticleTemplate } from '@/components/BlogArticleTemplate';
 import Link from 'next/link';
 import { AnimationDemo } from '@/components/FacehashAnimationDemos';
+
+export const metadata: Metadata = {
+    title: 'Facehash Avatars | TaskTornado Journal',
+    description: 'Learn how TaskTornado makes colorful avatars from names using a deterministic hash.',
+    alternates: { canonical: '/blog/facehash' },
+};
 
 export default function FacehashArticle() {
     return (

@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/the-command-center' },
     title: 'The Command Center: A Unified View of Your Academic Life | TaskTornado Journal',
     description: 'Your dashboard is more than a list of assignments. It is an intelligent hub designed to prioritize your most urgent tasks and celebrate your progress.',
 };

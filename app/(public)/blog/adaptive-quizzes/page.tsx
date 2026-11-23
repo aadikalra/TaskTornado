@@ -4,15 +4,16 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/adaptive-quizzes' },
     title: 'Adaptive Quizzes: Test Your Knowledge, Not Your Patience | TaskTornado Journal',
-    description: 'Stop wondering if you are ready for the test. Our quiz engine generates personalized assessments based on your study materials.',
+    description: 'Use practice questions and explanations from your study materials to check what you know before a test.',
 };
 
 export default function AdaptiveQuizzesArticle() {
     return (
         <BlogArticleTemplate
             title="Quiz Engine"
-            description="Stop wondering if you are ready for the test. Our quiz engine generates personalized assessments based on your study materials."
+            description="Use practice questions and explanations from your study materials to check what you know before a test."
             category="Product"
             author="Aadi Kalra"
             authorRole="Founder"

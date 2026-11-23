@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/research-hub' },
     title: 'The Research Hub: How Web Saves Professionalize Your Study | TaskTornado Journal',
     description: 'Research is messy. Our web saves tool keeps your sources organized, searchable, and always at your fingertips.',
 };

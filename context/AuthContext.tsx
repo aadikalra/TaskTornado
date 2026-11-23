@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { PUBLIC_CONTENT_PATHS } from '@/lib/public-content';
 
 type SignUpEligibility = {
   dateOfBirth: string;
@@ -375,10 +376,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     linkedStudents,
   };
 
+  const isPublicContent = PUBLIC_CONTENT_PATHS.includes(pathname) || pathname.startsWith('/blog/');
+
   return (
     <AuthContext.Provider value={value}>
-      {/* The homepage waits for auth only when a session may exist. */}
-      {loading && pathname !== '/' ? <AuthLoadingScreen /> : children}
+      {/* Render public content while the session loads. The homepage has its own session-cookie check. */}
+      {loading && !isPublicContent ? <AuthLoadingScreen /> : children}
     </AuthContext.Provider>
   );
 }

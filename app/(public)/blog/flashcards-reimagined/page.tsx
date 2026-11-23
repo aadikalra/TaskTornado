@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/flashcards-reimagined' },
     title: 'Flashcards Reimagined: The Secret to Long-Term Retention | TaskTornado Journal',
     description: 'Active recall is the most powerful study technique. See how our flashcards system helps you build a library of knowledge that sticks.',
 };

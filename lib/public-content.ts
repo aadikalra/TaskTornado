@@ -1,0 +1,17 @@
+export const PUBLIC_CONTENT_PATHS = [
+    '/',
+    '/features',
+    '/pricing',
+    '/teachers',
+    '/guardians',
+    '/blog',
+    '/changelog',
+    '/grades',
+    '/wordcount',
+    '/publiccalendar',
+    '/tutorials',
+    '/tutorials/onboarding',
+    '/tutorials/recurring-homeworks',
+    '/tutorials/starring-homeworks',
+    '/tutorials/test-details',
+];

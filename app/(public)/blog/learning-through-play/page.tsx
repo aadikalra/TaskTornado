@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/blog/learning-through-play' },
     title: 'Educational Games: Why Play is Essential for High Performance | TaskTornado Journal',
     description: 'Break the monotony of study. Our academic games turn practice into a challenge you will actually want to complete.',
 };

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { formatCalendarDate } from '@/lib/dateUtils';
 import ChangelogClient from './ChangelogClient';
 
 export const metadata: Metadata = {
@@ -31,5 +32,5 @@ async function getChangelogData() {
 export default async function ChangelogPage() {
     const versions = await getChangelogData();
 
-    return <ChangelogClient initialVersions={versions} />;
+    return <ChangelogClient initialVersions={versions} initialDate={formatCalendarDate(new Date())} />;
 }
