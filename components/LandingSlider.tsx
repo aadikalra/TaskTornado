@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
-import { onViewChange, emitViewChange, setGlobalActiveView, getGlobalActiveView } from '@/components/RoleSwitcher';
+import { onViewChange, emitViewChange, setGlobalActiveView } from '@/components/RoleSwitcher';
 import StudentLandingContent from '@/components/StudentLandingContent';
-import GuardiansContent from '@/components/GuardiansContent';
-import TeachersContent from '@/components/TeachersContent';
+
+const GuardiansContent = dynamic(() => import('@/components/GuardiansContent'));
+const TeachersContent = dynamic(() => import('@/components/TeachersContent'));
 
 const VIEW_ORDER = ['students', 'guardians', 'teachers'] as const;
 type ViewType = typeof VIEW_ORDER[number];
@@ -19,14 +21,26 @@ function viewFromPath(path: string): ViewType {
 export function LandingSlider({ initialView = 'students' }: { initialView?: string }) {
     const pathname = usePathname();
 
+    const normalizedInitial = (VIEW_ORDER.includes(initialView as ViewType) ? initialView : 'students') as ViewType;
+
     // Determine view from URL first, then prop fallback
     const [activeView, setActiveView] = useState<ViewType>(() => {
-        // On first render, prefer URL-based detection
         if (typeof window !== 'undefined') {
             return viewFromPath(window.location.pathname);
         }
-        return (VIEW_ORDER.includes(initialView as ViewType) ? initialView : 'students') as ViewType;
+        return normalizedInitial;
     });
+
+    const [mountedViews, setMountedViews] = useState<Record<ViewType, boolean>>(() => ({
+        students: normalizedInitial === 'students',
+        guardians: normalizedInitial === 'guardians',
+        teachers: normalizedInitial === 'teachers',
+    }));
+
+    // Ensure the active panel is mounted
+    useEffect(() => {
+        setMountedViews((prev) => (prev[activeView] ? prev : { ...prev, [activeView]: true }));
+    }, [activeView]);
 
     // Sync with pathname when Next.js navigates to a landing route
     useEffect(() => {
@@ -89,22 +103,33 @@ export function LandingSlider({ initialView = 'students' }: { initialView?: stri
                     width: `${VIEW_ORDER.length * 100}%`,
                     transform: `translateX(-${activeIndex * (100 / VIEW_ORDER.length)}%)`,
                     transition: 'transform 0.55s cubic-bezier(0.45, 0, 0.15, 1)',
-                    willChange: 'transform',
                 }}
             >
                 {/* Panel: For Students */}
-                <div style={{ width: `${100 / VIEW_ORDER.length}%`, flexShrink: 0 }}>
-                    <StudentLandingContent />
+                <div
+                    style={{ width: `${100 / VIEW_ORDER.length}%`, flexShrink: 0 }}
+                    inert={activeView !== 'students' ? true : undefined}
+                    aria-hidden={activeView !== 'students' ? true : undefined}
+                >
+                    {mountedViews.students ? <StudentLandingContent /> : null}
                 </div>
 
                 {/* Panel: For Guardians */}
-                <div style={{ width: `${100 / VIEW_ORDER.length}%`, flexShrink: 0 }}>
-                    <GuardiansContent />
+                <div
+                    style={{ width: `${100 / VIEW_ORDER.length}%`, flexShrink: 0 }}
+                    inert={activeView !== 'guardians' ? true : undefined}
+                    aria-hidden={activeView !== 'guardians' ? true : undefined}
+                >
+                    {mountedViews.guardians ? <GuardiansContent /> : null}
                 </div>
 
                 {/* Panel: For Teachers */}
-                <div style={{ width: `${100 / VIEW_ORDER.length}%`, flexShrink: 0 }}>
-                    <TeachersContent />
+                <div
+                    style={{ width: `${100 / VIEW_ORDER.length}%`, flexShrink: 0 }}
+                    inert={activeView !== 'teachers' ? true : undefined}
+                    aria-hidden={activeView !== 'teachers' ? true : undefined}
+                >
+                    {mountedViews.teachers ? <TeachersContent /> : null}
                 </div>
             </div>
         </div>

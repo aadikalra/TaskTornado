@@ -1,49 +1,29 @@
 'use client';
 
-import Script from 'next/script';
-import { useRef, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import styles from './HomepageBadges.module.css';
 
-declare global {
-    interface Window {
-        Trustpilot?: {
-            loadFromElement: (element: HTMLElement) => void;
-        };
-    }
-}
-
-function TrustBox() {
-    const widget = useRef<HTMLDivElement>(null);
-
+function TrustpilotBadge() {
     return (
-        <>
-            <div
-                ref={widget}
-                className="trustpilot-widget w-full text-center"
-                data-locale="en-US"
-                data-template-id="56278e9abfbbba0bdcd568bc"
-                data-businessunit-id="6b03ca589898c9d06ed5b473"
-                data-style-height="52px"
-                data-style-width="100%"
-            >
-                <a
-                    href="https://www.trustpilot.com/review/tasktornado.app"
-                    target="_blank"
-                    rel="noopener"
-                    className="text-sm font-semibold text-[#275085] underline underline-offset-4 dark:text-sky-200"
+        <a
+            href="https://www.trustpilot.com/review/tasktornado.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg border border-[#00b67a]/35 bg-white px-4 text-sm font-semibold text-[#191919] shadow-xs transition-colors hover:border-[#00b67a] dark:border-[#00b67a]/40 dark:bg-zinc-900 dark:text-zinc-100"
+        >
+            <span>Review us on</span>
+            <span className="inline-flex items-center gap-1 font-bold">
+                <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 text-[#00b67a]"
+                    fill="currentColor"
                 >
-                    Trustpilot
-                </a>
-            </div>
-            <Script
-                src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
-                strategy="afterInteractive"
-                async
-                onReady={() => {
-                    if (widget.current) window.Trustpilot?.loadFromElement(widget.current);
-                }}
-            />
-        </>
+                    <path d="M12 1.75l2.85 6.86 7.4.6-5.64 4.84 1.72 7.2L12 17.39l-6.33 3.86 1.72-7.2-5.64-4.84 7.4-.6L12 1.75z" />
+                </svg>
+                <span>Trustpilot</span>
+            </span>
+        </a>
     );
 }
 
@@ -70,6 +50,7 @@ function ThemedBadge({
                 width={width}
                 height={height}
                 loading="lazy"
+                decoding="async"
                 className="h-auto max-w-full dark:hidden"
             />
             <img
@@ -78,6 +59,7 @@ function ThemedBadge({
                 width={width}
                 height={height}
                 loading="lazy"
+                decoding="async"
                 className="hidden h-auto max-w-full dark:block"
             />
         </a>
@@ -88,17 +70,27 @@ const badges = [
     {
         name: 'BuiltByIndies',
         content: (
-            <div
-                className="[&_img]:h-[60px]"
-                dangerouslySetInnerHTML={{
-                    __html: '<a href="https://builtbyindies.com/products/tasktornado?utm_source=badge&utm_medium=embed&utm_campaign=live" target="_blank"><img src="https://builtbyindies.com/badge/f60292b4-3615-4fe0-9484-0a81f7d0bf9e.svg" alt="BuiltByIndies" height="60" /></a>',
-                }}
-            />
+            <a
+                href="https://builtbyindies.com/products/tasktornado?utm_source=badge&utm_medium=embed&utm_campaign=live"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center"
+            >
+                <img
+                    src="https://builtbyindies.com/badge/f60292b4-3615-4fe0-9484-0a81f7d0bf9e.svg"
+                    alt="BuiltByIndies"
+                    width={220}
+                    height={60}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-[60px] w-auto"
+                />
+            </a>
         ),
     },
     {
         name: 'Trustpilot',
-        content: <TrustBox />,
+        content: <TrustpilotBadge />,
     },
     {
         name: 'Boost Domain Rating',
@@ -138,13 +130,14 @@ export default function HomepageBadges() {
                     </li>
                 ))}
             </ul>
-            <a href="https://semilaunch.com/" target="_blank" rel="noopener" hidden>
+            <a href="https://semilaunch.com/" target="_blank" rel="noopener noreferrer" hidden>
                 <img
                     src="https://semilaunch.com/assets/badge.png"
                     alt="Featured on SemiLaunch"
                     width={220}
                     height={77}
                     loading="lazy"
+                    decoding="async"
                 />
             </a>
         </section>

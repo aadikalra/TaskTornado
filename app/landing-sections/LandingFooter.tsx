@@ -61,14 +61,14 @@ export default function LandingFooter() {
                     {/* Brand Column */}
                     <div className="lg:col-span-5 flex flex-col items-start px-0 lg:pr-12">
                         <Link href="/" className="inline-flex items-center gap-3 mb-6 group">
-                            <img src="/2.svg" alt="Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 dark:hidden" />
-                            <img src="/3.svg" alt="Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 hidden dark:block" />
-                            <span className="text-xl font-bold tracking-tight text-[#275085] dark:text-[#4a9cdb]">
+                            <img src="/logo-light.webp" alt="" width={40} height={40} loading="lazy" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 dark:hidden" />
+                            <img src="/logo-dark.webp" alt="" width={40} height={40} loading="lazy" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 hidden dark:block" />
+                            <span className="text-xl font-bold tracking-tight text-[#275085] dark:text-[#7ec0f2]">
                                 Task Tornado
                             </span>
                         </Link>
 
-                        <p className="text-[#275085]/60 dark:text-[#4a9cdb]/50 text-base leading-relaxed max-w-sm mb-8 font-medium">
+                        <p className="text-[#275085]/85 dark:text-[#9bd0f7] text-base leading-relaxed max-w-sm mb-8 font-medium">
                             The intelligent school organizer that helps you stay ahead. Built for students who want to master their time and excel in their studies.
                         </p>
 
@@ -77,10 +77,10 @@ export default function LandingFooter() {
                                 <Link
                                     key={social.label}
                                     href={social.href}
-                                    className="p-2.5 rounded-full bg-white dark:bg-zinc-800 border border-[#275085]/8 dark:border-[#4a9cdb]/10 text-[#275085]/40 dark:text-[#4a9cdb]/40 hover:text-[#b5d565] dark:hover:text-[#b5d565] hover:border-[#b5d565]/30 dark:hover:border-[#b5d565]/30 hover:shadow-md transition-all duration-300"
+                                    className="p-2.5 rounded-full bg-white dark:bg-zinc-800 border border-[#275085]/12 dark:border-[#4a9cdb]/20 text-[#275085]/80 dark:text-[#8cc8f5] hover:text-[#275085] dark:hover:text-[#b5d565] hover:border-[#b5d565]/40 dark:hover:border-[#b5d565]/40 hover:shadow-md transition-all duration-300"
                                     aria-label={social.label}
                                 >
-                                    <social.icon className="w-4.5 h-4.5" />
+                                    <social.icon aria-hidden="true" className="w-4.5 h-4.5" />
                                 </Link>
                             ))}
                         </div>
@@ -90,19 +90,19 @@ export default function LandingFooter() {
                     <div className="lg:col-span-7 grid grid-cols-2 md:grid-cols-4 gap-6">
                         {footerLinks.map((column) => (
                             <div key={column.title}>
-                                <h4 className="text-[10px] font-bold text-[#275085] dark:text-[#4a9cdb] uppercase tracking-[0.15em] mb-6">
+                                <h2 className="text-[10px] font-bold text-[#275085] dark:text-[#7ec0f2] uppercase tracking-[0.15em] mb-6">
                                     {column.title}
-                                </h4>
+                                </h2>
                                 <ul className="space-y-4">
                                     {column.links.map((link) => (
                                         <li key={link.name}>
                                             <Link
                                                 href={link.href}
-                                                className="group text-[15px] text-[#275085]/55 dark:text-[#4a9cdb]/50 hover:text-[#275085] dark:hover:text-[#4a9cdb] transition-colors font-medium flex items-center gap-1"
+                                                className="group text-[15px] text-[#275085]/85 dark:text-[#9bd0f7] hover:text-[#275085] dark:hover:text-white transition-colors font-medium flex items-center gap-1"
                                             >
                                                 {link.name}
                                                 {link.href.startsWith('http') || link.href.startsWith('mailto') ? (
-                                                    <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <ArrowUpRight aria-hidden="true" className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                                                 ) : null}
                                             </Link>
                                         </li>
@@ -115,14 +115,14 @@ export default function LandingFooter() {
 
                 {/* Bottom Bar */}
                 <div className="mt-20 pt-8 border-t border-[#275085]/8 dark:border-[#4a9cdb]/8 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p className="text-sm text-[#275085]/40 dark:text-[#4a9cdb]/40 font-medium">
+                    <p className="text-sm text-[#275085]/80 dark:text-[#8cc8f5] font-medium">
                         © {new Date().getFullYear()} TaskTornado. All rights reserved.
                     </p>
 
                     <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#8bc34a]/8 border border-[#8bc34a]/15">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#8bc34a] animate-pulse" />
-                            <span className="text-[12px] font-bold text-[#8bc34a]">All systems operational</span>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#8bc34a]/10 border border-[#8bc34a]/25">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#4d7c0f] dark:bg-[#a6d96a] animate-pulse" />
+                            <span className="text-[12px] font-bold text-[#3f6b11] dark:text-[#a6d96a]">All systems operational</span>
                         </div>
                     </div>
                 </div>

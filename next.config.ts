@@ -9,7 +9,11 @@ const nextConfig: NextConfig = {
   // directory so Turbopack does not select the parent package-lock as its root.
   outputFileTracingRoot: projectRoot,
   allowedDevOrigins: ['192.168.1.105'],
+  env: {
+    NEXT_PUBLIC_IS_VERCEL: process.env.VERCEL ? '1' : '',
+  },
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -131,6 +135,14 @@ const nextConfig: NextConfig = {
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), geolocation=()',
           },
         ],
       },

@@ -1,35 +1,34 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import HeroWaves from './HeroWaves';
 import styles from './Hero.module.css';
 
-import {   Brain, CalendarCheck, BookOpen, LayoutGrid, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Bookmark, Gamepad2 } from 'lucide-react';
+import { Brain, CalendarCheck, BookOpen, LayoutGrid, PenTool, Languages, Calculator, Users, MessageSquare, Timer, Bookmark, Gamepad2 } from 'lucide-react';
 
 // ─── Rotating word pairs ─────────────────────────────────────────────────────────
 const ROTATING_WORDS = [
-    { bold: 'organized', color: 'text-[#b5d565]' },
-    { bold: 'ahead', color: 'text-[#b5d565]' },
-    { bold: 'unstoppable', color: 'text-[#b5d565]' },
-    { bold: 'stress-free', color: 'text-[#b5d565]' },
-    { bold: 'on track', color: 'text-[#b5d565]' },
+    { bold: 'organized', color: 'text-[#4f7d18] dark:text-[#b5d565]' },
+    { bold: 'ahead', color: 'text-[#4f7d18] dark:text-[#b5d565]' },
+    { bold: 'unstoppable', color: 'text-[#4f7d18] dark:text-[#b5d565]' },
+    { bold: 'stress-free', color: 'text-[#4f7d18] dark:text-[#b5d565]' },
+    { bold: 'on track', color: 'text-[#4f7d18] dark:text-[#b5d565]' },
 ];
 
 // ─── Orbiting feature chips — real app features from the DockNav ─────────────────
 const ORBITING_CHIPS = [
-    { icon: Brain, label: 'Aurora AI', accent: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200/60 dark:border-violet-800/30', startAngle: 0, radius: 185 },
-    { icon: CalendarCheck, label: 'Calendar', accent: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200/60 dark:border-blue-800/30', startAngle: 30, radius: 215 },
-    { icon: BookOpen, label: 'Flashcards', accent: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200/60 dark:border-amber-800/30', startAngle: 60, radius: 185 },
-    { icon: LayoutGrid, label: 'Quizzes', accent: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-200/60 dark:border-indigo-800/30', startAngle: 90, radius: 215 },
-    { icon: PenTool, label: 'Writing', accent: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200/60 dark:border-pink-800/30', startAngle: 120, radius: 185 },
-    { icon: Languages, label: 'Translate', accent: 'text-sky-500', bg: 'bg-sky-50 dark:bg-sky-950/30', border: 'border-sky-200/60 dark:border-sky-800/30', startAngle: 150, radius: 215 },
-    { icon: Calculator, label: 'Grades', accent: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200/60 dark:border-emerald-800/30', startAngle: 180, radius: 185 },
-    { icon: Users, label: 'Groups', accent: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200/60 dark:border-cyan-800/30', startAngle: 210, radius: 215 },
-    { icon: MessageSquare, label: 'Discuss', accent: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950/30', border: 'border-teal-200/60 dark:border-teal-800/30', startAngle: 240, radius: 185 },
-    { icon: Timer, label: 'Study Timer', accent: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200/60 dark:border-orange-800/30', startAngle: 270, radius: 215 },
-    { icon: Bookmark, label: 'Web Saves', accent: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/30', border: 'border-rose-200/60 dark:border-rose-800/30', startAngle: 300, radius: 185 },
-    { icon: Gamepad2, label: 'Games', accent: 'text-fuchsia-500', bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30', border: 'border-fuchsia-200/60 dark:border-fuchsia-800/30', startAngle: 330, radius: 215 },
+    { icon: Brain, label: 'Aurora AI', accent: 'text-violet-700 dark:text-violet-300', bg: 'bg-violet-50 dark:bg-violet-950/60', border: 'border-violet-200/60 dark:border-violet-800/40', startAngle: 0, radius: 185 },
+    { icon: CalendarCheck, label: 'Calendar', accent: 'text-blue-700 dark:text-blue-300', bg: 'bg-blue-50 dark:bg-blue-950/60', border: 'border-blue-200/60 dark:border-blue-800/40', startAngle: 30, radius: 215 },
+    { icon: BookOpen, label: 'Flashcards', accent: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-50 dark:bg-amber-950/60', border: 'border-amber-200/60 dark:border-amber-800/40', startAngle: 60, radius: 185 },
+    { icon: LayoutGrid, label: 'Quizzes', accent: 'text-indigo-700 dark:text-indigo-300', bg: 'bg-indigo-50 dark:bg-indigo-950/60', border: 'border-indigo-200/60 dark:border-indigo-800/40', startAngle: 90, radius: 215 },
+    { icon: PenTool, label: 'Writing', accent: 'text-pink-700 dark:text-pink-300', bg: 'bg-pink-50 dark:bg-pink-950/60', border: 'border-pink-200/60 dark:border-pink-800/40', startAngle: 120, radius: 185 },
+    { icon: Languages, label: 'Translate', accent: 'text-sky-700 dark:text-sky-300', bg: 'bg-sky-50 dark:bg-sky-950/60', border: 'border-sky-200/60 dark:border-sky-800/40', startAngle: 150, radius: 215 },
+    { icon: Calculator, label: 'Grades', accent: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-50 dark:bg-emerald-950/60', border: 'border-emerald-200/60 dark:border-emerald-800/40', startAngle: 180, radius: 185 },
+    { icon: Users, label: 'Groups', accent: 'text-cyan-700 dark:text-cyan-300', bg: 'bg-cyan-50 dark:bg-cyan-950/60', border: 'border-cyan-200/60 dark:border-cyan-800/40', startAngle: 210, radius: 215 },
+    { icon: MessageSquare, label: 'Discuss', accent: 'text-teal-700 dark:text-teal-300', bg: 'bg-teal-50 dark:bg-teal-950/60', border: 'border-teal-200/60 dark:border-teal-800/40', startAngle: 240, radius: 185 },
+    { icon: Timer, label: 'Study Timer', accent: 'text-orange-700 dark:text-orange-300', bg: 'bg-orange-50 dark:bg-orange-950/60', border: 'border-orange-200/60 dark:border-orange-800/40', startAngle: 270, radius: 215 },
+    { icon: Bookmark, label: 'Web Saves', accent: 'text-rose-700 dark:text-rose-300', bg: 'bg-rose-50 dark:bg-rose-950/60', border: 'border-rose-200/60 dark:border-rose-800/40', startAngle: 300, radius: 185 },
+    { icon: Gamepad2, label: 'Games', accent: 'text-fuchsia-700 dark:text-fuchsia-300', bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/60', border: 'border-fuchsia-200/60 dark:border-fuchsia-800/40', startAngle: 330, radius: 215 },
 ];
 
 const ORBIT_DURATION = 45; // seconds for a full revolution
@@ -37,32 +36,22 @@ const ORBIT_DURATION = 45; // seconds for a full revolution
 export default function Hero() {
     const [index, setIndex] = useState(0);
     const orbitRef = useRef<HTMLDivElement>(null);
-
-    // ── Mouse-reactive motion values ──────────────────────────
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
-
-    // Smooth spring physics for the follow effect
-    const springConfig = { stiffness: 150, damping: 20, mass: 0.5 };
-    const logoX = useSpring(mouseX, springConfig);
-    const logoY = useSpring(mouseY, springConfig);
+    const logoWrapRef = useRef<HTMLDivElement>(null);
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        if (!orbitRef.current) return;
+        if (!orbitRef.current || !logoWrapRef.current) return;
         const rect = orbitRef.current.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        // Normalize to -1..1 range, then scale to pixels of movement
         const nx = (e.clientX - centerX) / (rect.width / 2);
         const ny = (e.clientY - centerY) / (rect.height / 2);
-        mouseX.set(nx * 18);  // max 18px shift
-        mouseY.set(ny * 14);  // max 14px shift
-    }, [mouseX, mouseY]);
+        logoWrapRef.current.style.transform = `translate3d(${(nx * 18).toFixed(1)}px, ${(ny * 14).toFixed(1)}px, 0)`;
+    }, []);
 
     const handleMouseLeave = useCallback(() => {
-        mouseX.set(0);
-        mouseY.set(0);
-    }, [mouseX, mouseY]);
+        if (!logoWrapRef.current) return;
+        logoWrapRef.current.style.transform = 'translate3d(0, 0, 0)';
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -75,62 +64,60 @@ export default function Hero() {
         <section className={`${styles.hero} relative min-h-svh flex flex-col justify-center pt-20 pb-24 lg:pb-10 overflow-hidden`}>
             <HeroWaves />
 
-            {/* Orbit keyframes injected once */}
+            {/* Orbit & word-swap keyframes injected once */}
             <style>{`
                 @keyframes orbit {
                     from { transform: rotate(var(--start)) translateX(var(--radius)) rotate(calc(-1 * var(--start))); }
                     to   { transform: rotate(calc(var(--start) + 360deg)) translateX(var(--radius)) rotate(calc(-1 * (var(--start) + 360deg))); }
                 }
+                @keyframes word-in {
+                    from { transform: translateY(36%); opacity: 0; }
+                    to   { transform: translateY(0); opacity: 1; }
+                }
             `}</style>
 
-            {/* ── Multi-layer ambient glow ─────────────────────────── */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#275085]/[0.02] dark:bg-[#4a9cdb]/[0.06] rounded-full blur-[140px]" />
-                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-violet-400/[0.03] dark:bg-violet-500/[0.04] rounded-full blur-[120px]" />
-                <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-400/[0.03] dark:bg-emerald-500/[0.04] rounded-full blur-[100px]" />
+            {/* ── Multi-layer ambient glow (zero-blur radial gradients for fast paint) ── */}
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                <div
+                    className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[700px] rounded-full opacity-60 dark:opacity-100"
+                    style={{ background: 'radial-gradient(circle, rgba(74,156,219,0.08) 0%, transparent 65%)' }}
+                />
+                <div
+                    className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 65%)' }}
+                />
+                <div
+                    className="absolute top-1/3 right-0 w-[400px] h-[400px] rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 65%)' }}
+                />
             </div>
 
             <div className="relative z-10 w-full px-4 md:px-8 flex flex-col lg:flex-row items-center justify-between gap-3 md:gap-6 lg:gap-0">
                 {/* ── Left Column: Content ─────────────────────────────── */}
                 <div className="text-left pt-8 sm:pt-12 lg:py-12 px-2 sm:pl-6 md:pl-12 xl:pl-[4.25vw] lg:w-[50%] xl:w-[55%]">
                     {/* ── Headline with rotating word ──────────────────────── */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1, duration: 0.6 }}
-                        className="mb-5 sm:mb-8"
-                    >
+                    <div className="mb-5 sm:mb-8">
                         <h1 className="text-3xl md:text-5xl lg:text-[clamp(2.5rem,4.25vw,4.75rem)] font-bold tracking-tight leading-[1.08]">
-                            <span className="text-[#275085] dark:text-[#4a9cdb]">Everything you need</span>
+                            <span className="text-[#275085] dark:text-[#7ec0f2]">Everything you need</span>
                             <br />
-                            <span className="text-[#275085] dark:text-[#4a9cdb]">to stay </span>
+                            <span className="text-[#275085] dark:text-[#7ec0f2]">to stay </span>
                             <span className="inline-flex overflow-hidden align-baseline">
-                                <AnimatePresence mode="wait">
-                                    <motion.span
-                                        key={index}
-                                        initial={{ y: 60, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        exit={{ y: -60, opacity: 0 }}
-                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                        className={`${ROTATING_WORDS[index].color} whitespace-nowrap`}
-                                    >
-                                        {ROTATING_WORDS[index].bold}
-                                    </motion.span>
-                                </AnimatePresence>
+                                <span
+                                    key={index}
+                                    style={index > 0 ? { animation: 'word-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both' } : undefined}
+                                    className={`${ROTATING_WORDS[index].color} whitespace-nowrap`}
+                                >
+                                    {ROTATING_WORDS[index].bold}
+                                </span>
                             </span>
-                            <span className="text-[#275085] dark:text-[#4a9cdb]">.</span>
+                            <span className="text-[#275085] dark:text-[#7ec0f2]">.</span>
                         </h1>
-                    </motion.div>
+                    </div>
 
                     {/* ── Subtitle ─────────────────────────────────────────── */}
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2, duration: 0.5 }}
-                        className="text-base sm:text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium"
-                    >
+                    <p className="text-base sm:text-xl md:text-2xl text-[#275085]/85 dark:text-[#9bd0f7] max-w-2xl leading-relaxed font-medium">
                         TaskTornado is a free student planner for tracking homework, classes, and deadlines, with study help from Aurora AI.
-                    </motion.p>
+                    </p>
                 </div>
 
                 {/* ── Right Column: Visual (Orbit) ──────────────────────── */}
@@ -160,8 +147,8 @@ export default function Hero() {
                                         animation: `orbit ${ORBIT_DURATION}s linear infinite`,
                                     }}
                                 >
-                                    <div className={`w-max flex items-center gap-2 px-5 py-2.5 ${chip.bg} border ${chip.border} rounded-full shadow-md whitespace-nowrap backdrop-blur-md -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110`}>
-                                        <chip.icon className={`w-4 h-4 ${chip.accent}`} />
+                                    <div className={`w-max flex items-center gap-2 px-5 py-2.5 ${chip.bg} border ${chip.border} rounded-full shadow-md whitespace-nowrap -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110`}>
+                                        <chip.icon aria-hidden="true" className={`w-4 h-4 ${chip.accent}`} />
                                         <span className={`text-[13px] font-bold ${chip.accent}`}>{chip.label}</span>
                                     </div>
                                 </div>
@@ -169,45 +156,46 @@ export default function Hero() {
                         </div>
 
                         {/* ── Central logo — mouse-reactive ─────────────────── */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.6 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3, duration: 0.6, type: 'spring', bounce: 0.25 }}
-                            className="relative z-20"
-                            style={{ x: logoX, y: logoY, perspective: 600 }}
+                        <div
+                            ref={logoWrapRef}
+                            className="relative z-20 transition-transform duration-300 ease-out"
                         >
-                            <motion.div
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#275085]/[0.1] dark:bg-[#4a9cdb]/[0.08] rounded-full blur-[100px] pointer-events-none"
-                                style={{ x: logoX, y: logoY }}
+                            <div
+                                aria-hidden="true"
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full pointer-events-none"
+                                style={{ background: 'radial-gradient(circle, rgba(74,156,219,0.14) 0%, transparent 65%)' }}
                             />
 
                             <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-64 md:h-64 flex items-center justify-center">
-                                <img
-                                    src="/2.svg"
-                                    alt="TaskTornado"
-                                    className="w-32 h-32 md:w-48 md:h-48 relative z-20 drop-shadow-[0_25px_60px_rgba(39,80,133,0.35)] transition-transform duration-500 hover:scale-110 dark:hidden"
-                                />
-                                <img
-                                    src="/3.svg"
-                                    alt="TaskTornado"
-                                    className="w-32 h-32 md:w-48 md:h-48 relative z-20 drop-shadow-[0_25px_60px_rgba(74,156,219,0.35)] transition-transform duration-500 hover:scale-110 hidden dark:block"
-                                />
+                                <picture className="relative z-20 block w-32 h-32 md:w-48 md:h-48">
+                                    <source
+                                        media="(prefers-color-scheme: dark)"
+                                        srcSet="/logo-dark.webp"
+                                        type="image/webp"
+                                    />
+                                    <img
+                                        src="/logo-light.webp"
+                                        alt="TaskTornado"
+                                        width={192}
+                                        height={192}
+                                        fetchPriority="high"
+                                        decoding="sync"
+                                        className="w-32 h-32 md:w-48 md:h-48 drop-shadow-[0_18px_36px_rgba(39,80,133,0.3)] dark:drop-shadow-[0_18px_36px_rgba(74,156,219,0.3)] transition-transform duration-500 hover:scale-110"
+                                    />
+                                </picture>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* ── Mobile/Tablet chips (stacked, no orbit) ──────────────── */}
                         <div className="lg:hidden flex flex-wrap items-center justify-center gap-2.5">
                             {ORBITING_CHIPS.slice(0, 8).map((chip, i) => (
-                                <motion.div
+                                <div
                                     key={i}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.6 + i * 0.08 }}
-                                    className={`flex items-center gap-2 px-4 py-2 ${chip.bg} border ${chip.border} rounded-full shadow-sm backdrop-blur-sm`}
+                                    className={`flex items-center gap-2 px-4 py-2 ${chip.bg} border ${chip.border} rounded-full shadow-sm`}
                                 >
-                                    <chip.icon className={`w-3.5 h-3.5 ${chip.accent}`} />
+                                    <chip.icon aria-hidden="true" className={`w-3.5 h-3.5 ${chip.accent}`} />
                                     <span className={`text-[12px] font-bold ${chip.accent}`}>{chip.label}</span>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
                     </div>

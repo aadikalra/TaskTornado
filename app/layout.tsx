@@ -13,18 +13,21 @@ const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
 });
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
 });
 
 const nunitoSans = Nunito_Sans({
@@ -39,6 +42,7 @@ const eduNswActCursive = Edu_NSW_ACT_Cursive({
   subsets: ['latin'],
   display: 'swap',
   adjustFontFallback: false,
+  preload: false,
 });
 
 export const metadata = {
@@ -49,16 +53,16 @@ export const metadata = {
   authors: [{ name: 'TaskTornado Team' }],
   icons: {
     icon: [
-      { url: '/2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: '/3.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
+      { url: '/favicon-light.png', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/favicon-dark.png', type: 'image/png', media: '(prefers-color-scheme: dark)' },
     ],
     apple: [
-      { url: '/2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: '/3.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
+      { url: '/favicon-light.png', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/favicon-dark.png', type: 'image/png', media: '(prefers-color-scheme: dark)' },
     ],
     shortcut: [
-      { url: '/2.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' },
-      { url: '/3.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
+      { url: '/favicon-light.png', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/favicon-dark.png', type: 'image/png', media: '(prefers-color-scheme: dark)' },
     ],
   },
 };
@@ -76,7 +80,27 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
-
+        <link
+          rel="preload"
+          as="image"
+          href="/logo-light.webp"
+          type="image/webp"
+          media="(prefers-color-scheme: light)"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/logo-dark.webp"
+          type="image/webp"
+          media="(prefers-color-scheme: dark)"
+          fetchPriority="high"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${nunitoSans.variable} ${eduNswActCursive.variable} font-sans antialiased bg-[#F8FAFC] dark:bg-gray-900 text-[#111827] dark:text-gray-100`} suppressHydrationWarning>
         <AuthProvider>

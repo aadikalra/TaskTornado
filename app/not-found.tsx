@@ -1,15 +1,12 @@
 import React from "react";
 import Link from "next/link";
+import NotFoundBackdrop from "@/components/NotFoundBackdrop";
 
 export default function NotFound() {
   return (
     <>
       <div className="w-full h-screen dark:hidden relative">
-        <img 
-          src="/404_Page.png" 
-          alt="404 Page Not Found" 
-          className="w-full h-full object-cover"
-        />
+        <NotFoundBackdrop />
         <div className="absolute top-24 left-1/2 transform -translate-x-1/2">
           <h1 className="text-6xl font-bold text-[#275085]">404</h1>
         </div>
@@ -23,11 +20,7 @@ export default function NotFound() {
         </div>
       </div>
       <div className="w-full h-screen hidden dark:block relative">
-        <img 
-          src="/404_Page_Dark.png" 
-          alt="404 Page Not Found" 
-          className="w-full h-full object-cover"
-        />
+        <NotFoundBackdrop dark />
         <div className="absolute top-24 left-1/2 transform -translate-x-1/2">
           <h1 className="text-6xl font-bold text-white">404</h1>
         </div>

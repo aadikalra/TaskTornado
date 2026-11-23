@@ -2,22 +2,22 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Analytics } from '@vercel/analytics/next';
-import { SearchBar } from '@/components/SearchBar';
 import { useAI } from '@/context/AIContext';
 import { useAuth } from '@/context/AuthContext';
-import { CustomContextMenu } from '@/components/CustomContextMenu';
-import { DictionaryPopup } from '@/components/DictionaryPopup';
+import { useSearch } from '@/context/SearchContext';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import ReboundNavbar from '@/components/ReboundNavbar';
 import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
-import AdvancedAIGlow from '@/components/AdvancedAIGlow';
-import { PageTransition } from '@/components/animate-ui/components/page-transition';
 
 // Register custom eye types before any Facehash renders
 patchFacehashFaces();
 
-// Dynamically import navs with no SSR to avoid hydration issues
+const PageTransition = dynamic(
+  () => import('@/components/animate-ui/components/page-transition').then((m) => m.PageTransition),
+);
+
+// Dynamically import heavy overlays & authenticated navs so the public landing page stays fast
 const AppNavbar = dynamic(() => import('@/components/AppNavbar'), {
   ssr: false,
 });
@@ -26,7 +26,21 @@ const GuardianNavbar = dynamic(() => import('@/components/GuardianNavbar'), {
   ssr: false,
 });
 
-const AIAssistant = dynamic(() => import('@/components/AIAssistant').then((m) => m.AIAssistant), {
+const SearchBar = dynamic(() => import('@/components/SearchBar').then((m) => m.SearchBar), {
+  ssr: false,
+});
+
+const CustomContextMenu = dynamic(
+  () => import('@/components/CustomContextMenu').then((m) => m.CustomContextMenu),
+  { ssr: false }
+);
+
+const DictionaryPopup = dynamic(
+  () => import('@/components/DictionaryPopup').then((m) => m.DictionaryPopup),
+  { ssr: false }
+);
+
+const AdvancedAIGlow = dynamic(() => import('@/components/AdvancedAIGlow'), {
   ssr: false,
 });
 
@@ -57,24 +71,31 @@ const STUDENT_ONLY_ROUTES = [
 export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAIAssistantOpen, isAISidebarMode, setAIAssistantOpen } = useAI();
+  const { isAIAssistantOpen, isAISidebarMode } = useAI();
   const { user, isGuardian, loading: authLoading } = useAuth() || {};
+  const { isOpen: isSearchOpen } = useSearch();
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string; isAiChat?: boolean } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
 
-  const [isMounted, setIsMounted] = React.useState(false);
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  
-  // Advanced AI Mode state
+  // Advanced AI Mode state + accessibility preferences from cookies
   const [advancedAIMode, setAdvancedAIMode] = React.useState(false);
-  
+
   React.useEffect(() => {
-    const saved = document.cookie.split('; ').find(row => row.startsWith('advancedAIMode='));
+    const cookies = document.cookie.split('; ');
+    const saved = cookies.find(row => row.startsWith('advancedAIMode='));
     if (saved) {
       setAdvancedAIMode(saved.split('=')[1] === 'true');
+    }
+    const dyslexic = cookies.find(row => row.startsWith('useDyslexicFont='));
+    if (dyslexic?.split('=')[1] === 'true') {
+      if (!document.getElementById('opendyslexic-stylesheet')) {
+        const link = document.createElement('link');
+        link.id = 'opendyslexic-stylesheet';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.cdnfonts.com/css/opendyslexic';
+        document.head.appendChild(link);
+      }
+      document.body.classList.add('dyslexic-font');
     }
   }, []);
 
@@ -144,11 +165,11 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
 
   return (
     <>
-      <Analytics />
-      <AdvancedAIGlow enabled={advancedAIMode} />
+      {process.env.NEXT_PUBLIC_IS_VERCEL === '1' && <Analytics />}
+      {advancedAIMode && <AdvancedAIGlow enabled={advancedAIMode} />}
       <div className="min-h-screen flex flex-col" onContextMenu={handleContextMenu}>
-        {/* SearchBar - rendered globally so it can be opened from anywhere */}
-        <SearchBar />
+        {/* SearchBar - mounted only when opened via Cmd+K / search trigger */}
+        {isSearchOpen && <SearchBar />}
 
         <main
           className="flex-1 bg-transparent overflow-x-hidden pt-0"
@@ -157,26 +178,28 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
             transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          <PageTransition effect="wipe">
-            {pathname === '/' && user ? (
-              <div
-                aria-label="Opening dashboard"
-                className="flex min-h-screen items-center justify-center"
-              >
-                <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#275085]/20 border-t-[#275085]" />
-              </div>
-            ) : (
-              children
-            )}
-          </PageTransition>
+          {pathname === '/' && !user ? (
+            children
+          ) : (
+            <PageTransition effect="wipe">
+              {pathname === '/' && user ? (
+                <div
+                  aria-label="Opening dashboard"
+                  className="flex min-h-screen items-center justify-center"
+                >
+                  <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#275085]/20 border-t-[#275085]" />
+                </div>
+              ) : (
+                children
+              )}
+            </PageTransition>
+          )}
         </main>
         {/* Nav: GuardianNavbar for guardians; AppNavbar for standard student routes; ReboundNavbar for logged-out */}
         <React.ViewTransition name="site-navigation" default="site-navigation">
-          {!authLoading && (
-            user
-              ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />)
-              : <ReboundNavbar />
-          )}
+          {user
+            ? (!authLoading && (isGuardian ? <GuardianNavbar /> : <AppNavbar />))
+            : <ReboundNavbar />}
         </React.ViewTransition>
                 {contextMenu && (
           <CustomContextMenu

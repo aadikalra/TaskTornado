@@ -173,6 +173,8 @@ export default function SocialProofSection() {
                                         {/* Icon pill wrapper */}
                                         <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-zinc-800 rounded-full shadow-md border border-gray-100 dark:border-zinc-700/50 flex items-center justify-center transition-transform hover:scale-110">
                                             <app.icon
+                                                aria-hidden="true"
+                                                role="presentation"
                                                 className={`w-6 h-6 md:w-7 md:h-7 ${app.color}`}
                                                 style={app.fill ? { fill: 'currentColor' } : {}}
                                             />

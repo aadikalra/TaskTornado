@@ -1,8 +1,12 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import dynamic from 'next/dynamic';
 import { useSelectedLayoutSegment } from 'next/navigation';
-import { PageTransition } from '@/components/animate-ui/components/page-transition';
+
+const PageTransition = dynamic(
+  () => import('@/components/animate-ui/components/page-transition').then((m) => m.PageTransition),
+);
 
 /** Shared layouts animate their content; standalone routes use this fallback. */
 export function PageTransitionRoot({ children }: { children: ReactNode }) {

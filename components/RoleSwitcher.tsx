@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 // We need a way to communicate with the LandingSlider.
@@ -123,11 +122,7 @@ export const RoleSwitcher = () => {
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-[#275085] dark:hover:text-[#4a9cdb]'}`}
                 >
                     {activeView === role.key && (
-                        <motion.div
-                            layoutId="activeRoleTabUniversal"
-                            className="absolute inset-0 bg-[#fff8fa] dark:bg-zinc-800 rounded-xl z-[-1]"
-                            transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
-                        />
+                        <div className="absolute inset-0 bg-[#fff8fa] dark:bg-zinc-800 rounded-xl z-[-1]" />
                     )}
                     <span className="relative z-10 transition-all duration-300">
                         {role.name}

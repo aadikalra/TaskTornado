@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Menu, X, MoreHorizontal } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { setGlobalActiveView, emitViewChange } from '@/components/RoleSwitcher';
@@ -137,18 +135,17 @@ export default function ReboundNavbar() {
                     onMouseLeave={() => setRoleOpen(false)}
                 >
                     <button
+                        type="button"
                         onClick={() => setRoleOpen(prev => !prev)}
                         className={`relative ${compact ? 'px-3 py-1.5 text-[12px]' : 'px-4 py-2 text-[13px]'} font-semibold text-[#275085] rounded-full`}
                     >
-                        <motion.div
-                            layoutId={compact ? 'role-pill-tablet' : 'role-pill-desktop'}
+                        <div
                             className="absolute inset-0 bg-white/90 rounded-full border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.3)]"
-                            style={{ borderRadius: 9999 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         />
                         <span className="relative z-10 flex items-center gap-1">
                             {currentRole.label}
                             <ChevronDown
+                                aria-hidden="true"
                                 className="w-3 h-3 opacity-50"
                                 style={{
                                     transform: `rotate(${roleOpen ? 180 : 0}deg)`,
@@ -159,33 +156,26 @@ export default function ReboundNavbar() {
                     </button>
 
                     {/* Dropdown with other roles */}
-                    <AnimatePresence>
-                        {roleOpen && (
-                            <>
-                                {/* Invisible bridge to cover the mt-2 gap so mouseleave doesn't fire */}
-                                <div className="absolute top-full left-0 right-0 h-2" />
-                                <motion.div
-                                    initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100]"
-                                >
-                                    <div className="flex items-center gap-1 p-1 bg-[#275085]/95 backdrop-blur-xl rounded-full border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
-                                        {otherRoles.map((role) => (
-                                            <button
-                                                key={role.key}
-                                                onClick={() => handleRoleSelect(role.key, role.path)}
-                                                className={`${compact ? 'px-3 py-1.5 text-[12px]' : 'px-4 py-2 text-[13px]'} font-semibold text-white hover:bg-white/15 rounded-full transition-all duration-200 active:scale-95 whitespace-nowrap`}
-                                            >
-                                                {role.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            </>
-                        )}
-                    </AnimatePresence>
+                    {roleOpen && (
+                        <>
+                            {/* Invisible bridge to cover the mt-2 gap so mouseleave doesn't fire */}
+                            <div className="absolute top-full left-0 right-0 h-2" />
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100]">
+                                <div className="flex items-center gap-1 p-1 bg-[#275085]/95 backdrop-blur-xl rounded-full border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
+                                    {otherRoles.map((role) => (
+                                        <button
+                                            type="button"
+                                            key={role.key}
+                                            onClick={() => handleRoleSelect(role.key, role.path)}
+                                            className={`${compact ? 'px-3 py-1.5 text-[12px]' : 'px-4 py-2 text-[13px]'} font-semibold text-white hover:bg-white/15 rounded-full transition-all duration-200 active:scale-95 whitespace-nowrap`}
+                                        >
+                                            {role.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Divider */}
@@ -199,22 +189,19 @@ export default function ReboundNavbar() {
             <nav data-pathname={pathname} className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 pointer-events-none">
                 <div className="pointer-events-auto flex items-center justify-between w-full max-w-7xl mx-auto">
                     {/* Logo */}
-                    <button onClick={() => handleNavClick('/')} className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
+                    <button type="button" onClick={() => handleNavClick('/')} aria-label="TaskTornado Home" className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer hover:opacity-90 transition-opacity">
                         <div className="relative w-7 h-7 sm:w-8 sm:h-8">
-                            <Image
-                                src="/2.svg"
-                                alt="TaskTornado Logo"
-                                width={32}
-                                height={32}
-                                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] dark:hidden"
-                            />
-                            <Image
-                                src="/3.svg"
-                                alt="TaskTornado Logo"
-                                width={32}
-                                height={32}
-                                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] hidden dark:block"
-                            />
+                            <picture className="block w-full h-full">
+                                <source media="(prefers-color-scheme: dark)" srcSet="/logo-dark.webp" type="image/webp" />
+                                <img
+                                    src="/logo-light.webp"
+                                    alt=""
+                                    width={32}
+                                    height={32}
+                                    decoding="async"
+                                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg]"
+                                />
+                            </picture>
                         </div>
                         <span className="text-[#275085] dark:text-blue-200 font-bold text-base sm:text-lg tracking-tight md:hidden lg:inline">TaskTornado</span>
                     </button>
@@ -250,35 +237,28 @@ export default function ReboundNavbar() {
                                 <ChevronDown className="w-3.5 h-3.5 opacity-70" style={{ transform: `rotate(${desktopToolsOpen ? 180 : 0}deg)`, transition: 'transform 0.3s' }} />
                             </button>
 
-                            <AnimatePresence>
-                                {desktopToolsOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100]"
-                                    >
-                                        <div className="flex flex-col min-w-[140px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
-                                            {TOOL_ITEMS.map((item) => {
-                                                const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
-                                                return (
-                                                    <button
-                                                        key={item.label}
-                                                        onClick={() => handleNavClick(item.href)}
-                                                        className={`w-full text-left px-3.5 py-2 text-[13px] font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] ${isActive
-                                                            ? 'bg-white/15 text-white'
-                                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
-                                                            }`}
-                                                    >
-                                                        {item.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            {desktopToolsOpen && (
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100]">
+                                    <div className="flex flex-col min-w-[140px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
+                                        {TOOL_ITEMS.map((item) => {
+                                            const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={item.label}
+                                                    onClick={() => handleNavClick(item.href)}
+                                                    className={`w-full text-left px-3.5 py-2 text-[13px] font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] ${isActive
+                                                        ? 'bg-white/15 text-white'
+                                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                        }`}
+                                                >
+                                                    {item.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -313,35 +293,28 @@ export default function ReboundNavbar() {
                                 <MoreHorizontal className="w-4 h-4" />
                             </button>
 
-                            <AnimatePresence>
-                                {tabletMoreOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                        className="absolute top-full right-0 mt-2 z-[100]"
-                                    >
-                                        <div className="flex flex-col min-w-[140px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
-                                            {TOOL_ITEMS.map((item) => {
-                                                const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
-                                                return (
-                                                    <button
-                                                        key={item.label}
-                                                        onClick={() => handleNavClick(item.href)}
-                                                        className={`w-full text-left px-3.5 py-2 text-[13px] font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] ${isActive
-                                                            ? 'bg-white/15 text-white'
-                                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
-                                                            }`}
-                                                    >
-                                                        {item.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            {tabletMoreOpen && (
+                                <div className="absolute top-full right-0 mt-2 z-[100]">
+                                    <div className="flex flex-col min-w-[140px] p-1.5 bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_8px_24px_rgba(39,80,133,0.35)]">
+                                        {TOOL_ITEMS.map((item) => {
+                                            const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={item.label}
+                                                    onClick={() => handleNavClick(item.href)}
+                                                    className={`w-full text-left px-3.5 py-2 text-[13px] font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] ${isActive
+                                                        ? 'bg-white/15 text-white'
+                                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                        }`}
+                                                >
+                                                    {item.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -373,10 +346,13 @@ export default function ReboundNavbar() {
                         MOBILE — Hamburger button (<md)
                        ════════════════════════════════════════════ */}
                     <button
+                        type="button"
                         onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                        aria-expanded={mobileOpen}
                         className="md:hidden flex items-center justify-center w-10 h-10 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30 text-white active:scale-95 transition-transform"
                     >
-                        {mobileOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
+                        {mobileOpen ? <X aria-hidden="true" className="w-4.5 h-4.5" /> : <Menu aria-hidden="true" className="w-4.5 h-4.5" />}
                     </button>
                 </div>
             </nav>
@@ -384,96 +360,83 @@ export default function ReboundNavbar() {
             {/* ════════════════════════════════════════════════════════
                 MOBILE MENU — full-screen overlay (<md)
                ════════════════════════════════════════════════════════ */}
-            <AnimatePresence>
-                {mobileOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-40 md:hidden"
-                    >
-                        {/* Backdrop */}
-                        <div className="absolute inset-0 bg-[#275085]/60 backdrop-blur-xl" onClick={() => setMobileOpen(false)} />
+            {mobileOpen && (
+                <div className="fixed inset-0 z-40 md:hidden">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-[#275085]/60 backdrop-blur-xl" onClick={() => setMobileOpen(false)} />
 
-                        {/* Menu content */}
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 30, delay: 0.05 }}
-                            className="relative z-10 mx-4 mt-20 p-2 bg-[#275085]/95 backdrop-blur-2xl rounded-[24px] border border-white/10 shadow-[0_24px_80px_rgba(39,80,133,0.5)]"
-                        >
-                            {/* Role switcher (landing pages only) */}
-                            {isLandingPage && (
-                                <div className="p-3 mb-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mb-3 px-1">
-                                        I&apos;m a...
-                                    </p>
-                                    <div className="flex gap-1.5">
-                                        {ROLES.map((role) => (
-                                            <button
-                                                key={role.key}
-                                                onClick={() => handleRoleSelect(role.key, role.path)}
-                                                className={`flex-1 py-2.5 text-[13px] font-bold rounded-full transition-all duration-200 active:scale-95 ${activeRole === role.key
-                                                    ? 'bg-white/90 text-[#275085] shadow-[0_2px_8px_rgba(0,0,0,0.1)]'
-                                                    : 'text-white/70 hover:bg-white/10'
-                                                    }`}
-                                            >
-                                                {role.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Divider */}
-                            {isLandingPage && <div className="h-px bg-white/10 mx-3" />}
-
-                            {/* Nav links */}
-                            <div className="p-2">
-                                {NAV_ITEMS.map((item, idx) => {
-                                    const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
-                                    return (
-                                        <motion.button
-                                            key={item.label}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.08 + idx * 0.04 }}
-                                            onClick={() => handleNavClick(item.href)}
-                                            className={`w-full text-left px-4 py-3 text-[15px] font-semibold rounded-2xl transition-all duration-200 active:scale-[0.98] ${isActive
-                                                ? 'bg-white/15 text-white'
-                                                : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    {/* Menu content */}
+                    <div className="relative z-10 mx-4 mt-20 p-2 bg-[#275085]/95 backdrop-blur-2xl rounded-[24px] border border-white/10 shadow-[0_24px_80px_rgba(39,80,133,0.5)]">
+                        {/* Role switcher (landing pages only) */}
+                        {isLandingPage && (
+                            <div className="p-3 mb-1">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/60 mb-3 px-1">
+                                    I&apos;m a...
+                                </p>
+                                <div className="flex gap-1.5">
+                                    {ROLES.map((role) => (
+                                        <button
+                                            type="button"
+                                            key={role.key}
+                                            onClick={() => handleRoleSelect(role.key, role.path)}
+                                            className={`flex-1 py-2.5 text-[13px] font-bold rounded-full transition-all duration-200 active:scale-95 ${activeRole === role.key
+                                                ? 'bg-white/90 text-[#275085] shadow-[0_2px_8px_rgba(0,0,0,0.1)]'
+                                                : 'text-white/80 hover:bg-white/10'
                                                 }`}
                                         >
-                                            {item.label}
-                                        </motion.button>
-                                    );
-                                })}
+                                            {role.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
+                        )}
 
-                            {/* Divider */}
-                            <div className="h-px bg-white/10 mx-3" />
+                        {/* Divider */}
+                        {isLandingPage && <div className="h-px bg-white/10 mx-3" />}
 
-                            {/* Auth buttons */}
-                            <div className="p-3 flex gap-2">
-                                <button
-                                    onClick={() => handleNavClick('/login')}
-                                    className="flex-1 py-3 text-[14px] font-bold text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-all active:scale-95"
-                                >
-                                    Log in
-                                </button>
-                                <button
-                                    onClick={() => handleNavClick('/signup')}
-                                    className="flex-1 py-3 text-[14px] font-bold text-[#275085] bg-white/90 rounded-full border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-white transition-all active:scale-95"
-                                >
-                                    Sign up
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        {/* Nav links */}
+                        <div className="p-2">
+                            {NAV_ITEMS.map((item) => {
+                                const isActive = item.href === '/blog' ? pathname.startsWith('/blog') : pathname === item.href;
+                                return (
+                                    <button
+                                        type="button"
+                                        key={item.label}
+                                        onClick={() => handleNavClick(item.href)}
+                                        className={`w-full text-left px-4 py-3 text-[15px] font-semibold rounded-2xl transition-all duration-200 active:scale-[0.98] ${isActive
+                                            ? 'bg-white/15 text-white'
+                                            : 'text-white/85 hover:bg-white/10 hover:text-white'
+                                            }`}
+                                    >
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="h-px bg-white/10 mx-3" />
+
+                        {/* Auth buttons */}
+                        <div className="p-3 flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handleNavClick('/login')}
+                                className="flex-1 py-3 text-[14px] font-bold text-white/85 hover:text-white rounded-full hover:bg-white/10 transition-all active:scale-95"
+                            >
+                                Log in
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleNavClick('/signup')}
+                                className="flex-1 py-3 text-[14px] font-bold text-[#275085] bg-white/90 rounded-full border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:bg-white transition-all active:scale-95"
+                            >
+                                Sign up
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

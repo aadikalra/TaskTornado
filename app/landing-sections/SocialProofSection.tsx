@@ -1,10 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { Facehash } from 'facehash';
 import Image from 'next/image';
-import { CountingNumber } from '@/components/animate-ui/primitives/texts/counting-number';
+import { patchFacehashFaces } from '@/lib/facehash-custom-faces';
+
+patchFacehashFaces();
 
 const COLORS = [
     '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899',
@@ -14,7 +15,7 @@ const COLORS = [
 
 // Custom quote SVG for the large quotation marks
 const QuoteIcon = () => (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 8H6C6 6.5 6.8 5.4 7.5 4.8L6.2 3.5C4.8 4.6 4 6.2 4 8V14H10V8ZM20 8H16C16 6.5 16.8 5.4 17.5 4.8L16.2 3.5C14.8 4.6 14 6.2 14 8V14H20V8Z" />
     </svg>
 );
@@ -105,7 +106,7 @@ const TestimonialCard = ({ item }: { item: { quote: string; author: string; role
             </div>
             <div className="flex flex-col">
                 <span className="text-sm font-bold text-[#275085] dark:text-zinc-100 mb-0.5">{item.author}</span>
-                <span className="text-[11px] text-[#275085]/50 dark:text-zinc-500 uppercase tracking-widest font-semibold">{item.role}</span>
+                <span className="text-[11px] text-[#275085]/85 dark:text-zinc-300 uppercase tracking-widest font-semibold">{item.role}</span>
             </div>
         </div>
     </div>
@@ -124,48 +125,37 @@ export default function SocialProofSection() {
                 <div className="bg-[#eaf2ff] dark:bg-zinc-900 rounded-[40px] md:rounded-[64px] py-16 md:py-24 overflow-hidden shadow-sm">
 
                     {/* ── Header Area (centered, top) ──────────────────────── */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center mb-12 md:mb-16 px-6 md:px-0"
-                    >
+                    <div className="text-center mb-12 md:mb-16 px-6 md:px-0">
                         {/* Top Badge */}
-                        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 rounded-full pl-1.5 pr-4 py-1.5 shadow-xl shadow-blue-500/10 mb-6 sm:mb-8">
-                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                                <Star className="w-3.5 h-3.5 fill-white text-white" />
+                        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 rounded-full pl-1.5 pr-4 py-1.5 shadow-xl shadow-blue-500/10 mb-6 sm:mb-8">
+                            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
+                                <Star aria-hidden="true" className="w-3.5 h-3.5 fill-white text-white" />
                             </div>
                             <span className="text-[12px] font-bold tracking-wide">
-                                Rated a stunning <CountingNumber number={4.9} decimalPlaces={1} delay={300} />/5 average by students
+                                Rated a stunning 4.9/5 average by students
                             </span>
                         </div>
 
                         {/* Headline */}
-                        <h2 className="text-3xl md:text-5xl font-semibold text-blue-500 dark:text-blue-400 tracking-tight leading-[1.15] mb-4 max-w-3xl mx-auto">
+                        <h2 className="text-3xl md:text-5xl font-semibold text-blue-700 dark:text-blue-300 tracking-tight leading-[1.15] mb-4 max-w-3xl mx-auto">
                             What other students are saying.
                         </h2>
-                    </motion.div>
+                    </div>
 
                     {/* ── Split Layout: Image Left + Carousel Right ── */}
                     <div className="flex flex-col lg:flex-row gap-8 lg:gap-4 items-center px-8 md:px-16">
 
                         {/* Left: Illustration */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
-                            className="lg:w-[35%] shrink-0 flex items-center justify-center"
-                        >
+                        <div className="lg:w-[35%] shrink-0 flex items-center justify-center">
                             <Image
                                 src="/socialFeedback.png"
                                 alt="Student reviews illustration"
                                 width={400}
                                 height={400}
+                                sizes="(max-width: 1024px) 80vw, 340px"
                                 className="w-full max-w-[340px] h-auto object-contain"
                             />
-                        </motion.div>
+                        </div>
 
                         {/* Right: Carousel */}
                         <div className="relative w-full lg:w-[65%] flex flex-col gap-5 md:gap-6 overflow-hidden">

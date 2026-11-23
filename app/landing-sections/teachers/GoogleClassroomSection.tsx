@@ -124,6 +124,8 @@ export default function GoogleClassroomSection() {
                                             <div className="absolute inset-0 rounded-full bg-yellow-500/10 dark:bg-yellow-400/10 animate-pulse pointer-events-none" />
                                         )}
                                         <app.icon
+                                            aria-hidden="true"
+                                            role="presentation"
                                             className={`w-6 h-6 md:w-7 md:h-7 ${app.color} relative z-10`}
                                         />
                                     </div>

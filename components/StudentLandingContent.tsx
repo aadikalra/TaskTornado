@@ -1,16 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Clock } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Hero from '@/app/landing-sections/Hero';
 import OrganizationSection from '@/app/landing-sections/OrganizationSection';
-import ComparisonSection from '@/app/landing-sections/ComparisonSection';
-import PromiseSection from '@/app/landing-sections/PromiseSection';
-import SocialProofSection from '@/app/landing-sections/SocialProofSection';
-import LandingFooter from '@/app/landing-sections/LandingFooter';
-import HomepageBadges from '@/app/landing-sections/HomepageBadges';
-import UserReachSection from '@/app/landing-sections/UserReachSection';
+
+const ComparisonSection = dynamic(() => import('@/app/landing-sections/ComparisonSection'));
+const PromiseSection = dynamic(() => import('@/app/landing-sections/PromiseSection'));
+const SocialProofSection = dynamic(() => import('@/app/landing-sections/SocialProofSection'));
+const UserReachSection = dynamic(() => import('@/app/landing-sections/UserReachSection'));
+const HomepageBadges = dynamic(() => import('@/app/landing-sections/HomepageBadges'));
+const LandingFooter = dynamic(() => import('@/app/landing-sections/LandingFooter'));
 
 // Sample homework data for the organization section demo
 const sampleHomeworkItems = [

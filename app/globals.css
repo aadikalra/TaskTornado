@@ -1,7 +1,6 @@
-/* OpenDyslexic Font for accessibility */
+/* OpenDyslexic Font is loaded dynamically when body.dyslexic-font is enabled */
 
 @plugin "tailwind-scrollbar-hide";
-@import url('https://fonts.cdnfonts.com/css/opendyslexic');
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));

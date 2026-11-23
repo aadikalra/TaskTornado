@@ -141,8 +141,18 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (useDyslexicFont) document.body.classList.add('dyslexic-font');
-      else document.body.classList.remove('dyslexic-font');
+      if (useDyslexicFont) {
+        if (!document.getElementById('opendyslexic-stylesheet')) {
+          const link = document.createElement('link');
+          link.id = 'opendyslexic-stylesheet';
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.cdnfonts.com/css/opendyslexic';
+          document.head.appendChild(link);
+        }
+        document.body.classList.add('dyslexic-font');
+      } else {
+        document.body.classList.remove('dyslexic-font');
+      }
     }
   }, [useDyslexicFont]);
 

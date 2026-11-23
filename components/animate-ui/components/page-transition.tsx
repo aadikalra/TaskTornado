@@ -400,8 +400,6 @@ function PageTransition({
       `::view-transition-old(*.${className}),::view-transition-new(*.${className}){background-color:${backgroundOf(localRef.current)}}`;
   };
 
-  React.useLayoutEffect(refreshStyle);
-
   React.useEffect(() => {
     const onInput = (event: Event) => {
       if (!localRef.current) return;
