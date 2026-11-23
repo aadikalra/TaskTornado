@@ -9,6 +9,7 @@ import ComparisonSection from '@/app/landing-sections/ComparisonSection';
 import PromiseSection from '@/app/landing-sections/PromiseSection';
 import SocialProofSection from '@/app/landing-sections/SocialProofSection';
 import LandingFooter from '@/app/landing-sections/LandingFooter';
+import HomepageBadges from '@/app/landing-sections/HomepageBadges';
 import UserReachSection from '@/app/landing-sections/UserReachSection';
 
 // Sample homework data for the organization section demo
@@ -81,14 +82,7 @@ export default function StudentLandingContent() {
       {/* 10. USER REACH - Global Map */}
       <UserReachSection />
 
-      {pathname === '/' && (
-        <div
-          className="flex justify-center bg-[#fffaf4] py-6 dark:bg-gray-950 [&_img]:h-[60px]"
-          dangerouslySetInnerHTML={{
-            __html: '<a href="https://builtbyindies.com/products/tasktornado?utm_source=badge&utm_medium=embed&utm_campaign=live" target="_blank"><img src="https://builtbyindies.com/badge/f60292b4-3615-4fe0-9484-0a81f7d0bf9e.svg" alt="BuiltByIndies" height="60" /></a>',
-          }}
-        />
-      )}
+      {pathname === '/' && <HomepageBadges />}
 
       {/* FOOTER */}
       <LandingFooter />
