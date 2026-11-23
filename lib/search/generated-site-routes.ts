@@ -14,6 +14,17 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
+        "title": "About TaskTornado",
+        "href": "/about",
+        "description": "The TaskTornado project, team, and support links",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "about tasktornado",
+            "about"
+        ]
+    },
+    {
         "title": "Account Eligibility",
         "href": "/account-eligibility",
         "description": "Open the Account Eligibility page",
@@ -36,6 +47,33 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
             "about",
             "ai",
             "guidelines"
+        ]
+    },
+    {
+        "title": "AI Study Planner",
+        "href": "/ai-study-planner",
+        "description": "Use Aurora to plan study sessions and practice for exams",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "ai study planner",
+            "about",
+            "ai",
+            "study",
+            "planner"
+        ]
+    },
+    {
+        "title": "Assignment Tracker",
+        "href": "/assignment-tracker",
+        "description": "Organize assignments by class, due date, and priority",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "assignment tracker",
+            "about",
+            "assignment",
+            "tracker"
         ]
     },
     {
@@ -309,6 +347,20 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
+        "title": "Class Schedule Planner",
+        "href": "/class-schedule-planner",
+        "description": "See class assignments and tests together in a calendar",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "class schedule planner",
+            "about",
+            "class",
+            "schedule",
+            "planner"
+        ]
+    },
+    {
         "title": "Color Match",
         "href": "/color-match",
         "description": "Open the Color Match page",
@@ -525,6 +577,19 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         ]
     },
     {
+        "title": "Homework Planner",
+        "href": "/homework-planner",
+        "description": "Plan recurring homework and break projects into subtasks",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "homework planner",
+            "about",
+            "homework",
+            "planner"
+        ]
+    },
+    {
         "title": "Join Class",
         "href": "/join-class",
         "description": "Open the Join Class page",
@@ -737,6 +802,19 @@ export const GENERATED_SITE_SEARCH_ROUTES = [
         "keywords": [
             "snake",
             "games"
+        ]
+    },
+    {
+        "title": "Student Planner",
+        "href": "/student-planner",
+        "description": "Plan homework, classes, and exams in one place",
+        "icon": "Star",
+        "category": "About",
+        "keywords": [
+            "student planner",
+            "about",
+            "student",
+            "planner"
         ]
     },
     {

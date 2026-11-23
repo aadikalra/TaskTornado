@@ -65,6 +65,11 @@ export default function SmartCalendarArticle() {
             <p>
                 We&apos;re constantly adding features to the calendar, including better integration with external tools and personal event scheduling, to make it the only time management tool you&apos;ll ever need.
             </p>
+            <p>
+                <Link href="/class-schedule-planner" className="font-semibold underline underline-offset-4">
+                    Explore the TaskTornado class schedule planner
+                </Link>
+            </p>
         </BlogArticleTemplate>
     );
 }

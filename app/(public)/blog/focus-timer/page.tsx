@@ -60,6 +60,11 @@ export default function FocusTimerArticle() {
             <p>
                 At TaskTornado, we believe that mastering your focus is the first step toward mastering your education. The Focus Timer is just one of the ways we&apos;re helping you build the habits that lead to a lifetime of success.
             </p>
+            <p>
+                <Link href="/student-planner" className="font-semibold underline underline-offset-4">
+                    Explore the TaskTornado student planner
+                </Link>
+            </p>
         </BlogArticleTemplate>
     );
 }

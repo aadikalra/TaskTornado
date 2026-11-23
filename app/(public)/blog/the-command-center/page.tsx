@@ -55,6 +55,11 @@ export default function CommandCenterArticle() {
             <p>
                 The Command Center is just the beginning. We&apos;re constantly refining the experience based on student feedback to make it the most powerful tool in your academic arsenal.
             </p>
+            <p>
+                <Link href="/assignment-tracker" className="font-semibold underline underline-offset-4">
+                    Explore the TaskTornado assignment tracker
+                </Link>
+            </p>
         </BlogArticleTemplate>
     );
 }

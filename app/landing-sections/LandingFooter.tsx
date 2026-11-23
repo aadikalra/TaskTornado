@@ -1,9 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { PLANNER_LINKS } from '@/lib/planner-links';
 import { Twitter, Github, Linkedin, Instagram, ArrowUpRight } from 'lucide-react';
 
 const footerLinks = [
+    {
+        title: 'Planner',
+        links: Object.values(PLANNER_LINKS).map(({ href, label }) => ({ href, name: label })),
+    },
     {
         title: 'Solutions',
         links: [
@@ -30,6 +35,7 @@ const footerLinks = [
         links: [
             { name: 'Sign Up', href: '/signup' },
             { name: 'Log In', href: '/login' },
+            { name: 'About TaskTornado', href: '/about' },
             { name: 'Privacy Policy', href: '/legal/privacy' },
             { name: 'Terms of Service', href: '/legal/terms' },
         ],
@@ -81,7 +87,7 @@ export default function LandingFooter() {
                     </div>
 
                     {/* Link Columns */}
-                    <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
+                    <div className="lg:col-span-7 grid grid-cols-2 md:grid-cols-4 gap-6">
                         {footerLinks.map((column) => (
                             <div key={column.title}>
                                 <h4 className="text-[10px] font-bold text-[#275085] dark:text-[#4a9cdb] uppercase tracking-[0.15em] mb-6">

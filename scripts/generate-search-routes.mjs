@@ -11,6 +11,8 @@ const excludedRoutes = ['/hash/eyes', '/images', '/mail', '/signup-old'];
 
 const titleOverrides = {
     '/': 'Home',
+    '/about': 'About TaskTornado',
+    '/ai-study-planner': 'AI Study Planner',
     '/ai-guidelines': 'AI Guidelines',
     '/discussions': 'Discussion Boards',
     '/quiz': 'Interactive Quizzes',
@@ -39,6 +41,12 @@ const descriptionOverrides = {
     '/games': 'Browse all study breaks and games',
     '/tutorials': 'Browse TaskTornado guides and tutorials',
     '/blog': 'TaskTornado stories, guides, and updates',
+    '/about': 'The TaskTornado project, team, and support links',
+    '/student-planner': 'Plan homework, classes, and exams in one place',
+    '/homework-planner': 'Plan recurring homework and break projects into subtasks',
+    '/assignment-tracker': 'Organize assignments by class, due date, and priority',
+    '/ai-study-planner': 'Use Aurora to plan study sessions and practice for exams',
+    '/class-schedule-planner': 'See class assignments and tests together in a calendar',
 };
 
 const keywordOverrides = {

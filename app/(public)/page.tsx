@@ -31,6 +31,20 @@ const website = {
     name: 'TaskTornado',
     url: new URL('/', SITE_ORIGIN).href,
     description,
+    mainEntity: {
+        '@type': 'WebApplication',
+        '@id': `${SITE_ORIGIN}/#app`,
+        name: 'TaskTornado',
+        url: new URL('/', SITE_ORIGIN).href,
+        applicationCategory: 'EducationalApplication',
+        browserRequirements: 'Requires a modern web browser.',
+        offers: {
+            '@type': 'Offer',
+            price: 0,
+            priceCurrency: 'USD',
+            url: new URL('/pricing', SITE_ORIGIN).href,
+        },
+    },
 };
 
 export default function Page() {

@@ -1,6 +1,12 @@
+import { PLANNER_LINKS } from './planner-links';
+
 export const PUBLIC_CONTENT_PATHS = [
     '/',
     '/features',
+    ...Object.values(PLANNER_LINKS).map(({ href }) => href),
+    '/about',
+    '/legal/privacy',
+    '/legal/terms',
     '/pricing',
     '/teachers',
     '/guardians',
