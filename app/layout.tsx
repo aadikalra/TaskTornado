@@ -7,6 +7,7 @@ import { DarkModeProvider } from '@/context/DarkModeContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { PageTransitionRoot } from '@/components/PageTransitionRoot';
 import React from 'react';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -41,6 +42,7 @@ const eduNswActCursive = Edu_NSW_ACT_Cursive({
 });
 
 export const metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: 'TaskTornado',
   description: 'A comprehensive task management tool for students to organize homework, classes, schedules, and group chats.',
   keywords: 'task, organizer, homework, classes, student, academic, study',

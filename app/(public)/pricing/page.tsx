@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Check, KeyRound, ArrowRight } from 'lucide-react';
 import { FREE_LIMITS } from '@/lib/planTier';
 import { AI_PLAN_LIMITS } from '@/lib/ai/config';
 import { AI_PROVIDERS } from '@/lib/ai/providers';
+
+export const metadata: Metadata = {
+    title: 'Free Plan & Pricing | TaskTornado',
+    description: 'See what comes with the free TaskTornado student planner, including homework tracking, flashcards, a calendar, and Aurora AI study help.',
+    alternates: { canonical: '/pricing' },
+};
 
 export default function PricingPage() {
     const ai = AI_PLAN_LIMITS.free;

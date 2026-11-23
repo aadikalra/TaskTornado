@@ -7,8 +7,9 @@ import { ArrowRight, X, Copy, Check, Link2 } from 'lucide-react';
 import { IconSchool, IconBrandTeams, IconBell, IconBrandWhatsapp, IconDeviceMobileMessage, IconMail } from '@tabler/icons-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
-const SHARE_URL = 'https://tasktornado.com';
+const SHARE_URL = SITE_ORIGIN;
 const SHARE_TEXT = 'Check out TaskTornado — a free AI-powered student organizer for homework, grades, and study help!';
 
 function ShareSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -168,7 +169,7 @@ function ShareSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                                     <div className="flex items-center gap-2 flex-1 min-w-0 px-3">
                                         <Link2 className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0" />
                                         <span className="text-sm text-sky-900/70 dark:text-sky-300 truncate font-medium">
-                                            tasktornado.com
+                                            {new URL(SHARE_URL).hostname}
                                         </span>
                                     </div>
                                     <button

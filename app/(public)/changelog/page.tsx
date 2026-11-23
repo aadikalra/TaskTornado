@@ -3,6 +3,7 @@ import ChangelogClient from './ChangelogClient';
 
 export const metadata: Metadata = {
     title: 'Changelog | TaskTornado',
+    alternates: { canonical: '/changelog' },
     description: 'Product updates, improvements, and version history for TaskTornado.',
 };
 

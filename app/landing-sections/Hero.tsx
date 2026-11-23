@@ -126,7 +126,7 @@ export default function Hero() {
                         transition={{ delay: 0.2, duration: 0.5 }}
                         className="text-xl md:text-2xl text-[#275085]/70 dark:text-[#4a9cdb]/70 max-w-2xl leading-relaxed font-medium"
                     >
-                        AI tutoring, smart scheduling, and a homework dashboard that actually works — built for students, by a student.
+                        TaskTornado is a free student planner for tracking homework, classes, and deadlines, with study help from Aurora AI.
                     </motion.p>
                 </div>
 

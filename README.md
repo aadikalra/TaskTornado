@@ -2,6 +2,8 @@
 
 ![TaskTornado Logo](public/2.svg)
 
+[Open the TaskTornado student planner](https://tasktornado.app/)
+
 A U.S.-only, age-13+ school organizer for homework, deadlines, grades, and study planning. Aurora includes free Groq AI and optional personal keys for OpenRouter, Together AI, Fireworks AI, and Groq; public social features, uploads, web search, and Google integrations remain disabled.
 
 ## 🚀 Features

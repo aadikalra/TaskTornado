@@ -1,35 +1,46 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { SITE_ORIGIN } from '@/lib/site-url';
 import LandingClient from './LandingClient';
 
+const title = 'TaskTornado | Free Student Planner & Homework Tracker';
+const description = 'TaskTornado is a free student planner for tracking homework, classes, deadlines, and grades. Plan study sessions and get help from the Aurora AI tutor.';
+
 export const metadata: Metadata = {
-    title: 'TaskTornado | The Ultimate AI-Powered Student Organizer',
-    description: 'TaskTornado is an all-in-one academic hub for students. Manage homework, classes, and study schedules with our built-in Aurora AI tutor. Free forever, built for students.',
-    keywords: ['TaskTornado', 'student organizer', 'AI tutor', 'homework tracker', 'academic planner', 'study assistant', 'free student tools'],
+    title,
+    description,
+    alternates: { canonical: '/' },
     openGraph: {
-        title: 'TaskTornado | AI-Powered Student Organizer',
-        description: 'The all-in-one hub for your academic life. Homework, classes, and AI tutoring in one place.',
+        title,
+        description,
         type: 'website',
-        url: 'https://tasktornado.com',
-        images: [
-            {
-                url: 'https://tasktornado.com/2.svg',
-                width: 800,
-                height: 600,
-                alt: 'TaskTornado Logo',
-            },
-        ],
+        siteName: 'TaskTornado',
+        url: '/',
+        images: [{ url: '/2.svg', alt: 'TaskTornado logo' }],
     },
     twitter: {
-        card: 'summary_large_image',
-        title: 'TaskTornado | AI-Powered Student Organizer',
-        description: 'The all-in-one hub for your academic life. Free forever.',
-        images: ['https://tasktornado.com/2.svg'],
-    },
-    alternates: {
-        canonical: 'https://tasktornado.com',
+        card: 'summary',
+        title,
+        description,
+        images: ['/2.svg'],
     },
 };
 
+const website = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'TaskTornado',
+    url: new URL('/', SITE_ORIGIN).href,
+    description,
+};
+
 export default function Page() {
-    return <LandingClient />;
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(website).replace(/</g, '\\u003c') }}
+            />
+            <LandingClient />
+        </>
+    );
 }

@@ -5,11 +5,12 @@ export const metadata: Metadata = {
     title: 'Blog | The TaskTornado Journal',
     description: 'Insights into the future of education, AI integration in classrooms, and building the ultimate student organization platform.',
     keywords: ['TaskTornado blog', 'AI in education', 'student productivity insights', 'educational engineering', 'edtech startups'],
+    alternates: { canonical: '/blog' },
     openGraph: {
         title: 'The TaskTornado Journal | Education Reimagined',
         description: 'Insights into the future of education and AI integration.',
         type: 'website',
-        url: 'https://tasktornado.com/blog',
+        url: '/blog',
     },
     twitter: {
         card: 'summary_large_image',
