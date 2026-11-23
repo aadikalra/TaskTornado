@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -40,6 +40,21 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function AuthLoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+    </div>
+  );
+}
+
+export function HomepageAuthGate({ children, hasAuthCookie }: { children: ReactNode; hasAuthCookie: boolean }) {
+  const pathname = usePathname();
+  const { loading, user } = useAuth();
+
+  return pathname === '/' && loading && (hasAuthCookie || user) ? <AuthLoadingScreen /> : children;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [full_name, setFullName] = useState<string | null>(null);
@@ -47,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [accountType, setAccountType] = useState<'student' | 'guardian'>('student');
   const [linkedStudents, setLinkedStudents] = useState<LinkedStudent[]>([]);
+  const pathname = usePathname();
   const router = useRouter();
 
   // Fetch account type from profiles table, syncing from user_metadata if needed
@@ -361,13 +377,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
-        </div>
-      ) : (
-        children
-      )}
+      {/* The homepage waits for auth only when a session may exist. */}
+      {loading && pathname !== '/' ? <AuthLoadingScreen /> : children}
     </AuthContext.Provider>
   );
 }

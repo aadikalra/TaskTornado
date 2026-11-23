@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Clock } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import Hero from '@/app/landing-sections/Hero';
 import OrganizationSection from '@/app/landing-sections/OrganizationSection';
 import ComparisonSection from '@/app/landing-sections/ComparisonSection';
@@ -48,6 +49,7 @@ const sampleHomeworkItems = [
 ];
 
 export default function StudentLandingContent() {
+  const pathname = usePathname();
   const [comparisonSet, setComparisonSet] = useState<'chatgpt-notion' | 'gemini-google'>('chatgpt-notion');
   const [homeworkItems, setHomeworkItems] = useState(sampleHomeworkItems);
 
@@ -78,6 +80,15 @@ export default function StudentLandingContent() {
 
       {/* 10. USER REACH - Global Map */}
       <UserReachSection />
+
+      {pathname === '/' && (
+        <div
+          className="flex justify-center bg-[#fffaf4] py-6 dark:bg-gray-950 [&_img]:h-[60px]"
+          dangerouslySetInnerHTML={{
+            __html: '<a href="https://builtbyindies.com/products/tasktornado?utm_source=badge&utm_medium=embed&utm_campaign=live" target="_blank"><img src="https://builtbyindies.com/badge/f60292b4-3615-4fe0-9484-0a81f7d0bf9e.svg" alt="BuiltByIndies" height="60" /></a>',
+          }}
+        />
+      )}
 
       {/* FOOTER */}
       <LandingFooter />

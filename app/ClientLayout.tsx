@@ -158,9 +158,9 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
           }}
         >
           <PageTransition effect="wipe">
-            {pathname === '/' && (authLoading || user) ? (
+            {pathname === '/' && user ? (
               <div
-                aria-label={user ? 'Opening dashboard' : 'Checking account'}
+                aria-label="Opening dashboard"
                 className="flex min-h-screen items-center justify-center"
               >
                 <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#275085]/20 border-t-[#275085]" />

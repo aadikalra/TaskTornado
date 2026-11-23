@@ -1,5 +1,6 @@
 import React from 'react';
 import { AIProvider } from '@/context/AIContext';
+import { HomepageAuthGate } from '@/context/AuthContext';
 import { ClassProvider } from '@/context/ClassContext';
 import { DataProvider } from '@/context/DataContext';
 import { HomeworkProvider } from '@/context/HomeworkContext';
@@ -15,26 +16,30 @@ export default async function PublicLayout({ children }: { children: React.React
   const cookieStore = await cookies();
   const sidebarCookie = cookieStore.get('tasktornado_newhome_sidebar_collapsed');
   const initialSidebarCollapsed = sidebarCookie ? sidebarCookie.value === 'true' : false;
+  const supabaseProject = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split('.')[0];
+  const hasAuthCookie = cookieStore.has(`sb-${supabaseProject}-auth-token`);
 
   return (
-    <ClassProvider>
-      <HomeworkProvider>
-        <TestProvider>
-          <DataProvider>
-            <SearchProvider>
-              <AIProvider>
-                <WebSavesProvider>
-                  <StudyGroupsProvider>
-                    <UpgradeProvider>
-                      <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}>{children}</ClientLayout>
-                    </UpgradeProvider>
-                  </StudyGroupsProvider>
-                </WebSavesProvider>
-              </AIProvider>
-            </SearchProvider>
-          </DataProvider>
-        </TestProvider>
-      </HomeworkProvider>
-    </ClassProvider>
+    <HomepageAuthGate hasAuthCookie={hasAuthCookie}>
+      <ClassProvider>
+        <HomeworkProvider>
+          <TestProvider>
+            <DataProvider>
+              <SearchProvider>
+                <AIProvider>
+                  <WebSavesProvider>
+                    <StudyGroupsProvider>
+                      <UpgradeProvider>
+                        <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}>{children}</ClientLayout>
+                      </UpgradeProvider>
+                    </StudyGroupsProvider>
+                  </WebSavesProvider>
+                </AIProvider>
+              </SearchProvider>
+            </DataProvider>
+          </TestProvider>
+        </HomeworkProvider>
+      </ClassProvider>
+    </HomepageAuthGate>
   );
 }
