@@ -138,6 +138,15 @@ export default function HomepageBadges() {
                     </li>
                 ))}
             </ul>
+            <a href="https://semilaunch.com/" target="_blank" rel="noopener" hidden>
+                <img
+                    src="https://semilaunch.com/assets/badge.png"
+                    alt="Featured on SemiLaunch"
+                    width={220}
+                    height={77}
+                    loading="lazy"
+                />
+            </a>
         </section>
     );
 }
