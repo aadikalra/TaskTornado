@@ -20,7 +20,6 @@ interface SavedQuiz {
 
 export default function QuizPage() {
     const { authenticated } = useRequireAuth();
-    if (!authenticated) return null;
     const router = useRouter();
     const { user } = useAuth();
     const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
@@ -157,6 +156,8 @@ export default function QuizPage() {
         setIsLoading(false);
     }, []);
 
+    if (!authenticated) return null;
+
     const studyQuiz = (questions: QuizQuestion[], title: string) => {
         setCurrentQuestions(questions);
         setStudyingTitle(title);
@@ -249,7 +250,7 @@ export default function QuizPage() {
                     description="Test your knowledge with AI-generated quizzes"
                     icon={<HugeIcon name="Quiz04" size={24} className="h-6 w-6" />}
                     features={[
-                        'Generate quizzes using the AI Aurora',
+                        'Generate quizzes with Aurora AI',
                         'Answer multiple-choice questions',
                         'Get instant feedback and explanations',
                         'Track your score per session',
@@ -516,7 +517,7 @@ export default function QuizPage() {
                 description="Test your knowledge with AI-generated quizzes"
                 icon={<HugeIcon name="Quiz04" size={24} className="h-6 w-6" />}
                 features={[
-                    'Generate quizzes using the AI Aurora',
+                    'Generate quizzes with Aurora AI',
                     'Answer multiple-choice questions',
                     'Get instant feedback and explanations',
                     'Track your score per session',

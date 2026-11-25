@@ -594,12 +594,11 @@ export default function CalendarClient() {
                           {/* Test chips */}
                           {calendarDay.tests.slice(0, isMobile ? 1 : 2).map((test) => {
                             const classItem = classes.find((c: Class) => c.id === test.classId);
-                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : () => <HugeIcon name="Book03" size={10} className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />;
                             return (
                               <Tooltip key={test.id}>
                                 <TooltipTrigger asChild>
                                   <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-rose-100/80 dark:bg-rose-500/15 rounded-lg text-[9px] sm:text-[10px] text-rose-700 dark:text-rose-300 font-medium truncate">
-                                    <ClassIcon />
+                                    <HugeIcon name={classItem?.icon || 'Book03'} size={10} className="h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0" />
                                     <span className="truncate">{test.title}</span>
                                   </div>
                                 </TooltipTrigger>
@@ -803,11 +802,15 @@ export default function CalendarClient() {
                         <div className="space-y-2">
                           {expandedDayData.tests.map((test) => {
                             const classItem = classes.find(c => c.id === test.classId);
-                            const ClassIcon = classItem ? getClassIcon(classItem.icon) : () => <HugeIcon name="Book03" size={12} className="h-3 w-3" />;
                             return (
                               <div key={test.id} className="p-4 bg-rose-50 dark:bg-rose-500/10 rounded-2xl border border-rose-200/40 dark:border-rose-800/20">
                                 <h4 className="font-bold text-sky-800 dark:text-sky-200 text-sm">{test.title}</h4>
-                                {classItem && <p className="text-xs text-sky-600 dark:text-sky-400 mt-1 flex items-center gap-1"><ClassIcon />{classItem.name}</p>}
+                                {classItem && (
+                                  <p className="text-xs text-sky-600 dark:text-sky-400 mt-1 flex items-center gap-1">
+                                    <HugeIcon name={classItem.icon || 'Book03'} size={12} className="h-3 w-3 shrink-0" />
+                                    {classItem.name}
+                                  </p>
+                                )}
                                 <div className="mt-3 space-y-1">
                                   {test.testType && <p className="text-xs text-sky-700 dark:text-sky-300"><span className="font-semibold">Type:</span> <span className="capitalize">{test.testType}</span></p>}
                                   {test.testTime && <p className="text-xs text-sky-700 dark:text-sky-300 flex items-center gap-1"><HugeIcon name="Clock01" size={12} className="h-3 w-3" />{format(new Date(test.testTime), 'h:mm a')}</p>}

@@ -17,13 +17,14 @@ type Test = TestType;
 
 export default function TestDetailPage() {
   const { id } = useParams() as { id: string };
-  const { classes } = useClassContext();
-  const { tests } = useTestContext();
+  const { classes, loading: classesLoading } = useClassContext();
+  const { tests, loading: testsLoading } = useTestContext();
   const [test, setTest] = useState<Test | null>(null);
   const [classItem, setClassItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (testsLoading || classesLoading) return;
     const testItem = tests.find(t => t.id === id);
     setTest(testItem || null);
 
@@ -34,7 +35,7 @@ export default function TestDetailPage() {
       setClassItem(null);
     }
     setLoading(false);
-  }, [id, tests, classes]);
+  }, [id, tests, classes, testsLoading, classesLoading]);
 
   const classIndex = classItem ? classes.findIndex((c: any) => c.id === classItem.id) : -1;
   const accentColor = classIndex >= 0 ? CLASS_COLORS[classIndex % CLASS_COLORS.length] : '#0ea5e9';
@@ -150,7 +151,7 @@ export default function TestDetailPage() {
               </span>
               {test.testType && (
                 <span className="inline-flex items-center text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400 border-sky-200 dark:border-sky-500/20">
-                  {test.testType}
+                  {test.testType.toUpperCase() === 'ALPHA' ? 'Major Exam' : test.testType.toUpperCase() === 'BETA' ? 'Unit Test' : test.testType}
                 </span>
               )}
             </div>
@@ -281,25 +282,19 @@ export default function TestDetailPage() {
 
           {/* Footer with actions */}
           <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-            <Link href="/tests">
-              <button
-                type="button"
-                className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Tests
-                </span>
-              </button>
+            <Link
+              href="/tests"
+              className="inline-flex items-center gap-2 h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Tests
             </Link>
-            <Link href={`/tests/edit/${test.id}`}>
-              <button
-                type="button"
-                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors inline-flex items-center gap-2"
-              >
-                <Edit className="h-3.5 w-3.5" />
-                Edit Test
-              </button>
+            <Link
+              href={`/tests/edit/${test.id}`}
+              className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors inline-flex items-center gap-2"
+            >
+              <Edit className="h-3.5 w-3.5" />
+              Edit Test
             </Link>
           </div>
         </motion.div>

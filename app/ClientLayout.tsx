@@ -72,7 +72,7 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
   const pathname = usePathname();
   const router = useRouter();
   const { isAIAssistantOpen, isAISidebarMode } = useAI();
-  const { user, isGuardian, loading: authLoading } = useAuth() || {};
+  const { user, isGuardian, isEligible, loading: authLoading } = useAuth() || {};
   const { isOpen: isSearchOpen } = useSearch();
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; hasSelection?: boolean; selectedText?: string; isAiChat?: boolean } | null>(null);
   const [dictionaryWord, setDictionaryWord] = React.useState<string | null>(null);
@@ -112,17 +112,17 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
 
   // Redirect guardians away from student-only routes
   React.useEffect(() => {
-    if (user && isGuardian && STUDENT_ONLY_ROUTES.some(r => pathname === r || pathname?.startsWith(r + '/'))) {
+    if (user && isEligible && isGuardian && STUDENT_ONLY_ROUTES.some(r => pathname === r || pathname?.startsWith(r + '/'))) {
       router.replace('/guardian/dashboard');
     }
-  }, [user, isGuardian, pathname, router]);
+  }, [user, isEligible, isGuardian, pathname, router]);
 
   // The landing page is only for signed-out visitors. Once the authenticated
   // session and eligibility check finish, send each account to its dashboard.
   React.useEffect(() => {
-    if (authLoading || !user || pathname !== '/') return;
+    if (authLoading || !user || !isEligible || pathname !== '/') return;
     router.replace(isGuardian ? '/guardian/dashboard' : '/dashboard');
-  }, [authLoading, isGuardian, pathname, router, user]);
+  }, [authLoading, isEligible, isGuardian, pathname, router, user]);
 
 
 
@@ -172,17 +172,17 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
         {isSearchOpen && <SearchBar />}
 
         <main
-          className="flex-1 bg-transparent overflow-x-hidden pt-0"
+          className="flex-1 bg-transparent overflow-x-clip pt-0"
           style={{
             marginRight: showSidebarMargin ? 420 : 0,
             transition: 'margin-right 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {pathname === '/' && !user ? (
+          {pathname === '/' && !(user && isEligible) ? (
             children
           ) : (
             <PageTransition effect="wipe">
-              {pathname === '/' && user ? (
+              {pathname === '/' && user && isEligible ? (
                 <div
                   aria-label="Opening dashboard"
                   className="flex min-h-screen items-center justify-center"
@@ -197,8 +197,10 @@ export function ClientLayout({ children, initialSidebarCollapsed }: ClientLayout
         </main>
         {/* Nav: GuardianNavbar for guardians; AppNavbar for standard student routes; ReboundNavbar for logged-out */}
         <React.ViewTransition name="site-navigation" default="site-navigation">
-          {user
-            ? (!authLoading && (isGuardian ? <GuardianNavbar /> : <AppNavbar />))
+          {user && !['/login', '/signup', '/forgot-password', '/reset-password', '/parental-consent', '/account-eligibility'].includes(pathname || '')
+            ? (!authLoading && isEligible
+                ? (isGuardian ? <GuardianNavbar /> : <AppNavbar />)
+                : null)
             : <ReboundNavbar />}
         </React.ViewTransition>
                 {contextMenu && (

@@ -228,10 +228,10 @@ export default function EditHomeworkPage() {
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="w-full h-11 flex items-center gap-2 px-3 text-sm font-normal bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl transition-colors text-left"
+                        className="w-full h-11 flex items-center gap-2 px-3 text-sm font-normal bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl transition-colors text-left whitespace-nowrap"
                       >
                         <CalendarIcon className="h-4 w-4 text-sky-500 shrink-0" />
-                        {date ? format(date, 'PPP') : <span className="text-sky-400">Pick a date</span>}
+                        <span className="truncate">{date ? format(date, 'MMM d, yyyy') : 'Pick a date'}</span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5" align="start">
@@ -323,14 +323,11 @@ export default function EditHomeworkPage() {
             {saveError && <p role="alert" className="px-6 pb-4 text-sm text-red-600 dark:text-red-400">{saveError}</p>}
             {/* Footer */}
             <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-              <Link href={`/homework/${id}`}>
-                <button
-                  type="button"
-                  disabled={saving}
-                  className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-40"
-                >
-                  Cancel
-                </button>
+              <Link
+                href={`/homework/${id}`}
+                className="inline-flex items-center h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+              >
+                Cancel
               </Link>
               <button
                 type="submit"

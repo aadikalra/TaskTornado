@@ -104,7 +104,11 @@ export default function BlogClient() {
 
                 {filteredPosts.length === 0 ? (
                     <div className="text-center py-32">
-                        <p className="text-sky-800 dark:text-sky-300 text-sm mb-4">No stories found for &quot;{searchQuery}&quot;</p>
+                        <p className="text-sky-800 dark:text-sky-300 text-sm mb-4">
+                            {searchQuery.trim()
+                                ? `No stories found for "${searchQuery}"`
+                                : `No stories in ${activeCategory} yet.`}
+                        </p>
                         <button
                             onClick={() => { setSearchQuery(''); setActiveCategory('All'); }}
                             className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-[#ebf6b5]/60 dark:bg-sky-500/20 rounded-full hover:bg-[#ebf6b5] dark:hover:bg-sky-500/30 transition-colors"
@@ -160,7 +164,12 @@ export default function BlogClient() {
 
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-7 h-7 rounded-full bg-[#ebf6b5]/60 dark:bg-sky-500/15" />
+                                                        <div
+                                                            aria-hidden="true"
+                                                            className="w-7 h-7 rounded-full bg-[#ebf6b5] dark:bg-sky-500/20 border border-sky-200/70 dark:border-sky-500/30 flex items-center justify-center text-[10px] font-bold text-sky-800 dark:text-sky-200 shrink-0"
+                                                        >
+                                                            {featuredPost.author.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() || '').join('') || 'TT'}
+                                                        </div>
                                                         <div>
                                                             <p className="text-[11px] font-bold text-sky-800 dark:text-sky-200">{featuredPost.author}</p>
                                                             <p className="text-[10px] text-sky-700/60 dark:text-sky-400/60">{featuredPost.authorRole}</p>
@@ -247,7 +256,12 @@ export default function BlogClient() {
                                                         {/* Footer */}
                                                         <div className="flex items-center justify-between pt-4 border-t border-sky-100/60 dark:border-sky-900/20">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="w-5 h-5 rounded-full bg-[#ebf6b5]/60 dark:bg-sky-500/15" />
+                                                                <div
+                                                                    aria-hidden="true"
+                                                                    className="w-5 h-5 rounded-full bg-[#ebf6b5] dark:bg-sky-500/20 border border-sky-200/70 dark:border-sky-500/30 flex items-center justify-center text-[8px] font-bold text-sky-800 dark:text-sky-200 shrink-0"
+                                                                >
+                                                                    {post.author.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() || '').join('') || 'TT'}
+                                                                </div>
                                                                 <span className="text-[10px] font-bold text-sky-700 dark:text-sky-300">{post.author}</span>
                                                             </div>
                                                             <HugeIcon name="ArrowRight01" className="w-3.5 h-3.5 text-sky-500/40 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors" />

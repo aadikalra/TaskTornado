@@ -140,7 +140,13 @@ const StatusGroupedTestList = ({
           </h3>
 
           <div className="mt-auto flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
-            <span className="capitalize">{test.testType?.toLowerCase() || 'Test'}</span>
+            <span className="capitalize">
+              {test.testType?.toUpperCase() === 'ALPHA'
+                ? 'Major Exam'
+                : test.testType?.toUpperCase() === 'BETA'
+                  ? 'Unit Test'
+                  : test.testType?.toLowerCase() || 'Test'}
+            </span>
             {isPreparing && !isPast && <>
               <span aria-hidden="true">·</span>
               <span className="text-sky-600 dark:text-sky-300">Preparing</span>

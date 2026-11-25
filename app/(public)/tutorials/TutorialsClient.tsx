@@ -211,17 +211,27 @@ export default function TutorialsPage() {
                     }
                   }}
                 >
-                  <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  <button
+                    type="button"
+                    aria-label="Search tutorials"
+                    aria-expanded={searchExpanded}
+                    onClick={() => {
+                      setSearchExpanded(true);
+                      setTimeout(() => searchInputRef.current?.focus(), 80);
+                    }}
+                    className="w-10 h-10 flex items-center justify-center shrink-0"
+                  >
                     {isSuggesting ? (
                       <HugeIcon name="LoaderPinwheel" className="w-4 h-4 text-sky-500 animate-spin" />
                     ) : (
                       <HugeIcon name="Search01" className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                     )}
-                  </div>
+                  </button>
                   <div className={`flex items-center flex-1 min-w-0 overflow-hidden transition-opacity duration-200 ${searchExpanded ? 'opacity-100 pr-4' : 'opacity-0 w-0 pr-0'}`}>
                     <input
                       ref={searchInputRef}
                       type="text"
+                      aria-label="Search tutorials"
                       placeholder="Search guides..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -234,6 +244,8 @@ export default function TutorialsPage() {
                     />
                     {searchQuery && (
                       <button
+                        type="button"
+                        aria-label="Clear search"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={(e) => { e.stopPropagation(); setSearchQuery(''); setAiSuggestions([]); searchInputRef.current?.focus(); }}
                         className="p-0.5 ml-1 rounded-full text-sky-400 hover:text-sky-600 dark:hover:text-sky-300 transition-colors shrink-0"

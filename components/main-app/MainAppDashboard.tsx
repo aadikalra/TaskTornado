@@ -10,7 +10,9 @@ export const MainAppDashboard = () => {
     <>
       {showCalendarWidget && (
         <DashboardFloat delayMs={260} tilt={0.25}>
-          <WeeklyCalendarWidget />
+          <div data-tour="calendar-widget">
+            <WeeklyCalendarWidget />
+          </div>
         </DashboardFloat>
       )}
     </>

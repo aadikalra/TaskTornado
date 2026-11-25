@@ -130,15 +130,15 @@ const availableIcons = [
   // Math icons
   { name: 'Absolute', iconName: 'Absolute', category: 'Math', tags: ['math', 'absolute', 'value', 'number'] },
   { name: 'Acute', iconName: 'Acute', category: 'Math', tags: ['math', 'acute', 'angle', 'geometry'] },
-  { name: '1stBracket', iconName: 'FirstBracket', category: 'Math', tags: ['math', 'bracket', 'parenthesis', 'symbol'] },
-  { name: '1stBracketCircle', iconName: 'FirstBracketCircle', category: 'Math', tags: ['math', 'bracket', 'circle', 'symbol'] },
-  { name: '1stBracketSquare', iconName: 'FirstBracketSquare', category: 'Math', tags: ['math', 'bracket', 'square', 'symbol'] },
-  { name: '2ndBracket', iconName: 'SecondBracket', category: 'Math', tags: ['math', 'bracket', 'parenthesis', 'symbol'] },
-  { name: '2ndBracketCircle', iconName: 'SecondBracketCircle', category: 'Math', tags: ['math', 'bracket', 'circle', 'symbol'] },
-  { name: '2ndBracketSquare', iconName: 'SecondBracketSquare', category: 'Math', tags: ['math', 'bracket', 'square', 'symbol'] },
-  { name: '3rdBracket', iconName: 'ThirdBracket', category: 'Math', tags: ['math', 'bracket', 'parenthesis', 'symbol'] },
-  { name: '3rdBracketCircle', iconName: 'ThirdBracketCircle', category: 'Math', tags: ['math', 'bracket', 'circle', 'symbol'] },
-  { name: '3rdBracketSquare', iconName: 'ThirdBracketSquare', category: 'Math', tags: ['math', 'bracket', 'square', 'symbol'] },
+  { name: '1stBracket', iconName: '1stBracket', category: 'Math', tags: ['math', 'bracket', 'parenthesis', 'symbol'] },
+  { name: '1stBracketCircle', iconName: '1stBracketCircle', category: 'Math', tags: ['math', 'bracket', 'circle', 'symbol'] },
+  { name: '1stBracketSquare', iconName: '1stBracketSquare', category: 'Math', tags: ['math', 'bracket', 'square', 'symbol'] },
+  { name: '2ndBracket', iconName: '2ndBracket', category: 'Math', tags: ['math', 'bracket', 'parenthesis', 'symbol'] },
+  { name: '2ndBracketCircle', iconName: '2ndBracketCircle', category: 'Math', tags: ['math', 'bracket', 'circle', 'symbol'] },
+  { name: '2ndBracketSquare', iconName: '2ndBracketSquare', category: 'Math', tags: ['math', 'bracket', 'square', 'symbol'] },
+  { name: '3rdBracket', iconName: '3rdBracket', category: 'Math', tags: ['math', 'bracket', 'parenthesis', 'symbol'] },
+  { name: '3rdBracketCircle', iconName: '3rdBracketCircle', category: 'Math', tags: ['math', 'bracket', 'circle', 'symbol'] },
+  { name: '3rdBracketSquare', iconName: '3rdBracketSquare', category: 'Math', tags: ['math', 'bracket', 'square', 'symbol'] },
   { name: 'Alpha', iconName: 'Alpha', category: 'Math', tags: ['math', 'greek', 'alpha', 'symbol'] },
   { name: 'AlphaCircle', iconName: 'AlphaCircle', category: 'Math', tags: ['math', 'greek', 'alpha', 'circle'] },
   { name: 'AlphaSquare', iconName: 'AlphaSquare', category: 'Math', tags: ['math', 'greek', 'alpha', 'square'] },
@@ -397,14 +397,11 @@ export default function EditClassPage() {
             </div>
 
             <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-              <Link href="/">
-                <button
-                  type="button"
-                  disabled={saving}
-                  className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-40"
-                >
-                  Cancel
-                </button>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+              >
+                Cancel
               </Link>
               <button
                 type="submit"

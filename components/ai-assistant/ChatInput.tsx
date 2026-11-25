@@ -363,6 +363,7 @@ export const ChatInput = ({
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       type="submit"
+                      aria-label={isAILoading ? 'Stop response' : 'Send message'}
                       onClick={(e) => {
                         if (isAILoading) {
                           handleStopResponse(e);

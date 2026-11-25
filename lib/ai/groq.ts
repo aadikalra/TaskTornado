@@ -150,6 +150,7 @@ export async function completeWithFallback(
     maxTokens: options.maxTokens ?? AI_OUTPUT_LIMITS[options.action] });
   const models = AI_MODEL_ROUTES[options.action];
   let lastError: unknown;
+  let rateLimitedModel: { model: string; error: GroqRequestError } | null = null;
 
   for (const model of models) {
     try {
@@ -170,6 +171,9 @@ export async function completeWithFallback(
           toolCount: options.tools?.length || 0,
           toolChoice: options.tools?.length ? options.toolChoice ?? 'auto' : 'none',
         });
+        if (error.status === 429 && !rateLimitedModel) {
+          rateLimitedModel = { model, error };
+        }
       }
       const isFailedGeneration =
         error instanceof GroqRequestError &&
@@ -187,6 +191,25 @@ export async function completeWithFallback(
       ) {
         throw error;
       }
+    }
+  }
+
+  if (rateLimitedModel) {
+    const retrySeconds = Number(rateLimitedModel.error.retryAfter);
+    const delayMs = Number.isFinite(retrySeconds) && retrySeconds > 0
+      ? Math.min(2500, Math.round(retrySeconds * 1000))
+      : 1200;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    try {
+      return await requestCompletion(rateLimitedModel.model, {
+        ...options,
+        maxTokens: options.maxTokens ?? AI_OUTPUT_LIMITS[options.action],
+      });
+    } catch (retryError) {
+      if (retryError instanceof GroqRequestError && retryError.status === 429) {
+        throw retryError;
+      }
+      throw rateLimitedModel.error;
     }
   }
 

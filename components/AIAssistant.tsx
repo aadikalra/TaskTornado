@@ -170,7 +170,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
   const [deeperMessageCounter, setDeeperMessageCounter] = useState(0);
   const [quotaSummary, setQuotaSummary] = useState<AIUsageSummary | null>(null);
   const [quotaLoading, setQuotaLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, full_name } = useAuth();
 
 
 
@@ -1630,10 +1630,10 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                       initial="hidden"
                       animate="visible"
                       variants={handwritingSentenceVariants}
-                      className="relative -top-10 max-w-[450px]"
+                      className="relative -top-4 max-w-[450px] px-4"
                     >
-                      <h2 className="block text-3xl font-medium font-cursive text-center text-sky-900 dark:text-sky-200">
-                        {`Hey, ${user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'}!`.split('').map((char, index) => (
+                      <h2 className="block text-3xl font-medium font-cursive text-center text-sky-900 dark:text-sky-200 leading-snug">
+                        {`Hey, ${full_name?.trim().split(/\s+/)[0] || user?.user_metadata?.full_name?.trim().split(/\s+/)[0] || user?.user_metadata?.name?.trim().split(/\s+/)[0] || 'there'}!`.split('').map((char, index) => (
                           <motion.span
                             key={`${char}-${index}`}
                             variants={handwritingCharVariants}

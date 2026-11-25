@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useClassContext } from '@/context/ClassContext';
 import { useTestContext } from '@/context/TestContext';
-import { GraduationCap, Calendar, Target, Zap, Brain, CheckCircle2, Loader2 } from 'lucide-react';
+import { GraduationCap, Calendar, Target, Zap, Brain, CheckCircle2, Loader2, Plus } from 'lucide-react';
 import { HugeIcon } from '@/lib/huge-icon-map';
 import StatusGroupedTestList from '@/components/StatusGroupedTestList';
+import { AddTestModal } from '@/components/AddTestModal';
 import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useRouteIntro } from '@/hooks/use-route-intro';
 import { RouteIntroPopup } from '@/components/RouteIntroPopup';
@@ -15,11 +16,12 @@ import { motion } from 'framer-motion';
 
 export default function TestsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { classes, loading: classLoading } = useClassContext();
-  const { tests, deleteTest } = useTestContext();
+  const { loading: classLoading } = useClassContext();
+  const { tests, deleteTest, loading: testsLoading } = useTestContext();
   const router = useRouter();
   const { getContainerClass } = useWideLayout();
   const { showIntro, dismissIntro } = useRouteIntro('tests');
+  const [showAddTest, setShowAddTest] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -27,7 +29,7 @@ export default function TestsPage() {
     }
   }, [user, authLoading, router]);
 
-  if (authLoading || classLoading) {
+  if (authLoading || classLoading || testsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fffaf4] dark:bg-gray-950">
         <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
@@ -39,8 +41,8 @@ export default function TestsPage() {
     return null;
   }
 
-  const upcomingTests = tests.filter(test => test.status === 'upcoming');
-  const takenTests = tests.filter(test => test.status === 'taken');
+  const upcomingTests = tests.filter(test => !['taken', 'completed'].includes((test.status || '').toLowerCase()));
+  const takenTests = tests.filter(test => ['taken', 'completed'].includes((test.status || '').toLowerCase()));
   const alphaTests = tests.filter(test => test.testType?.toLowerCase() === 'alpha');
   const betaTests = tests.filter(test => test.testType?.toLowerCase() === 'beta');
   const successRate = tests.length > 0 ? Math.round((takenTests.length / tests.length) * 100) : 0;
@@ -49,8 +51,8 @@ export default function TestsPage() {
     { label: 'Total', value: tests.length, icon: GraduationCap, color: '#0ea5e9', sub: 'all time' },
     { label: 'Upcoming', value: upcomingTests.length, icon: Calendar, color: '#2563EB', sub: 'scheduled' },
     { label: 'Completed', value: takenTests.length, icon: CheckCircle2, color: '#16A34A', sub: 'finished' },
-    { label: 'ALPHA', value: alphaTests.length, icon: Target, color: '#7C3AED', sub: 'special' },
-    { label: 'BETA', value: betaTests.length, icon: Zap, color: '#D97706', sub: 'advanced' },
+    { label: 'Major Exams', value: alphaTests.length, icon: Target, color: '#7C3AED', sub: 'major' },
+    { label: 'Unit Tests', value: betaTests.length, icon: Zap, color: '#D97706', sub: 'unit' },
     { label: 'Rate', value: `${successRate}%`, icon: Brain, color: '#0D9488', sub: 'overall' },
   ];
 
@@ -63,18 +65,28 @@ export default function TestsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-3.5 mb-1">
-            <div className="shrink-0 w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-800/30 flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-sky-500 dark:text-sky-400" />
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-1">
+            <div className="flex items-center gap-3.5">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-800/30 flex items-center justify-center">
+                <GraduationCap className="h-6 w-6 text-sky-500 dark:text-sky-400" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
+                  Tests & Exams
+                </h1>
+                <p className="text-sm text-sky-600/40 dark:text-sky-400/35 font-medium">
+                  Manage your test schedule and track your progress
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-sky-500 dark:text-sky-400">
-                Tests & Exams
-              </h1>
-              <p className="text-sm text-sky-600/40 dark:text-sky-400/35 font-medium">
-                Manage your test schedule and track your progress
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddTest(true)}
+              className="h-10 px-4 rounded-full bg-sky-500 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:bg-sky-600 transition-colors cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Add Test
+            </button>
           </div>
         </motion.div>
 
@@ -134,10 +146,15 @@ export default function TestsPage() {
         icon={<HugeIcon name="Mortarboard02" size={24} className="h-6 w-6" />}
         features={[
           'Track upcoming tests and completed exams',
-          'View stats including ALPHA/BETA tests',
+          'View stats across quizzes, unit tests, and major exams',
           'Organize tests by status and type',
           'Monitor your success rate and progress',
         ]}
+      />
+
+      <AddTestModal
+        isOpen={showAddTest}
+        onClose={() => setShowAddTest(false)}
       />
     </div>
   );

@@ -99,8 +99,8 @@ function CheckboxIndicator(props: CheckboxIndicatorProps) {
                 pathLength: 1,
                 opacity: 1,
                 transition: {
-                  duration: 0.2,
-                  delay: 0.2,
+                  duration: 0.15,
+                  delay: 0,
                 },
               },
               unchecked: {

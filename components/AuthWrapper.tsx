@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function AuthWrapper({ children }: Props) {
-  const { user, loading } = useAuth();
+  const { user, loading, isEligible, eligibilityStatus } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [shouldRedirect, setShouldRedirect] = useState<{ to: string } | null>(null);
@@ -21,6 +21,10 @@ export default function AuthWrapper({ children }: Props) {
     '/',
     '/login',
     '/signup',
+    '/forgot-password',
+    '/reset-password',
+    '/parental-consent',
+    '/account-eligibility',
     '/ai-guidelines',
     '/landing',
     '/legal',
@@ -50,12 +54,12 @@ export default function AuthWrapper({ children }: Props) {
 
     // 1. Public routes - no redirect needed
     if (isPublicRoute) {
-      // If user is on auth page but already logged in, redirect to dashboard
-      if (isAuthPage && user) {
+      // If user is on auth page and already logged in + eligible, redirect to dashboard
+      if (isAuthPage && user && isEligible) {
         setShouldRedirect({ to: '/dashboard' });
       }
-      // If user is on root path and logged in, redirect to dashboard
-      if (pathname && pathname === '/' && user) {
+      // If user is on root path and logged in + eligible, redirect to dashboard
+      if (pathname && pathname === '/' && user && isEligible) {
         setShouldRedirect({ to: '/dashboard' });
       }
       return;
@@ -66,13 +70,30 @@ export default function AuthWrapper({ children }: Props) {
       return;
     }
 
-    // 3. Protected routes - redirect to login if not logged in
+    // 3. Protected routes - redirect if not logged in or not eligible
     if (!user) {
       setShouldRedirect({
         to: `/login?redirectTo=${encodeURIComponent(pathname || '')}`
       });
+      return;
     }
-  }, [loading, isAuthPage, isPublicRoute, is404Scenario, user, pathname]);
+
+    if (eligibilityStatus === 'checking') return;
+
+    if (eligibilityStatus === 'setup_required') {
+      setShouldRedirect({ to: '/account-eligibility' });
+      return;
+    }
+
+    if (eligibilityStatus === 'parental_consent_required') {
+      setShouldRedirect({ to: '/login?approval=required' });
+      return;
+    }
+
+    if (eligibilityStatus === 'ineligible' || !isEligible) {
+      setShouldRedirect({ to: '/login?error=account_not_eligible' });
+    }
+  }, [loading, isAuthPage, isPublicRoute, is404Scenario, user, isEligible, eligibilityStatus, pathname, shouldRedirect]);
 
   // Handle the actual redirect
   useEffect(() => {
@@ -85,8 +106,8 @@ export default function AuthWrapper({ children }: Props) {
   // Show loading spinner while auth state is being determined
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#275085]/20 border-t-[#275085] dark:border-[#a0c3ff]/20 dark:border-t-[#a0c3ff]" />
       </div>
     );
   }
@@ -102,15 +123,15 @@ export default function AuthWrapper({ children }: Props) {
   }
 
   // If we get here, it's a protected route and we're not loading
-  if (!user) {
-    // Show a loading spinner while the redirect is happening
+  if (!user || !isEligible) {
+    // Show a loading spinner while eligibility resolves or redirect is happening
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#275085]/20 border-t-[#275085] dark:border-[#a0c3ff]/20 dark:border-t-[#a0c3ff]" />
       </div>
     );
   }
 
-  // If we have a user, render the children
+  // If we have an eligible user, render the children
   return <>{children}</>;
 }

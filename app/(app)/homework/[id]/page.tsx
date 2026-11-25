@@ -76,11 +76,11 @@ export default function HomeworkDetailPage() {
         <h1 className="text-2xl font-bold text-sky-900 dark:text-white mb-2 tracking-tight">Homework not found</h1>
         <p className="text-sky-600/60 dark:text-gray-400 text-sm mb-6">This assignment may have been deleted or doesn't exist.</p>
         <Link
-          href="/newhome"
+          href="/dashboard"
           className="inline-flex items-center gap-2 h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Overview
+          Back to Dashboard
         </Link>
       </div>
     );
@@ -108,11 +108,11 @@ export default function HomeworkDetailPage() {
       <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-12">
         {/* Back link */}
         <Link
-          href="/newhome"
+          href="/dashboard"
           className="inline-flex items-center gap-2 text-sm text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Overview
+          Back to Dashboard
         </Link>
 
         {/* Header */}
@@ -165,21 +165,17 @@ export default function HomeworkDetailPage() {
           <div className="p-6 sm:p-8 space-y-5">
             {/* Status chips row */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Completion status toggle */}
-              <button
-                type="button"
-                onClick={handleToggleComplete}
-                disabled={completing}
-                title="Toggle homework completion"
-                className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer hover:scale-105 ${
+              {/* Completion status badge */}
+              <span
+                className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${
                   homework.completed
                     ? 'bg-[#ebf6b5]/60 text-sky-700 dark:bg-[#ebf6b5]/10 dark:text-sky-300 border-[#d4e88e]/50 dark:border-[#d4e88e]/20'
-                    : 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400 border-sky-200 dark:border-sky-500/20 hover:border-sky-400'
+                    : 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400 border-sky-200 dark:border-sky-500/20'
                 }`}
               >
                 <CheckCircle2 className={`h-3.5 w-3.5 ${homework.completed ? 'text-emerald-600 dark:text-emerald-400' : 'text-sky-400'}`} />
-                <span>{homework.completed ? '✅ Completed' : '📌 In Progress (Click to finish)'}</span>
-              </button>
+                <span>{homework.completed ? 'Completed' : 'In Progress'}</span>
+              </span>
 
               {/* Priority */}
               <span className={`inline-flex items-center text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${priority.classes}`}>
@@ -266,39 +262,20 @@ export default function HomeworkDetailPage() {
 
           {/* Footer with actions */}
           <div className="flex items-center justify-between flex-wrap gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-            <Link href="/newhome">
-              <button
-                type="button"
-                className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Overview
-                </span>
-              </button>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Dashboard
             </Link>
             <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={handleToggleComplete}
-                disabled={completing}
-                className={`h-10 px-5 text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-2 shadow-xs cursor-pointer ${
-                  homework.completed
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/25'
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md hover:scale-[1.02]'
-                }`}
+              <Link
+                href={`/homework/edit/${homework.id}`}
+                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors inline-flex items-center gap-2"
               >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>{homework.completed ? 'Completed ✓' : 'Finish Homework'}</span>
-              </button>
-              <Link href={`/homework/edit/${homework.id}`}>
-                <button
-                  type="button"
-                  className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors inline-flex items-center gap-2"
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                  Edit Homework
-                </button>
+                <Edit className="h-3.5 w-3.5" />
+                Edit Homework
               </Link>
             </div>
           </div>

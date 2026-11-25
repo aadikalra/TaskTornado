@@ -150,7 +150,12 @@ function ColorMatchGame({ optionCount }: { optionCount: number }) {
                     <span className={`text-sm font-bold ${timeLeft <= 10 ? 'text-red-500' : 'text-sky-900 dark:text-white'}`}>{timeLeft}s</span>
                 </div>
                 {gameStarted && (
-                    <button onClick={startGame} className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                    <button
+                        onClick={startGame}
+                        aria-label="Restart game"
+                        title="Restart game"
+                        className="p-2 text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                    >
                         <HugeIcon name="Rotate01" className="w-4 h-4" />
                     </button>
                 )}
@@ -288,7 +293,7 @@ export default function ColorMatchPage() {
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
                         <h1 className="text-4xl lg:text-[52px] font-bold text-sky-500 dark:text-sky-400 leading-[1.08] tracking-tight mb-2">Color Match</h1>
                         <p className="text-sky-600/50 dark:text-sky-400/50 text-sm max-w-md">
-                            The Stroop effect! {optionCount} choices per round — {remainingCount > 0 ? 'more options with more homework remaining' : 'minimum difficulty — brain teaser mode!'}.
+                            The Stroop effect! {optionCount} choices per round — {remainingCount > 0 ? 'more options with more homework remaining.' : 'minimum difficulty — brain teaser mode!'}
                         </p>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="w-full flex justify-center">

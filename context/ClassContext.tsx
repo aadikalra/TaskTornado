@@ -7,6 +7,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
+import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database.types';
 import Cookies from 'js-cookie';
 
@@ -69,7 +70,7 @@ export const ClassProvider = (props: ClassProviderProps) => {
   return parent ? <>{props.children}</> : <ClassProviderState {...props} />;
 };
 const ClassProviderState = ({ children, initialClasses }: ClassProviderProps) => {
-  const { user } = useAuth();
+  const { user, isEligible } = useAuth();
   const pathname = usePathname();
   const [classes, setClasses] = useState<Class[]>(initialClasses ?? []);
   const [loading, setLoading] = useState(!initialClasses ? true : false);
@@ -81,12 +82,12 @@ const ClassProviderState = ({ children, initialClasses }: ClassProviderProps) =>
 
   const needsClassData = useCallback(() => {
     if (typeof window === 'undefined') return false;
-    const routes = ['/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome', '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'];
+    const routes = ['/homework', '/classes', '/tests', '/dashboard', '/calendar', '/settings', '/newhome', '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'];
     return routes.some(route => pathname.startsWith(route));
   }, [pathname]);
 
   const fetchData = useCallback(async () => {
-    if (!user || !needsClassData()) return;
+    if (!user || !isEligible || !needsClassData()) return;
     if (!hasLoaded.current) setLoading(true);
     setError(null);
     try {
@@ -102,18 +103,23 @@ const ClassProviderState = ({ children, initialClasses }: ClassProviderProps) =>
       setLoading(false);
     } catch (err) {
       if (accountRef.current !== user.id) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || accountRef.current !== user.id) return;
       console.error('Error fetching classes:', err);
       setError('Failed to load classes. Please try again.');
       setLoading(false);
     }
-  }, [user, needsClassData]);
+  }, [user, isEligible, needsClassData]);
 
   useClassroomBroadcasts(classes);
-  useSchoolDataSync('classes', user?.id, needsClassData(), fetchData);
+  useSchoolDataSync('classes', user?.id, Boolean(isEligible && needsClassData()), fetchData);
   useEffect(() => {
     hasLoaded.current = false;
     setClasses([]);
     setError(null);
+    return () => {
+      accountRef.current = undefined;
+    };
   }, [user?.id]);
 
   const addClass = async (name: string, icon: HugeIconName): Promise<string> => {

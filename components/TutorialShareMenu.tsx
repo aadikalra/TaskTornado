@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Share2,
     Twitter,
@@ -29,6 +29,15 @@ export function TutorialShareMenu({ title, className }: TutorialShareMenuProps) 
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const { success, error: toastError } = useToast();
+
+    useEffect(() => {
+        if (!open) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [open]);
 
     const getUrl = () => {
         if (typeof window !== 'undefined') {
@@ -85,6 +94,8 @@ export function TutorialShareMenu({ title, className }: TutorialShareMenuProps) 
         <div className="relative">
             {/* Trigger */}
             <button
+                type="button"
+                aria-expanded={open}
                 onClick={() => setOpen(!open)}
                 className={`
                     relative flex items-center gap-2 px-3.5 py-2 rounded-full
@@ -137,8 +148,10 @@ export function TutorialShareMenu({ title, className }: TutorialShareMenuProps) 
                                     Share Guide
                                 </span>
                                 <button
+                                    type="button"
+                                    aria-label="Close share menu"
                                     onClick={() => setOpen(false)}
-                                    className="p-1 rounded-lg text-sky-400/40 hover:text-sky-500 hover:bg-sky-500/[0.06] transition-colors"
+                                    className="p-1 rounded-lg text-sky-400/60 hover:text-sky-500 hover:bg-sky-500/[0.06] transition-colors"
                                 >
                                     <X className="w-3 h-3" />
                                 </button>

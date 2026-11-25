@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
@@ -14,6 +14,16 @@ import {
 } from '@/lib/legal/eligibility';
 import confetti from 'canvas-confetti';
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
+import { BirthdayDatePicker, getTodayLocalDate } from '@/components/BirthdayDatePicker';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 // Typing effect component using the signature sans font
@@ -62,7 +72,7 @@ const getWebmailLink = (emailAddress: string) => {
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, refreshEligibility } = useAuth();
 
   // Form states
   const [accountType, setAccountType] = useState<'student' | 'guardian' | null>(null);
@@ -75,6 +85,17 @@ export default function SignUpPage() {
   const [guardianEmail, setGuardianEmail] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [completionInfo, setCompletionInfo] = useState<{
+    requiresParentalConsent: boolean;
+    hasSession: boolean;
+    needsEmailVerification?: boolean;
+    guardianEmail?: string;
+  } | null>(null);
+
+  const defaultBrowseDate = useMemo(() => {
+    const today = getTodayLocalDate();
+    return new Date(today.getFullYear() - (accountType === 'guardian' ? 38 : 15), 0, 1);
+  }, [accountType]);
 
   // Flow control states
   const [typingProgress, setTypingProgress] = useState(0);
@@ -96,9 +117,14 @@ export default function SignUpPage() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [typingStep, setTypingStep] = useState(1);
   const [error, setError] = useState('');
+  const [invalidField, setInvalidField] = useState<'dob' | 'country' | 'guardianEmail' | 'terms' | null>(null);
   const [loading, setLoading] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const dobTriggerRef = useRef<HTMLButtonElement>(null);
+  const countryTriggerRef = useRef<HTMLButtonElement>(null);
+  const guardianEmailRef = useRef<HTMLInputElement>(null);
+  const pendingRegistrationRef = useRef<{ userId: string; email: string } | null>(null);
 
   // Auto-scroll to bottom of conversational flow
   useEffect(() => {
@@ -189,19 +215,27 @@ export default function SignUpPage() {
     const ageGroup = getAgeGroup(dateOfBirth);
 
     if (countryCode !== SUPPORTED_COUNTRY_CODE) {
+      setInvalidField('country');
       setError('TaskTornado is currently available only in the United States.');
+      countryTriggerRef.current?.focus();
       return;
     }
     if (!ageGroup) {
+      setInvalidField('dob');
       setError('Please enter a valid date of birth.');
+      dobTriggerRef.current?.focus();
       return;
     }
     if (ageGroup === 'under_13') {
+      setInvalidField('dob');
       setError('TaskTornado is not available to children under 13.');
+      dobTriggerRef.current?.focus();
       return;
     }
     if (accountType === 'guardian' && ageGroup !== 'adult') {
+      setInvalidField('dob');
       setError('Guardian accounts must be created by an adult.');
+      dobTriggerRef.current?.focus();
       return;
     }
     if (
@@ -209,53 +243,99 @@ export default function SignUpPage() {
       (!guardianEmail.includes('@') ||
         guardianEmail.trim().toLowerCase() === email.trim().toLowerCase())
     ) {
+      setInvalidField('guardianEmail');
       setError('Enter a valid parent or guardian email that is different from your own.');
+      guardianEmailRef.current?.focus();
       return;
     }
     if (!termsAccepted) {
+      setInvalidField('terms');
       setError('You must accept the terms & privacy policy.');
       return;
     }
+    setInvalidField(null);
     setError('');
     setLoading(true);
 
     try {
-      const { userId } = await signUp(
-        email,
-        password,
-        name,
-        accountType || 'student',
-        {
-          dateOfBirth,
-          countryCode: SUPPORTED_COUNTRY_CODE,
-          guardianEmail: ageGroup === 'minor' ? guardianEmail.trim() : undefined,
+      let userId = pendingRegistrationRef.current?.userId;
+      let normalizedEmail = pendingRegistrationRef.current?.email || email.trim().toLowerCase();
+      let hasSession = Boolean(userId);
+      let requiresParentalConsent = ageGroup === 'minor';
+
+      if (!userId) {
+        const signUpResult = await signUp(
+          email,
+          password,
+          name,
+          accountType || 'student',
+          {
+            dateOfBirth,
+            countryCode: SUPPORTED_COUNTRY_CODE,
+            guardianEmail: ageGroup === 'minor' ? guardianEmail.trim() : undefined,
+          }
+        );
+        userId = signUpResult.userId;
+        hasSession = signUpResult.hasSession;
+        normalizedEmail = email.trim().toLowerCase();
+
+        const finalizeResponse = await fetch('/api/auth/registration/finalize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, email: normalizedEmail }),
+        });
+        const finalizeBody = await finalizeResponse.json();
+
+        if (!finalizeResponse.ok) {
+          throw new Error(finalizeBody.error || 'Registration could not be finalized.');
         }
-      );
 
-      const finalizeResponse = await fetch('/api/auth/registration/finalize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, email }),
-      });
-      const finalizeBody = await finalizeResponse.json();
-
-      if (!finalizeResponse.ok) {
-        throw new Error(finalizeBody.error || 'Registration could not be finalized.');
+        requiresParentalConsent = Boolean(finalizeBody.requiresParentalConsent);
+        pendingRegistrationRef.current = { userId, email: normalizedEmail };
+      } else {
+        const updateResponse = await fetch('/api/auth/eligibility/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dateOfBirth,
+            countryCode: SUPPORTED_COUNTRY_CODE,
+            guardianEmail: ageGroup === 'minor' ? guardianEmail.trim() : undefined,
+            termsAccepted: true,
+          }),
+        });
+        const updateBody = await updateResponse.json();
+        if (!updateResponse.ok) {
+          throw new Error(updateBody.error || 'Could not update your eligibility details.');
+        }
+        requiresParentalConsent = Boolean(updateBody.requiresParentalConsent);
       }
 
-      if (finalizeBody.requiresParentalConsent) {
+      const needsEmailVerification = !hasSession;
+      if (requiresParentalConsent) {
         const consentResponse = await fetch('/api/auth/parental-consent/request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, email }),
+          body: JSON.stringify({ userId, email: normalizedEmail }),
         });
         const consentBody = await consentResponse.json();
 
         if (!consentResponse.ok) {
           throw new Error(consentBody.error || 'The parent approval email could not be sent.');
         }
+
+        await supabase.auth.signOut({ scope: 'local' });
+        hasSession = false;
+      } else if (hasSession) {
+        await refreshEligibility();
       }
-      
+
+      pendingRegistrationRef.current = null;
+      setCompletionInfo({
+        requiresParentalConsent,
+        hasSession,
+        needsEmailVerification,
+        guardianEmail: ageGroup === 'minor' ? guardianEmail.trim() : undefined,
+      });
       setIsCompleted(true);
       
       // Trigger brand-colored confetti
@@ -265,8 +345,8 @@ export default function SignUpPage() {
         origin: { y: 0.6 },
         colors: ['#275085', '#165df9', '#fabc32', '#a5b4fc']
       });
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during sign up.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred during sign up.');
     } finally {
       setLoading(false);
     }
@@ -276,6 +356,7 @@ export default function SignUpPage() {
   const handleEditStep = (stepNumber: number) => {
     if (loading) return;
     setCurrentStep(stepNumber);
+    setInvalidField(null);
     setError('');
     // Remove completed steps subsequent to the edited step
     setCompletedSteps(completedSteps.filter(s => s < stepNumber));
@@ -298,7 +379,7 @@ export default function SignUpPage() {
       <div className="flex-1 w-full max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
         
         {/* Left Section: Hero illustration */}
-        <div className="hidden md:flex flex-1 flex-col items-start justify-center pr-8">
+        <div className="hidden lg:flex flex-1 flex-col items-start justify-center pr-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -355,7 +436,7 @@ export default function SignUpPage() {
                       className={`font-sans text-[15px] transition-all hover:text-[#275085] dark:hover:text-white ${
                         accountType === 'student'
                           ? 'text-[#275085] dark:text-white font-bold underline underline-offset-4 decoration-2'
-                          : 'text-[#275085]/50 dark:text-[#a0c3ff]/50 hover:underline hover:underline-offset-4'
+                          : 'text-[#275085]/75 dark:text-[#a0c3ff]/75 hover:underline hover:underline-offset-4'
                       }`}
                     >
                       {"student".slice(0, typingProgress - 10)}
@@ -369,7 +450,7 @@ export default function SignUpPage() {
                       className={`font-sans text-[15px] transition-all hover:text-[#275085] dark:hover:text-white ${
                         accountType === 'guardian'
                           ? 'text-[#275085] dark:text-white font-bold underline underline-offset-4 decoration-2'
-                          : 'text-[#275085]/50 dark:text-[#a0c3ff]/50 hover:underline hover:underline-offset-4'
+                          : 'text-[#275085]/75 dark:text-[#a0c3ff]/75 hover:underline hover:underline-offset-4'
                       }`}
                     >
                       {"parent".slice(0, typingProgress - 21)}
@@ -431,7 +512,7 @@ export default function SignUpPage() {
                           className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                           autoFocus
                         />
-                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                        <button type="submit" aria-label="Continue" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
                           <HugeIcon name="ArrowRight01" size={18} />
                         </button>
                       </form>
@@ -496,7 +577,7 @@ export default function SignUpPage() {
                           className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                           autoFocus
                         />
-                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                        <button type="submit" aria-label="Continue" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
                           <HugeIcon name="ArrowRight01" size={18} />
                         </button>
                       </form>
@@ -560,7 +641,7 @@ export default function SignUpPage() {
                           className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                           autoFocus
                         />
-                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                        <button type="submit" aria-label="Continue" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
                           <HugeIcon name="ArrowRight01" size={18} />
                         </button>
                       </form>
@@ -607,9 +688,9 @@ export default function SignUpPage() {
                   <div className="mt-2 space-y-4">
                     <div className="text-[#275085] dark:text-[#a0c3ff]">
                       {typingStep >= 5 ? (
-                        <TypewriterText text="Finally, what is your full name?" />
+                        <TypewriterText text="What is your full name?" />
                       ) : (
-                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Finally, what is your full name?</span>
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">What is your full name?</span>
                       )}
                     </div>
 
@@ -624,7 +705,7 @@ export default function SignUpPage() {
                           className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                           autoFocus
                         />
-                        <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                        <button type="submit" aria-label="Continue" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
                           <HugeIcon name="ArrowRight01" size={18} />
                         </button>
                       </form>
@@ -662,59 +743,121 @@ export default function SignUpPage() {
                   <div className="mt-2 space-y-4">
                     <div className="text-[#275085] dark:text-[#a0c3ff]">
                       {typingStep >= 6 ? (
-                        <TypewriterText text="Do you agree to our Terms of Service & Privacy Policy?" />
+                        <TypewriterText text="Just a few last details to finish setting up your account." />
                       ) : (
-                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Do you agree to our Terms of Service & Privacy Policy?</span>
+                        <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Just a few last details to finish setting up your account.</span>
                       )}
                     </div>
 
-                    <form onSubmit={handleFinalSubmit} className="space-y-6 max-w-[450px]">
+                    <form onSubmit={handleFinalSubmit} noValidate className="space-y-6 max-w-[450px]">
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <label className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75">
-                          Date of birth
-                          <input
-                            type="date"
-                            required
-                            value={dateOfBirth}
-                            onChange={(event) => setDateOfBirth(event.target.value)}
-                            max={new Date().toISOString().split('T')[0]}
-                            className="mt-2 w-full rounded-xl border border-[#275085]/20 bg-transparent px-3 py-2.5 text-sm"
-                          />
-                        </label>
-                        <label className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75">
-                          Country
-                          <select
-                            value={countryCode}
-                            onChange={(event) => setCountryCode(event.target.value)}
-                            className="mt-2 w-full rounded-xl border border-[#275085]/20 bg-transparent px-3 py-2.5 text-sm"
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="signup-dob"
+                            className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75"
                           >
-                            <option value="US">United States</option>
-                          </select>
-                        </label>
+                            Date of birth
+                          </Label>
+                          <BirthdayDatePicker
+                            triggerRef={dobTriggerRef}
+                            id="signup-dob"
+                            name="dateOfBirth"
+                            value={dateOfBirth}
+                            defaultBrowseDate={defaultBrowseDate}
+                            onChange={(nextValue) => {
+                              setDateOfBirth(nextValue);
+                              if (invalidField === 'dob') setInvalidField(null);
+                              if (error) setError('');
+                            }}
+                            disabled={loading}
+                            ariaInvalid={invalidField === 'dob'}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="signup-country"
+                            className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75"
+                          >
+                            Country
+                          </Label>
+                          <Select
+                            name="countryCode"
+                            value={countryCode}
+                            onValueChange={(nextValue) => {
+                              setCountryCode(nextValue);
+                              if (invalidField === 'country') setInvalidField(null);
+                              if (error) setError('');
+                            }}
+                            disabled={loading}
+                          >
+                            <SelectTrigger
+                              ref={countryTriggerRef}
+                              id="signup-country"
+                              aria-invalid={invalidField === 'country' || undefined}
+                              className="w-full !h-10 bg-white/85 dark:bg-[#0d1526]/90 border border-[#275085]/20 dark:border-[#a0c3ff]/20 text-[#275085] dark:text-[#a0c3ff] text-sm rounded-xl hover:bg-white dark:hover:bg-[#131d35] hover:border-[#275085]/35 dark:hover:border-[#a0c3ff]/35 focus-visible:border-[#275085] dark:focus-visible:border-[#a0c3ff] focus-visible:ring-2 focus-visible:ring-[#275085]/20 dark:focus-visible:ring-[#a0c3ff]/25 shadow-xs transition-all outline-none [&_svg:not([class*='text-'])]:!text-[#275085]/60 dark:[&_svg:not([class*='text-'])]:!text-[#a0c3ff]/60"
+                            >
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                            <SelectContent
+                              position="popper"
+                              sideOffset={4}
+                              className="min-w-[var(--radix-select-trigger-width)] bg-white dark:bg-[#0f172a] border border-[#275085]/15 dark:border-[#a0c3ff]/15 rounded-xl shadow-xl shadow-[#275085]/10 dark:shadow-black/60 p-1"
+                            >
+                              <SelectItem
+                                value="US"
+                                className="text-[#275085] dark:text-[#a0c3ff] focus:bg-[#275085]/10 dark:focus:bg-[#a0c3ff]/15 focus:text-[#275085] dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none"
+                              >
+                                <span className="inline-flex items-center gap-2">
+                                  <span className="flex shrink-0 items-center" aria-hidden="true">
+                                    <HugeIcon name="Globe02" size={15} className="size-4 text-[#275085]/70 dark:text-[#a0c3ff]/70" />
+                                  </span>
+                                  <span>United States</span>
+                                </span>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       {getAgeGroup(dateOfBirth) === 'minor' && (
-                        <label className="block text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75">
-                          Parent or guardian email
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="signup-guardian-email"
+                            className="text-xs font-sans font-semibold text-[#275085]/75 dark:text-[#a0c3ff]/75"
+                          >
+                            Parent or guardian email
+                          </Label>
                           <input
+                            ref={guardianEmailRef}
+                            id="signup-guardian-email"
+                            name="guardianEmail"
                             type="email"
                             required
                             value={guardianEmail}
-                            onChange={(event) => setGuardianEmail(event.target.value)}
+                            onChange={(event) => {
+                              setGuardianEmail(event.target.value);
+                              if (invalidField === 'guardianEmail') setInvalidField(null);
+                              if (error) setError('');
+                            }}
                             placeholder="guardian@example.com"
-                            className="mt-2 w-full rounded-xl border border-[#275085]/20 bg-transparent px-3 py-2.5 text-sm"
+                            aria-invalid={invalidField === 'guardianEmail' || undefined}
+                            className="w-full h-10 rounded-xl border border-[#275085]/20 dark:border-[#a0c3ff]/20 bg-white/85 dark:bg-[#0d1526]/90 px-3 text-sm text-[#275085] dark:text-[#a0c3ff] placeholder:text-[#275085]/40 dark:placeholder:text-[#a0c3ff]/40 focus:outline-none focus-visible:border-[#275085] dark:focus-visible:border-[#a0c3ff] focus-visible:ring-2 focus-visible:ring-[#275085]/20 dark:focus-visible:ring-[#a0c3ff]/25 aria-[invalid=true]:border-red-500/60 dark:aria-[invalid=true]:border-red-400/60 transition-all"
                           />
-                          <span className="mt-2 block font-normal leading-5 opacity-80">
+                          <span className="block text-xs font-normal leading-5 text-[#275085]/65 dark:text-[#a0c3ff]/65">
                             The account remains unavailable until they approve it by email.
                           </span>
-                        </label>
+                        </div>
                       )}
 
                       <label className="flex items-center gap-3 cursor-pointer py-1 select-none">
                         <Checkbox
                           checked={termsAccepted}
-                          onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                          className="border-[#275085]/40 dark:border-[#a0c3ff]/40 data-[state=checked]:bg-[#275085] dark:data-[state=checked]:bg-[#4f8df0] data-[state=checked]:border-[#275085] dark:data-[state=checked]:border-[#4f8df0] rounded-md transition-colors cursor-pointer"
+                          onCheckedChange={(checked) => {
+                            setTermsAccepted(checked === true);
+                            if (invalidField === 'terms') setInvalidField(null);
+                            if (error) setError('');
+                          }}
+                          className="border-[#275085]/40 dark:border-[#a0c3ff]/40 data-[state=checked]:bg-[#275085] dark:data-[state=checked]:bg-[#4f8df0] data-[state=checked]:border-[#275085] dark:data-[state=checked]:border-[#4f8df0] data-[state=checked]:text-white rounded-md transition-colors cursor-pointer"
                         />
                         <span className="text-xs font-sans text-[#275085]/50 dark:text-[#a0c3ff]/50">
                           I agree to the{' '}
@@ -730,6 +873,8 @@ export default function SignUpPage() {
 
                       {error && (
                         <motion.div
+                          role="alert"
+                          aria-live="polite"
                           initial={{ opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="flex items-start gap-2.5 text-xs font-sans text-red-700 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 border border-red-200/40 dark:border-red-900/30 p-3.5 rounded-2xl backdrop-blur-sm"
@@ -773,13 +918,71 @@ export default function SignUpPage() {
                 <HugeIcon name="CheckmarkCircle02" size={32} />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-[#275085] dark:text-[#a0c3ff]">Check your inbox</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-[#275085] dark:text-[#a0c3ff]">
+                  {completionInfo?.requiresParentalConsent
+                    ? 'Waiting for parent approval'
+                    : completionInfo?.hasSession
+                    ? "You're all set!"
+                    : 'Check your inbox'}
+                </h2>
                 <p className="text-sm text-[#275085]/70 dark:text-[#a0c3ff]/70 max-w-[400px] leading-relaxed">
-                  We sent a confirmation link to <span className="font-bold text-[#275085] dark:text-white">{email}</span>. If you are under 18, your parent or guardian must also approve the account before you can sign in.
+                  {completionInfo?.requiresParentalConsent ? (
+                    <>
+                      We emailed a parental approval link to{' '}
+                      <span className="font-bold text-[#275085] dark:text-white">
+                        {completionInfo.guardianEmail || guardianEmail}
+                      </span>
+                      {completionInfo.needsEmailVerification && (
+                        <>
+                          {' '}and a verification email to{' '}
+                          <span className="font-bold text-[#275085] dark:text-white">
+                            {email}
+                          </span>
+                        </>
+                      )}
+                      . Your account stays locked until your parent or guardian approves it.
+                    </>
+                  ) : completionInfo?.hasSession ? (
+                    <>
+                      Your account for{' '}
+                      <span className="font-bold text-[#275085] dark:text-white">
+                        {email}
+                      </span>{' '}
+                      is ready.
+                    </>
+                  ) : (
+                    <>
+                      We sent a confirmation link to{' '}
+                      <span className="font-bold text-[#275085] dark:text-white">
+                        {email}
+                      </span>
+                      .
+                    </>
+                  )}
                 </p>
               </div>
               {(() => {
-                const webmailLink = getWebmailLink(email);
+                const targetWebmail = completionInfo?.requiresParentalConsent
+                  ? completionInfo.guardianEmail || guardianEmail
+                  : email;
+                const webmailLink = getWebmailLink(targetWebmail);
+                if (completionInfo?.hasSession && !completionInfo?.requiresParentalConsent) {
+                  return (
+                    <div className="flex flex-col sm:flex-row gap-3 w-full justify-center max-w-[340px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsRedirecting(true);
+                          setTimeout(() => router.push('/dashboard'), 300);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-[#275085] dark:bg-[#4f8df0] text-white font-sans font-bold text-[14px] hover:bg-[#1e3f6a] dark:hover:bg-[#3b82f6] transition-all rounded-xl active:scale-[0.98] shadow-md shadow-[#275085]/10 dark:shadow-none"
+                      >
+                        <span>Go to Dashboard</span>
+                        <HugeIcon name="ArrowRight01" size={16} />
+                      </button>
+                    </div>
+                  );
+                }
                 return (
                   <div className="flex flex-col sm:flex-row gap-3 w-full justify-center max-w-[340px]">
                     {webmailLink && (

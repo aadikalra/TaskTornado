@@ -215,11 +215,25 @@ export async function POST(request: NextRequest) {
     });
 
     if (!emailResponse.ok) {
+      const errorBody = await emailResponse.text().catch(() => '');
+      console.error('Resend parental consent error:', emailResponse.status, errorBody);
       await supabaseAdmin
         .from('parental_consent_requests')
         .delete()
         .eq('id', insertedRequest.id);
-      throw new Error(`Resend returned ${emailResponse.status}`);
+      if (emailResponse.status === 400 || emailResponse.status === 422) {
+        return NextResponse.json(
+          {
+            error:
+              'We couldn’t send the approval email to that address. Please check the parent or guardian email and try again.',
+          },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json(
+        { error: 'Approval email could not be sent right now. Please try again.' },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({ success: true });

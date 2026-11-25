@@ -3,6 +3,55 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.nextUrl.searchParams.get('token')?.trim() || '';
+    if (!token) {
+      return NextResponse.json(
+        { status: 'invalid', error: 'This approval link is invalid or has expired.' },
+        { status: 410 }
+      );
+    }
+
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const { data: approvalRow, error } = await supabaseAdmin
+      .from('parental_consent_requests')
+      .select('student_id,student_email,guardian_email,expires_at,approved_at,revoked_at')
+      .eq('token_hash', tokenHash)
+      .maybeSingle();
+
+    if (
+      error ||
+      !approvalRow ||
+      approvalRow.revoked_at ||
+      (!approvalRow.approved_at && new Date(approvalRow.expires_at) <= new Date())
+    ) {
+      return NextResponse.json(
+        { status: 'invalid', error: 'This approval link is invalid or has expired.' },
+        { status: 410 }
+      );
+    }
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('full_name')
+      .eq('id', approvalRow.student_id)
+      .maybeSingle();
+
+    return NextResponse.json({
+      status: approvalRow.approved_at ? 'approved' : 'pending',
+      studentEmail: approvalRow.student_email,
+      studentName: profile?.full_name || null,
+    });
+  } catch (error) {
+    console.error('Parental consent lookup failed:', error);
+    return NextResponse.json(
+      { error: 'Approval details could not be loaded.' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { token, guardianName, consent } = await request.json();

@@ -142,6 +142,15 @@
     @apply bg-background text-foreground;
   }
 
+  dialog:modal {
+    overscroll-behavior: contain;
+  }
+
+  dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+
   body.dyslexic-font,
   body.dyslexic-font * {
     font-family: 'OpenDyslexic', Arial, sans-serif !important;

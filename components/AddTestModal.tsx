@@ -425,7 +425,7 @@ Return ONLY valid JSON, no explanation, no markdown.`,
                           <SelectContent className={`${contentClass} min-w-[var(--radix-select-trigger-width)]`} position="popper" sideOffset={4}>
                             {TEST_TYPES.map((type) => (
                               <SelectItem key={type} value={type} className={itemClass}>
-                                {type}
+                                {type === 'ALPHA' ? 'Major Exam' : type === 'BETA' ? 'Unit Test' : type}
                               </SelectItem>
                             ))}
                           </SelectContent>

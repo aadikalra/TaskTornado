@@ -118,7 +118,7 @@ export const MainAppContent = () => {
   const { getContainerClass } = useWideLayout();
   const { classes, addClass, updateClass, deleteClass, loading, error } = useClassContext();
   const { homeworks, addHomework, addRecurringHomework, toggleHomework, togglePinHomework, deleteHomework, deleteRecurringSeries, updateHomeworkDueDate, updateHomework } = useHomeworkContext();
-  const { tests, addTest, deleteTest, updateTestDueDate, markTestComplete } = useTestContext();
+  const { tests, addTest, deleteTest, updateTestDueDate, markTestComplete, loading: testsLoading } = useTestContext();
 
 
   const {
@@ -1030,7 +1030,23 @@ export const MainAppContent = () => {
                 : 'overflow-hidden max-h-0 opacity-0'
                 }`}
             >
-              {classes.length === 0 ? (
+              {loading && classes.length === 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-[24px] bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 p-5 space-y-3 animate-pulse"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-sky-200/50 dark:bg-sky-800/40" />
+                        <div className="h-5 w-32 rounded-lg bg-sky-200/50 dark:bg-sky-800/40" />
+                      </div>
+                      <div className="h-4 w-3/4 rounded-lg bg-sky-100/80 dark:bg-sky-900/30" />
+                      <div className="h-4 w-1/2 rounded-lg bg-sky-100/80 dark:bg-sky-900/30" />
+                    </div>
+                  ))}
+                </div>
+              ) : classes.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -1066,7 +1082,7 @@ export const MainAppContent = () => {
                   </div>
                 </motion.div>
               ) : (
-                <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-px-1 px-1 pb-2 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-px-1 px-1 pb-2 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:items-start sm:gap-6 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
 
 
@@ -1277,6 +1293,31 @@ export const MainAppContent = () => {
 
 
 
+                          {/* Quick actions for empty classes */}
+                          {isEmptyClass && (
+                            <div className="flex items-center justify-between gap-2 pt-2.5 px-1">
+                              <button
+                                type="button"
+                                onClick={() => setShowAddHomework(true)}
+                                className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-xl bg-white/75 dark:bg-white/[0.05] hover:bg-white dark:hover:bg-white/10 border border-sky-100 dark:border-sky-500/15 text-[11px] font-semibold text-sky-700 dark:text-sky-300 transition-colors cursor-pointer"
+                              >
+                                <HugeIcon name="PlusSign" size={12} className="w-3 h-3" />
+                                Add homework
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setClassIdForAddTest(cls.id);
+                                  setShowAddTest(true);
+                                }}
+                                className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-xl bg-white/75 dark:bg-white/[0.05] hover:bg-white dark:hover:bg-white/10 border border-sky-100 dark:border-sky-500/15 text-[11px] font-semibold text-sky-700 dark:text-sky-300 transition-colors cursor-pointer"
+                              >
+                                <HugeIcon name="PlusSign" size={12} className="w-3 h-3" />
+                                Add test
+                              </button>
+                            </div>
+                          )}
+
                           {/* Show archived homework option when no active homework but has archived */}
                           {!hasHomework && hasArchivedHomework && !isShowingArchived && (
                             <div className="text-center py-2">
@@ -1455,7 +1496,20 @@ export const MainAppContent = () => {
               </div>
 
               {showTests && <div>
-                {dashboardUpcomingTests.length === 0 ? (
+                {testsLoading && dashboardUpcomingTests.length === 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
+                    {[1, 2].map((idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-[24px] bg-[#f5f9fc] dark:bg-sky-500/[0.03] border border-sky-100 dark:border-sky-500/10 p-5 space-y-3"
+                      >
+                        <div className="h-4 w-20 rounded-full bg-sky-200/50 dark:bg-sky-800/40" />
+                        <div className="h-5 w-48 rounded-lg bg-sky-200/50 dark:bg-sky-800/40" />
+                        <div className="h-4 w-28 rounded-lg bg-sky-100/80 dark:bg-sky-900/30" />
+                      </div>
+                    ))}
+                  </div>
+                ) : dashboardUpcomingTests.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}

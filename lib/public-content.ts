@@ -2,6 +2,11 @@ import { PLANNER_LINKS } from './planner-links';
 
 export const PUBLIC_CONTENT_PATHS = [
     '/',
+    '/login',
+    '/signup',
+    '/forgot-password',
+    '/reset-password',
+    '/parental-consent',
     '/features',
     ...Object.values(PLANNER_LINKS).map(({ href }) => href),
     '/about',
@@ -20,4 +25,6 @@ export const PUBLIC_CONTENT_PATHS = [
     '/tutorials/recurring-homeworks',
     '/tutorials/starring-homeworks',
     '/tutorials/test-details',
+    '/hash',
+    '/hash/eyes',
 ];

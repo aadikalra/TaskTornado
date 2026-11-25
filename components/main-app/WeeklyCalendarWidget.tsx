@@ -368,30 +368,17 @@ export const WeeklyCalendarWidget = () => {
         </div>
       </div>
 
-      <div className="relative hidden md:block">
-        <div className="group/previous absolute inset-y-0 left-0 z-20 flex w-12 items-center justify-start pl-2">
-          <button
-            type="button"
-            onClick={prevWeek}
-            className="flex h-9 w-9 -translate-x-2 items-center justify-center rounded-xl border border-sky-100 bg-white/95 text-sky-600 opacity-0 shadow-md transition-all duration-200 group-hover/previous:translate-x-0 group-hover/previous:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100 dark:border-sky-500/15 dark:bg-zinc-900/95 dark:text-sky-300"
-            aria-label="Previous week"
-          >
-            <HugeIcon name="ArrowLeft01" size={15} />
-          </button>
-        </div>
+      <div className="hidden md:flex items-stretch">
+        <button
+          type="button"
+          onClick={prevWeek}
+          className="flex w-10 shrink-0 items-center justify-center border-r border-sky-100/90 text-sky-600/70 hover:bg-sky-500/[0.06] hover:text-sky-700 transition-colors dark:border-sky-500/10 dark:text-sky-300/70 dark:hover:bg-white/[0.04] dark:hover:text-sky-200"
+          aria-label="Previous week"
+        >
+          <HugeIcon name="ArrowLeft01" size={16} />
+        </button>
 
-        <div className="group/next absolute inset-y-0 right-0 z-20 flex w-12 items-center justify-end pr-2">
-          <button
-            type="button"
-            onClick={nextWeek}
-            className="flex h-9 w-9 translate-x-2 items-center justify-center rounded-xl border border-sky-100 bg-white/95 text-sky-600 opacity-0 shadow-md transition-all duration-200 group-hover/next:translate-x-0 group-hover/next:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100 dark:border-sky-500/15 dark:bg-zinc-900/95 dark:text-sky-300"
-            aria-label="Next week"
-          >
-            <HugeIcon name="ArrowRight01" size={15} />
-          </button>
-        </div>
-
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="grid grid-cols-5 divide-x divide-sky-100/90 dark:divide-sky-500/10">
             {weekDays.map(day => {
               const date = format(day, 'yyyy-MM-dd');
@@ -429,6 +416,15 @@ export const WeeklyCalendarWidget = () => {
             })}
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={nextWeek}
+          className="flex w-10 shrink-0 items-center justify-center border-l border-sky-100/90 text-sky-600/70 hover:bg-sky-500/[0.06] hover:text-sky-700 transition-colors dark:border-sky-500/10 dark:text-sky-300/70 dark:hover:bg-white/[0.04] dark:hover:text-sky-200"
+          aria-label="Next week"
+        >
+          <HugeIcon name="ArrowRight01" size={16} />
+        </button>
       </div>
     </div>
   );

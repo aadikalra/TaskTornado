@@ -14,6 +14,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import Link from 'next/link';
@@ -186,17 +187,16 @@ export function AIQuotaPopover({
       </DialogTrigger>
 
       <DialogContent
-        showCloseButton={false}
         className="gap-0 max-h-[min(640px,calc(100vh-24px))] w-[min(340px,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded-3xl border border-sky-100/50 bg-white/95 p-0 shadow-2xl backdrop-blur-xl dark:border-sky-500/10 dark:bg-gray-900/95"
       >
-        <div className="flex items-center justify-between border-b border-sky-100/50 bg-sky-50/50 px-5 py-3.5 dark:border-sky-500/10 dark:bg-sky-500/5">
+        <div className="flex items-center justify-between border-b border-sky-100/50 bg-sky-50/50 pl-5 pr-11 py-3.5 dark:border-sky-500/10 dark:bg-sky-500/5">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
               {ownKey && provider ? AI_PROVIDERS[provider].name : 'Free Plan'}
             </p>
-            <h3 className="text-sm font-semibold text-sky-950 dark:text-sky-100">
+            <DialogTitle className="text-sm font-semibold text-sky-950 dark:text-sky-100">
               {ownKey ? 'Your own API key' : 'AI Allowance'}
-            </h3>
+            </DialogTitle>
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-sky-100/50 bg-white px-2.5 py-1 text-[11px] font-medium text-sky-600 shadow-sm dark:border-sky-500/10 dark:bg-gray-800 dark:text-sky-400">
             <Clock3 className="h-3 w-3" />

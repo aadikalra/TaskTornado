@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
+import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database.types';
 import { RecurringHomeworkService } from '@/lib/services/RecurringHomeworkService';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
@@ -62,7 +63,7 @@ export const HomeworkProvider = (props: HomeworkProviderProps) => {
 };
 
 const HomeworkProviderState = ({ children, initialHomeworks }: HomeworkProviderProps) => {
-  const { user } = useAuth();
+  const { user, isEligible } = useAuth();
   const pathname = usePathname();
   const [homeworks, setHomeworks] = useState<Homework[]>(initialHomeworks ?? []);
   const [loading, setLoading] = useState(!initialHomeworks ? true : false);
@@ -75,7 +76,7 @@ const HomeworkProviderState = ({ children, initialHomeworks }: HomeworkProviderP
   const needsHomeworkData = useCallback(() => {
     if (typeof window === 'undefined') return false;
     const routes = [
-      '/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome', '/flashcards',
+      '/homework', '/classes', '/tests', '/dashboard', '/calendar', '/settings', '/newhome', '/flashcards',
       '/study-assistant', '/grade-calculator', '/games', '/color-match', '/math-sprint',
       '/typing-speed', '/memory-match', '/snake', '/task-tower', '/word-scramble', '/reaction-time',
     ];
@@ -83,7 +84,7 @@ const HomeworkProviderState = ({ children, initialHomeworks }: HomeworkProviderP
   }, [pathname]);
 
   const fetchData = useCallback(async () => {
-    if (!user || !needsHomeworkData()) return;
+    if (!user || !isEligible || !needsHomeworkData()) return;
     if (!hasLoaded.current) setLoading(true);
     setError(null);
     try {
@@ -129,17 +130,22 @@ const HomeworkProviderState = ({ children, initialHomeworks }: HomeworkProviderP
       })();
     } catch (err) {
       if (accountRef.current !== user.id) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || accountRef.current !== user.id) return;
       console.error('Error fetching homework:', err);
       setError('Failed to load homeworks. Please try again.');
       setLoading(false);
     }
-  }, [user, needsHomeworkData]);
+  }, [user, isEligible, needsHomeworkData]);
 
-  useSchoolDataSync('homework', user?.id, needsHomeworkData(), fetchData);
+  useSchoolDataSync('homework', user?.id, Boolean(isEligible && needsHomeworkData()), fetchData);
   useEffect(() => {
     hasLoaded.current = false;
     setHomeworks([]);
     setError(null);
+    return () => {
+      accountRef.current = undefined;
+    };
   }, [user?.id]);
 
   const clearAllHomeworks = async () => {

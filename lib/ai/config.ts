@@ -28,41 +28,41 @@ export const AI_PLAN_LIMITS = {
 export const AI_MODEL_ROUTES: Record<AiAction, readonly string[]> = {
   quick: [
     'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
-    'qwen/qwen3.6-27b',
   ],
   tutor: [
     'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
     'llama-3.3-70b-versatile',
-    'qwen/qwen3.6-27b',
     'llama-3.1-8b-instant',
   ],
   bulk_generation: [
     'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
     'llama-3.3-70b-versatile',
-    'qwen/qwen3.6-27b',
   ],
   guardian: [
     'openai/gpt-oss-20b',
-    'qwen/qwen3.6-27b',
+    'openai/gpt-oss-120b',
     'llama-3.1-8b-instant',
   ],
   translation: [
     'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
-    'qwen/qwen3.6-27b',
   ],
   grader: [
     'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
     'llama-3.3-70b-versatile',
-    'qwen/qwen3.6-27b',
   ],
   copilot: [
     'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
     'llama-3.1-8b-instant',
-    'qwen/qwen3.6-27b',
   ],
 };
 

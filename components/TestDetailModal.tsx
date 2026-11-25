@@ -40,8 +40,8 @@ export const TestDetailModal = ({
     if (!test || !mounted) return null;
 
     const testTypeInfo = {
-        alpha: { icon: 'Target01', label: 'ALPHA' },
-        beta: { icon: 'Zap', label: 'BETA' },
+        alpha: { icon: 'Target01', label: 'Major Exam' },
+        beta: { icon: 'Zap', label: 'Unit Test' },
         exam: { icon: 'GraduationCap', label: 'EXAM' },
         final: { icon: 'GraduationCap', label: 'FINAL' },
         midterm: { icon: 'GraduationCap', label: 'MIDTERM' },
@@ -164,11 +164,12 @@ export const TestDetailModal = ({
                             {/* Actions */}
                             {!readOnly && (
                                 <div className="flex gap-2.5 pt-5 border-t border-sky-100/60 dark:border-gray-800">
-                                    <Link href={`/tests/edit/${test.id}`} className="flex-1">
-                                        <button className="w-full h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors">
-                                            <HugeIcon name="Pen02" size={14} className="h-3.5 w-3.5" />
-                                            Edit Details
-                                        </button>
+                                    <Link
+                                        href={`/tests/edit/${test.id}`}
+                                        className="flex-1 h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/50 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/40 dark:border-[#d4e88e]/15 transition-colors"
+                                    >
+                                        <HugeIcon name="Pen02" size={14} className="h-3.5 w-3.5" />
+                                        Edit Details
                                     </Link>
 
                                     {!confirmDeleteOpen ? (

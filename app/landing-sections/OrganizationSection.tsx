@@ -64,7 +64,7 @@ export default function OrganizationSection({ id = 'organization', content }: Or
                                             width={220}
                                             height={176}
                                             sizes="220px"
-                                            className="max-w-full max-h-full object-contain dark:opacity-90"
+                                            className="w-auto h-auto max-w-full max-h-full object-contain dark:opacity-90"
                                         />
                                     </div>
                                 )}

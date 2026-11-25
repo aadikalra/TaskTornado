@@ -38,6 +38,31 @@ export function BlogArticleTemplate({
     const [headings, setHeadings] = useState<TOCItem[]>([]);
     const [activeId, setActiveId] = useState<string>('');
     const [saved, setSaved] = useState(false);
+    const [copiedLink, setCopiedLink] = useState(false);
+
+    const authorInitials = author
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() || '')
+        .join('') || 'TT';
+
+    const handleShare = async () => {
+        const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+        try {
+            if (navigator.share) {
+                await navigator.share({ title, url: shareUrl });
+                return;
+            }
+            if (navigator.clipboard && shareUrl) {
+                await navigator.clipboard.writeText(shareUrl);
+                setCopiedLink(true);
+                setTimeout(() => setCopiedLink(false), 2000);
+            }
+        } catch {
+            // User cancelled share or clipboard unavailable
+        }
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -103,12 +128,27 @@ export function BlogArticleTemplate({
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSaved(!saved)}
-                            className="p-2 text-sky-600/50 hover:text-sky-600 dark:text-sky-400/50 dark:hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-100/40 dark:hover:bg-sky-500/10"
+                            aria-label={saved ? 'Remove bookmark' : 'Bookmark article'}
+                            aria-pressed={saved}
+                            title={saved ? 'Saved' : 'Bookmark article'}
+                            className="p-2 text-sky-600/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-100/40 dark:hover:bg-sky-500/10"
                         >
                             {saved ? <HugeIcon name="CheckmarkCircle02" className="w-5 h-5 text-emerald-500" /> : <HugeIcon name="Bookmark03" className="w-5 h-5" />}
                         </button>
-                        <button className="p-2 text-sky-600/50 hover:text-sky-600 dark:text-sky-400/50 dark:hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-100/40 dark:hover:bg-sky-500/10">
-                            <HugeIcon name="Share03" className="w-5 h-5" />
+                        <button
+                            onClick={handleShare}
+                            aria-label={copiedLink ? 'Link copied' : 'Share article'}
+                            title={copiedLink ? 'Link copied!' : 'Share article'}
+                            className="inline-flex items-center gap-1.5 p-2 text-sky-600/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors rounded-lg hover:bg-sky-100/40 dark:hover:bg-sky-500/10"
+                        >
+                            {copiedLink ? (
+                                <>
+                                    <HugeIcon name="CheckmarkCircle02" className="w-5 h-5 text-emerald-500" />
+                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Copied</span>
+                                </>
+                            ) : (
+                                <HugeIcon name="Share03" className="w-5 h-5" />
+                            )}
                         </button>
                     </div>
                 </div>
@@ -135,8 +175,11 @@ export function BlogArticleTemplate({
                         </p>
 
                         <div className="flex items-center gap-6 py-8 border-y border-sky-100/60 dark:border-sky-900/20">
-                            <div className="w-12 h-12 rounded-full bg-[#ebf6b5]/60 dark:bg-sky-500/15 flex items-center justify-center">
-                                <HugeIcon name="User01" className="w-6 h-6 text-sky-600/50 dark:text-sky-400/50" />
+                            <div
+                                aria-hidden="true"
+                                className="w-12 h-12 rounded-full bg-[#ebf6b5] dark:bg-sky-500/20 border border-sky-200/70 dark:border-sky-500/30 flex items-center justify-center text-sm font-bold text-sky-800 dark:text-sky-200 shrink-0"
+                            >
+                                {authorInitials}
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm font-bold text-sky-800 dark:text-sky-200">{author}</p>

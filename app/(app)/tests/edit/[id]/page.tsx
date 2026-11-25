@@ -34,7 +34,7 @@ export default function EditTestPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { classes } = useClassContext();
-  const { tests, updateTest } = useTestContext();
+  const { tests, updateTest, loading: testsLoading } = useTestContext();
   const { success, error: toastError } = useToast();
 
   const [title, setTitle] = useState('');
@@ -74,6 +74,7 @@ export default function EditTestPage() {
   }, [score, maxScore]);
 
   useEffect(() => {
+    if (testsLoading) return;
     const test = tests.find(t => t.id === id);
     if (test) {
       setTitle(test.title);
@@ -83,18 +84,16 @@ export default function EditTestPage() {
       setTestType(test.testType || 'Quiz');
       setDescription(test.description || '');
       setStudyMaterials(test.studyMaterials || []);
-      setStatus((test.status as TestStatus) || 'not_started');
+      setStatus((test.status as TestStatus) || 'upcoming');
       setScore(test.score ?? null);
       setMaxScore(test.maxScore ?? 100);
       setGrade(test.grade || '');
       setNotes(test.notes || '');
       setCompletedAt(test.completed_at ? new Date(test.completed_at) : null);
       setCreatedAt(test.created_at ? new Date(test.created_at) : new Date());
-      setLoading(false);
-    } else {
-      setLoading(false);
     }
-  }, [id, tests]);
+    setLoading(false);
+  }, [id, tests, testsLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,10 +252,10 @@ export default function EditTestPage() {
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="w-full h-11 flex items-center gap-2 px-3 text-sm font-normal bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl transition-colors text-left"
+                        className="w-full h-11 flex items-center gap-2 px-3 text-sm font-normal bg-white dark:bg-gray-900 border border-sky-200 dark:border-gray-700 text-sky-900 dark:text-white hover:border-sky-500 rounded-xl transition-colors text-left whitespace-nowrap"
                       >
                         <CalendarIcon className="h-4 w-4 text-sky-500 shrink-0" />
-                        {testDate ? format(testDate, 'PPP') : <span className="text-sky-400">Pick a date</span>}
+                        <span className="truncate">{testDate ? format(testDate, 'MMM d, yyyy') : 'Pick a date'}</span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-sky-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-sky-500/5" align="start">
@@ -303,8 +302,8 @@ export default function EditTestPage() {
                       <SelectValue placeholder="Select test type" />
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
-                      <SelectItem value="ALPHA" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">ALPHA</SelectItem>
-                      <SelectItem value="BETA" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">BETA</SelectItem>
+                      <SelectItem value="ALPHA" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Major Exam</SelectItem>
+                      <SelectItem value="BETA" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Unit Test</SelectItem>
                       <SelectItem value="Quiz" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Quiz</SelectItem>
                       <SelectItem value="Midterm" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Midterm</SelectItem>
                       <SelectItem value="Final" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Final</SelectItem>
@@ -349,6 +348,9 @@ export default function EditTestPage() {
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-gray-900 border-sky-100 dark:border-gray-700 rounded-xl" position="popper" sideOffset={4}>
+                      <SelectItem value="upcoming" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Upcoming</SelectItem>
+                      <SelectItem value="preparing" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Preparing</SelectItem>
+                      <SelectItem value="taken" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Taken</SelectItem>
                       <SelectItem value="not_started" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Not Started</SelectItem>
                       <SelectItem value="in_progress" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">In Progress</SelectItem>
                       <SelectItem value="completed" className="hover:bg-sky-50 dark:hover:bg-gray-800 focus:bg-sky-50 dark:focus:bg-gray-800 text-sm rounded-lg">Completed</SelectItem>
@@ -515,14 +517,11 @@ export default function EditTestPage() {
 
             {/* Footer */}
             <div className="flex items-center justify-end gap-2.5 px-6 sm:px-8 py-4 border-t border-sky-100/60 dark:border-gray-800">
-              <Link href={`/tests/${id}`}>
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  className="h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-40"
-                >
-                  Cancel
-                </button>
+              <Link
+                href={`/tests/${id}`}
+                className="inline-flex items-center h-10 px-5 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors"
+              >
+                Cancel
               </Link>
               <button
                 type="submit"

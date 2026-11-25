@@ -90,6 +90,15 @@ export default function HashEyesPage() {
             </div>
 
             <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-8 pt-24 pb-12">
+                <div className="mb-6 flex items-center gap-4">
+                    <Link
+                        href="/hash"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-600/80 hover:text-sky-700 dark:text-sky-400/80 dark:hover:text-sky-300 transition-colors"
+                    >
+                        <HugeIcon name="ArrowLeft01" size={16} className="w-4 h-4" />
+                        Back to Facehash
+                    </Link>
+                </div>
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 12 }}

@@ -27,14 +27,14 @@ type DataContextType = {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, isEligible } = useAuth();
   const [classes, setClasses] = useState<Class[]>([]);
   const [homework, setHomework] = useState<Homework[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
-    if (!user) return;
+    if (!user || !isEligible) return;
     
     setLoading(true);
     setError(null);
@@ -57,14 +57,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && isEligible) {
       fetchData();
     } else {
       setClasses([]);
       setHomework([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isEligible]);
 
   // Class operations
   const addClass = async (classData: Omit<Class, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {

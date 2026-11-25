@@ -36,10 +36,12 @@ const useDarkMode = () => {
 interface OnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onShowLetter?: () => void;
+  onStartTour?: () => void;
 }
 
-type OnboardingStep = 'welcome' | 'grade' | 'math-acceleration' | 'language' | 'electives' | 'summary';
+type OnboardingStep = 'welcome' | 'grade' | 'math-acceleration' | 'language' | 'electives' | 'summary' | 'app-intro';
+
+const INTRO_STEPS = ['Dashboard', 'Navigation', 'Tools', 'Ready'] as const;
 
 interface ClassSuggestion {
   name: string;
@@ -61,7 +63,7 @@ const gradeClassMappings: Record<string, ClassSuggestion[]> = {
     { name: 'Science 8', icon: 'Cells', colorIndex: 3 },
   ],
   '9': [
-    { name: 'IM1', icon: 'Cos', colorIndex: 0 },
+    { name: 'IM1', icon: 'FunctionOfX', colorIndex: 0 },
     { name: 'English 9', icon: 'Book03', colorIndex: 1 },
     { name: 'Geography', icon: 'Globe', colorIndex: 2 },
     { name: 'Biology', icon: 'Microscope', colorIndex: 3 },
@@ -126,15 +128,33 @@ const electiveOptions: ElectiveOption[] = [
   // Note: Spanish and Mandarin are handled as required languages for 8th graders, not electives
 ];
 
+const highSchoolElectiveOptions: ElectiveOption[] = [
+  { name: 'Computer Science', icon: 'Code', colorIndex: 15 },
+  { name: 'Digital Media Arts', icon: 'WebDesign01', colorIndex: 12 },
+  { name: 'Creative Writing', icon: 'Pencil', colorIndex: 11 },
+  { name: 'Theater Arts', icon: 'Theater', colorIndex: 9 },
+  { name: 'Yearbook', icon: 'Canvas', colorIndex: 10 },
+  { name: 'Concert Band', icon: 'MusicNote01', colorIndex: 5 },
+  { name: 'Choir', icon: 'MusicNote04', colorIndex: 7 },
+  { name: 'Music Appreciation', icon: 'MusicThree', colorIndex: 3 },
+  { name: 'Guitar', icon: 'Playlist03', colorIndex: 6 },
+  { name: 'Marine Science', icon: 'Boat', colorIndex: 2 },
+  { name: 'Team Sports', icon: 'BasketballHoop', colorIndex: 1 },
+  { name: 'Leadership', icon: 'UserGroup03', colorIndex: 8 },
+  { name: 'Academic Seminar', icon: 'GraduationCap', colorIndex: 13 },
+];
+
 const languageOptions = ['Spanish', 'Mandarin'];
 const languageLevelLabels = ['1', '2', '3', 'AP'];
 
 const classColors = ['#E53E3E', '#3182CE', '#D69E2E', '#38A169', '#805AD5', '#D53F8C', '#2E7774', '#4A5568'];
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose, onShowLetter }) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose, onStartTour }) => {
   const { classes, addClass } = useClassContext();
-  const { user, full_name } = useAuth();
+  const { full_name } = useAuth();
   const isDarkMode = useDarkMode();
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const headingId = React.useId();
   const firstName = full_name?.split(' ')[0] || 'Student';
   const [currentStep, setCurrentStep] = React.useState<OnboardingStep>('welcome');
   const [selectedGrade, setSelectedGrade] = React.useState<string>('');
@@ -146,23 +166,40 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
   const [wantsLanguage, setWantsLanguage] = React.useState<boolean | null>(null); // for 10-12 optional
   const [electiveSearch, setElectiveSearch] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [introSlide, setIntroSlide] = React.useState<number>(0);
+  const [createdClassNames, setCreatedClassNames] = React.useState<string[]>([]);
+  const [setupError, setSetupError] = React.useState<string>('');
 
   // Compute the full language class name
-  const fullLanguageName = selectedLanguage
+  const fullLanguageName = selectedLanguage && selectedLanguage !== 'None'
     ? (languageLevel === 4 ? `AP ${selectedLanguage}` : `${selectedLanguage} ${languageLevel}`)
     : '';
 
   // Whether language is required for this grade
   const isLanguageRequired = ['8', '9'].includes(selectedGrade);
   const isLanguageAvailable = ['8', '9', '10', '11', '12'].includes(selectedGrade);
+  const availableElectives = ['9', '10', '11', '12'].includes(selectedGrade)
+    ? highSchoolElectiveOptions
+    : electiveOptions;
 
   // Whether the student is actually taking a language (affects elective count)
-  const isTakingLanguage = isLanguageRequired || (isLanguageAvailable && wantsLanguage === true && selectedLanguage !== '');
+  const isTakingLanguage = fullLanguageName !== '' && (isLanguageRequired || wantsLanguage === true);
 
   // Elective slots: base 2, minus 1 if taking a language
   const maxElectives = isTakingLanguage ? 1 : 2;
 
   const suggestedClasses = selectedGrade ? gradeClassMappings[selectedGrade] || [] : [];
+
+  // Sync native top-layer <dialog> visibility with isOpen
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (isOpen) {
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [isOpen]);
 
   // Reset form when modal opens
   React.useEffect(() => {
@@ -176,6 +213,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
       setLanguageLevel(1);
       setWantsLanguage(null);
       setElectiveSearch('');
+      setIntroSlide(0);
+      setCreatedClassNames([]);
+      setSetupError('');
     }
   }, [isOpen]);
 
@@ -195,7 +235,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
   const getMathCourseAtLevel = (acceleration: number) => {
     const idx = getMathBaseIndex() + acceleration;
     if (idx >= mathProgression.length) return mathProgression[mathProgression.length - 1];
-    let name = mathProgression[idx];
+    const name = mathProgression[idx];
     // For the IM3 slot: if user chose Precalc, override
     if (name === 'IM3' && mathTrack === 'precalc') {
       return 'Precalc';
@@ -317,39 +357,45 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
   const handleCreateClasses = async () => {
     setIsLoading(true);
+    setSetupError('');
     try {
-      // Create suggested classes with adjusted math class if needed
+      const existingNames = new Set(classes.map((cls) => cls.name.trim().toLowerCase()));
       const adjustedMathClass = getAdjustedMathClass();
       const classesToCreate = suggestedClasses.map((cls, idx) =>
         idx === 0 ? adjustedMathClass || cls : cls
       );
 
+      const planned: Array<{ name: string; icon: string }> = [];
       for (const classInfo of classesToCreate) {
-        if (classInfo) {
-          await addClass(classInfo.name, classInfo.icon as any);
-        }
+        if (classInfo) planned.push({ name: classInfo.name, icon: classInfo.icon });
       }
-
-      // Create elective classes
       for (const electiveName of selectedElectives) {
-        const elective = electiveOptions.find(e => e.name === electiveName);
-        const iconName = elective ? elective.icon : 'BookOpen';
-        await addClass(electiveName, iconName as any);
+        const elective = availableElectives.find(e => e.name === electiveName);
+        planned.push({ name: electiveName, icon: elective ? elective.icon : 'BookOpen' });
       }
-
-      // Create language class
       if (fullLanguageName) {
-        await addClass(fullLanguageName, 'LanguageCircle' as any);
+        planned.push({ name: fullLanguageName, icon: 'LanguageCircle' });
       }
 
-      // Show welcome letter after successful class creation
-      if (onShowLetter) {
-        onShowLetter();
-      } else {
-        onClose();
+      const configuredNames: string[] = [];
+      for (const item of planned) {
+        if (!existingNames.has(item.name.trim().toLowerCase())) {
+          await addClass(item.name, item.icon as Parameters<typeof addClass>[1]);
+          existingNames.add(item.name.trim().toLowerCase());
+        }
+        configuredNames.push(item.name);
       }
+
+      setCreatedClassNames(configuredNames);
+      setIntroSlide(0);
+      setCurrentStep('app-intro');
     } catch (error) {
       console.error('Failed to create classes:', error);
+      setSetupError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Could not save your classes. Please try again or skip setup for now.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -381,8 +427,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     }
   };
 
-  if (!isOpen) return null;
-
   const contentVariants = {
     initial: { opacity: 0, x: 10 },
     animate: { opacity: 1, x: 0 },
@@ -401,7 +445,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     return (
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentStep}
+          key={currentStep === 'app-intro' ? `app-intro-${introSlide}` : currentStep}
           initial="initial"
           animate="animate"
           exit="exit"
@@ -430,14 +474,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                     </motion.div>
 
                     {/* Greeting */}
-                    <motion.h2
+                    <motion.h1
+                      id={headingId}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
                       className="text-3xl sm:text-4xl font-bold text-sky-500 dark:text-sky-400 leading-tight tracking-tight mb-2"
                     >
                       Hey, {firstName}!
-                    </motion.h2>
+                    </motion.h1>
 
                     <motion.p
                       initial={{ opacity: 0, y: 10 }}
@@ -450,6 +495,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
                     {/* CTA */}
                     <motion.button
+                      type="button"
+                      autoFocus
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
@@ -462,11 +509,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
                     {/* Skip option */}
                     <motion.button
+                      type="button"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ delay: 0.35 }}
                       onClick={onClose}
-                      className="mt-4 text-[11px] text-sky-500/40 dark:text-sky-400/30 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+                      className="mt-4 px-3 py-1.5 text-xs font-medium text-sky-600/75 dark:text-sky-400/75 hover:text-sky-900 dark:hover:text-white underline-offset-4 hover:underline transition-colors cursor-pointer"
                     >
                       Skip for now
                     </motion.button>
@@ -606,7 +654,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                           </p>
 
                           {/* Language Choice */}
-                          <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="grid grid-cols-2 gap-3 mb-4">
                             {languageOptions.map((language) => (
                               <button
                                 key={language}
@@ -628,8 +676,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                             ))}
                           </div>
 
+                          {isLanguageRequired && (
+                            <button
+                              type="button"
+                              onClick={() => handleLanguageSelect('None')}
+                              className={`w-full mb-4 px-4 py-2.5 rounded-2xl border text-xs font-semibold transition-all text-center ${selectedLanguage === 'None'
+                                ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 border-[#d4e88e]/50 dark:border-sky-500/30 text-sky-800 dark:text-sky-200'
+                                : 'border-sky-100 dark:border-gray-700 bg-white/60 dark:bg-gray-900/50 text-sky-700/75 dark:text-sky-300/75 hover:border-sky-200 dark:hover:border-gray-600'
+                                }`}
+                            >
+                              Skip / Taking another language
+                            </button>
+                          )}
+
                           {/* Level Slider */}
-                          {selectedLanguage && (
+                          {selectedLanguage && selectedLanguage !== 'None' && (
                             <motion.div
                               initial={{ opacity: 0, y: 8 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -811,7 +872,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                         </div>
 
                         <div className="grid grid-cols-1 gap-1.5 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
-                          {electiveOptions.filter((elective) =>
+                          {availableElectives.filter((elective) =>
                             elective.name.toLowerCase().includes(electiveSearch.toLowerCase())
                           ).map((elective) => {
                             const iconName = getElectiveIcon(elective.icon);
@@ -907,8 +968,196 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                             </div>
                           </div>
                         </div>
+
+                        {setupError && (
+                          <div
+                            role="alert"
+                            className="mt-4 rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50/70 dark:bg-red-950/30 px-4 py-3 text-xs font-medium text-red-700 dark:text-red-300"
+                          >
+                            {setupError}
+                          </div>
+                        )}
                       </div>
                     </div>
+                  </div>
+                );
+
+              case 'app-intro':
+                return (
+                  <div className="space-y-4 py-1">
+                    {introSlide === 0 && (
+                      <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] p-5 space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em]">
+                            1. Your Dashboard Hub
+                          </span>
+                          {createdClassNames.length > 0 && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#ebf6b5]/70 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-[#d4e88e]/50 dark:border-sky-500/20">
+                              <HugeIcon name="CheckmarkCircle02" size={13} className="w-3.5 h-3.5" />
+                              {createdClassNames.length} {createdClassNames.length === 1 ? 'class' : 'classes'} ready
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-sky-800/80 dark:text-sky-200/80 leading-relaxed">
+                          Your schedule is all set up! Everything in TaskTornado starts from your dashboard:
+                        </p>
+                        <div className="grid gap-2.5">
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 shrink-0">
+                              <HugeIcon name="Book03" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">My Classes</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Use your course cards to add homework or tests right inside each class, expand longer task lists, or share class invites.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-[#ebf6b5]/70 dark:bg-emerald-500/15 text-sky-700 dark:text-emerald-300 shrink-0">
+                              <HugeIcon name="CheckmarkCircle02" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Homework & Tasks</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Track due dates, set priorities, pin top items, and check tasks off as you finish them.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 shrink-0">
+                              <HugeIcon name="Calendar02" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Weekly Calendar & Upcoming Tests</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Scan the week ahead at the top of your dashboard and keep exam prep organized below your classes.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {introSlide === 1 && (
+                      <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] p-5 space-y-4">
+                        <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em] block">
+                          2. Navigation & Instant Search
+                        </span>
+                        <p className="text-sm text-sky-800/80 dark:text-sky-200/80 leading-relaxed">
+                          The floating top bar follows you across pages so core shortcuts are always one click away:
+                        </p>
+                        <div className="grid gap-2.5">
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 shrink-0">
+                              <HugeIcon name="Home02" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Home, Calendar & Grades</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Switch between your dashboard, full monthly/weekly calendar, and grade calculator anytime.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 shrink-0">
+                              <HugeIcon name="Search01" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Instant Search (⌘K) & Aurora AI</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Press Search (or ⌘K) to jump straight to any class or task, and tap the sparkle icon for Aurora AI study help.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-[#ebf6b5]/70 dark:bg-emerald-500/15 text-sky-700 dark:text-emerald-300 shrink-0">
+                              <HugeIcon name="Pen02" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Profile Menu → Edit Nav</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Click your initials in the top-right corner to pin your favorite extra pages directly onto the main nav bar.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {introSlide === 2 && (
+                      <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] p-5 space-y-4">
+                        <span className="text-[13px] font-bold text-sky-500 dark:text-sky-400 uppercase tracking-[0.1em] block">
+                          3. Study Tools, Breaks & Settings
+                        </span>
+                        <p className="text-sm text-sky-800/80 dark:text-sky-200/80 leading-relaxed">
+                          Open the <span className="font-semibold text-sky-900 dark:text-white">Tools</span> dropdown in the top right whenever you need extra study or focus tools:
+                        </p>
+                        <div className="grid gap-2.5">
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 shrink-0">
+                              <HugeIcon name="Timer01" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Study Timer, Web Saves & AI Suite</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Run a focus timer, save helpful links in Web Saves, or explore study tools like Quizzes, Flashcards, and Writing Assist.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-[#ebf6b5]/70 dark:bg-emerald-500/15 text-sky-700 dark:text-emerald-300 shrink-0">
+                              <HugeIcon name="Gameboy" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Games, Tutorials & Changelog</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Take quick brain breaks with built-in Games or check Tutorials anytime you want a refresher.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-gray-900/50 border border-sky-100/70 dark:border-gray-700/70">
+                            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 shrink-0">
+                              <HugeIcon name="Settings02" size={16} className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-sky-900 dark:text-white">Customize Anytime in Settings</p>
+                              <p className="text-xs text-sky-700/65 dark:text-sky-300/65 leading-relaxed">
+                                Toggle themes, dashboard widgets, class setup, or restart the Feature Tour whenever you like.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {introSlide === 3 && (
+                      <div className="bg-[#f5f9fc] dark:bg-zinc-800 rounded-[24px] p-6 text-center space-y-4">
+                        <div className="w-14 h-14 mx-auto rounded-2xl bg-[#ebf6b5]/70 dark:bg-sky-500/15 border border-[#d4e88e]/50 dark:border-sky-500/20 flex items-center justify-center text-[#275085] dark:text-sky-300">
+                          <HugeIcon name="CheckmarkCircle02" size={28} className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-2 max-w-md mx-auto">
+                          <h2 className="text-xl font-bold text-sky-900 dark:text-white tracking-tight">
+                            You&apos;re Ready to Explore
+                          </h2>
+                          <p className="text-sm text-sky-700/70 dark:text-sky-300/70 leading-relaxed">
+                            Want a quick 30-second live walkthrough pointing directly at each control on your dashboard, or are you ready to dive straight in?
+                          </p>
+                        </div>
+                        {createdClassNames.length > 0 && (
+                          <div className="flex flex-wrap justify-center gap-1.5 pt-1">
+                            {createdClassNames.map((className) => (
+                              <span
+                                key={className}
+                                className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/80 dark:bg-gray-900/60 border border-sky-100 dark:border-gray-700 text-sky-800 dark:text-sky-200"
+                              >
+                                {className}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
 
@@ -921,14 +1170,25 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     );
   };
 
+  const isAppIntro = currentStep === 'app-intro';
+
   return (
-    <div className="fixed inset-0 bg-[#fffaf4]/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center z-[100] sm:p-4 overflow-hidden">
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={headingId}
+      onCancel={(e) => {
+        e.preventDefault();
+        if (!isLoading) onClose();
+      }}
+      className="hidden open:flex fixed inset-0 z-[100] m-0 p-0 sm:p-4 max-w-none max-h-none w-screen h-dvh bg-transparent items-center justify-center backdrop:bg-[#fffaf4]/80 dark:backdrop:bg-gray-950/80 backdrop:backdrop-blur-sm"
+    >
+      {isOpen && (
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full h-full sm:h-auto sm:max-w-2xl bg-white dark:bg-gray-900 sm:rounded-[28px] sm:border sm:border-sky-100 dark:sm:border-gray-800 sm:shadow-2xl sm:shadow-sky-500/5 overflow-hidden flex flex-col relative"
+        className="w-full h-full sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-2xl bg-white dark:bg-gray-900 sm:rounded-[28px] sm:border sm:border-sky-100 dark:sm:border-gray-800 sm:shadow-2xl sm:shadow-sky-500/5 overflow-hidden flex flex-col relative"
       >
         {/* Header — hidden on welcome step */}
         {currentStep !== 'welcome' && (
@@ -941,13 +1201,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 height={20}
                 className="w-5 h-5"
               />
-              <h1 className="text-lg font-bold text-sky-900 dark:text-white">
-                Set up your workspace
+              <h1 id={headingId} className="text-lg font-bold text-sky-900 dark:text-white">
+                {isAppIntro ? 'Meet TaskTornado' : 'Set up your workspace'}
               </h1>
             </div>
             <button
+              type="button"
+              aria-label={isAppIntro ? 'Close app intro' : 'Close setup wizard'}
+              disabled={isLoading}
               onClick={onClose}
-              className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-2 text-sky-400 hover:text-sky-900 dark:text-sky-500 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 rounded-full transition-colors disabled:opacity-40"
             >
               <HugeIcon name="Cancel01" size={20} className="w-5 h-5" />
             </button>
@@ -958,31 +1221,47 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         {currentStep !== 'welcome' && (
           <>
             <div className="px-5 pt-3 pb-2 flex items-center justify-between">
-              {/* Step pills — matching grade calculator style */}
-              <div className="flex items-center gap-1.5">
-                {allSteps.map((s, i) => {
-                  const stepLabels: Record<string, string> = {
-                    'grade': 'Grade',
-                    'language': 'Language',
-                    'math-acceleration': 'Math',
-                    'electives': 'Electives',
-                    'summary': 'Review'
-                  };
-                  return (
-                    <React.Fragment key={s}>
-                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${displayStepIndex === i
+              <div className="flex flex-wrap items-center gap-1.5">
+                {isAppIntro ? (
+                  INTRO_STEPS.map((label, i) => (
+                    <React.Fragment key={label}>
+                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${introSlide === i
                         ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400'
-                        : i < displayStepIndex
+                        : i < introSlide
                           ? 'text-sky-600/60 dark:text-sky-400/60'
                           : 'text-sky-600/30 dark:text-sky-400/30'
                         }`}>
                         <span>{i + 1}.</span>
-                        <span>{stepLabels[s]}</span>
+                        <span>{label}</span>
                       </div>
-                      {i < allSteps.length - 1 && <span className="text-sky-600/30 dark:text-sky-400/30 text-[10px]">→</span>}
+                      {i < INTRO_STEPS.length - 1 && <span className="text-sky-600/30 dark:text-sky-400/30 text-[10px]">→</span>}
                     </React.Fragment>
-                  );
-                })}
+                  ))
+                ) : (
+                  allSteps.map((s, i) => {
+                    const stepLabels: Record<string, string> = {
+                      'grade': 'Grade',
+                      'language': 'Language',
+                      'math-acceleration': 'Math',
+                      'electives': 'Electives',
+                      'summary': 'Review'
+                    };
+                    return (
+                      <React.Fragment key={s}>
+                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${displayStepIndex === i
+                          ? 'bg-[#ebf6b5]/60 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400'
+                          : i < displayStepIndex
+                            ? 'text-sky-600/60 dark:text-sky-400/60'
+                            : 'text-sky-600/30 dark:text-sky-400/30'
+                          }`}>
+                          <span>{i + 1}.</span>
+                          <span>{stepLabels[s]}</span>
+                        </div>
+                        {i < allSteps.length - 1 && <span className="text-sky-600/30 dark:text-sky-400/30 text-[10px]">→</span>}
+                      </React.Fragment>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -993,9 +1272,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                   className="h-full bg-sky-500 dark:bg-sky-400 rounded-full"
                   initial={{ width: 0 }}
                   animate={{
-                    width: `${((displayStepIndex + 1) / allSteps.length) * 100}%`
+                    width: isAppIntro
+                      ? `${((introSlide + 1) / INTRO_STEPS.length) * 100}%`
+                      : `${((displayStepIndex + 1) / allSteps.length) * 100}%`
                   }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
                 />
               </div>
             </div>
@@ -1010,46 +1291,110 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         {/* Footer Navigation — hidden on welcome step */}
         {currentStep !== 'welcome' && (
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-sky-100/60 dark:border-gray-800">
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 'grade'}
-              className="h-10 px-4 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-0 disabled:pointer-events-none flex items-center gap-1.5"
-            >
-              <HugeIcon name="ArrowLeft01" size={14} className="w-3.5 h-3.5" />
-              Back
-            </button>
+            {isAppIntro ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIntroSlide((prev) => Math.max(0, prev - 1))}
+                  disabled={introSlide === 0}
+                  className="h-10 px-4 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-0 disabled:pointer-events-none flex items-center gap-1.5"
+                >
+                  <HugeIcon name="ArrowLeft01" size={14} className="w-3.5 h-3.5" />
+                  Back
+                </button>
 
-            {currentStep === 'summary' ? (
-              <button
-                onClick={handleCreateClasses}
-                disabled={isLoading}
-                className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-              >
-                {isLoading ? (
-                  <HugeIcon name="LoaderPinwheel" size={16} className="w-4 h-4 animate-spin" />
+                {introSlide < INTRO_STEPS.length - 1 ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="h-10 px-3.5 text-[13px] font-semibold text-sky-600/70 dark:text-sky-400/70 hover:text-sky-900 dark:hover:text-white rounded-full transition-colors"
+                    >
+                      Skip Intro
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIntroSlide((prev) => Math.min(INTRO_STEPS.length - 1, prev + 1))}
+                      className="h-10 px-5 text-[13px] font-semibold text-white bg-[#275085] dark:bg-[#4a9cdb] hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] rounded-full shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all active:scale-95 flex items-center gap-1.5"
+                    >
+                      Next
+                      <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ) : (
-                  <>
-                    <HugeIcon name="CheckmarkCircle02" size={16} className="w-4 h-4" />
-                    Complete Setup
-                  </>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="h-10 px-4 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full transition-colors"
+                    >
+                      Go to Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onStartTour) {
+                          onStartTour();
+                        } else {
+                          onClose();
+                        }
+                      }}
+                      className="h-10 px-5 text-[13px] font-semibold text-white bg-[#275085] dark:bg-[#4a9cdb] hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] rounded-full shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 transition-all active:scale-95 flex items-center gap-1.5"
+                    >
+                      Take Live Spotlight Tour
+                      <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
-              </button>
+              </>
             ) : (
-              <button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className={`h-10 px-5 text-[13px] font-semibold rounded-full transition-all flex items-center gap-1.5 ${canProceed()
-                  ? 'text-white bg-[#275085] dark:bg-[#4a9cdb] hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 active:scale-95'
-                  : 'bg-sky-100 dark:bg-gray-800 text-sky-400/50 dark:text-sky-500/30 cursor-not-allowed'
-                  }`}
-              >
-                Next Step
-                <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  disabled={currentStep === 'grade' || isLoading}
+                  className="h-10 px-4 text-[13px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-900 dark:hover:text-white hover:bg-sky-50 dark:hover:bg-gray-800 border border-sky-200 dark:border-gray-700 rounded-full transition-colors disabled:opacity-0 disabled:pointer-events-none flex items-center gap-1.5"
+                >
+                  <HugeIcon name="ArrowLeft01" size={14} className="w-3.5 h-3.5" />
+                  Back
+                </button>
+
+                {currentStep === 'summary' ? (
+                  <button
+                    type="button"
+                    onClick={handleCreateClasses}
+                    disabled={isLoading}
+                    className="h-10 px-6 text-[13px] font-semibold text-sky-700 dark:text-sky-300 bg-[#ebf6b5]/60 dark:bg-[#ebf6b5]/10 hover:bg-[#ebf6b5] border border-[#d4e88e]/50 dark:border-[#d4e88e]/20 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    {isLoading ? (
+                      <HugeIcon name="LoaderPinwheel" size={16} className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <HugeIcon name="CheckmarkCircle02" size={16} className="w-4 h-4" />
+                        Create Classes &amp; Continue
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className={`h-10 px-5 text-[13px] font-semibold rounded-full transition-all flex items-center gap-1.5 ${canProceed()
+                      ? 'text-white bg-[#275085] dark:bg-[#4a9cdb] hover:bg-[#1f3f6b] dark:hover:bg-[#3d8bc4] shadow-lg shadow-[#275085]/15 dark:shadow-[#4a9cdb]/15 active:scale-95'
+                      : 'bg-sky-100 dark:bg-gray-800 text-sky-400/50 dark:text-sky-500/30 cursor-not-allowed'
+                      }`}
+                  >
+                    Next Step
+                    <HugeIcon name="ArrowRight01" size={14} className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
       </motion.div>
-    </div>
+      )}
+    </dialog>
   );
 };

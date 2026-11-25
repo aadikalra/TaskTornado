@@ -29,6 +29,7 @@ export default function ChangelogClient({ initialVersions, initialDate }: Change
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Tooltip state for Git map
   const [tooltip, setTooltip] = useState<{
@@ -257,18 +258,31 @@ export default function ChangelogClient({ initialVersions, initialDate }: Change
               <HugeIcon name="Rotate01" size={18} className={isRefreshing ? 'animate-spin' : ''} />
             </button>
             <button 
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: 'TaskTornado Changelog', url: window.location.href });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert('Link copied to clipboard!');
+              onClick={async () => {
+                try {
+                  if (navigator.share) {
+                    await navigator.share({ title: 'TaskTornado Changelog', url: window.location.href });
+                  } else if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(window.location.href);
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  }
+                } catch {
+                  // Ignore cancelled native share
                 }
               }}
-              className="p-2 rounded-xl border border-transparent text-sky-600/90 dark:text-sky-400/90 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10 transition-all"
-              title="Share"
+              aria-label={linkCopied ? 'Changelog link copied' : 'Share changelog'}
+              className="inline-flex items-center gap-1.5 p-2 rounded-xl border border-transparent text-sky-600/90 dark:text-sky-400/90 hover:bg-[#ebf6b5]/30 dark:hover:bg-sky-500/10 transition-all"
+              title={linkCopied ? 'Link copied!' : 'Share'}
             >
-              <HugeIcon name="Share03" size={18} />
+              {linkCopied ? (
+                <>
+                  <HugeIcon name="CheckmarkCircle02" size={18} className="text-emerald-500" />
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Copied</span>
+                </>
+              ) : (
+                <HugeIcon name="Share03" size={18} />
+              )}
             </button>
           </div>
         </header>
@@ -307,15 +321,31 @@ export default function ChangelogClient({ initialVersions, initialDate }: Change
 
           {/* Map Grid Scroller */}
           <div className="overflow-x-auto pb-2 -mx-2 px-2 scrollbar-thin">
-            <div 
-              className="grid grid-flow-col grid-rows-7 gap-[4px] w-max select-none"
-              onMouseLeave={() => setTooltip(null)}
-            >
-              {gitMapDays.map((day, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => day.version && scrollToVersion(day.version.version)}
-                  disabled={!day.version && !day.simulatedActivity}
+            <div className="w-max select-none">
+              <div className="grid grid-flow-col auto-cols-[11px] gap-[4px] mb-1.5 text-[10px] font-semibold text-sky-600/60 dark:text-sky-400/60">
+                {Array.from({ length: Math.ceil(gitMapDays.length / 7) }, (_, weekIdx) => {
+                  const firstDay = gitMapDays[weekIdx * 7];
+                  const prevWeekFirstDay = weekIdx > 0 ? gitMapDays[(weekIdx - 1) * 7] : null;
+                  const monthLabel = firstDay && (!prevWeekFirstDay || firstDay.dateString.slice(0, 7) !== prevWeekFirstDay.dateString.slice(0, 7))
+                    ? new Date(`${firstDay.dateString}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })
+                    : '';
+                  return (
+                    <span key={weekIdx} className="whitespace-nowrap overflow-visible leading-none">
+                      {monthLabel}
+                    </span>
+                  );
+                })}
+              </div>
+              <div 
+                className="grid grid-flow-col grid-rows-7 gap-[4px] w-max select-none"
+                onMouseLeave={() => setTooltip(null)}
+              >
+                {gitMapDays.map((day, idx) => (
+                  <button
+                    key={idx}
+                    aria-label={`${day.dateString} — ${day.version ? `v${day.version.version}: ${day.version.title}` : day.simulatedActivity ? day.simulatedActivity : 'No releases'}`}
+                    onClick={() => day.version && scrollToVersion(day.version.version)}
+                    disabled={!day.version && !day.simulatedActivity}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     setTooltip({
@@ -340,6 +370,7 @@ export default function ChangelogClient({ initialVersions, initialDate }: Change
                   }`}
                 />
               ))}
+              </div>
             </div>
           </div>
         </div>
@@ -360,7 +391,7 @@ export default function ChangelogClient({ initialVersions, initialDate }: Change
                 </div>
               ) : filteredVersions.length === 0 ? (
                 <div className="text-center py-24 border border-dashed border-sky-200/60 dark:border-sky-800/30 rounded-[28px] bg-white/20 dark:bg-[#0a0f1d]/20 backdrop-blur-md">
-                  <p className="text-sky-600/60 dark:text-sky-400/60 text-sm">No updates found matching "{searchQuery}"</p>
+                  <p className="text-sky-600/60 dark:text-sky-400/60 text-sm">No updates found matching &ldquo;{searchQuery}&rdquo;</p>
                   <button onClick={() => setSearchQuery('')} className="mt-3 text-xs font-bold underline hover:no-underline">Clear Search</button>
                 </div>
               ) : filteredVersions.map((v, i) => (
@@ -477,7 +508,11 @@ export default function ChangelogClient({ initialVersions, initialDate }: Change
                   Version History
                 </h3>
                 <div className="space-y-1 bg-[#f5f9fc]/40 dark:bg-zinc-900/40 border border-sky-200/60 dark:border-sky-800/30 rounded-2xl p-2 backdrop-blur-md">
-                  {versions.slice(0, 10).map((v) => (
+                  {filteredVersions.length === 0 ? (
+                    <p className="px-4 py-3 text-xs text-sky-600/50 dark:text-sky-400/50">
+                      No matching versions
+                    </p>
+                  ) : filteredVersions.slice(0, 10).map((v) => (
                     <button
                       key={v.version}
                       onClick={() => scrollToVersion(v.version)}

@@ -14,14 +14,14 @@ import { useRouter } from 'next/navigation';
 
 const WritingAssistPage = () => {
   const { authenticated } = useRequireAuth();
-  if (!authenticated) return null;
   const { showIntro, dismissIntro } = useRouteIntro('writing-assist');
-  const { handlePlanLimitError } = useUpgrade();
+  useUpgrade();
   const router = useRouter();
 
   const tier = getPlanTier();
   const limits = TIER_LIMITS[tier];
   const { usingOwnKey, loading } = useAiConnection();
+  if (!authenticated) return null;
   if (loading) return <p className="p-12" role="status">Loading AI connection…</p>;
 
   // ─── Personal AI connection ──────────────────────────────────────────────

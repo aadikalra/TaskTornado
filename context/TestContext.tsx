@@ -6,6 +6,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { db } from '@/lib/supabase/db';
+import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database.types';
 import { getPlanTier, TIER_LIMITS } from '@/lib/planTier';
 import { formatCalendarDate, parseCalendarDate } from '@/lib/dateUtils';
@@ -69,7 +70,7 @@ export const TestProvider = (props: TestProviderProps) => {
   return parent ? <>{props.children}</> : <TestProviderState {...props} />;
 };
 const TestProviderState = ({ children, initialTests }: TestProviderProps) => {
-  const { user } = useAuth();
+  const { user, isEligible } = useAuth();
   const pathname = usePathname();
   const [tests, setTests] = useState<Test[]>(initialTests ?? []);
   const [loading, setLoading] = useState(!initialTests ? true : false);
@@ -82,14 +83,14 @@ const TestProviderState = ({ children, initialTests }: TestProviderProps) => {
   const needsTestData = useCallback(() => {
     if (typeof window === 'undefined') return false;
     const routesThatNeedData = [
-      '/homework', '/classes', '/dashboard', '/calendar', '/settings', '/newhome',
+      '/homework', '/classes', '/tests', '/dashboard', '/calendar', '/settings', '/newhome',
       '/snake', '/games', '/flashcards', '/study-assistant', '/grade-calculator'
     ];
     return routesThatNeedData.some(route => pathname.startsWith(route));
   }, [pathname]);
 
   const fetchData = useCallback(async () => {
-    if (!user || !needsTestData()) return;
+    if (!user || !isEligible || !needsTestData()) return;
     if (!hasLoaded.current) setLoading(true);
     setError(null);
     try {
@@ -123,17 +124,22 @@ const TestProviderState = ({ children, initialTests }: TestProviderProps) => {
       setLoading(false);
     } catch (err) {
       if (accountRef.current !== user.id) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || accountRef.current !== user.id) return;
       console.error('Error fetching tests:', err);
       setError('Failed to load tests. Please try again.');
       setLoading(false);
     }
-  }, [user, needsTestData]);
+  }, [user, isEligible, needsTestData]);
 
-  useSchoolDataSync('tests', user?.id, needsTestData(), fetchData);
+  useSchoolDataSync('tests', user?.id, Boolean(isEligible && needsTestData()), fetchData);
   useEffect(() => {
     hasLoaded.current = false;
     setTests([]);
     setError(null);
+    return () => {
+      accountRef.current = undefined;
+    };
   }, [user?.id]);
 
   const addTest = async (classId: string, title: string, testDate: Date, testType: TestType, options: any = {}) => {

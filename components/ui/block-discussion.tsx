@@ -318,28 +318,34 @@ const useResolvedDiscussion = (
 
   const discussions = usePluginOption(discussionPlugin, 'discussions');
 
-  commentNodes.forEach(([node]) => {
-    const id = api.comment.nodeId(node);
+  const uniquePathUpdates = React.useMemo(() => {
     const map = getOption('uniquePathMap');
-
-    if (!id) return;
-
-    const previousPath = map.get(id);
-
-    // If there are no comment nodes in the corresponding path in the map, then update it.
-    if (PathApi.isPath(previousPath)) {
-      const nodes = api.comment.node({ id, at: previousPath });
-
-      if (!nodes) {
-        setOption('uniquePathMap', new Map(map).set(id, blockPath));
+    const updates = new Map<string, Path>();
+    commentNodes.forEach(([node]) => {
+      const id = api.comment.nodeId(node);
+      if (!id) return;
+      const previousPath = map.get(id);
+      if (PathApi.isPath(previousPath)) {
+        const nodes = api.comment.node({ id, at: previousPath });
+        if (!nodes) {
+          updates.set(id, blockPath);
+        }
         return;
       }
+      updates.set(id, blockPath);
+    });
+    return updates;
+  }, [api.comment, blockPath, commentNodes, getOption]);
 
-      return;
-    }
-    // TODO: fix throw error
-    setOption('uniquePathMap', new Map(map).set(id, blockPath));
-  });
+  React.useEffect(() => {
+    if (uniquePathUpdates.size === 0) return;
+    const map = getOption('uniquePathMap');
+    const nextMap = new Map(map);
+    uniquePathUpdates.forEach((path, id) => {
+      nextMap.set(id, path);
+    });
+    setOption('uniquePathMap', nextMap);
+  }, [getOption, setOption, uniquePathUpdates]);
 
   const commentsIds = new Set(
     commentNodes.map(([node]) => api.comment.nodeId(node)).filter(Boolean)
@@ -353,7 +359,8 @@ const useResolvedDiscussion = (
     .filter((item: TDiscussion) => {
       /** If comment cross blocks just show it in the first block */
       const commentsPathMap = getOption('uniquePathMap');
-      const firstBlockPath = commentsPathMap.get(item.id);
+      const firstBlockPath =
+        commentsPathMap.get(item.id) ?? uniquePathUpdates.get(item.id);
 
       if (!firstBlockPath) return false;
       if (!PathApi.equals(firstBlockPath, blockPath)) return false;

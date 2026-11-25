@@ -34,7 +34,7 @@ const EnhancedTestCard = ({
     const configs = {
       alpha: {
         icon: 'Target01',
-        label: 'ALPHA',
+        label: 'Major Exam',
         color: 'text-sky-600 dark:text-sky-400',
         border: 'border-l-sky-500',
         bg: 'bg-sky-100/40 dark:bg-sky-500/10',
@@ -42,7 +42,7 @@ const EnhancedTestCard = ({
       },
       beta: {
         icon: 'Zap',
-        label: 'BETA',
+        label: 'Unit Test',
         color: 'text-sky-500 dark:text-sky-400',
         border: 'border-l-sky-400',
         bg: 'bg-sky-100/30 dark:bg-sky-500/[0.07]',

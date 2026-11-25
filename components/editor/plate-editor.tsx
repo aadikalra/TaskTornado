@@ -6,7 +6,6 @@ import { normalizeNodeId } from 'platejs';
 import { Plate, useEditorRef, usePlateEditor, usePluginOption } from 'platejs/react';
 
 import { EditorKit } from '@/components/editor/editor-kit';
-import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { discussionPlugin, type TDiscussion } from './plugins/discussion-kit';
@@ -109,8 +108,6 @@ export function PlateEditor({ editor: externalEditor }: { editor?: any }) {
         <EditorContainer>
           <Editor variant="demo" />
         </EditorContainer>
-
-        <SettingsDialog />
       </Plate>
     </TooltipProvider>
   );

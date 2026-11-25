@@ -37,7 +37,7 @@ export const FREE_LIMITS = {
         webSaveFolders: true,
         // Additional feature availability
         googleClassroomSync: false,
-        writingAssist: false,
+        writingAssist: true,
         guardianDashboard: false,
         guardianAIChatPerDay: 0,
         multiChildAccounts: 0,

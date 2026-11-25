@@ -630,10 +630,19 @@ export default function TaskTowerPage() {
                                             style={{ width: `${completionPercentage}%` }}
                                         />
                                     </div>
-                                    <p className="text-[11px] text-sky-500/40 dark:text-sky-400/30 mt-2">
-                                        {completedHomeworks} of {totalHomeworks} assignments · {Math.max(0, Math.ceil(totalHomeworks * 0.8) - completedHomeworks)} more to unlock
+                                    <p className="text-[11px] text-sky-600/70 dark:text-sky-400/60 mt-2">
+                                        {totalHomeworks === 0
+                                            ? 'No assignments yet — add and complete homework on your Dashboard to unlock.'
+                                            : `${completedHomeworks} of ${totalHomeworks} assignments · ${Math.max(0, Math.ceil(totalHomeworks * 0.8) - completedHomeworks)} more to unlock`}
                                     </p>
                                 </div>
+                                <Link
+                                    href="/dashboard"
+                                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold transition-colors"
+                                >
+                                    Go to Dashboard
+                                    <HugeIcon name="ArrowRight01" className="w-3.5 h-3.5" />
+                                </Link>
                             </div>
                         </div>
                     </motion.div>

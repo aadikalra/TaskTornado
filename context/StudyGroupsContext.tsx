@@ -50,7 +50,7 @@ interface StudyGroupsContextType {
 const StudyGroupsContext = createContext<StudyGroupsContextType | undefined>(undefined);
 
 export function StudyGroupsProvider({ children }: { children: React.ReactNode }) {
-  const { user, full_name } = useAuth();
+  const { user, full_name, isEligible } = useAuth();
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [currentGroup, setCurrentGroup] = useState<StudyGroup | null>(null);
   const [messages, setMessages] = useState<GroupMessage[]>([]);
@@ -62,7 +62,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
 
   // Fetch user's groups
   const fetchGroups = useCallback(async () => {
-    if (!user) {
+    if (!user || !isEligible) {
       setGroups([]);
       setLoading(false);
       return;
@@ -153,7 +153,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isEligible]);
 
   // Fetch group messages
   const fetchMessages = useCallback(async (groupId: string) => {
@@ -198,7 +198,7 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isEligible]);
 
   // Fetch group links
   const fetchLinks = useCallback(async (groupId: string) => {
@@ -533,10 +533,11 @@ export function StudyGroupsProvider({ children }: { children: React.ReactNode })
     };
   }, [currentGroup?.id, user?.id]);
 
-  // Load groups when user changes
+  // Study groups are currently disabled; avoid querying study_group_members automatically.
   useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
+    setGroups([]);
+    setLoading(false);
+  }, [user?.id, isEligible]);
 
   // Load messages and links when current group changes
   useEffect(() => {

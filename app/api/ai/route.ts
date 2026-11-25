@@ -461,12 +461,15 @@ export async function POST(req: NextRequest) {
     }
     let result: GroqCompletion | null = null;
     let allowQuestions = !needsPlanningData;
+    let disableSchoolLookup = Boolean(schoolSnapshot);
 
     while (currentStep < MAX_TOOL_CHAIN_STEPS) {
       currentStep++;
-      const stepTools = allowQuestions
-        ? tools
-        : tools.filter((tool) => tool.function.name !== 'ask_user_question');
+      const stepTools = tools.filter((tool) => {
+        if (!allowQuestions && tool.function.name === 'ask_user_question') return false;
+        if (disableSchoolLookup && tool.function.name === 'get_school_data') return false;
+        return true;
+      });
       const stepMessages = currentStep >= MAX_TOOL_CHAIN_STEPS - 1
         ? [...conversationHistory, {
             role: 'system' as const,
@@ -517,6 +520,9 @@ export async function POST(req: NextRequest) {
             query.data.homeworkSearch
           );
           schoolLookups.set(lookupKey, data);
+          if (cached || schoolLookups.size >= 1) {
+            disableSchoolLookup = true;
+          }
           toolResults.push({
             role: 'tool',
             tool_call_id: call.id,

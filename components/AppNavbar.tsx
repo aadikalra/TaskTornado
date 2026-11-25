@@ -80,51 +80,6 @@ export default function AppNavbar() {
     const [tabletMoreOpen, setTabletMoreOpen] = useState(false);
     const [editNavOpen, setEditNavOpen] = useState(false);
     const [pinnedLabels, setPinnedLabels] = useState<string[]>(DEFAULT_PINNED);
-    
-    // AI Suite Password Gate States
-    const [isAIUnlocked, setIsAIUnlocked] = useState(false);
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-    const [passwordInput, setPasswordInput] = useState('');
-    const [validationError, setValidationError] = useState('');
-    const [isUnlocking, setIsUnlocking] = useState(false);
-
-    // Check if AI Suite is unlocked on mount
-    useEffect(() => {
-        fetch('/api/ai-suite/status')
-            .then(res => res.json())
-            .then(data => {
-                if (data.unlocked) {
-                    setIsAIUnlocked(true);
-                }
-            })
-            .catch(err => console.error('Error checking AI unlock status:', err));
-    }, []);
-
-    const handleUnlockSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setValidationError('');
-        setIsUnlocking(true);
-        try {
-            const res = await fetch('/api/ai-suite/unlock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: passwordInput })
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                setIsAIUnlocked(true);
-                setIsPasswordModalOpen(false);
-                setPasswordInput('');
-            } else {
-                setValidationError(data.error || 'Incorrect password. Please try again.');
-            }
-        } catch (err) {
-            setValidationError('Network error. Please try again.');
-            console.error('Error unlocking AI Suite:', err);
-        } finally {
-            setIsUnlocking(false);
-        }
-    };
 
     const toolsRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
@@ -250,7 +205,7 @@ export default function AppNavbar() {
                     {/* ════════════════════════════════════════════
                         DESKTOP (lg+) — Full center pill
                        ════════════════════════════════════════════ */}
-                    <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                    <div data-tour="nav-bar" className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
                         {NAV_ITEMS.map((item) => (
                             <button
                                 key={item.label}
@@ -277,6 +232,7 @@ export default function AppNavbar() {
 
                         {/* Aurora */}
                         <button
+                            data-tour="aurora"
                             onClick={() => setAIAssistantOpen(!isAIAssistantOpen)}
                             className={`relative px-3 py-2 rounded-full transition-colors ${isAIAssistantOpen ? 'text-amber-300' : 'text-white/70 hover:text-white'}`}
                             title="Aurora AI"
@@ -286,6 +242,7 @@ export default function AppNavbar() {
 
                         {/* Search */}
                         <button
+                            data-tour="search"
                             onClick={openSearch}
                             className="relative px-3 py-2 text-white/70 hover:text-white transition-colors rounded-full"
                             title="Search (⌘K)"
@@ -392,7 +349,7 @@ export default function AppNavbar() {
                        ════════════════════════════════════════════ */}
                     <div className="hidden lg:flex items-center gap-2">
                         {/* All Tools dropdown */}
-                        <div ref={toolsRef} className="relative">
+                        <div ref={toolsRef} data-tour="tools" className="relative">
                             <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
                                 <button
                                     onClick={() => { setToolsOpen(!toolsOpen); setProfileOpen(false); }}
@@ -416,7 +373,7 @@ export default function AppNavbar() {
                                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                                         className="absolute top-full right-0 mt-1 z-[100] w-[280px]"
                                     >
-                                        <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
+                                        <div className="bg-[#275085] backdrop-blur-xl rounded-2xl border border-white/15 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
                                             <div className="grid grid-cols-4 gap-1">
                                                 {TOOL_ITEMS.map((tool, idx) => {
                                                     const active = isActive(tool.href);
@@ -428,12 +385,12 @@ export default function AppNavbar() {
                                                             transition={{ delay: idx * 0.02 }}
                                                             onClick={() => handleNavClick(tool.href)}
                                                             className={`flex flex-col items-center gap-1.5 py-2.5 px-1.5 rounded-xl transition-all active:scale-95 ${active
-                                                                ? 'bg-white/15 text-white'
-                                                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                                ? 'bg-white/20 text-white'
+                                                                : 'text-white/90 hover:bg-white/15 hover:text-white'
                                                                 }`}
                                                         >
                                                             <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
-                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
+                                                            <span className="text-[10px] font-semibold leading-tight text-white">{tool.label}</span>
                                                         </motion.button>
                                                     );
                                                 })}
@@ -444,73 +401,46 @@ export default function AppNavbar() {
                                                     transition={{ delay: TOOL_ITEMS.length * 0.02 }}
                                                     onClick={() => { setIsStudyTimerOpen(true); setToolsOpen(false); }}
                                                     className={`flex flex-col items-center gap-1.5 py-2.5 px-1.5 rounded-xl transition-all active:scale-95 ${isStudyTimerOpen
-                                                        ? 'bg-white/15 text-white'
-                                                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                        ? 'bg-white/20 text-white'
+                                                        : 'text-white/90 hover:bg-white/15 hover:text-white'
                                                         }`}
                                                 >
                                                     <HugeIcon name="Timer01" size={16} className="w-4 h-4" />
-                                                    <span className="text-[9px] font-semibold leading-tight">Timer</span>
+                                                    <span className="text-[10px] font-semibold leading-tight text-white">Timer</span>
                                                 </motion.button>
                                             </div>
-                                            <div className="h-px bg-white/10 my-2" />
-                                            {isAIUnlocked ? (
-                                                <div className="p-1">
-                                                    <div className="grid grid-cols-3 gap-1.5">
-                                                        {AI_SUITE_ITEMS.map((tool) => (
-                                                            <button 
-                                                                key={tool.label} 
-                                                                onClick={() => handleNavClick(tool.href)} 
-                                                                title={tool.label}
-                                                                className={`flex items-center justify-center py-3 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
-                                                                    isActive(tool.href) 
-                                                                        ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
-                                                                        : 'bg-white/[0.03] border-white/5 text-white/80 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
-                                                                }`}
-                                                            >
-                                                                {tool.label === 'Flashcards' ? (
-                                                                    <Image 
-                                                                        src="/AIFlashcards.png" 
-                                                                        alt="AI Flashcards" 
-                                                                        width={22} 
-                                                                        height={22} 
-                                                                        className="w-5.5 h-5.5 object-contain"
-                                                                        unoptimized
-                                                                    />
-                                                                ) : (
-                                                                    <HugeIcon name={tool.iconName} size={22} className="w-5.5 h-5.5" />
-                                                                )}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="px-1 py-0.5">
-                                                    <button 
-                                                        onClick={() => setIsPasswordModalOpen(true)}
-                                                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/5 text-white/60 cursor-pointer transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
-                                                        title="Click to unlock AI Suite"
-                                                        type="button"
-                                                    >
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="relative w-7 h-7 flex-shrink-0 flex items-center justify-center">
-                                                                <Image 
-                                                                    src="/ai-sparkle.png?v=2" 
-                                                                    alt="AI Sparkle Logo" 
-                                                                    width={26} 
-                                                                    height={26} 
-                                                                    className="object-contain"
+                                            <div className="h-px bg-white/15 my-2" />
+                                            <div className="p-1">
+                                                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/60 mb-1.5 px-1">AI Suite</p>
+                                                <div className="grid grid-cols-3 gap-1.5">
+                                                    {AI_SUITE_ITEMS.map((tool) => (
+                                                        <button
+                                                            key={tool.label}
+                                                            onClick={() => handleNavClick(tool.href)}
+                                                            title={tool.label}
+                                                            className={`flex flex-col items-center justify-center gap-1 py-2.5 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
+                                                                isActive(tool.href)
+                                                                    ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5'
+                                                                    : 'bg-white/[0.06] border-white/10 text-white/90 hover:bg-white/15 hover:border-white/25 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            {tool.label === 'Flashcards' ? (
+                                                                <Image
+                                                                    src="/AIFlashcards.png"
+                                                                    alt="AI Flashcards"
+                                                                    width={20}
+                                                                    height={20}
+                                                                    className="w-5 h-5 object-contain"
                                                                     unoptimized
                                                                 />
-                                                            </div>
-                                                            <div className="flex flex-col text-left">
-                                                                <span className="text-[10px] font-bold tracking-wider uppercase text-white/90">AI Suite</span>
-                                                                <span className="text-[8px] text-white/40 font-semibold tracking-wide">Locked</span>
-                                                            </div>
-                                                        </div>
-                                                        <HugeIcon name="Lock" size={16} className="text-white/40 mr-1" />
-                                                    </button>
+                                                            ) : (
+                                                                <HugeIcon name={tool.iconName} size={20} className="w-5 h-5" />
+                                                            )}
+                                                            <span className="text-[9px] font-semibold leading-tight text-white">{tool.label}</span>
+                                                        </button>
+                                                    ))}
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
                                     </motion.div>
                                 )}
@@ -547,7 +477,7 @@ export default function AppNavbar() {
                         </AnimatePresence>
 
                         {/* Profile pill */}
-                        <div className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
+                        <div data-tour="profile" className="flex items-center p-1 bg-[#275085]/90 backdrop-blur-md rounded-full shadow-[0_4px_24px_rgba(39,80,133,0.3)] border border-[#275085]/30">
 
                             {/* Profile */}
                             <div ref={profileRef} className="relative">
@@ -609,7 +539,7 @@ export default function AppNavbar() {
                                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                                             className="absolute top-full right-0 mt-3 z-[110] w-[280px]"
                                         >
-                                            <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-3">
+                                            <div className="bg-[#275085] backdrop-blur-xl rounded-2xl border border-white/15 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-3 max-h-[70vh] overflow-y-auto">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Customize Tabs</p>
                                                     <div className="flex items-center gap-2">
@@ -649,14 +579,14 @@ export default function AppNavbar() {
                                                     <div>
                                                         <div className="h-px bg-white/10 my-2" />
                                                         <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1.5 px-1">Available</p>
-                                                        <div className="flex flex-col gap-0.5 max-h-[160px] overflow-y-auto">
+                                                        <div className="flex flex-col gap-0.5 max-h-[240px] overflow-y-auto pr-0.5">
                                                             {ALL_EXTRA_ITEMS.filter(i => !pinnedLabels.includes(i.label)).map(item => {
                                                                 const atMax = pinnedLabels.length >= MAX_PINNED;
                                                                 return (
                                                                     <button
                                                                         key={item.label}
                                                                         onClick={() => !atMax && togglePinned(item.label)}
-                                                                        className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl transition-all group text-left ${atMax ? 'text-white/20 cursor-not-allowed' : 'text-white/50 hover:bg-white/10 hover:text-white/80'}`}
+                                                                        className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl transition-all group text-left ${atMax ? 'text-white/25 cursor-not-allowed' : 'text-white/85 hover:bg-white/15 hover:text-white'}`}
                                                                     >
                                                                         <HugeIcon name={item.iconName} size={14} className="w-3.5 h-3.5 text-white/40" />
                                                                         <span className="text-[12px] font-semibold flex-1">{item.label}</span>
@@ -712,7 +642,7 @@ export default function AppNavbar() {
                                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                                         className="absolute top-full right-0 mt-1 z-[100] w-[260px]"
                                     >
-                                        <div className="bg-[#275085]/95 backdrop-blur-xl rounded-2xl border border-[#275085]/30 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
+                                        <div className="bg-[#275085] backdrop-blur-xl rounded-2xl border border-white/15 shadow-[0_24px_80px_rgba(39,80,133,0.5)] p-2">
                                             <div className="grid grid-cols-4 gap-1">
                                                 {TOOL_ITEMS.map((tool, idx) => {
                                                     const active = isActive(tool.href);
@@ -724,12 +654,12 @@ export default function AppNavbar() {
                                                             transition={{ delay: idx * 0.02 }}
                                                             onClick={() => handleNavClick(tool.href)}
                                                             className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl transition-all active:scale-95 ${active
-                                                                ? 'bg-white/15 text-white'
-                                                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                                ? 'bg-white/20 text-white'
+                                                                : 'text-white/90 hover:bg-white/15 hover:text-white'
                                                                 }`}
                                                         >
                                                             <HugeIcon name={tool.iconName} size={16} className="w-4 h-4" />
-                                                            <span className="text-[9px] font-semibold leading-tight">{tool.label}</span>
+                                                            <span className="text-[10px] font-semibold leading-tight text-white">{tool.label}</span>
                                                         </motion.button>
                                                     );
                                                 })}
@@ -739,73 +669,46 @@ export default function AppNavbar() {
                                                     transition={{ delay: TOOL_ITEMS.length * 0.02 }}
                                                     onClick={() => { setIsStudyTimerOpen(true); setToolsOpen(false); }}
                                                     className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl transition-all active:scale-95 ${isStudyTimerOpen
-                                                        ? 'bg-white/15 text-white'
-                                                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                        ? 'bg-white/20 text-white'
+                                                        : 'text-white/90 hover:bg-white/15 hover:text-white'
                                                         }`}
                                                 >
                                                     <HugeIcon name="Timer01" size={16} className="w-4 h-4" />
-                                                    <span className="text-[9px] font-semibold leading-tight">Timer</span>
+                                                    <span className="text-[10px] font-semibold leading-tight text-white">Timer</span>
                                                 </motion.button>
                                             </div>
-                                            <div className="h-px bg-white/10 my-2" />
-                                            {isAIUnlocked ? (
-                                                <div className="p-1">
-                                                    <div className="grid grid-cols-3 gap-1.5">
-                                                        {AI_SUITE_ITEMS.map(tool => (
-                                                            <button 
-                                                                key={tool.label} 
-                                                                onClick={() => handleNavClick(tool.href)} 
-                                                                title={tool.label}
-                                                                className={`flex items-center justify-center py-3 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
-                                                                    isActive(tool.href) 
-                                                                        ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
-                                                                        : 'bg-white/[0.03] border-white/5 text-white/80 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
-                                                                }`}
-                                                            >
-                                                                {tool.label === 'Flashcards' ? (
-                                                                    <Image 
-                                                                        src="/AIFlashcards.png" 
-                                                                        alt="AI Flashcards" 
-                                                                        width={22} 
-                                                                        height={22} 
-                                                                        className="w-5.5 h-5.5 object-contain"
-                                                                        unoptimized
-                                                                    />
-                                                                ) : (
-                                                                    <HugeIcon name={tool.iconName} size={22} className="w-5.5 h-5.5" />
-                                                                )}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="px-1 py-0.5">
-                                                    <button 
-                                                        onClick={() => setIsPasswordModalOpen(true)}
-                                                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/5 text-white/60 cursor-pointer transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
-                                                        title="Click to unlock AI Suite"
-                                                        type="button"
-                                                    >
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="relative w-7 h-7 flex-shrink-0 flex items-center justify-center">
-                                                                <Image 
-                                                                    src="/ai-sparkle.png?v=2" 
-                                                                    alt="AI Sparkle Logo" 
-                                                                    width={26} 
-                                                                    height={26} 
-                                                                    className="object-contain"
+                                            <div className="h-px bg-white/15 my-2" />
+                                            <div className="p-1">
+                                                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/60 mb-1.5 px-1">AI Suite</p>
+                                                <div className="grid grid-cols-3 gap-1.5">
+                                                    {AI_SUITE_ITEMS.map(tool => (
+                                                        <button
+                                                            key={tool.label}
+                                                            onClick={() => handleNavClick(tool.href)}
+                                                            title={tool.label}
+                                                            className={`flex flex-col items-center justify-center gap-1 py-2.5 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
+                                                                isActive(tool.href)
+                                                                    ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5'
+                                                                    : 'bg-white/[0.06] border-white/10 text-white/90 hover:bg-white/15 hover:border-white/25 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            {tool.label === 'Flashcards' ? (
+                                                                <Image
+                                                                    src="/AIFlashcards.png"
+                                                                    alt="AI Flashcards"
+                                                                    width={20}
+                                                                    height={20}
+                                                                    className="w-5 h-5 object-contain"
                                                                     unoptimized
                                                                 />
-                                                            </div>
-                                                            <div className="flex flex-col text-left">
-                                                                <span className="text-[10px] font-bold tracking-wider uppercase text-white/90">AI Suite</span>
-                                                                <span className="text-[8px] text-white/40 font-semibold tracking-wide">Locked</span>
-                                                            </div>
-                                                        </div>
-                                                        <HugeIcon name="Lock" size={16} className="text-white/40 mr-1" />
-                                                    </button>
+                                                            ) : (
+                                                                <HugeIcon name={tool.iconName} size={20} className="w-5 h-5" />
+                                                            )}
+                                                            <span className="text-[9px] font-semibold leading-tight text-white">{tool.label}</span>
+                                                        </button>
+                                                    ))}
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
                                     </motion.div>
                                 )}
@@ -1016,64 +919,38 @@ export default function AppNavbar() {
                                     </motion.button>
                                 </div>
                                 <div className="h-px bg-white/10 my-3" />
-                                {isAIUnlocked ? (
-                                    <div className="p-1">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {AI_SUITE_ITEMS.map(tool => (
-                                                <button 
-                                                    key={tool.label} 
-                                                    onClick={() => handleNavClick(tool.href)} 
-                                                    title={tool.label}
-                                                    className={`flex items-center justify-center py-3.5 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
-                                                        isActive(tool.href) 
-                                                            ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
-                                                            : 'bg-white/[0.03] border-white/5 text-white/70 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
-                                                    }`}
-                                                >
-                                                    {tool.label === 'Flashcards' ? (
-                                                        <Image 
-                                                            src="/AIFlashcards.png" 
-                                                            alt="AI Flashcards" 
-                                                            width={24} 
-                                                            height={24} 
-                                                            className="w-6 h-6 object-contain"
-                                                            unoptimized
-                                                        />
-                                                    ) : (
-                                                        <HugeIcon name={tool.iconName} size={24} className="w-6 h-6" />
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="px-1 py-0.5">
-                                        <button 
-                                            onClick={() => setIsPasswordModalOpen(true)}
-                                            className="w-full flex items-center justify-between p-3 rounded-2xl border border-white/5 bg-white/5 text-white/60 cursor-pointer transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
-                                            title="Click to unlock AI Suite"
-                                            type="button"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="relative w-8 h-8 flex-shrink-0 flex items-center justify-center">
+                                <div className="p-1">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {AI_SUITE_ITEMS.map(tool => (
+                                            <button 
+                                                key={tool.label} 
+                                                onClick={() => handleNavClick(tool.href)} 
+                                                title={tool.label}
+                                                className={`flex flex-col items-center justify-center gap-1.5 py-3 px-1.5 rounded-2xl border backdrop-blur-md transition-all duration-300 active:scale-95 ${
+                                                    isActive(tool.href) 
+                                                        ? 'bg-white/20 border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_24px_rgba(0,0,0,0.15)] shadow-white/5' 
+                                                        : 'bg-white/[0.03] border-white/5 text-white hover:bg-white/10 hover:border-white/20 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_8px_16px_rgba(0,0,0,0.1)]'
+                                                }`}
+                                            >
+                                                {tool.label === 'Flashcards' ? (
                                                     <Image 
-                                                        src="/ai-sparkle.png?v=2" 
-                                                        alt="AI Sparkle Logo" 
-                                                        width={30} 
-                                                        height={30} 
-                                                        className="object-contain"
+                                                        src="/AIFlashcards.png" 
+                                                        alt="AI Flashcards" 
+                                                        width={24} 
+                                                        height={24} 
+                                                        className="w-6 h-6 object-contain"
                                                         unoptimized
                                                     />
-                                                </div>
-                                                <div className="flex flex-col text-left">
-                                                    <span className="text-[11px] font-bold tracking-wider uppercase text-white/90">AI Suite</span>
-                                                    <span className="text-[9px] text-white/40 font-semibold tracking-wide">Locked</span>
-                                                </div>
-                                            </div>
-                                            <HugeIcon name="Lock" size={18} className="text-white/40 mr-1.5" />
-                                        </button>
+                                                ) : (
+                                                    <HugeIcon name={tool.iconName} size={22} className="w-5.5 h-5.5" />
+                                                )}
+                                                <span className="text-[10px] font-semibold leading-tight text-white">
+                                                    {tool.label}
+                                                </span>
+                                            </button>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
                             </div>
 
                             <div className="h-px bg-white/10 mx-3" />
@@ -1103,101 +980,6 @@ export default function AppNavbar() {
             {/* Floating components */}
             <AIAssistant isOpen={isAIAssistantOpen} onClose={() => setAIAssistantOpen(false)} />
             <StudyTimer trigger={<div />} isOpen={isStudyTimerOpen} onOpenChange={setIsStudyTimerOpen} onMinimizedInfo={setTimerInfo} restoreSignal={timerRestoreSignal} />
-
-            {/* Password Gate Modal */}
-            <AnimatePresence>
-                {isPasswordModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[200] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 pointer-events-auto"
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                            className="relative w-full max-w-sm p-6 bg-[#275085]/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] text-white"
-                        >
-                            {/* Close Button */}
-                            <button
-                                onClick={() => {
-                                    setIsPasswordModalOpen(false);
-                                    setValidationError('');
-                                    setPasswordInput('');
-                                }}
-                                className="absolute top-4 right-4 text-white/50 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all active:scale-95"
-                                type="button"
-                            >
-                                <XIcon className="w-4 h-4" />
-                            </button>
-
-                            <div className="flex flex-col items-center text-center mt-2">
-                                {/* Sparkle Image */}
-                                <div className="relative w-12 h-12 flex items-center justify-center mb-3">
-                                    <Image 
-                                        src="/ai-sparkle.png?v=2" 
-                                        alt="AI Sparkle Logo" 
-                                        width={44} 
-                                        height={44} 
-                                        className="object-contain"
-                                        unoptimized
-                                    />
-                                </div>
-
-                                <h3 className="text-[18px] font-bold tracking-tight mb-1 text-white">Unlock AI Suite</h3>
-                                <p className="text-[12px] text-white/60 mb-5 leading-normal max-w-[240px]">
-                                    Enter the developer preview password to enable all AI tools.
-                                </p>
-
-                                <form onSubmit={handleUnlockSubmit} className="w-full">
-                                    <input
-                                        type="password"
-                                        value={passwordInput}
-                                        onChange={(e) => setPasswordInput(e.target.value)}
-                                        placeholder="Developer Password"
-                                        required
-                                        autoFocus
-                                        disabled={isUnlocking}
-                                        className="w-full px-4 py-3 bg-white/10 rounded-2xl border border-white/10 focus:outline-none focus:border-white/20 focus:bg-white/15 text-white placeholder-white/30 text-[13px] font-semibold transition-all mb-3 text-center"
-                                    />
-
-                                    {validationError && (
-                                        <motion.div
-                                            animate={{ x: [-10, 10, -10, 10, 0] }}
-                                            transition={{ duration: 0.4 }}
-                                            className="text-red-300 text-[11px] font-bold mb-3 flex items-center justify-center gap-1.5"
-                                        >
-                                            <HugeIcon name="AlertCircle" size={12} className="text-red-300" />
-                                            <span>{validationError}</span>
-                                        </motion.div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={isUnlocking}
-                                        className="w-full py-3 bg-white text-[#275085] hover:bg-white/90 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all font-bold text-[13px] rounded-2xl shadow-lg flex items-center justify-center gap-2"
-                                    >
-                                        {isUnlocking ? (
-                                            <>
-                                                <span className="w-3.5 h-3.5 border-2 border-[#275085] border-t-transparent rounded-full animate-spin" />
-                                                <span>Unlocking...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <HugeIcon name="Lock" size={13} className="text-[#275085]" />
-                                                <span>Verify Password</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
         </>
     );
 }

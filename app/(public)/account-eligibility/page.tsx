@@ -6,6 +6,16 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 
 import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
+import { BirthdayDatePicker, getTodayLocalDate } from '@/components/BirthdayDatePicker';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { HugeIcon } from '@/lib/huge-icon-map';
 import { useAuth } from '@/context/AuthContext';
 import {
   getAgeGroup,
@@ -20,6 +30,7 @@ export default function AccountEligibilityPage() {
     loading: authLoading,
     accountType,
     signOut,
+    refreshEligibility,
   } = useAuth();
   const [dateOfBirth, setDateOfBirth] = useState(
     user?.user_metadata?.date_of_birth || ''
@@ -30,6 +41,11 @@ export default function AccountEligibilityPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const defaultBrowseDate = useMemo(() => {
+    const today = getTodayLocalDate();
+    return new Date(today.getFullYear() - (accountType === 'guardian' ? 38 : 15), 0, 1);
+  }, [accountType]);
 
   const ageGroup = useMemo(
     () => (dateOfBirth ? getAgeGroup(dateOfBirth) : null),
@@ -78,7 +94,7 @@ export default function AccountEligibilityPage() {
         );
         const consentBody = await consentResponse.json().catch(() => ({}));
 
-        if (!consentResponse.ok) {
+        if (!consentResponse.ok && consentResponse.status !== 429) {
           throw new Error(
             consentBody.error ||
               'Your parent or guardian approval email could not be sent.'
@@ -91,6 +107,7 @@ export default function AccountEligibilityPage() {
       }
 
       await supabase.auth.refreshSession();
+      await refreshEligibility();
       router.replace(
         accountType === 'guardian' ? '/guardian/dashboard' : '/dashboard'
       );
@@ -139,31 +156,66 @@ export default function AccountEligibilityPage() {
           </p>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <label className="block">
-              <span className="mb-2 block text-sm font-bold">Date of birth</span>
-              <input
-                type="date"
-                required
+            <div className="space-y-2">
+              <Label
+                htmlFor="eligibility-dob"
+                className="block text-sm font-bold text-[#275085] dark:text-[#a0c3ff]"
+              >
+                Date of birth
+              </Label>
+              <BirthdayDatePicker
+                id="eligibility-dob"
+                name="dateOfBirth"
                 value={dateOfBirth}
-                max={new Date().toISOString().slice(0, 10)}
-                onChange={(event) => setDateOfBirth(event.target.value)}
-                className="w-full rounded-2xl border border-[#275085]/20 bg-white px-4 py-3 text-base text-[#17365d] outline-none transition focus:border-[#275085] focus:ring-4 focus:ring-[#275085]/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-white"
+                onChange={(nextValue) => {
+                  setDateOfBirth(nextValue);
+                  if (error) setError('');
+                }}
+                defaultBrowseDate={defaultBrowseDate}
+                disabled={submitting}
               />
-            </label>
+            </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-bold">Country</span>
-              <select
+            <div className="space-y-2">
+              <Label
+                htmlFor="eligibility-country"
+                className="block text-sm font-bold text-[#275085] dark:text-[#a0c3ff]"
+              >
+                Country
+              </Label>
+              <Select
+                name="countryCode"
                 value={SUPPORTED_COUNTRY_CODE}
                 disabled
-                className="w-full rounded-2xl border border-[#275085]/20 bg-[#275085]/5 px-4 py-3 text-base text-[#17365d] opacity-80 dark:border-white/15 dark:bg-white/[0.06] dark:text-white"
               >
-                <option value="US">United States</option>
-              </select>
+                <SelectTrigger
+                  id="eligibility-country"
+                  className="w-full !h-10 bg-white/85 dark:bg-[#0d1526]/90 border border-[#275085]/20 dark:border-[#a0c3ff]/20 text-[#275085] dark:text-[#a0c3ff] text-sm rounded-xl opacity-85 shadow-xs transition-all outline-none"
+                >
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent
+                  position="popper"
+                  sideOffset={4}
+                  className="min-w-[var(--radix-select-trigger-width)] bg-white dark:bg-[#0f172a] border border-[#275085]/15 dark:border-[#a0c3ff]/15 rounded-xl shadow-xl shadow-[#275085]/10 dark:shadow-black/60 p-1"
+                >
+                  <SelectItem
+                    value="US"
+                    className="text-[#275085] dark:text-[#a0c3ff] focus:bg-[#275085]/10 dark:focus:bg-[#a0c3ff]/15 focus:text-[#275085] dark:focus:text-white text-sm rounded-lg py-2 px-2.5 cursor-pointer transition-colors outline-none"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <span className="flex shrink-0 items-center" aria-hidden="true">
+                        <HugeIcon name="Globe02" size={15} className="size-4 text-[#275085]/70 dark:text-[#a0c3ff]/70" />
+                      </span>
+                      <span>United States</span>
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <span className="mt-2 block text-xs opacity-60">
                 TaskTornado is currently available only in the United States.
               </span>
-            </label>
+            </div>
 
             {isMinor && (
               <label className="block">
@@ -190,7 +242,7 @@ export default function AccountEligibilityPage() {
                 onCheckedChange={(checked) =>
                   setTermsAccepted(checked === true)
                 }
-                className="mt-0.5"
+                className="mt-0.5 border-[#275085]/40 dark:border-[#a0c3ff]/40 data-[state=checked]:bg-[#275085] dark:data-[state=checked]:bg-[#4f8df0] data-[state=checked]:border-[#275085] dark:data-[state=checked]:border-[#4f8df0] data-[state=checked]:text-white rounded-md"
                 aria-label="Accept the Privacy Policy and Terms"
               />
               <span className="text-sm leading-6">

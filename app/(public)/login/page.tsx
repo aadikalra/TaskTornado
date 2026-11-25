@@ -42,7 +42,8 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email');
   const approvalParam = searchParams.get('approval');
-  const { signIn: login } = useAuth();
+  const errorParam = searchParams.get('error');
+  const { signIn: login, refreshEligibility } = useAuth();
 
   // Form states
   const [email, setEmail] = useState('');
@@ -66,8 +67,14 @@ export default function LoginPage() {
       setError(
         'Your account needs current parent or guardian approval before you can continue.'
       );
+    } else if (errorParam === 'account_not_eligible') {
+      setError(
+        'We could not verify your account eligibility right now. Please sign in again, or ask your parent/guardian to check their approval email.'
+      );
+    } else if (errorParam) {
+      setError('Please sign in again to continue.');
     }
-  }, [approvalParam]);
+  }, [approvalParam, errorParam]);
 
   // Flow control states
   const [currentStep, setCurrentStep] = useState(1); // 1: Email, 2: Password, 3: Remember & Action
@@ -208,6 +215,7 @@ export default function LoginPage() {
 
             if (consentResponse.ok && consentBody.alreadyApproved) {
               await supabase.auth.refreshSession();
+              await refreshEligibility();
               router.replace('/dashboard');
               return;
             }
@@ -216,8 +224,10 @@ export default function LoginPage() {
             setError(
               consentResponse.ok
                 ? 'A new approval email was sent to your parent or guardian. Sign in again after they approve the updated AI terms.'
-                : consentBody.error ||
-                    'A current parent or guardian approval is required.'
+                : consentResponse.status === 429
+                  ? 'An approval email was already sent recently to your parent or guardian. Ask them to check their inbox and approve your account before signing in.'
+                  : consentBody.error ||
+                      'A current parent or guardian approval is required.'
             );
             return;
           }
@@ -226,6 +236,8 @@ export default function LoginPage() {
             eligibilityBody.error || 'This account cannot sign in right now.'
           );
         }
+
+        await refreshEligibility();
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -362,6 +374,20 @@ export default function LoginPage() {
         </AnimatePresence>
 
         <>
+            {error && currentStep !== 3 && (
+              <motion.div
+                role="alert"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-start gap-2.5 text-xs font-sans text-red-700 dark:text-red-400 bg-red-50/80 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/40 p-3.5 rounded-2xl backdrop-blur-sm"
+              >
+                <div className="w-5 h-5 rounded-full bg-red-100/80 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+                  <HugeIcon name="AlertCircle" size={12} className="text-red-600 dark:text-red-400" />
+                </div>
+                <span className="leading-relaxed font-medium">{error}</span>
+              </motion.div>
+            )}
             {/* STEP 1: Email Input */}
             <div className="relative pl-6">
           {/* Vertical Connecting Line */}
@@ -468,7 +494,7 @@ export default function LoginPage() {
                       className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                       autoFocus
                     />
-                    <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                    <button type="submit" aria-label="Continue" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
                       <HugeIcon name="ArrowRight01" size={18} />
                     </button>
                   </form>
@@ -514,12 +540,8 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-2 space-y-4">
-              <div className="text-[#275085] dark:text-[#a0c3ff] flex justify-between items-center max-w-[400px]">
-                {typingStep >= 2 ? (
-                  <TypewriterText text="Enter your password." />
-                ) : (
-                  <span className="font-sans text-[15px] text-[#275085]/50 dark:text-[#a0c3ff]/50">Enter your password.</span>
-                )}
+              <div className="text-[#275085] dark:text-[#a0c3ff] flex justify-between items-center gap-3 max-w-[400px]">
+                <span className="font-sans text-[15px] tracking-tight">Enter your password.</span>
                 {currentStep === 2 && (
                   <Link
                     href={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ''}`}
@@ -558,7 +580,7 @@ export default function LoginPage() {
                     className="w-full bg-transparent border-none text-[15px] font-sans focus:outline-none placeholder:text-[#275085]/30 dark:placeholder:text-[#a0c3ff]/30 py-1 text-[#275085] dark:text-[#a0c3ff]"
                     autoFocus
                   />
-                  <button type="submit" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
+                  <button type="submit" aria-label="Continue" className="p-1 hover:text-[#275085] dark:hover:text-[#a0c3ff] text-[#275085]/50 dark:text-[#a0c3ff]/50 transition-colors">
                     <HugeIcon name="ArrowRight01" size={18} />
                   </button>
                 </form>
@@ -616,6 +638,8 @@ export default function LoginPage() {
 
                 {error && (
                   <motion.div
+                    role="alert"
+                    aria-live="polite"
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-start gap-2.5 text-xs font-sans text-red-700 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 border border-red-200/40 dark:border-red-900/30 p-3.5 rounded-2xl backdrop-blur-sm"

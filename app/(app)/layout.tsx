@@ -33,7 +33,8 @@ export default async function AppLayout({
                   <StudyGroupsProvider>
                     <UpgradeProvider>
                       <AuthWrapper>
-                        <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}><PendingClassInvite />{children}</ClientLayout>
+                        <PendingClassInvite />
+                        <ClientLayout initialSidebarCollapsed={initialSidebarCollapsed}>{children}</ClientLayout>
                       </AuthWrapper>
                     </UpgradeProvider>
                   </StudyGroupsProvider>

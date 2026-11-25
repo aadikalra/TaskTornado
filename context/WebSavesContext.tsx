@@ -27,14 +27,14 @@ interface WebSavesContextType {
 const WebSavesContext = createContext<WebSavesContextType | undefined>(undefined);
 
 export const WebSavesProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user, isEligible } = useAuth();
   const [saves, setSaves] = useState<WebSave[]>([]);
   const [folders, setFolders] = useState<WebSaveFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSavesAndFolders = useCallback(async () => {
-    if (!user) {
+    if (!user || !isEligible) {
       setSaves([]);
       setFolders([]);
       setLoading(false);
@@ -69,19 +69,19 @@ export const WebSavesProvider = ({ children }: { children: React.ReactNode }) =>
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isEligible]);
 
-  // Fetch saves when user changes
+  // Fetch saves when eligible user changes
   useEffect(() => {
-    if (user) {
+    if (user && isEligible) {
       fetchSavesAndFolders();
     } else {
-      // Clear saves when user logs out
+      // Clear saves when user logs out or is not yet eligible
       setSaves([]);
       setFolders([]);
       setLoading(false);
     }
-  }, [user, fetchSavesAndFolders]);
+  }, [user, isEligible, fetchSavesAndFolders]);
 
   const addSave = async (url: string, title?: string, folderId?: string | null) => {
     if (!user) throw new Error('User not authenticated');

@@ -44,11 +44,18 @@ type SettingTab = 'ai' | 'preferences' | 'guardian' | 'classroom' | 'accessibili
 
 export default function SettingsPage() {
   const { authenticated } = useRequireAuth();
-  if (!authenticated) return null;
   const { classes, clearAllClasses } = useClassContext();
   const { homeworks, clearAllHomeworks } = useHomeworkContext();
   const { signOut, full_name, isGuardian } = useAuth() || {};
-  const [activeTab, setActiveTab] = useState<SettingTab>(isGuardian ? 'accessibility' : 'preferences');
+  const [activeTab, setActiveTab] = useState<SettingTab>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '') as SettingTab;
+      if (['ai', 'preferences', 'guardian', 'classroom', 'accessibility', 'data', 'account'].includes(hash)) {
+        return hash;
+      }
+    }
+    return isGuardian ? 'accessibility' : 'preferences';
+  });
   const [showClassConfirm, setShowClassConfirm] = useState(false);
   const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -180,8 +187,8 @@ export default function SettingsPage() {
 
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
     const sections = isGuardian
-      ? ['accessibility', 'account']
-      : ['preferences', 'guardian', 'classroom', 'accessibility', 'data', 'account'];
+      ? ['ai', 'accessibility', 'account']
+      : ['ai', 'preferences', 'guardian', 'classroom', 'accessibility', 'data', 'account'];
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
@@ -255,6 +262,8 @@ export default function SettingsPage() {
 
   const userName = full_name || "User";
 
+  if (!authenticated) return null;
+
   const navigationItems = isGuardian
     ? [
       { id: 'ai', label: 'AI Connection', icon: KeyRound },
@@ -324,7 +333,7 @@ export default function SettingsPage() {
         </header>
 
         {/* Navigation Chips */}
-        <div className="sticky top-0 z-50 py-3 border-b border-sky-100/60 dark:border-gray-800/50 mb-12 -mx-6 px-6 sm:-mx-10 sm:px-10 md:-mx-16 md:px-16">
+        <div className="sticky top-16 sm:top-[72px] z-30 bg-[#fffaf4]/95 dark:bg-gray-950/95 backdrop-blur-md py-3 border-b border-sky-100/60 dark:border-gray-800/50 mb-12 -mx-6 px-6 sm:-mx-10 sm:px-10 md:-mx-16 md:px-16">
           <div className="overflow-x-auto no-scrollbar">
             <nav className="flex items-center gap-2 min-w-max">
               {navigationItems.map((item) => {
@@ -336,7 +345,7 @@ export default function SettingsPage() {
                     onClick={() => {
                       const element = document.getElementById(item.id);
                       if (element) {
-                        const yOffset = -80;
+                        const yOffset = -140;
                         const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                         window.scrollTo({ top: y, behavior: 'smooth' });
                       }
@@ -359,7 +368,7 @@ export default function SettingsPage() {
         </div>
 
         <main className="pb-24">
-          <section id="ai" className="scroll-mt-24 mb-20">
+          <section id="ai" className="scroll-mt-36 mb-20">
             <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">AI Connection</h2>
             <AIConnectionSection />
             <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
@@ -367,7 +376,7 @@ export default function SettingsPage() {
 
           {/* Preferences (students only) */}
           {!isGuardian && (
-            <section id="preferences" className="scroll-mt-24 mb-20">
+            <section id="preferences" className="scroll-mt-36 mb-20">
               <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
                 Preferences
               </h2>
@@ -388,7 +397,7 @@ export default function SettingsPage() {
           )}
 
           {!isGuardian && (
-            <section id="guardian" className="scroll-mt-24 mb-20">
+            <section id="guardian" className="scroll-mt-36 mb-20">
               <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">Guardian Access</h2>
               <p className="text-sm text-sky-700/70 dark:text-sky-300/70">Guardian progress sharing is currently unavailable. Parent or guardian approval for student accounts is managed separately.</p>
               <div className="mt-20 border-b border-sky-100 dark:border-gray-800" />
@@ -397,7 +406,7 @@ export default function SettingsPage() {
 
           {/* Google Classroom (students only) */}
           {!isGuardian && (
-            <section id="classroom" className="scroll-mt-24 mb-20">
+            <section id="classroom" className="scroll-mt-36 mb-20">
               <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
                 Google Classroom
               </h2>
@@ -407,7 +416,7 @@ export default function SettingsPage() {
           )}
 
           {/* Accessibility */}
-          <section id="accessibility" className="scroll-mt-24 mb-20">
+          <section id="accessibility" className="scroll-mt-36 mb-20">
             <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
               Accessibility
             </h2>
@@ -422,7 +431,7 @@ export default function SettingsPage() {
 
           {/* Data Management (students only) */}
           {!isGuardian && (
-            <section id="data" className="scroll-mt-24 mb-20">
+            <section id="data" className="scroll-mt-36 mb-20">
               <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
                 Data Management
               </h2>
@@ -439,7 +448,7 @@ export default function SettingsPage() {
           )}
 
           {/* Account */}
-          <section id="account" className="scroll-mt-24">
+          <section id="account" className="scroll-mt-36">
             <h2 className="text-2xl lg:text-3xl font-bold text-sky-500 dark:text-sky-400 tracking-tight mb-6">
               Account
             </h2>

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
-import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
+import { useState, useEffect, useContext, createContext, ReactNode, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { PUBLIC_CONTENT_PATHS } from '@/lib/public-content';
 
@@ -11,6 +11,14 @@ type SignUpEligibility = {
   countryCode: 'US';
   guardianEmail?: string;
 };
+
+export type EligibilityStatus =
+  | 'idle'
+  | 'checking'
+  | 'eligible'
+  | 'setup_required'
+  | 'parental_consent_required'
+  | 'ineligible';
 
 type LinkedStudent = {
   id: string;
@@ -23,6 +31,9 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  eligibilityStatus: EligibilityStatus;
+  isEligible: boolean;
+  refreshEligibility: () => Promise<EligibilityStatus>;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signUp: (
     email: string,
@@ -30,7 +41,7 @@ type AuthContextType = {
     name: string,
     accountType: 'student' | 'guardian',
     eligibility: SignUpEligibility
-  ) => Promise<{ userId: string }>;
+  ) => Promise<{ userId: string; hasSession: boolean }>;
   signOut: () => Promise<void>;
   full_name: string | null;
   isGoogleUser: boolean;
@@ -61,10 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [full_name, setFullName] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eligibilityStatus, setEligibilityStatus] = useState<EligibilityStatus>('idle');
   const [accountType, setAccountType] = useState<'student' | 'guardian'>('student');
   const [linkedStudents, setLinkedStudents] = useState<LinkedStudent[]>([]);
   const pathname = usePathname();
   const router = useRouter();
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
+  const mountedRef = useRef(true);
+  const latestUserIdRef = useRef<string | null>(null);
+  const verifiedUserIdRef = useRef<string | null>(null);
+  const fetchedProfileForRef = useRef<string | null>(null);
+  const inFlightEligibilityRef = useRef<{ userId: string; promise: Promise<EligibilityStatus> } | null>(null);
 
   // Fetch account type from profiles table, syncing from user_metadata if needed
   const fetchAccountType = async (userId: string, userMetadata?: Record<string, any>) => {
@@ -140,110 +159,247 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setFullName(session?.user?.user_metadata?.full_name ?? null);
+  const syncSession = useCallback(async (
+    nextSession: Session | null,
+    options?: { force?: boolean }
+  ): Promise<EligibilityStatus> => {
+    const userId = nextSession?.user?.id ?? null;
+    latestUserIdRef.current = userId;
+    if (!mountedRef.current) return 'checking';
 
-      if (session?.user) {
+    if (!nextSession?.user || !userId) {
+      verifiedUserIdRef.current = null;
+      fetchedProfileForRef.current = null;
+      inFlightEligibilityRef.current = null;
+      setSession(null);
+      setUser(null);
+      setFullName(null);
+      setAccountType('student');
+      setLinkedStudents([]);
+      setEligibilityStatus('idle');
+      setLoading(false);
+      return 'idle';
+    }
+
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : pathnameRef.current;
+
+    // Never hijack or redirect /signup while registration finalization + email request run.
+    if (currentPath === '/signup') {
+      setSession(nextSession);
+      setUser(nextSession.user);
+      setFullName(nextSession.user.user_metadata?.full_name ?? null);
+      setEligibilityStatus('checking');
+      setLoading(false);
+      return 'checking';
+    }
+
+    // Never block or redirect a parent opening /parental-consent on a shared browser.
+    if (currentPath === '/parental-consent') {
+      setSession(null);
+      setUser(null);
+      setFullName(null);
+      setAccountType('student');
+      setLinkedStudents([]);
+      setEligibilityStatus('idle');
+      setLoading(false);
+      void fetch('/api/auth/eligibility', { cache: 'no-store' }).then((res) => {
+        if (res.status === 401 || res.status === 403) {
+          void supabase.auth.signOut({ scope: 'local' });
+        }
+      }).catch(() => {});
+      return 'idle';
+    }
+
+    // Reuse already-verified eligibility for the active user unless explicitly forced.
+    if (!options?.force && verifiedUserIdRef.current === userId) {
+      setSession(nextSession);
+      setUser(nextSession.user);
+      setFullName(nextSession.user.user_metadata?.full_name ?? null);
+      setEligibilityStatus('eligible');
+      setLoading(false);
+      return 'eligible';
+    }
+
+    if (!options?.force && inFlightEligibilityRef.current?.userId === userId) {
+      const existingStatus = await inFlightEligibilityRef.current.promise;
+      if (mountedRef.current && latestUserIdRef.current === userId && existingStatus === 'eligible') {
+        setSession(nextSession);
+        setUser(nextSession.user);
+        setFullName(nextSession.user.user_metadata?.full_name ?? null);
+        setEligibilityStatus('eligible');
+        setLoading(false);
+      }
+      return existingStatus;
+    }
+
+    if (verifiedUserIdRef.current !== userId) {
+      setEligibilityStatus('checking');
+    }
+
+    const checkPromise = (async (): Promise<EligibilityStatus> => {
+      try {
         const eligibilityResponse = await fetch('/api/auth/eligibility', {
           cache: 'no-store',
         });
+
+        if (!mountedRef.current || latestUserIdRef.current !== userId) {
+          return 'checking';
+        }
+
+        // Never sign out an active user due to transient 429 rate limits or 5xx errors.
+        if (eligibilityResponse.status === 429 || eligibilityResponse.status >= 500) {
+          setSession(nextSession);
+          setUser(nextSession.user);
+          setFullName(nextSession.user.user_metadata?.full_name ?? null);
+          const fallbackStatus: EligibilityStatus =
+            verifiedUserIdRef.current === userId ? 'eligible' : 'eligible';
+          setEligibilityStatus(fallbackStatus);
+          setLoading(false);
+          return fallbackStatus;
+        }
 
         if (!eligibilityResponse.ok) {
           const eligibilityBody = await eligibilityResponse
             .json()
             .catch(() => ({}));
 
-          // Accounts created before the age gate do not have eligibility
-          // fields yet. Keep their authenticated session long enough to collect
-          // those fields instead of briefly showing the signed-in UI and then
-          // silently signing them back out.
           if (
             eligibilityResponse.status === 428 &&
             eligibilityBody.code === 'eligibility_setup_required'
           ) {
+            verifiedUserIdRef.current = null;
+            setSession(nextSession);
+            setUser(nextSession.user);
+            setFullName(nextSession.user.user_metadata?.full_name ?? null);
+            setEligibilityStatus('setup_required');
             setLoading(false);
-            if (
-              typeof window === 'undefined' ||
-              window.location.pathname !== '/account-eligibility'
-            ) {
+            if (currentPath !== '/account-eligibility') {
               router.replace('/account-eligibility');
             }
-            return;
+            return 'setup_required';
           }
 
-          // The login form sends (or re-sends) the guardian approval email and
-          // then signs the pending account out with a useful message. Let it
-          // finish that flow instead of racing it from this global listener.
           if (
             eligibilityResponse.status === 403 &&
             eligibilityBody.code === 'parental_consent_required' &&
-            typeof window !== 'undefined' &&
-            window.location.pathname === '/login'
+            currentPath === '/login'
           ) {
+            verifiedUserIdRef.current = null;
+            setSession(nextSession);
+            setUser(nextSession.user);
+            setFullName(nextSession.user.user_metadata?.full_name ?? null);
+            setEligibilityStatus('parental_consent_required');
             setLoading(false);
-            return;
+            return 'parental_consent_required';
           }
 
-          await supabase.auth.signOut();
+          const nextStatus: EligibilityStatus =
+            eligibilityBody.code === 'parental_consent_required'
+              ? 'parental_consent_required'
+              : 'ineligible';
+          verifiedUserIdRef.current = null;
+          fetchedProfileForRef.current = null;
           setUser(null);
           setSession(null);
           setFullName(null);
+          setEligibilityStatus(nextStatus);
           setLoading(false);
+          void supabase.auth.signOut({ scope: 'local' });
           router.replace(
-            eligibilityBody.code === 'parental_consent_required'
+            nextStatus === 'parental_consent_required'
               ? '/login?approval=required'
               : '/login?error=account_not_eligible'
           );
-          return;
+          return nextStatus;
         }
 
-        // Save to prior accounts for quick login
+        verifiedUserIdRef.current = userId;
+        setSession(nextSession);
+        setUser(nextSession.user);
+        setFullName(nextSession.user.user_metadata?.full_name ?? null);
+        setEligibilityStatus('eligible');
+
         if (typeof window !== 'undefined') {
           try {
             const priorAccountsStr = localStorage.getItem('prior-accounts') || '[]';
             let priorAccounts = JSON.parse(priorAccountsStr);
             const account = {
-              email: session.user.email,
-              full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
-              avatar_url: session.user.user_metadata?.avatar_url || null,
-              provider: session.user.app_metadata?.provider || 'email',
+              email: nextSession.user.email,
+              full_name: nextSession.user.user_metadata?.full_name || nextSession.user.user_metadata?.name || 'User',
+              avatar_url: nextSession.user.user_metadata?.avatar_url || null,
+              provider: nextSession.user.app_metadata?.provider || 'email',
               lastLogin: new Date().toISOString()
             };
-            // Remove existing entry for this email and add to front
             priorAccounts = priorAccounts.filter((a: any) => a.email !== account.email);
             priorAccounts.unshift(account);
-            // Limit to 5 accounts
             localStorage.setItem('prior-accounts', JSON.stringify(priorAccounts.slice(0, 5)));
           } catch (e) {
             console.warn('Failed to save to prior accounts:', e);
           }
         }
 
-        // Set account type synchronously from JWT metadata (instant, no DB call)
-        const metaAccountType = session.user.user_metadata?.account_type as 'student' | 'guardian' | undefined;
+        const metaAccountType = nextSession.user.user_metadata?.account_type as 'student' | 'guardian' | undefined;
         if (metaAccountType === 'guardian') {
           setAccountType('guardian');
         }
 
         setLoading(false);
 
-        // Then verify/sync with DB in background (fixes mismatches without blocking)
-        fetchAccountType(session.user.id, session.user.user_metadata);
-        fetchLinkedStudents(session.user.id);
-      } else {
-        setAccountType('student');
-        setLinkedStudents([]);
+        if (fetchedProfileForRef.current !== userId) {
+          fetchedProfileForRef.current = userId;
+          fetchAccountType(userId, nextSession.user.user_metadata);
+          fetchLinkedStudents(userId);
+        }
+        return 'eligible';
+      } catch {
+        // Network abort/offline: keep active session state instead of logging out.
+        setSession(nextSession);
+        setUser(nextSession.user);
+        setFullName(nextSession.user.user_metadata?.full_name ?? null);
+        const retainedStatus: EligibilityStatus =
+          verifiedUserIdRef.current === userId ? 'eligible' : 'checking';
+        setEligibilityStatus(retainedStatus);
         setLoading(false);
+        return retainedStatus;
+      } finally {
+        if (inFlightEligibilityRef.current?.userId === userId) {
+          inFlightEligibilityRef.current = null;
+        }
+      }
+    })();
+
+    inFlightEligibilityRef.current = { userId, promise: checkPromise };
+    return checkPromise;
+  }, [router]);
+
+  const refreshEligibility = useCallback(async (): Promise<EligibilityStatus> => {
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    return syncSession(currentSession, { force: true });
+  }, [syncSession]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    // Kick off initial session check immediately in case auth state settled prior to remount,
+    // and keep listener updates scheduled outside Supabase's auth-state lock callback.
+    void supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (mountedRef.current) {
+        void syncSession(initialSession);
       }
     });
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      window.setTimeout(() => {
+        if (mountedRef.current) {
+          void syncSession(nextSession);
+        }
+      }, 0);
+    });
+
     return () => {
+      mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [syncSession]);
 
   const signIn = async (email: string, password: string, rememberMe = false) => {
     if (typeof window !== 'undefined') {
@@ -263,7 +419,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: string,
     acctType: 'student' | 'guardian',
     eligibility: SignUpEligibility
-  ): Promise<{ userId: string }> => {
+  ): Promise<{ userId: string; hasSession: boolean }> => {
     try {
       // Use Supabase Auth signup - it will handle duplicate emails automatically
       const { data, error } = await supabase.auth.signUp({
@@ -284,7 +440,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!data.user) throw new Error('The account could not be created.');
 
       setAccountType(acctType);
-      return { userId: data.user.id };
+      return { userId: data.user.id, hasSession: Boolean(data.session) };
     } catch (error: any) {
       // Re-throw any errors for the UI to handle
       throw error;
@@ -292,10 +448,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    // Set loading immediately to unmount the entire children tree
-    // before user state becomes null. This prevents "Rendered fewer hooks
-    // than expected" errors caused by components re-rendering mid-logout.
+    // Clear auth/eligibility state and set loading immediately so child providers
+    // abort background syncs cleanly before auth cookies/tokens are cleared.
+    verifiedUserIdRef.current = null;
+    fetchedProfileForRef.current = null;
+    inFlightEligibilityRef.current = null;
     setLoading(true);
+    setUser(null);
+    setSession(null);
+    setFullName(null);
+    setAccountType('student');
+    setLinkedStudents([]);
+    setEligibilityStatus('idle');
 
     if (typeof window !== 'undefined') {
       const cookies = document.cookie.split(';');
@@ -351,13 +515,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    // Sign out from Supabase with global scope to clear all sessions
-    await supabase.auth.signOut({ scope: 'global' });
-
-    // Force clear the user state
-    setUser(null);
-    setSession(null);
-    setFullName(null);
+    try {
+      // Sign out from Supabase with global scope to clear all sessions
+      await supabase.auth.signOut({ scope: 'global' });
+    } finally {
+      // Force clear the user state
+      setUser(null);
+      setSession(null);
+      setFullName(null);
+      setAccountType('student');
+      setLinkedStudents([]);
+      setEligibilityStatus('idle');
+      setLoading(false);
+    }
   };
 
   const isGuardian = accountType === 'guardian';
@@ -366,6 +536,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     loading,
+    eligibilityStatus,
+    isEligible: Boolean(user) && eligibilityStatus === 'eligible',
+    refreshEligibility,
     signIn,
     signUp,
     signOut,
