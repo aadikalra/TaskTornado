@@ -1,0 +1,279 @@
+.avatar {
+  --eye-width: 14%;
+  --eye-height: 30%;
+  --eye-gap: 10%;
+  --width-scale: 1;
+  --height-scale: 1;
+  --look-x: 2%;
+  --look-y: -3%;
+  --left-tilt: 0deg;
+  --right-tilt: 0deg;
+  display: grid;
+  flex: none;
+  place-items: center;
+  container-type: inline-size;
+}
+
+.shell {
+  display: grid;
+  width: 78%;
+  height: 78%;
+  place-items: center;
+}
+
+.body {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 94%;
+  border-radius: 32% 45% 35% 45%;
+  background: var(--aurora-body);
+  rotate: -11deg;
+  transition: clip-path 260ms ease, border-radius 260ms ease, rotate 260ms ease, width 260ms ease, height 260ms ease, background-color 180ms ease;
+}
+
+.avatar[data-shape='pebble'] .body {
+  border-radius: 56% 46% 48% 51% / 51% 55% 46% 50%;
+  rotate: 0deg;
+}
+
+.avatar[data-shape='capsule'] .body {
+  height: 66%;
+  border-radius: 999px;
+  rotate: 0deg;
+}
+
+.avatar[data-shape='drop'] .body {
+  width: 84%;
+  border-radius: 72% 32% 53% 49% / 68% 36% 58% 42%;
+  rotate: -18deg;
+}
+
+@supports (clip-path: shape(from 0 0, line to 100% 0, close)) {
+  /* Keep the same curve sequence so the silhouettes can morph between options. */
+  .avatar[data-shape] .body {
+    border-radius: 0;
+    rotate: 0deg;
+    clip-path: var(--aurora-outline);
+  }
+
+  .avatar[data-shape='kite'] {
+    --aurora-outline: shape(
+      from 50% 2%,
+      curve to 77% 23% with 58% 2% / 65% 12%,
+      curve to 98% 45% with 88% 33% / 98% 38%,
+      curve to 78% 74% with 98% 54% / 89% 63%,
+      curve to 50% 98% with 66% 86% / 58% 98%,
+      curve to 22% 74% with 42% 98% / 34% 86%,
+      curve to 2% 45% with 11% 63% / 2% 54%,
+      curve to 23% 23% with 2% 38% / 12% 33%,
+      curve to 50% 2% with 35% 12% / 42% 2%,
+      close
+    );
+  }
+
+  .avatar[data-shape='pebble'] {
+    --aurora-outline: shape(
+      from 54% 2%,
+      curve to 88% 16% with 68% 2% / 80% 7%,
+      curve to 100% 53% with 96% 25% / 100% 39%,
+      curve to 86% 86% with 100% 66% / 95% 78%,
+      curve to 48% 98% with 77% 94% / 63% 98%,
+      curve to 13% 84% with 33% 98% / 22% 93%,
+      curve to 0% 51% with 5% 76% / 0% 64%,
+      curve to 18% 16% with 0% 38% / 7% 24%,
+      curve to 54% 2% with 29% 8% / 41% 2%,
+      close
+    );
+  }
+
+  .avatar[data-shape='capsule'] {
+    --aurora-outline: shape(
+      from 50% 0%,
+      curve to 67% 0% with 56% 0% / 61% 0%,
+      curve to 100% 50% with 85% 0% / 100% 22%,
+      curve to 67% 100% with 100% 78% / 85% 100%,
+      curve to 50% 100% with 61% 100% / 56% 100%,
+      curve to 33% 100% with 44% 100% / 39% 100%,
+      curve to 0% 50% with 15% 100% / 0% 78%,
+      curve to 33% 0% with 0% 22% / 15% 0%,
+      curve to 50% 0% with 39% 0% / 44% 0%,
+      close
+    );
+  }
+
+  .avatar[data-shape='drop'] {
+    --aurora-outline: shape(
+      from 51% 0%,
+      curve to 76% 30% with 57% 0% / 64% 14%,
+      curve to 100% 64% with 88% 45% / 100% 54%,
+      curve to 87% 88% with 100% 74% / 95% 82%,
+      curve to 50% 100% with 78% 95% / 65% 100%,
+      curve to 13% 88% with 35% 100% / 22% 95%,
+      curve to 0% 64% with 5% 82% / 0% 74%,
+      curve to 25% 29% with 0% 52% / 12% 43%,
+      curve to 51% 0% with 40% 12% / 45% 0%,
+      close
+    );
+  }
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eye-gap);
+  transform: translate(var(--look-x), var(--look-y));
+  transition: transform 280ms cubic-bezier(.2, .75, .25, 1), inset 260ms ease;
+}
+
+.avatar:is([data-shape='kite'], [data-shape='drop']) .face {
+  inset-inline: 7%;
+}
+
+.avatar[data-shape='drop'] .face {
+  inset-block-start: 22%;
+}
+
+.lid {
+  width: calc(var(--eye-width) * var(--width-scale));
+  height: calc(var(--eye-height) * var(--height-scale));
+  transform-origin: center;
+  transition: width 240ms ease, height 240ms ease;
+}
+
+.lid + .lid {
+  height: calc(var(--eye-height) * var(--height-scale) * .9);
+}
+
+.eye {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--aurora-eye);
+  rotate: var(--left-tilt);
+  transition: rotate 240ms ease, border-radius 240ms ease;
+}
+
+.lid + .lid .eye {
+  rotate: var(--right-tilt);
+}
+
+.avatar[data-eyes='round'] {
+  --eye-width: 19%;
+  --eye-height: 21%;
+}
+
+.avatar[data-eyes='slanted'] {
+  --eye-width: 12%;
+  --eye-height: 33%;
+}
+
+.avatar[data-eyes='slanted'] .eye {
+  transform: skewX(18deg);
+}
+
+.avatar[data-eyes='star'] {
+  --eye-width: 24%;
+  --eye-height: 27%;
+  --eye-gap: 8%;
+}
+
+.avatar[data-eyes='star'] .eye {
+  clip-path: polygon(50% 0, 64% 34%, 100% 50%, 64% 65%, 50% 100%, 35% 65%, 0 50%, 35% 34%);
+}
+
+.avatar[data-expression='thinking'] {
+  --look-x: 12%;
+  --look-y: -14%;
+  --left-tilt: -13deg;
+  --right-tilt: -13deg;
+}
+
+.avatar[data-expression='working'] {
+  --look-x: 9%;
+  --look-y: 1%;
+  --width-scale: 1.12;
+  --height-scale: .84;
+  --left-tilt: 14deg;
+  --right-tilt: 14deg;
+}
+
+.avatar[data-expression='waiting'] {
+  --eye-width: 16%;
+  --eye-height: 26%;
+  --look-x: 6%;
+  --look-y: 5%;
+  --width-scale: 1.6;
+  --height-scale: .33;
+}
+
+.avatar[data-expression='blocked'] {
+  --eye-width: 14%;
+  --eye-height: 31%;
+  --look-x: 0%;
+  --look-y: 5%;
+  --height-scale: .79;
+  --left-tilt: -26deg;
+  --right-tilt: 26deg;
+}
+
+.avatar[data-expression='done'] {
+  --eye-width: 20%;
+  --eye-height: 28%;
+  --look-x: 2%;
+  --look-y: -6%;
+  --height-scale: .9;
+}
+
+.avatar:is([data-expression='waiting'], [data-expression='blocked'], [data-expression='done']) .eye {
+  clip-path: none;
+  transform: none;
+}
+
+.avatar[data-expression='done'] .eye {
+  border: solid var(--aurora-eye);
+  border-width: clamp(1.5px, 4cqw, 5px) clamp(1px, 3.5cqw, 4px) 0;
+  border-radius: 85% 85% 25% 25%;
+  background: transparent;
+}
+
+.avatar[data-blink='true'] .lid {
+  animation: aurora-blink 5.2s ease-in-out infinite;
+}
+
+.avatar[data-motion='true'][data-expression='working'] .shell {
+  animation: aurora-bob 1.4s ease-in-out infinite;
+}
+
+@keyframes aurora-blink {
+  0%, 20%, 25%, 75%, 80%, 100% { transform: scaleY(1); }
+  22%, 77% { transform: scaleY(.14); }
+}
+
+@keyframes aurora-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8%); }
+}
+
+.avatar[data-motion='false'] .body,
+.avatar[data-motion='false'] .face,
+.avatar[data-motion='false'] .lid,
+.avatar[data-motion='false'] .eye {
+  transition: none;
+}
+
+:global(body.reduce-motion) .avatar :is(.shell, .body, .face, .lid, .eye) {
+  animation: none !important;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar :is(.shell, .body, .face, .lid, .eye) {
+    animation: none !important;
+    transition: none;
+  }
+}

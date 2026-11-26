@@ -9,14 +9,15 @@ import { Button } from '../ui/button';
 import { AIChecklist } from '@/components/ai-checklist';
 import BulkAddHomeworkDisplay from '@/components/BulkAddHomeworkDisplay';
 import { GenerationProgressBar } from './GenerationProgressBar';
-import { AuraVideoIcon } from './AuraVideoIcon';
+import { AuroraAvatar } from './AuroraAvatar';
+import type { AuroraExpression } from './aurora-appearance';
 import { Message, InteractiveButton } from './types';
 
 interface MessageItemProps {
   msg: Message;
   idx: number;
   isLastAssistantMessage: boolean;
-  selectedModel: string;
+  isAwaitingInput?: boolean;
   expandedThoughts: Record<string, boolean>;
   setExpandedThoughts: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   expandedToolDetails: Record<string, boolean>;
@@ -32,7 +33,7 @@ export const MessageItem = ({
   msg,
   idx,
   isLastAssistantMessage,
-  selectedModel,
+  isAwaitingInput = false,
   expandedThoughts,
   setExpandedThoughts,
   expandedToolDetails,
@@ -45,6 +46,16 @@ export const MessageItem = ({
 }: MessageItemProps) => {
   const [isCopied, setIsCopied] = React.useState(false);
   const [sentFromComposer] = React.useState(isSending);
+
+  const toolIsRunning = msg.toolCalls?.some(call => call.status === 'loading');
+  const toolFailed = msg.toolCalls?.some(call => call.status === 'error');
+  const responseStarted = Boolean(msg.content && msg.content !== 'Thinking...');
+  let expression: AuroraExpression = 'idle';
+  if (msg.isError) expression = 'blocked';
+  else if (isAwaitingInput) expression = 'waiting';
+  else if (toolIsRunning || (msg.isLoading && (responseStarted || msg.toolCall))) expression = 'working';
+  else if (msg.isLoading) expression = 'thinking';
+  else if (toolFailed) expression = 'blocked';
 
   const handleCopy = async () => {
     if (!msg.content) return;
@@ -73,10 +84,11 @@ export const MessageItem = ({
         <div className="flex flex-col gap-1 w-full">
           <div className="flex items-start gap-2">
             <div className="flex-shrink-0">
-              <AuraVideoIcon
-                isLoading={msg.isLoading}
-                selectedModel={selectedModel}
-                layoutId={isLastAssistantMessage ? "aurora-sphere" : undefined}
+              <AuroraAvatar
+                expression={expression}
+                motionEnabled={isLastAssistantMessage}
+                celebrateCompletion={isLastAssistantMessage}
+                layoutId={isLastAssistantMessage ? "aurora-avatar" : undefined}
               />
             </div>
             {(msg.thought || msg.toolCall || (msg.groundingMetadata?.webSearchQueries && msg.groundingMetadata.webSearchQueries.length > 0)) && (

@@ -5,6 +5,7 @@ import { Switch } from '@/components/animate-ui/components/base/switch';
 import { useState } from 'react';
 import { useOnboardingTour } from '@/components/OnboardingTour';
 import { useAuth } from '@/context/AuthContext';
+import { AuroraAppearanceSettings } from './AuroraAppearanceSettings';
 
 type AIPersonality = 'default' | 'professional' | 'friendly' | 'candid' | 'quirky' | 'efficient' | 'nerdy' | 'cynical';
 
@@ -109,6 +110,8 @@ export default function PreferencesSection({
           onValueChange={onPersonalityChange}
         />
       </div>
+
+      <AuroraAppearanceSettings />
 
       <div className="flex items-center justify-between px-1 py-3.5 rounded-xl transition-colors hover:bg-sky-500/[0.03]">
         <div className="flex items-center gap-3">

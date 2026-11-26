@@ -44,7 +44,7 @@ import {
   type TDiscussion,
   discussionPlugin,
 } from '@/components/editor/plugins/discussion-kit';
-import { AuraVideoIcon } from '@/components/ai-assistant/AuraVideoIcon';
+import { AuroraAvatar } from '@/components/ai-assistant/AuroraAvatar';
 
 import { Editor, EditorContainer } from './editor';
 
@@ -205,7 +205,7 @@ export function Comment(props: {
       <div className="relative flex items-center">
         {userInfo?.id === 'aurora' ? (
           <div className="scale-[0.6] -ml-2 -mr-1">
-            <AuraVideoIcon selectedModel="gemini-2.5-flash" />
+            <AuroraAvatar />
           </div>
         ) : (
           <Avatar className="size-5">

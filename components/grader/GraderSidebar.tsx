@@ -124,6 +124,8 @@ export function GraderSidebar({ editor }: { editor: any }) {
     }
   };
 
+  const lastAssistantMessageIndex = messages.findLastIndex(message => message.role === 'assistant');
+
   return (
     <div className="flex flex-col h-full bg-[#f8fbfd]/50 dark:bg-[#0a0a0a]/50 backdrop-blur-xl relative">
 
@@ -159,8 +161,7 @@ export function GraderSidebar({ editor }: { editor: any }) {
                   key={`${msg.id}-${idx}`}
                   msg={msg}
                   idx={idx}
-                  isLastAssistantMessage={messages.findIndex(m => m.role === 'assistant') === idx}
-                  selectedModel="gemini-2.5-flash"
+                  isLastAssistantMessage={lastAssistantMessageIndex === idx}
                   expandedThoughts={expandedThoughts}
                   setExpandedThoughts={setExpandedThoughts}
                   expandedToolDetails={expandedToolDetails}

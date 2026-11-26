@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AuraVideoIcon } from '@/components/ai-assistant/AuraVideoIcon';
+import { AuroraAvatar } from '@/components/ai-assistant/AuroraAvatar';
 
 // Dynamically import AIAssistant with SSR disabled to guarantee smooth client hydration
 const AIAssistant = dynamic(
@@ -60,7 +60,7 @@ export function AuroraCenteredDemo() {
               onClick={() => setIsOpen(true)}
               className="flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/90 dark:bg-gray-900/90 border border-sky-200/80 dark:border-gray-700 shadow-2xl shadow-sky-950/10 dark:shadow-black/50 text-sky-900 dark:text-sky-100 font-semibold text-sm backdrop-blur-md hover:border-sky-300 dark:hover:border-sky-500 transition-all cursor-pointer"
             >
-              <AuraVideoIcon isLoading={false} selectedModel="quick" />
+              <AuroraAvatar />
               <span>Open Aurora AI</span>
               <kbd className="hidden sm:inline-block ml-1 px-2 py-0.5 text-[10px] font-mono font-medium rounded-md bg-sky-50 dark:bg-gray-800 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-gray-700">
                 ⌘K

@@ -14,7 +14,6 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { useAI } from '@/context/AIContext';
 
 import { useRateLimitReset } from '@/hooks/useRateLimitReset';
-import { useDarkMode } from '@/context/DarkModeContext';
 
 import { HugeIcon } from '@/lib/huge-icon-map';
 import { PanelRight } from 'lucide-react';
@@ -44,7 +43,7 @@ import BulkAddHomeworkDisplay from '@/components/BulkAddHomeworkDisplay';
 import { Message, InteractiveButton, AIChecklistData } from './ai-assistant/types';
 import { parseInteractiveButtons, parseChecklist, getCookie, setCookie, deleteCookie, getMessageGroups } from './ai-assistant/utils';
 import { GenerationProgressBar } from './ai-assistant/GenerationProgressBar';
-import { AuraVideoIcon } from './ai-assistant/AuraVideoIcon';
+import { AuroraAvatar } from './ai-assistant/AuroraAvatar';
 import { ChatInput } from './ai-assistant/ChatInput';
 import { ContextChips } from './ai-assistant/ContextChips';
 import { MessageItem } from './ai-assistant/MessageItem';
@@ -249,7 +248,6 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Dark mode
-  const { isDark } = useDarkMode();
   const { handlePlanLimitError } = useUpgrade();
 
   // The server connection and atomic free quota are authoritative. Keep free-tier
@@ -1391,6 +1389,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
     );
   };
 
+  const lastAssistantMessageIndex = messages.findLastIndex(message => message.role === 'assistant');
+
   return (
     <>
       {onClose === undefined && renderToggleButton()}
@@ -1608,22 +1608,7 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                     transition={{ duration: 0.2 }}
                     className="h-full flex flex-col items-center justify-center text-center p-8 absolute inset-0"
                   >
-                    <motion.div
-                      layoutId="aurora-sphere"
-                      className="mb-2 pointer-events-none select-none"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    >
-                      <video
-                        key={isDark ? 'dark' : 'light'}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-32 h-32 object-contain"
-                      >
-                        <source src={isDark ? "/AI SphereDark2.mp4" : "/AI SphereNew.mp4"} type="video/mp4" />
-                      </video>
-                    </motion.div>
+                    <AuroraAvatar layoutId="aurora-avatar" className="mb-2 size-32 pointer-events-none" />
 
                     <motion.div
                       key="landing-text"
@@ -1657,8 +1642,8 @@ export function AIAssistant({ isOpen: propIsOpen, onClose, isCentered = false }:
                         key={`${msg.id}-${idx}`}
                         msg={msg}
                         idx={idx}
-                        isLastAssistantMessage={messages.findIndex(m => m.role === 'assistant') === idx}
-                        selectedModel={selectedModel}
+                        isLastAssistantMessage={lastAssistantMessageIndex === idx}
+                        isAwaitingInput={lastAssistantMessageIndex === idx && !!activeClarificationQuestion}
                         expandedThoughts={expandedThoughts}
                         setExpandedThoughts={setExpandedThoughts}
                         expandedToolDetails={expandedToolDetails}

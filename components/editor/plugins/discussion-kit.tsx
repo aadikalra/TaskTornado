@@ -118,7 +118,7 @@ const usersData: Record<
   },
   aurora: {
     id: 'aurora',
-    avatarUrl: '', // Uses AuraVideoIcon instead
+    avatarUrl: '', // Uses AuroraAvatar instead
     name: 'Aurora',
   },
   bob: {
